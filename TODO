@@ -1,0 +1,6 @@
+* More javadoc and unit tests needed.
+
+* JDBC Statements caching, JMX, obtaining connection from DataSource,
+  calculate and log some statistics, initializing from external properties file.
+
+* Prepare to upload build artifacts to central maven repo.
