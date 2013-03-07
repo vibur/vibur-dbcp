@@ -44,9 +44,9 @@
     <!--</parent>-->
 
     <scm>
-        <url>http://code.google.com/p/vibur-object-pool/</url>
-        <connection>scm:svn:https://vibur-object-pool.googlecode.com/svn/trunk/</connection>
-        <developerConnection>scm:svn:https://vibur-object-pool.googlecode.com/svn/trunk/</developerConnection>
+        <url>http://code.google.com/p/vibur-dbcp/</url>
+        <connection>scm:svn:https://vibur-dbcp.googlecode.com/svn/trunk/</connection>
+        <developerConnection>scm:svn:https://vibur-dbcp.googlecode.com/svn/trunk/</developerConnection>
     </scm>
 
     <developers>
@@ -70,7 +70,7 @@
 
     <issueManagement>
         <system>code.google.com</system>
-        <url>http://code.google.com/p/vibur-object-pool/issues</url>
+        <url>http://code.google.com/p/vibur-dbcp/issues</url>
     </issueManagement>
 
     <properties>
