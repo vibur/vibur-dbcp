@@ -17,7 +17,11 @@
 package vibur.dbcp;
 
 import org.slf4j.LoggerFactory;
+import vibur.dbcp.cache.ConcurrentCache;
+import vibur.dbcp.cache.ConcurrentFifoCache;
+import vibur.dbcp.listener.DestroyListener;
 import vibur.dbcp.proxy.Proxy;
+import vibur.dbcp.proxy.StatementDescriptor;
 import vibur.object_pool.ConcurrentHolderLinkedPool;
 import vibur.object_pool.HolderValidatingPoolService;
 import vibur.object_pool.Holder;
@@ -31,13 +35,14 @@ import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
+import java.sql.Statement;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 /**
  * @author Simeon Malchev
  */
-public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource {
+public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, DestroyListener {
 
     private static final org.slf4j.Logger logger = LoggerFactory.getLogger(ViburDBCPDataSource.class);
 
@@ -72,7 +77,8 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource {
             isValidateOnTake(), isValidateOnRestore(), getTestConnectionQuery(),
             getAcquireRetryDelayInMs(), getAcquireRetryAttempts(),
             getDefaultAutoCommit(), getDefaultReadOnly(),
-            getDefaultTransactionIsolationValue(), getDefaultCatalog());
+            getDefaultTransactionIsolationValue(), getDefaultCatalog(),
+            this);
         connectionPool = new ConcurrentHolderLinkedPool<Connection>(connectionObjectFactory,
             getPoolInitialSize(), getPoolMaxSize(), isPoolFair(), isPoolEnableConnectionTracking());
 
@@ -87,6 +93,11 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource {
                     logger.debug("Intended reduction {} actual {}", reduction, reduced);
             }
         };
+
+        int statementCacheMaxSize = getStatementCacheMaxSize();
+        if (statementCacheMaxSize > 0)
+            setStatementCache(new ConcurrentFifoCache<StatementDescriptor, Statement>
+                (statementCacheMaxSize));
     }
 
     public synchronized void shutdown() {
@@ -102,6 +113,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource {
         if (getDriverClassName() == null || getJdbcUrl() == null
             || getCreateConnectionTimeoutInMs() < 0 || getAcquireRetryDelayInMs() < 0
             || getAcquireRetryAttempts() < 0 || getQueryExecuteTimeLimitInMs() < 0
+            || getStatementCacheMaxSize() < 0
             || (getTestConnectionQuery() == null && (isValidateOnTake() || isValidateOnRestore())))
             throw new IllegalArgumentException();
 
@@ -171,6 +183,13 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource {
 
     public boolean isWrapperFor(Class<?> iface) throws SQLException {
         return false;
+    }
+
+    public void onDestroy(Connection connection) {
+        ConcurrentCache<StatementDescriptor, Statement> statementCache = getStatementCache();
+        for (StatementDescriptor sd : statementCache.keySet())
+            if (sd.getProxy().equals(connection))
+                statementCache.remove(sd);
     }
 
     public State getState() {

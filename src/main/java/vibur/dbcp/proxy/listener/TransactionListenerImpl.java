@@ -14,16 +14,20 @@
  * limitations under the License.
  */
 
-package vibur.dbcp.proxy;
-
-import java.util.List;
+package vibur.dbcp.proxy.listener;
 
 /**
  * @author Simeon Malchev
  */
-public interface ExceptionListener {
+public class TransactionListenerImpl  implements TransactionListener {
 
-    void addException(Throwable throwable);
+    private volatile boolean inProgress = false;
 
-    List<Throwable> getExceptions();
+    public boolean isInProgress() {
+        return inProgress;
+    }
+
+    public void setInProgress(boolean inProgress) {
+        this.inProgress = inProgress;
+    }
 }

@@ -16,6 +16,8 @@
 
 package vibur.dbcp.proxy;
 
+import vibur.dbcp.proxy.listener.ExceptionListener;
+
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;

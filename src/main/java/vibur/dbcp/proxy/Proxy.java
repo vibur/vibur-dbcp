@@ -17,6 +17,8 @@
 package vibur.dbcp.proxy;
 
 import vibur.dbcp.ViburDBCPConfig;
+import vibur.dbcp.proxy.listener.ExceptionListener;
+import vibur.dbcp.proxy.listener.TransactionListener;
 import vibur.object_pool.HolderValidatingPoolService;
 import vibur.object_pool.Holder;
 

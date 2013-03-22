@@ -19,6 +19,8 @@ package vibur.dbcp.proxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import vibur.dbcp.ViburDBCPConfig;
+import vibur.dbcp.proxy.listener.ExceptionListener;
+import vibur.dbcp.proxy.listener.TransactionListener;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;

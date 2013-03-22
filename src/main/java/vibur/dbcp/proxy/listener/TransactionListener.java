@@ -14,20 +14,14 @@
  * limitations under the License.
  */
 
-package vibur.dbcp.proxy;
+package vibur.dbcp.proxy.listener;
 
 /**
  * @author Simeon Malchev
  */
-public class TransactionListenerImpl  implements TransactionListener {
+public interface TransactionListener {
 
-    private volatile boolean inProgress = false;
+    public boolean isInProgress();
 
-    public boolean isInProgress() {
-        return inProgress;
-    }
-
-    public void setInProgress(boolean inProgress) {
-        this.inProgress = inProgress;
-    }
+    public void setInProgress(boolean inProgress);
 }

@@ -16,6 +16,11 @@
 
 package vibur.dbcp;
 
+import vibur.dbcp.cache.ConcurrentCache;
+import vibur.dbcp.proxy.StatementDescriptor;
+
+import java.sql.Statement;
+
 /**
  * @author Simeon Malchev
  */
@@ -75,6 +80,10 @@ public class ViburDBCPConfig {
      * try to connect these many times before giving up. */
     private int acquireRetryAttempts = 3;
 
+
+    /** Defines the maximum statement cache size. {@code 0} disables it, max values is {@code 1000} */
+    private int statementCacheMaxSize = 0;
+    private ConcurrentCache<StatementDescriptor, Statement> statementCache = null;
 
     /** If set to true, log all SQL statements being executed. */
     private boolean logStatementsEnabled = false;
@@ -230,6 +239,22 @@ public class ViburDBCPConfig {
 
     public void setAcquireRetryAttempts(int acquireRetryAttempts) {
         this.acquireRetryAttempts = acquireRetryAttempts;
+    }
+
+    public int getStatementCacheMaxSize() {
+        return statementCacheMaxSize;
+    }
+
+    public void setStatementCacheMaxSize(int statementCacheMaxSize) {
+        this.statementCacheMaxSize = statementCacheMaxSize;
+    }
+
+    public ConcurrentCache<StatementDescriptor, Statement> getStatementCache() {
+        return statementCache;
+    }
+
+    public void setStatementCache(ConcurrentCache<StatementDescriptor, Statement> statementCache) {
+        this.statementCache = statementCache;
     }
 
     public boolean isLogStatementsEnabled() {

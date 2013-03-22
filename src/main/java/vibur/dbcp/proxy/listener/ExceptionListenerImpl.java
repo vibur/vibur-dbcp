@@ -14,14 +14,25 @@
  * limitations under the License.
  */
 
-package vibur.dbcp.proxy;
+package vibur.dbcp.proxy.listener;
+
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * @author Simeon Malchev
  */
-public interface TransactionListener {
+public class ExceptionListenerImpl implements ExceptionListener {
 
-    public boolean isInProgress();
+    private Queue<Throwable> queue = new ConcurrentLinkedQueue<Throwable>();
 
-    public void setInProgress(boolean inProgress);
+    public void addException(Throwable throwable) {
+        queue.offer(throwable);
+    }
+
+    public List<Throwable> getExceptions() {
+        return new LinkedList<Throwable>(queue);
+    }
 }

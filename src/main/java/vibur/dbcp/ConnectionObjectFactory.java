@@ -17,6 +17,7 @@
 package vibur.dbcp;
 
 import org.slf4j.LoggerFactory;
+import vibur.dbcp.listener.DestroyListener;
 import vibur.object_pool.PoolObjectFactory;
 
 import java.sql.Connection;
@@ -69,13 +70,15 @@ public class ConnectionObjectFactory implements PoolObjectFactory<Connection> {
     /** The default catalog state of created connections. */
     private final String defaultCatalog;
 
+    private final DestroyListener destroyListener;
 
     public ConnectionObjectFactory(String driverClassName, String jdbcUrl,
                                    String username, String password,
                                    boolean validateOnTake, boolean validateOnRestore, String testConnectionQuery,
                                    long acquireRetryDelayInMs, int acquireRetryAttempts,
                                    Boolean defaultAutoCommit, Boolean defaultReadOnly,
-                                   Integer defaultTransactionIsolation, String defaultCatalog) {
+                                   Integer defaultTransactionIsolation, String defaultCatalog,
+                                   DestroyListener destroyListener) {
         this.driverClassName = driverClassName;
         this.jdbcUrl = jdbcUrl;
         this.username = username;
@@ -89,6 +92,7 @@ public class ConnectionObjectFactory implements PoolObjectFactory<Connection> {
         this.defaultReadOnly = defaultReadOnly;
         this.defaultTransactionIsolation = defaultTransactionIsolation;
         this.defaultCatalog = defaultCatalog;
+        this.destroyListener = destroyListener;
 
         try {
             Class.forName(this.driverClassName);
@@ -164,6 +168,7 @@ public class ConnectionObjectFactory implements PoolObjectFactory<Connection> {
     /** {@inheritDoc} */
     public void destroy(Connection connection) {
         try {
+            destroyListener.onDestroy(connection);
             connection.close();
         } catch (SQLException e) {
             logger.debug("Couldn't close a JDBC Connection", e);

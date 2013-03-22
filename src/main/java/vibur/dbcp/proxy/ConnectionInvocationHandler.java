@@ -19,6 +19,10 @@ package vibur.dbcp.proxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import vibur.dbcp.ViburDBCPConfig;
+import vibur.dbcp.cache.ConcurrentCache;
+import vibur.dbcp.proxy.listener.ExceptionListenerImpl;
+import vibur.dbcp.proxy.listener.TransactionListener;
+import vibur.dbcp.proxy.listener.TransactionListenerImpl;
 import vibur.object_pool.Holder;
 import vibur.object_pool.HolderValidatingPoolService;
 
@@ -43,6 +47,8 @@ class ConnectionInvocationHandler extends AbstractInvocationHandler<Connection>
     private volatile boolean autoCommit;
     private volatile boolean logicallyClosed = false;
 
+    private final ConcurrentCache<StatementDescriptor, Statement> statementCache;
+
     public ConnectionInvocationHandler(HolderValidatingPoolService<Connection> connectionPool,
                                        Holder<Connection> hConnection, ViburDBCPConfig config) {
         super(hConnection.value(), new ExceptionListenerImpl());
@@ -54,6 +60,7 @@ class ConnectionInvocationHandler extends AbstractInvocationHandler<Connection>
         this.transactionListener = new TransactionListenerImpl();
         this.config = config;
         this.autoCommit = config.getDefaultAutoCommit() != null ? config.getDefaultAutoCommit() : false;
+        this.statementCache = config.getStatementCache();
     }
 
     protected Object customInvoke(Connection proxy, Method method, Object[] args) throws Throwable {
@@ -73,15 +80,15 @@ class ConnectionInvocationHandler extends AbstractInvocationHandler<Connection>
         // Methods which results have to be proxied so that when getConnection() is called
         // on them the return value to be current JDBC Connection proxy.
         if (methodName.equals("createStatement")) { // *3
-            Statement statement = (Statement) targetInvoke(method, args);
+            Statement statement = getStatement(method, args);
             return Proxy.newStatement(statement, proxy, config, transactionListener, getExceptionListener());
         }
         if (methodName.equals("prepareStatement")) { // *6
-            PreparedStatement pStatement = (PreparedStatement) targetInvoke(method, args);
+            PreparedStatement pStatement = (PreparedStatement) getStatement(method, args);
             return Proxy.newPreparedStatement(pStatement, proxy, config, transactionListener, getExceptionListener());
         }
         if (methodName.equals("prepareCall")) { // *3
-            CallableStatement cStatement = (CallableStatement) targetInvoke(method, args);
+            CallableStatement cStatement = (CallableStatement) getStatement(method, args);
             return Proxy.newCallableStatement(cStatement, proxy, config, transactionListener, getExceptionListener());
         }
         if (methodName.equals("getMetaData")) { // *1
@@ -99,6 +106,20 @@ class ConnectionInvocationHandler extends AbstractInvocationHandler<Connection>
         }
 
         return super.customInvoke(proxy, method, args);
+    }
+
+    private Statement getStatement(Method method, Object[] args) throws Throwable {
+        Statement statement;
+        if (statementCache != null) {
+            StatementDescriptor descriptor = new StatementDescriptor(getTarget(), method, args);
+            statement = statementCache.get(descriptor);
+            if (statement == null) {
+                statement = (Statement) targetInvoke(method, args);
+                statementCache.put(descriptor, statement);
+            }
+        } else
+            statement = (Statement) targetInvoke(method, args);
+        return statement;
     }
 
     private Object processCloseOrAbort(boolean isClose) {
