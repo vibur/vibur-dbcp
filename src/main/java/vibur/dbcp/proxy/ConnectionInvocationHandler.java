@@ -115,7 +115,7 @@ class ConnectionInvocationHandler extends AbstractInvocationHandler<Connection>
             statement = statementCache.get(descriptor);
             if (statement == null) {
                 statement = (Statement) targetInvoke(method, args);
-                statementCache.put(descriptor, statement);
+                statementCache.putIfAbsent(descriptor, statement);
             }
         } else
             statement = (Statement) targetInvoke(method, args);

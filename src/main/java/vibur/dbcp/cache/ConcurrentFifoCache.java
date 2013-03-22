@@ -36,7 +36,7 @@ public class ConcurrentFifoCache<K, V> implements ConcurrentCache<K, V> {
         = new ConcurrentSkipListMap<Long, K>();
 
     private final AtomicInteger size = new AtomicInteger(0);
-    private final AtomicLong idGenerator = new AtomicLong(Long.MIN_VALUE);
+    private final AtomicLong idGenerator = new AtomicLong(Long.MAX_VALUE);
 
     private final int maxSize;
 
@@ -78,10 +78,12 @@ public class ConcurrentFifoCache<K, V> implements ConcurrentCache<K, V> {
     }
 
     /** {@inheritDoc} */
-    public V put(K key, V value) {
-        ValueHolder<V> vh = straightMap.put(key,
-            new ValueHolder<V>(value, idGenerator.getAndDecrement()));
-        if (vh == null) {
+    public V putIfAbsent(K key, V value) {
+        ValueHolder<V> newVh = new ValueHolder<V>(value, idGenerator.getAndDecrement());
+        ValueHolder<V> oldVh = straightMap.putIfAbsent(key, newVh);
+        if (oldVh == null) {
+            reverseMap.put(newVh.order, key);
+
             int newSize = size.incrementAndGet();
             while (newSize > maxSize) {
                 if (size.compareAndSet(newSize, newSize - 1)) {
@@ -97,7 +99,7 @@ public class ConcurrentFifoCache<K, V> implements ConcurrentCache<K, V> {
             }
             return null;
         }
-        return vh.value;
+        return oldVh.value;
     }
 
     /** {@inheritDoc} */
@@ -136,6 +138,8 @@ public class ConcurrentFifoCache<K, V> implements ConcurrentCache<K, V> {
 
     /** {@inheritDoc} */
     public Set<K> keySet() {
-        return new HashSet<K>(reverseMap.values());
+        Set<K> sorted = new TreeSet<K>(Collections.reverseOrder());
+        sorted.addAll(reverseMap.values());
+        return sorted;
     }
 }

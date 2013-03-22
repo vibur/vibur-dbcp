@@ -43,16 +43,15 @@ public interface ConcurrentCache<K, V> {
     V get(K key);
 
     /**
-     * Associates the specified value with the specified key in this map.
-     * If the map previously contained a mapping for the key, the old value
-     * is replaced by the specified value.
+     * If the specified key is not already associated
+     * with a value, associate it with the given value.
      *
      * @param key key with which the specified value is to be associated
      * @param value value to be associated with the specified key
-     * @return the previous value associated with <tt>key</tt>, or
-     *         <tt>null</tt> if there was no mapping for <tt>key</tt>.
+     * @return the previous value associated with the specified key, or
+     *         <tt>null</tt> if there was no mapping for the key.
      */
-    V put(K key, V value);
+    V putIfAbsent(K key, V value);
 
     /**
      * Removes the mapping for a key from this map if it is present.
