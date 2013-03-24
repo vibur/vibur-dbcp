@@ -46,6 +46,8 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
 
     private static final org.slf4j.Logger logger = LoggerFactory.getLogger(ViburDBCPDataSource.class);
 
+    private static final int CACHE_MAX_SIZE = 500;
+
     private PrintWriter logWriter = null;
 
     private PoolObjectFactory<Connection> connectionObjectFactory;
@@ -95,6 +97,8 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
         };
 
         int statementCacheMaxSize = getStatementCacheMaxSize();
+        if (statementCacheMaxSize > CACHE_MAX_SIZE)
+            statementCacheMaxSize = CACHE_MAX_SIZE;
         if (statementCacheMaxSize > 0)
             setStatementCache(new ConcurrentFifoCache<StatementDescriptor, Statement>
                 (statementCacheMaxSize));

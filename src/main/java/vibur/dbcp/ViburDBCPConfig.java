@@ -81,7 +81,7 @@ public class ViburDBCPConfig {
     private int acquireRetryAttempts = 3;
 
 
-    /** Defines the maximum statement cache size. {@code 0} disables it, max values is {@code 1000} */
+    /** Defines the maximum statement cache size. {@code 0} disables it, max values is {@code 500} */
     private int statementCacheMaxSize = 0;
     private ConcurrentCache<StatementDescriptor, Statement> statementCache = null;
 

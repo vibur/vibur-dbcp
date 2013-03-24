@@ -30,10 +30,8 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class ConcurrentFifoCache<K, V> implements ConcurrentCache<K, V> {
 
-    private final ConcurrentMap<K, ValueHolder<V>> straightMap
-        = new ConcurrentHashMap<K, ValueHolder<V>>();
-    private final NavigableMap<Long, K> reverseMap
-        = new ConcurrentSkipListMap<Long, K>();
+    private final ConcurrentMap<K, ValueHolder<V>> straightMap;
+    private final NavigableMap<Long, K> reverseMap;
 
     private final AtomicInteger size = new AtomicInteger(0);
     private final AtomicLong idGenerator = new AtomicLong(Long.MAX_VALUE);
@@ -42,6 +40,8 @@ public class ConcurrentFifoCache<K, V> implements ConcurrentCache<K, V> {
 
     public ConcurrentFifoCache(int maxSize) {
         this.maxSize = maxSize;
+        this.straightMap = new ConcurrentHashMap<K, ValueHolder<V>>(maxSize);
+        this.reverseMap = new ConcurrentSkipListMap<Long, K>();
     }
 
     private static class ValueHolder<V> {
