@@ -35,13 +35,11 @@ public abstract class AbstractInvocationHandler<T> implements InvocationHandler 
     public AbstractInvocationHandler(T target, ExceptionListener exceptionListener) {
         if (target == null || exceptionListener == null)
             throw new NullPointerException();
-
         this.target = target;
         this.exceptionListener = exceptionListener;
     }
 
     /** @inheritDoc */
-    @SuppressWarnings("unchecked")
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         String methodName = method.getName();
 

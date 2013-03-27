@@ -23,35 +23,21 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 
 public class ValueHolder<V> {
-
-    long order;
-
     private final V value;
-    private final AtomicBoolean available;
+    private final AtomicBoolean inUse;
 
-    public ValueHolder(long order, V value, AtomicBoolean available) {
-        this.order = order;
+    public ValueHolder(V value, AtomicBoolean inUse) {
+        if (value == null)
+            throw new NullPointerException();
         this.value = value;
-        this.available = available;
+        this.inUse = inUse;
     }
 
-    public V getValue() {
+    public V value() {
         return value;
     }
 
-    public AtomicBoolean getAvailable() {
-        return available;
-    }
-
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        ValueHolder that = (ValueHolder) o;
-        return order == that.order;
-    }
-
-    public int hashCode() {
-        return (int) (order ^ (order >>> 32));
+    public AtomicBoolean inUse() {
+        return inUse;
     }
 }

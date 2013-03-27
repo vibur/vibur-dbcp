@@ -21,7 +21,6 @@ import org.slf4j.LoggerFactory;
 import vibur.dbcp.ViburDBCPConfig;
 import vibur.dbcp.cache.ConcurrentCache;
 import vibur.dbcp.cache.ValueHolder;
-import vibur.dbcp.proxy.cache.StatementDescriptor;
 import vibur.dbcp.proxy.cache.StatementKey;
 import vibur.dbcp.proxy.listener.ExceptionListenerImpl;
 import vibur.dbcp.proxy.listener.TransactionListener;
@@ -31,10 +30,8 @@ import vibur.object_pool.HolderValidatingPoolService;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
-import java.sql.Connection;
-import java.sql.DatabaseMetaData;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * @author Simeon Malchev
@@ -60,7 +57,6 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
         super(hConnection.value(), new ExceptionListenerImpl());
         if (connectionPool == null || config == null)
             throw new NullPointerException();
-
         this.connectionPool = connectionPool;
         this.hConnection = hConnection;
         this.transactionListener = new TransactionListenerImpl();
@@ -69,6 +65,7 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
         this.statementCache = config.getStatementCache();
     }
 
+    @SuppressWarnings("unchecked")
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         String methodName = method.getName();
 
@@ -87,18 +84,21 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
         // on them the return value to be current JDBC Connection proxy.
         Connection connectionProxy = (Connection) proxy;
         if (methodName.equals("createStatement")) { // *3
-            StatementDescriptor statementDescriptor = getStatementDescriptor(method, args);
-            return Proxy.newStatement(statementDescriptor, connectionProxy,
+            ValueHolder<Statement> statementHolder =
+                (ValueHolder<Statement>) getStatementHolder(method, args);
+            return Proxy.newStatement(statementHolder, connectionProxy,
                 config, transactionListener, getExceptionListener());
         }
         if (methodName.equals("prepareStatement")) { // *6
-            StatementDescriptor statementDescriptor = getStatementDescriptor(method, args);
-            return Proxy.newPreparedStatement(statementDescriptor, connectionProxy,
+            ValueHolder<PreparedStatement> statementHolder =
+                (ValueHolder<PreparedStatement>) getStatementHolder(method, args);
+            return Proxy.newPreparedStatement(statementHolder, connectionProxy,
                 config, transactionListener, getExceptionListener());
         }
         if (methodName.equals("prepareCall")) { // *3
-            StatementDescriptor statementDescriptor = getStatementDescriptor(method, args);
-            return Proxy.newCallableStatement(statementDescriptor, connectionProxy,
+            ValueHolder<CallableStatement> statementHolder =
+                (ValueHolder<CallableStatement>) getStatementHolder(method, args);
+            return Proxy.newCallableStatement(statementHolder, connectionProxy,
                 config, transactionListener, getExceptionListener());
         }
         if (methodName.equals("getMetaData")) { // *1
@@ -118,21 +118,27 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
         return super.invoke(proxy, method, args);
     }
 
-    private StatementDescriptor getStatementDescriptor(Method method, Object[] args) throws Throwable {
-        Statement statement;
-        StatementKey key = null;
+    private ValueHolder<? extends Statement> getStatementHolder(Method method, Object[] args)
+            throws Throwable {
         if (statementCache != null) {
-            key = new StatementKey(getTarget(), method, args);
-            ValueHolder<Statement> valueHolder = statementCache.take(key);
-            if (valueHolder == null) { // todo refactor this..
+            Statement statement;
+            AtomicBoolean inUse = null;
+            StatementKey key = new StatementKey(getTarget(), method, args);
+            ValueHolder<Statement> statementHolder = statementCache.take(key);
+            if (statementHolder == null || statementHolder.inUse().getAndSet(true)) {
                 statement = (Statement) targetInvoke(method, args);
-                Statement other = statementCache.putIfAbsent(key, statement, false);
-                if (other != null)
-                    key = null;
-            }
-        } else
-            statement = (Statement) targetInvoke(method, args);
-        return new StatementDescriptor(statement, key);
+                if (statementHolder == null) { // there was no entry for the key
+                    inUse = new AtomicBoolean(true);
+                    if (statementCache.putIfAbsent(key, statement, inUse) != null)
+                        inUse = null; // because someone manage to put the value before us
+                }
+                return new ValueHolder<Statement>(statement, inUse);
+            } else
+                return statementHolder;
+        } else {
+            Statement statement = (Statement) targetInvoke(method, args);
+            return new ValueHolder<Statement>(statement, null);
+        }
     }
 
     private Object processCloseOrAbort(boolean isClose) {

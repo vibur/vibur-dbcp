@@ -19,9 +19,7 @@ package vibur.dbcp.proxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import vibur.dbcp.ViburDBCPConfig;
-import vibur.dbcp.cache.ConcurrentCache;
-import vibur.dbcp.proxy.cache.StatementDescriptor;
-import vibur.dbcp.proxy.cache.StatementKey;
+import vibur.dbcp.cache.ValueHolder;
 import vibur.dbcp.proxy.listener.ExceptionListener;
 import vibur.dbcp.proxy.listener.TransactionListener;
 
@@ -37,27 +35,23 @@ public class StatementInvocationHandler extends ConnectionChildInvocationHandler
 
     private static final Logger logger = LoggerFactory.getLogger(StatementInvocationHandler.class);
 
-    private final StatementKey statementKey;
+    private final ValueHolder<? extends Statement> statementHolder;
     private final ViburDBCPConfig config;
     private final TransactionListener transactionListener;
 
-    private final ConcurrentCache<StatementKey, Statement> statementCache;
-
     private volatile boolean logicallyClosed = false;
-    private volatile boolean closeOnCompletion = false;
 
-    public StatementInvocationHandler(StatementDescriptor statementDescriptor,
+    public StatementInvocationHandler(ValueHolder<? extends Statement> statementHolder,
                                       Connection connectionProxy,
                                       ViburDBCPConfig config,
                                       TransactionListener transactionListener,
                                       ExceptionListener exceptionListener) {
-        super(statementDescriptor.getStatement(), connectionProxy, exceptionListener);
+        super(statementHolder.value(), connectionProxy, exceptionListener);
         if (config == null || transactionListener == null)
             throw new NullPointerException();
-        this.statementKey = statementDescriptor.getStatementKey();
+        this.statementHolder = statementHolder;
         this.config = config;
         this.transactionListener = transactionListener;
-        this.statementCache = config.getStatementCache();
     }
 
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
@@ -65,8 +59,8 @@ public class StatementInvocationHandler extends ConnectionChildInvocationHandler
 
         if (methodName.equals("close")) {
             logicallyClosed = true;
-            if (statementCache != null && statementKey != null)
-                statementCache.restore(statementKey);
+            if (statementHolder.inUse() != null)
+                statementHolder.inUse().set(false);
             return null;
         }
         if (methodName.equals("isClosed"))
@@ -78,13 +72,6 @@ public class StatementInvocationHandler extends ConnectionChildInvocationHandler
 
         if (methodName.startsWith("execute"))
             return processExecute((Statement) proxy, method, args);
-
-        if (methodName.equals("closeOnCompletion")) {
-            closeOnCompletion = true;
-            return null;
-        }
-        if (methodName.equals("isCloseOnCompletion"))
-            return closeOnCompletion;
 
         return super.invoke(proxy, method, args);
     }

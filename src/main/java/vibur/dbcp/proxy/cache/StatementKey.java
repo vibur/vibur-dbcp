@@ -21,6 +21,13 @@ import java.sql.Connection;
 import java.util.Arrays;
 
 /**
+ * Describes the "parameters" via which a Statement has been created. These are the
+ * Connection object, the Method object which has been called on this Connection, and
+ * the Method arguments.
+
+ * <p>Used as a key for Statements caching in a {@link vibur.dbcp.cache.ConcurrentCache}
+ * implementation.
+ *
  * @author Simeon Malchev
  */
 public class StatementKey {

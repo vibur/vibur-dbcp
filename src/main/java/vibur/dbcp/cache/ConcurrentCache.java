@@ -17,6 +17,7 @@
 package vibur.dbcp.cache;
 
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Concurrent cache interface, a subset of {@link java.util.concurrent.ConcurrentNavigableMap}.
@@ -35,9 +36,9 @@ public interface ConcurrentCache<K, V> {
     /**
      * Returns the value to which the specified key is mapped,
      * or {@code null} if this map contains no mapping for the key.
-     * This method doesn't change the availability flag of the
+     * This method doesn't change the inUse flag of the
      * corresponding mapping, neither provides information what was
-     * the mapping's availability flag at the time of the call.
+     * the mapping's inUse flag at the time of the call.
      *
      * @param key the key whose associated value is to be returned
      * @return the value to which the specified key is mapped, or
@@ -57,7 +58,7 @@ public interface ConcurrentCache<K, V> {
 
     /**
      * If the specified key is not already associated
-     * with a value, associate it with the given value, and set the availability
+     * with a value, associate it with the given value, and set the inUse
      * status to {@code true}.
      *
      * @param key key with which the specified value is to be associated
@@ -69,16 +70,16 @@ public interface ConcurrentCache<K, V> {
 
     /**
      * If the specified key is not already associated
-     * with a value, associate it with the given value, and set the availability
-     * status to given available status.
+     * with a value, associate it with the given value, and set the inUse
+     * status to the given inUse status.
      *
      * @param key key with which the specified value is to be associated
      * @param value value to be associated with the specified key
-     * @param available the availability status
+     * @param inUse the inUse status
      * @return the previous value associated with the specified key, or
      *         <tt>null</tt> if there was no mapping for the key.
      */
-    V putIfAbsent(K key, V value, boolean available);
+    V putIfAbsent(K key, V value, AtomicBoolean inUse);
 
     /**
      * Removes the mapping for a key from this map if it is present.

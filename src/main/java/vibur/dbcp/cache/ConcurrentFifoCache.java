@@ -31,7 +31,7 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class ConcurrentFifoCache<K, V> implements ConcurrentCache<K, V> {
 
-    private final ConcurrentMap<K, ValueHolder<V>> straightMap;
+    private final ConcurrentMap<K, StampedValue<V>> straightMap;
     private final NavigableMap<Long, K> reverseMap;
 
     private final AtomicInteger size = new AtomicInteger(0);
@@ -39,11 +39,32 @@ public class ConcurrentFifoCache<K, V> implements ConcurrentCache<K, V> {
 
     private final int maxSize;
 
+    private static class StampedValue<V> extends ValueHolder<V> {
+        private final long order;
+
+        private StampedValue(long order, V value, AtomicBoolean inUse) {
+            super(value, inUse);
+            this.order = order;
+        }
+
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            StampedValue that = (StampedValue) o;
+            return order == that.order;
+        }
+
+        public int hashCode() {
+            return (int) (order ^ (order >>> 32));
+        }
+    }
+
     public ConcurrentFifoCache(int maxSize) {
         if (maxSize < 1)
             throw new IllegalArgumentException();
         this.maxSize = maxSize;
-        this.straightMap = new ConcurrentHashMap<K, ValueHolder<V>>(maxSize);
+        this.straightMap = new ConcurrentHashMap<K, StampedValue<V>>(maxSize);
         this.reverseMap = new ConcurrentSkipListMap<Long, K>();
     }
 
@@ -54,8 +75,8 @@ public class ConcurrentFifoCache<K, V> implements ConcurrentCache<K, V> {
 
     /** {@inheritDoc} */
     public V get(K key) {
-        ValueHolder<V> vh = straightMap.get(key);
-        return vh != null ? vh.getValue() : null;
+        StampedValue<V> sv = straightMap.get(key);
+        return sv != null ? sv.value() : null;
     }
 
     /** {@inheritDoc} */
@@ -65,16 +86,15 @@ public class ConcurrentFifoCache<K, V> implements ConcurrentCache<K, V> {
 
     /** {@inheritDoc} */
     public V putIfAbsent(K key, V value) {
-        return putIfAbsent(key, value, true);
+        return putIfAbsent(key, value, new AtomicBoolean(false));
     }
 
     /** {@inheritDoc} */
-    public V putIfAbsent(K key, V value, boolean available) {
-        ValueHolder<V> newVh = new ValueHolder<V>(idGenerator.getAndDecrement(),
-            value, new AtomicBoolean(available));
-        ValueHolder<V> oldVh = straightMap.putIfAbsent(key, newVh);
-        if (oldVh == null) {
-            reverseMap.put(newVh.order, key);
+    public V putIfAbsent(K key, V value, AtomicBoolean inUse) {
+        StampedValue<V> newSv = new StampedValue<V>(idGenerator.getAndDecrement(), value, inUse);
+        StampedValue<V> oldSv = straightMap.putIfAbsent(key, newSv);
+        if (oldSv == null) {
+            reverseMap.put(newSv.order, key);
 
             int newSize = size.incrementAndGet();
             while (newSize > maxSize) {
@@ -83,7 +103,7 @@ public class ConcurrentFifoCache<K, V> implements ConcurrentCache<K, V> {
                     if (lastEntry == null)
                         break;
                     boolean removed = straightMap.remove(lastEntry.getValue(),
-                        new ValueHolder<V>(lastEntry.getKey(), null, null));
+                        new StampedValue<V>(lastEntry.getKey(), null, null));
                     if (!removed)
                         size.incrementAndGet();
                 }
@@ -91,25 +111,25 @@ public class ConcurrentFifoCache<K, V> implements ConcurrentCache<K, V> {
             }
             return null;
         }
-        return oldVh.getValue();
+        return oldSv.value();
     }
 
     /** {@inheritDoc} */
     public V remove(K key) {
-        ValueHolder<V> vh = straightMap.remove(key);
-        if (vh != null) {
+        StampedValue<V> sv = straightMap.remove(key);
+        if (sv != null) {
             size.decrementAndGet();
-            reverseMap.remove(vh.order);
-            return vh.getValue();
+            reverseMap.remove(sv.order);
+            return sv.value();
         }
         return null;
     }
 
     /** {@inheritDoc} */
     public void clear() {
-        for (Iterator<Map.Entry<K, ValueHolder<V>>> i =
+        for (Iterator<Map.Entry<K, StampedValue<V>>> i =
                  straightMap.entrySet().iterator(); i.hasNext(); ) {
-            Map.Entry<K, ValueHolder<V>> entry = i.next();
+            Map.Entry<K, StampedValue<V>> entry = i.next();
             i.remove();
             reverseMap.remove(entry.getValue().order);
             size.decrementAndGet();

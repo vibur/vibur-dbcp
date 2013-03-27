@@ -35,7 +35,6 @@ public class ConnectionChildInvocationHandler<T> extends AbstractInvocationHandl
         super(connectionChild, exceptionListener);
         if (connectionProxy == null)
             throw new NullPointerException();
-
         this.connectionProxy = connectionProxy;
     }
 
