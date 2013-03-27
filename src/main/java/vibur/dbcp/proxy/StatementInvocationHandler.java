@@ -85,7 +85,7 @@ public class StatementInvocationHandler extends ConnectionChildInvocationHandler
         if (queryExecuteTimeLimitInMs > 0)
             currentTime = System.currentTimeMillis();
         try {
-            Object result = targetInvoke(method, args); // the real executeXXX call
+            Object result = targetInvoke(method, args); // the real executeXYZ call
             transactionListener.setInProgress(true);
             return result;
         } finally {
