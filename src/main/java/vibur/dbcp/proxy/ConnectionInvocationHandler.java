@@ -20,6 +20,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import vibur.dbcp.ViburDBCPConfig;
 import vibur.dbcp.cache.ConcurrentCache;
+import vibur.dbcp.cache.ValueHolder;
+import vibur.dbcp.proxy.cache.StatementDescriptor;
+import vibur.dbcp.proxy.cache.StatementKey;
 import vibur.dbcp.proxy.listener.ExceptionListenerImpl;
 import vibur.dbcp.proxy.listener.TransactionListener;
 import vibur.dbcp.proxy.listener.TransactionListenerImpl;
@@ -28,12 +31,15 @@ import vibur.object_pool.HolderValidatingPoolService;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.SQLException;
+import java.sql.Statement;
 
 /**
  * @author Simeon Malchev
  */
-class ConnectionInvocationHandler extends AbstractInvocationHandler<Connection>
+public class ConnectionInvocationHandler extends AbstractInvocationHandler<Connection>
     implements InvocationHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(ConnectionInvocationHandler.class);
@@ -47,7 +53,7 @@ class ConnectionInvocationHandler extends AbstractInvocationHandler<Connection>
     private volatile boolean autoCommit;
     private volatile boolean logicallyClosed = false;
 
-    private final ConcurrentCache<StatementDescriptor, Statement> statementCache;
+    private final ConcurrentCache<StatementKey, Statement> statementCache;
 
     public ConnectionInvocationHandler(HolderValidatingPoolService<Connection> connectionPool,
                                        Holder<Connection> hConnection, ViburDBCPConfig config) {
@@ -63,7 +69,7 @@ class ConnectionInvocationHandler extends AbstractInvocationHandler<Connection>
         this.statementCache = config.getStatementCache();
     }
 
-    protected Object customInvoke(Connection proxy, Method method, Object[] args) throws Throwable {
+    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         String methodName = method.getName();
 
         boolean isMethodNameClose = methodName.equals("close");
@@ -79,21 +85,25 @@ class ConnectionInvocationHandler extends AbstractInvocationHandler<Connection>
 
         // Methods which results have to be proxied so that when getConnection() is called
         // on them the return value to be current JDBC Connection proxy.
+        Connection connectionProxy = (Connection) proxy;
         if (methodName.equals("createStatement")) { // *3
-            Statement statement = getStatement(method, args);
-            return Proxy.newStatement(statement, proxy, config, transactionListener, getExceptionListener());
+            StatementDescriptor statementDescriptor = getStatementDescriptor(method, args);
+            return Proxy.newStatement(statementDescriptor, connectionProxy,
+                config, transactionListener, getExceptionListener());
         }
         if (methodName.equals("prepareStatement")) { // *6
-            PreparedStatement pStatement = (PreparedStatement) getStatement(method, args);
-            return Proxy.newPreparedStatement(pStatement, proxy, config, transactionListener, getExceptionListener());
+            StatementDescriptor statementDescriptor = getStatementDescriptor(method, args);
+            return Proxy.newPreparedStatement(statementDescriptor, connectionProxy,
+                config, transactionListener, getExceptionListener());
         }
         if (methodName.equals("prepareCall")) { // *3
-            CallableStatement cStatement = (CallableStatement) getStatement(method, args);
-            return Proxy.newCallableStatement(cStatement, proxy, config, transactionListener, getExceptionListener());
+            StatementDescriptor statementDescriptor = getStatementDescriptor(method, args);
+            return Proxy.newCallableStatement(statementDescriptor, connectionProxy,
+                config, transactionListener, getExceptionListener());
         }
         if (methodName.equals("getMetaData")) { // *1
             DatabaseMetaData metaData = (DatabaseMetaData) targetInvoke(method, args);
-            return Proxy.newDatabaseMetaData(metaData, proxy, config, transactionListener, getExceptionListener());
+            return Proxy.newDatabaseMetaData(metaData, connectionProxy, getExceptionListener());
         }
 
         if (methodName.equals("setAutoCommit")) {
@@ -105,21 +115,24 @@ class ConnectionInvocationHandler extends AbstractInvocationHandler<Connection>
             return targetInvoke(method, args);
         }
 
-        return super.customInvoke(proxy, method, args);
+        return super.invoke(proxy, method, args);
     }
 
-    private Statement getStatement(Method method, Object[] args) throws Throwable {
+    private StatementDescriptor getStatementDescriptor(Method method, Object[] args) throws Throwable {
         Statement statement;
+        StatementKey key = null;
         if (statementCache != null) {
-            StatementDescriptor descriptor = new StatementDescriptor(getTarget(), method, args);
-            statement = statementCache.get(descriptor);
-            if (statement == null) {
+            key = new StatementKey(getTarget(), method, args);
+            ValueHolder<Statement> valueHolder = statementCache.take(key);
+            if (valueHolder == null) { // todo refactor this..
                 statement = (Statement) targetInvoke(method, args);
-                statementCache.putIfAbsent(descriptor, statement);
+                Statement other = statementCache.putIfAbsent(key, statement, false);
+                if (other != null)
+                    key = null;
             }
         } else
             statement = (Statement) targetInvoke(method, args);
-        return statement;
+        return new StatementDescriptor(statement, key);
     }
 
     private Object processCloseOrAbort(boolean isClose) {

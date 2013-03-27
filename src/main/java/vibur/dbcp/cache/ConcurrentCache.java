@@ -35,6 +35,9 @@ public interface ConcurrentCache<K, V> {
     /**
      * Returns the value to which the specified key is mapped,
      * or {@code null} if this map contains no mapping for the key.
+     * This method doesn't change the availability flag of the
+     * corresponding mapping, neither provides information what was
+     * the mapping's availability flag at the time of the call.
      *
      * @param key the key whose associated value is to be returned
      * @return the value to which the specified key is mapped, or
@@ -43,8 +46,19 @@ public interface ConcurrentCache<K, V> {
     V get(K key);
 
     /**
+     * Returns the {@link ValueHolder} to which the specified key is mapped,
+     * or {@code null} if this map contains no mapping for the key.
+     *
+     * @param key the key whose associated value is to be returned
+     * @return the {@link ValueHolder} to which the specified key is mapped,
+     * or {@code null} if this map contains no mapping for the key.
+     */
+    ValueHolder<V> take(K key);
+
+    /**
      * If the specified key is not already associated
-     * with a value, associate it with the given value.
+     * with a value, associate it with the given value, and set the availability
+     * status to {@code true}.
      *
      * @param key key with which the specified value is to be associated
      * @param value value to be associated with the specified key
@@ -52,6 +66,19 @@ public interface ConcurrentCache<K, V> {
      *         <tt>null</tt> if there was no mapping for the key.
      */
     V putIfAbsent(K key, V value);
+
+    /**
+     * If the specified key is not already associated
+     * with a value, associate it with the given value, and set the availability
+     * status to given available status.
+     *
+     * @param key key with which the specified value is to be associated
+     * @param value value to be associated with the specified key
+     * @param available the availability status
+     * @return the previous value associated with the specified key, or
+     *         <tt>null</tt> if there was no mapping for the key.
+     */
+    V putIfAbsent(K key, V value, boolean available);
 
     /**
      * Removes the mapping for a key from this map if it is present.
@@ -87,7 +114,7 @@ public interface ConcurrentCache<K, V> {
     K lastKey();
 
     /**
-     * Returns a copy snapshot {@link Set} view of the keys contained in
+     * Returns a copy snapshot {@link java.util.Set} view of the keys contained in
      * this map. The set's iterator returns the keys whose order of iteration is
      * the descending order in which its entries are considered eligible for
      * retention, from the most-likely to be retained to the least-likely.

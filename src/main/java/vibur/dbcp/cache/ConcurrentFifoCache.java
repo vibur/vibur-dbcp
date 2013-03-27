@@ -20,6 +20,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -39,31 +40,11 @@ public class ConcurrentFifoCache<K, V> implements ConcurrentCache<K, V> {
     private final int maxSize;
 
     public ConcurrentFifoCache(int maxSize) {
+        if (maxSize < 1)
+            throw new IllegalArgumentException();
         this.maxSize = maxSize;
         this.straightMap = new ConcurrentHashMap<K, ValueHolder<V>>(maxSize);
         this.reverseMap = new ConcurrentSkipListMap<Long, K>();
-    }
-
-    private static class ValueHolder<V> {
-        private final V value;
-        private long order;
-
-        private ValueHolder(V value, long order) {
-            this.value = value;
-            this.order = order;
-        }
-
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-
-            ValueHolder that = (ValueHolder) o;
-            return order == that.order;
-        }
-
-        public int hashCode() {
-            return (int) (order ^ (order >>> 32));
-        }
     }
 
     /** {@inheritDoc} */
@@ -74,12 +55,23 @@ public class ConcurrentFifoCache<K, V> implements ConcurrentCache<K, V> {
     /** {@inheritDoc} */
     public V get(K key) {
         ValueHolder<V> vh = straightMap.get(key);
-        return vh != null ? vh.value : null;
+        return vh != null ? vh.getValue() : null;
+    }
+
+    /** {@inheritDoc} */
+    public ValueHolder<V> take(K key) {
+        return straightMap.get(key);
     }
 
     /** {@inheritDoc} */
     public V putIfAbsent(K key, V value) {
-        ValueHolder<V> newVh = new ValueHolder<V>(value, idGenerator.getAndDecrement());
+        return putIfAbsent(key, value, true);
+    }
+
+    /** {@inheritDoc} */
+    public V putIfAbsent(K key, V value, boolean available) {
+        ValueHolder<V> newVh = new ValueHolder<V>(idGenerator.getAndDecrement(),
+            value, new AtomicBoolean(available));
         ValueHolder<V> oldVh = straightMap.putIfAbsent(key, newVh);
         if (oldVh == null) {
             reverseMap.put(newVh.order, key);
@@ -91,7 +83,7 @@ public class ConcurrentFifoCache<K, V> implements ConcurrentCache<K, V> {
                     if (lastEntry == null)
                         break;
                     boolean removed = straightMap.remove(lastEntry.getValue(),
-                        new ValueHolder<V>(null, lastEntry.getKey()));
+                        new ValueHolder<V>(lastEntry.getKey(), null, null));
                     if (!removed)
                         size.incrementAndGet();
                 }
@@ -99,7 +91,7 @@ public class ConcurrentFifoCache<K, V> implements ConcurrentCache<K, V> {
             }
             return null;
         }
-        return oldVh.value;
+        return oldVh.getValue();
     }
 
     /** {@inheritDoc} */
@@ -108,7 +100,7 @@ public class ConcurrentFifoCache<K, V> implements ConcurrentCache<K, V> {
         if (vh != null) {
             size.decrementAndGet();
             reverseMap.remove(vh.order);
-            return vh.value;
+            return vh.getValue();
         }
         return null;
     }

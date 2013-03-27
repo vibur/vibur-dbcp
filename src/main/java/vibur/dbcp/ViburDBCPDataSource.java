@@ -21,10 +21,10 @@ import vibur.dbcp.cache.ConcurrentCache;
 import vibur.dbcp.cache.ConcurrentFifoCache;
 import vibur.dbcp.listener.DestroyListener;
 import vibur.dbcp.proxy.Proxy;
-import vibur.dbcp.proxy.StatementDescriptor;
+import vibur.dbcp.proxy.cache.StatementKey;
 import vibur.object_pool.ConcurrentHolderLinkedPool;
-import vibur.object_pool.HolderValidatingPoolService;
 import vibur.object_pool.Holder;
+import vibur.object_pool.HolderValidatingPoolService;
 import vibur.object_pool.PoolObjectFactory;
 import vibur.object_pool.util.DefaultReducer;
 import vibur.object_pool.util.PoolReducer;
@@ -100,7 +100,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
         if (statementCacheMaxSize > CACHE_MAX_SIZE)
             statementCacheMaxSize = CACHE_MAX_SIZE;
         if (statementCacheMaxSize > 0)
-            setStatementCache(new ConcurrentFifoCache<StatementDescriptor, Statement>
+            setStatementCache(new ConcurrentFifoCache<StatementKey, Statement>
                 (statementCacheMaxSize));
     }
 
@@ -109,6 +109,9 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
         if (state != State.WORKING)
             throw new IllegalStateException();
 
+        ConcurrentCache<StatementKey, Statement> statementCache = getStatementCache();
+        if (statementCache != null)
+            statementCache.clear();
         poolReducer.terminate();
         connectionPool.terminate();
     }
@@ -190,10 +193,11 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
     }
 
     public void onDestroy(Connection connection) {
-        ConcurrentCache<StatementDescriptor, Statement> statementCache = getStatementCache();
-        for (StatementDescriptor sd : statementCache.keySet())
-            if (sd.getProxy().equals(connection))
-                statementCache.remove(sd);
+        ConcurrentCache<StatementKey, Statement> statementCache = getStatementCache();
+        if (statementCache != null)
+            for (StatementKey key : statementCache.keySet())
+                if (key.getProxy().equals(connection))
+                    statementCache.remove(key);
     }
 
     public State getState() {

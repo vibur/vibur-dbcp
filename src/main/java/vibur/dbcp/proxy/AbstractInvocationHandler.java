@@ -25,9 +25,7 @@ import java.lang.reflect.Method;
 /**
 * @author Simeon Malchev
 */
-abstract class AbstractInvocationHandler<T> implements InvocationHandler {
-
-    private static final Object NO_CUSTOM_RESULT = new Object();
+public abstract class AbstractInvocationHandler<T> implements InvocationHandler {
 
     /** The real object which we're dynamically proxy-ing.
      *  For example, the underlying JDBC Connection, the underlying JDBC Statement, etc. */
@@ -42,12 +40,9 @@ abstract class AbstractInvocationHandler<T> implements InvocationHandler {
         this.exceptionListener = exceptionListener;
     }
 
+    /** @inheritDoc */
     @SuppressWarnings("unchecked")
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        Object customResult = customInvoke((T) proxy, method, args);
-        if (customResult != NO_CUSTOM_RESULT)
-            return customResult;
-
         String methodName = method.getName();
 
         if (methodName.equals("equals"))
@@ -59,10 +54,6 @@ abstract class AbstractInvocationHandler<T> implements InvocationHandler {
 
         // by default we just pass the call to the proxied object method
         return targetInvoke(method, args);
-    }
-
-    protected Object customInvoke(T proxy, Method method, Object[] args) throws Throwable {
-        return NO_CUSTOM_RESULT;
     }
 
     protected Object targetInvoke(Method method, Object[] args) throws Throwable {

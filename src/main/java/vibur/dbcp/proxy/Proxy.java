@@ -17,12 +17,15 @@
 package vibur.dbcp.proxy;
 
 import vibur.dbcp.ViburDBCPConfig;
+import vibur.dbcp.proxy.cache.StatementDescriptor;
 import vibur.dbcp.proxy.listener.ExceptionListener;
 import vibur.dbcp.proxy.listener.TransactionListener;
-import vibur.object_pool.HolderValidatingPoolService;
 import vibur.object_pool.Holder;
+import vibur.object_pool.HolderValidatingPoolService;
 
-import java.lang.reflect.*;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
 import java.sql.*;
 
 /**
@@ -37,43 +40,41 @@ public class Proxy {
         return (Connection) newProxy(connectionCtor, handler);
     }
 
-    public static Statement newStatement(Statement statement,
+    public static Statement newStatement(StatementDescriptor statementDescriptor,
                                          Connection connectionProxy,
                                          ViburDBCPConfig config,
                                          TransactionListener transactionListener,
                                          ExceptionListener exceptionListener) {
-        InvocationHandler handler = new ConnectionChildInvocationHandler<Statement>(
-            statement, connectionProxy, config, transactionListener, exceptionListener);
+        InvocationHandler handler = new StatementInvocationHandler(
+            statementDescriptor, connectionProxy, config, transactionListener, exceptionListener);
         return (Statement) newProxy(statementCtor, handler);
     }
 
-    public static PreparedStatement newPreparedStatement(PreparedStatement pStatement,
+    public static PreparedStatement newPreparedStatement(StatementDescriptor statementDescriptor,
                                                          Connection connectionProxy,
                                                          ViburDBCPConfig config,
                                                          TransactionListener transactionListener,
                                                          ExceptionListener exceptionListener) {
-        InvocationHandler handler = new ConnectionChildInvocationHandler<PreparedStatement>(
-            pStatement, connectionProxy, config, transactionListener, exceptionListener);
+        InvocationHandler handler = new StatementInvocationHandler(
+            statementDescriptor, connectionProxy, config, transactionListener, exceptionListener);
         return (PreparedStatement) newProxy(pStatementCtor, handler);
     }
 
-    public static CallableStatement newCallableStatement(CallableStatement cStatement,
+    public static CallableStatement newCallableStatement(StatementDescriptor statementDescriptor,
                                                          Connection connectionProxy,
                                                          ViburDBCPConfig config,
                                                          TransactionListener transactionListener,
                                                          ExceptionListener exceptionListener) {
-        InvocationHandler handler = new ConnectionChildInvocationHandler<CallableStatement>(
-            cStatement, connectionProxy, config, transactionListener, exceptionListener);
+        InvocationHandler handler = new StatementInvocationHandler(
+            statementDescriptor, connectionProxy, config, transactionListener, exceptionListener);
         return (CallableStatement) newProxy(cStatementCtor, handler);
     }
 
     public static DatabaseMetaData newDatabaseMetaData(DatabaseMetaData metaData,
                                                        Connection connectionProxy,
-                                                       ViburDBCPConfig config,
-                                                       TransactionListener transactionListener,
                                                        ExceptionListener exceptionListener) {
         InvocationHandler handler = new ConnectionChildInvocationHandler<DatabaseMetaData>(
-            metaData, connectionProxy, config, transactionListener, exceptionListener);
+            metaData, connectionProxy, exceptionListener);
         return (DatabaseMetaData) newProxy(metadataCtor, handler);
     }
 
