@@ -38,7 +38,7 @@ public class ConnectionChildInvocationHandler<T> extends AbstractInvocationHandl
         this.connectionProxy = connectionProxy;
     }
 
-    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+    protected Object customInvoke(T proxy, Method method, Object[] args) throws Throwable {
         String methodName = method.getName();
 
         if (methodName.equals("getConnection"))

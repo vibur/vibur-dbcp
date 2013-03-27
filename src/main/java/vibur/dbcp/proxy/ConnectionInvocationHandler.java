@@ -66,7 +66,7 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
     }
 
     @SuppressWarnings("unchecked")
-    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+    protected Object customInvoke(Connection proxy, Method method, Object[] args) throws Throwable {
         String methodName = method.getName();
 
         boolean isMethodNameClose = methodName.equals("close");
@@ -82,28 +82,27 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
 
         // Methods which results have to be proxied so that when getConnection() is called
         // on them the return value to be current JDBC Connection proxy.
-        Connection connectionProxy = (Connection) proxy;
         if (methodName.equals("createStatement")) { // *3
             ValueHolder<Statement> statementHolder =
                 (ValueHolder<Statement>) getStatementHolder(method, args);
-            return Proxy.newStatement(statementHolder, connectionProxy,
+            return Proxy.newStatement(statementHolder, proxy,
                 config, transactionListener, getExceptionListener());
         }
         if (methodName.equals("prepareStatement")) { // *6
             ValueHolder<PreparedStatement> statementHolder =
                 (ValueHolder<PreparedStatement>) getStatementHolder(method, args);
-            return Proxy.newPreparedStatement(statementHolder, connectionProxy,
+            return Proxy.newPreparedStatement(statementHolder, proxy,
                 config, transactionListener, getExceptionListener());
         }
         if (methodName.equals("prepareCall")) { // *3
             ValueHolder<CallableStatement> statementHolder =
                 (ValueHolder<CallableStatement>) getStatementHolder(method, args);
-            return Proxy.newCallableStatement(statementHolder, connectionProxy,
+            return Proxy.newCallableStatement(statementHolder, proxy,
                 config, transactionListener, getExceptionListener());
         }
         if (methodName.equals("getMetaData")) { // *1
             DatabaseMetaData metaData = (DatabaseMetaData) targetInvoke(method, args);
-            return Proxy.newDatabaseMetaData(metaData, connectionProxy, getExceptionListener());
+            return Proxy.newDatabaseMetaData(metaData, proxy, getExceptionListener());
         }
 
         if (methodName.equals("setAutoCommit")) {

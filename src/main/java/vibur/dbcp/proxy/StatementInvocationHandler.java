@@ -54,7 +54,7 @@ public class StatementInvocationHandler extends ConnectionChildInvocationHandler
         this.transactionListener = transactionListener;
     }
 
-    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+    protected Object customInvoke(Statement proxy, Method method, Object[] args) throws Throwable {
         String methodName = method.getName();
 
         if (methodName.equals("close")) {
@@ -71,7 +71,7 @@ public class StatementInvocationHandler extends ConnectionChildInvocationHandler
             throw new SQLException("Statement is closed.");
 
         if (methodName.startsWith("execute"))
-            return processExecute((Statement) proxy, method, args);
+            return processExecute(proxy, method, args);
 
         return super.invoke(proxy, method, args);
     }

@@ -40,6 +40,7 @@ public abstract class AbstractInvocationHandler<T> implements InvocationHandler 
     }
 
     /** @inheritDoc */
+    @SuppressWarnings("unchecked")
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         String methodName = method.getName();
 
@@ -50,6 +51,10 @@ public abstract class AbstractInvocationHandler<T> implements InvocationHandler 
         if (methodName.equals("toString"))
             return "Proxy for: " + target;
 
+        return customInvoke((T) proxy, method, args);
+    }
+
+    protected Object customInvoke(T proxy, Method method, Object[] args) throws Throwable {
         // by default we just pass the call to the proxied object method
         return targetInvoke(method, args);
     }
@@ -64,11 +69,11 @@ public abstract class AbstractInvocationHandler<T> implements InvocationHandler 
         }
     }
 
-    public ExceptionListener getExceptionListener() {
+    protected ExceptionListener getExceptionListener() {
         return exceptionListener;
     }
 
-    public T getTarget() {
+    protected T getTarget() {
         return target;
     }
 }
