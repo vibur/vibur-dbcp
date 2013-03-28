@@ -59,7 +59,7 @@ public interface ConcurrentCache<K, V> {
     /**
      * If the specified key is not already associated
      * with a value, associate it with the given value, and set the inUse
-     * status to {@code true}.
+     * status to {@code null}.
      *
      * @param key key with which the specified value is to be associated
      * @param value value to be associated with the specified key
@@ -71,7 +71,11 @@ public interface ConcurrentCache<K, V> {
     /**
      * If the specified key is not already associated
      * with a value, associate it with the given value, and set the inUse
-     * status to the given inUse status.
+     * status to the given inUse status. Note that {@code null} is a valid
+     * value for inUse - it means that one and the same value can be taken
+     * many times from the cache by different callers/clients. If inUse
+     * is not {@code null} it's a responsibility of the client to honour it,
+     * i.e. to check and set it value appropriately.
      *
      * @param key key with which the specified value is to be associated
      * @param value value to be associated with the specified key

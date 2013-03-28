@@ -86,7 +86,7 @@ public class ConcurrentFifoCache<K, V> implements ConcurrentCache<K, V> {
 
     /** {@inheritDoc} */
     public V putIfAbsent(K key, V value) {
-        return putIfAbsent(key, value, new AtomicBoolean(false));
+        return putIfAbsent(key, value, null);
     }
 
     /** {@inheritDoc} */
