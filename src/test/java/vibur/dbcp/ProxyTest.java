@@ -32,6 +32,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 /**
+ * This test uses the <a href="http://dev.mysql.com/doc/sakila/en/">Sakila sample database</a>.
+ * The database has to be installed and setup as described in the previous link.
+ *
  * @author Simeon Malchev
  */
 public class ProxyTest {
