@@ -44,6 +44,6 @@ public class ConnectionChildInvocationHandler<T> extends AbstractInvocationHandl
         if (methodName.equals("getConnection"))
             return connectionProxy;
 
-        return super.invoke(proxy, method, args);
+        return super.customInvoke(proxy, method, args);
     }
 }

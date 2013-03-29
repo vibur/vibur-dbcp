@@ -61,7 +61,7 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
         this.hConnection = hConnection;
         this.transactionListener = new TransactionListenerImpl();
         this.config = config;
-        this.autoCommit = config.getDefaultAutoCommit() != null ? config.getDefaultAutoCommit() : false;
+        this.autoCommit = config.getDefaultAutoCommit() != null ? config.getDefaultAutoCommit() : true;
         this.statementCache = config.getStatementCache();
     }
 
@@ -114,7 +114,7 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
             return targetInvoke(method, args);
         }
 
-        return super.invoke(proxy, method, args);
+        return super.customInvoke(proxy, method, args);
     }
 
     private ValueHolder<? extends Statement> getStatementHolder(Method method, Object[] args)

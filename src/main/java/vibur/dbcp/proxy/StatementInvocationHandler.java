@@ -19,7 +19,9 @@ package vibur.dbcp.proxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import vibur.dbcp.ViburDBCPConfig;
+import vibur.dbcp.cache.ConcurrentCache;
 import vibur.dbcp.cache.ValueHolder;
+import vibur.dbcp.proxy.cache.StatementKey;
 import vibur.dbcp.proxy.listener.ExceptionListener;
 import vibur.dbcp.proxy.listener.TransactionListener;
 
@@ -41,6 +43,8 @@ public class StatementInvocationHandler extends ConnectionChildInvocationHandler
 
     private volatile boolean logicallyClosed = false;
 
+    private final ConcurrentCache<StatementKey, Statement> statementCache;
+
     public StatementInvocationHandler(ValueHolder<? extends Statement> statementHolder,
                                       Connection connectionProxy,
                                       ViburDBCPConfig config,
@@ -52,6 +56,7 @@ public class StatementInvocationHandler extends ConnectionChildInvocationHandler
         this.statementHolder = statementHolder;
         this.config = config;
         this.transactionListener = transactionListener;
+        this.statementCache = config.getStatementCache();
     }
 
     protected Object customInvoke(Statement proxy, Method method, Object[] args) throws Throwable {
@@ -59,9 +64,11 @@ public class StatementInvocationHandler extends ConnectionChildInvocationHandler
 
         if (methodName.equals("close")) {
             logicallyClosed = true;
-            if (statementHolder.inUse() != null)
+            if (statementCache != null && statementHolder.inUse() != null) {
                 statementHolder.inUse().set(false);
-            return null;
+                return null;
+            } else
+                return targetInvoke(method, args);
         }
         if (methodName.equals("isClosed"))
             return logicallyClosed;
@@ -73,7 +80,7 @@ public class StatementInvocationHandler extends ConnectionChildInvocationHandler
         if (methodName.startsWith("execute"))
             return processExecute(proxy, method, args);
 
-        return super.invoke(proxy, method, args);
+        return super.customInvoke(proxy, method, args);
     }
 
     private Object processExecute(Statement statementProxy, Method method, Object[] args) throws Throwable {
