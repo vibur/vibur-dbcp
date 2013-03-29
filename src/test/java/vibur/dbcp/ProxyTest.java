@@ -20,10 +20,7 @@ import org.junit.After;
 import org.junit.Test;
 
 import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -47,7 +44,7 @@ public class ProxyTest {
     }
 
     @Test
-    public void testSimpleSelectsNoStatementsCache() throws SQLException {
+    public void testSimpleStatementSelectNoStatementsCache() throws SQLException {
         DataSource ds = getSimpleDataSource();
 
         Connection connection = null;
@@ -57,7 +54,7 @@ public class ProxyTest {
             connection = ds.getConnection();
             connection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
             statement = connection.createStatement();
-            resultSet = statement.executeQuery("select * from actor where first_name='CHRISTIAN'");
+            resultSet = statement.executeQuery("select * from actor where first_name = 'CHRISTIAN'");
 
             Set<String> lastNames = new HashSet<String>(Arrays.asList("GABLE", "AKROYD", "NEESON"));
             int count = 0;
@@ -70,6 +67,35 @@ public class ProxyTest {
         } finally {
             if (resultSet != null) resultSet.close();
             if (statement != null) statement.close();
+            if (connection != null) connection.close();
+        }
+    }
+
+    @Test
+    public void testSimplePreparedStatementSelectNoStatementsCache() throws SQLException {
+        DataSource ds = getSimpleDataSource();
+
+        Connection connection = null;
+        PreparedStatement pStatement = null;
+        ResultSet resultSet = null;
+        try {
+            connection = ds.getConnection();
+            connection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
+            pStatement = connection.prepareStatement("select * from actor where first_name = ?");
+            pStatement.setString(1, "CHRISTIAN");
+            resultSet = pStatement.executeQuery();
+
+            Set<String> lastNames = new HashSet<String>(Arrays.asList("GABLE", "AKROYD", "NEESON"));
+            int count = 0;
+            while (resultSet.next()) {
+                ++count;
+                String lastName = resultSet.getString("last_name");
+                assertTrue(lastNames.remove(lastName));
+            }
+            assertEquals(3, count);
+        } finally {
+            if (resultSet != null) resultSet.close();
+            if (pStatement != null) pStatement.close();
             if (connection != null) connection.close();
         }
     }

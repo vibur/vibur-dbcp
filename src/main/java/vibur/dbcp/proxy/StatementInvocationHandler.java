@@ -26,9 +26,8 @@ import vibur.dbcp.proxy.listener.ExceptionListener;
 import vibur.dbcp.proxy.listener.TransactionListener;
 
 import java.lang.reflect.Method;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
+import java.util.Arrays;
 
 /**
  * @author Simeon Malchev
@@ -85,7 +84,7 @@ public class StatementInvocationHandler extends ConnectionChildInvocationHandler
 
     private Object processExecute(Statement statementProxy, Method method, Object[] args) throws Throwable {
         if (config.isLogStatementsEnabled())
-            logger.debug("Executing SQL -> {}", statementProxy);
+            logger.debug("Executing SQL -> {}", toSQLString(statementProxy, args));
 
         long currentTime = 0;
         long queryExecuteTimeLimitInMs = config.getQueryExecuteTimeLimitInMs();
@@ -99,8 +98,16 @@ public class StatementInvocationHandler extends ConnectionChildInvocationHandler
             if (queryExecuteTimeLimitInMs > 0) {
                 long timeTaken = System.currentTimeMillis() - currentTime;
                 if (timeTaken > queryExecuteTimeLimitInMs)
-                    logger.debug("The execution of {} took {}ms", statementProxy, timeTaken);
+                    logger.debug("The execution of {} took {}ms",
+                        toSQLString(statementProxy, args), timeTaken);
             }
         }
+    }
+
+    private String toSQLString(Statement statementProxy, Object[] args) {
+        if (statementProxy instanceof PreparedStatement)
+            return statementProxy.toString();
+
+        return Arrays.toString(args); // when simple JDBC Statement
     }
 }
