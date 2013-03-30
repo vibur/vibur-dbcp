@@ -130,10 +130,10 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
                 if (statementHolder == null) { // there was no entry for the key
                     inUse = new AtomicBoolean(true);
                     if (statementCache.putIfAbsent(key, statement, inUse) != null)
-                        inUse = null; // because someone succeeded to put the value before us
+                        inUse = null; // because someone else succeeded to put the statement before us
                 }
                 return new ValueHolder<Statement>(statement, inUse);
-            } else {
+            } else { // the statementHolder is valid and was not inUse
                 logger.trace("Using cached statement for connection {}, method {}, args {}",
                     getTarget(), method, Arrays.toString(args));
                 return statementHolder;
