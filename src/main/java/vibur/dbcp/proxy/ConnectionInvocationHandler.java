@@ -22,7 +22,7 @@ import vibur.dbcp.ViburDBCPConfig;
 import vibur.dbcp.cache.ConcurrentCache;
 import vibur.dbcp.cache.ValueHolder;
 import vibur.dbcp.proxy.cache.StatementKey;
-import vibur.dbcp.proxy.listener.SQLExceptionListenerImpl;
+import vibur.dbcp.proxy.listener.ExceptionListenerImpl;
 import vibur.dbcp.proxy.listener.TransactionListener;
 import vibur.dbcp.proxy.listener.TransactionListenerImpl;
 import vibur.object_pool.Holder;
@@ -55,7 +55,7 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
 
     public ConnectionInvocationHandler(HolderValidatingPoolService<Connection> connectionPool,
                                        Holder<Connection> hConnection, ViburDBCPConfig config) {
-        super(hConnection.value(), new SQLExceptionListenerImpl());
+        super(hConnection.value(), new ExceptionListenerImpl());
         if (connectionPool == null || config == null)
             throw new NullPointerException();
         this.connectionPool = connectionPool;
@@ -87,23 +87,23 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
             ValueHolder<Statement> statementHolder =
                 (ValueHolder<Statement>) getStatementHolder(method, args);
             return Proxy.newStatement(statementHolder, proxy,
-                config, transactionListener, getSqlExceptionListener());
+                config, transactionListener, getExceptionListener());
         }
         if (methodName.equals("prepareStatement")) { // *6
             ValueHolder<PreparedStatement> statementHolder =
                 (ValueHolder<PreparedStatement>) getStatementHolder(method, args);
             return Proxy.newPreparedStatement(statementHolder, proxy,
-                config, transactionListener, getSqlExceptionListener());
+                config, transactionListener, getExceptionListener());
         }
         if (methodName.equals("prepareCall")) { // *3
             ValueHolder<CallableStatement> statementHolder =
                 (ValueHolder<CallableStatement>) getStatementHolder(method, args);
             return Proxy.newCallableStatement(statementHolder, proxy,
-                config, transactionListener, getSqlExceptionListener());
+                config, transactionListener, getExceptionListener());
         }
         if (methodName.equals("getMetaData")) { // *1
             DatabaseMetaData metaData = (DatabaseMetaData) targetInvoke(method, args);
-            return Proxy.newDatabaseMetaData(metaData, proxy, getSqlExceptionListener());
+            return Proxy.newDatabaseMetaData(metaData, proxy, getExceptionListener());
         }
 
         if (methodName.equals("setAutoCommit")) {
@@ -146,7 +146,7 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
 
     private Object processCloseOrAbort(boolean isClose) {
         logicallyClosed = true;
-        boolean valid = isClose && getSqlExceptionListener().getExceptions().isEmpty();
+        boolean valid = isClose && getExceptionListener().getExceptions().isEmpty();
 
         if (!autoCommit && transactionListener.isInProgress()) {
             if (isClose)

@@ -16,14 +16,23 @@
 
 package vibur.dbcp.proxy.listener;
 
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * @author Simeon Malchev
  */
-public interface SQLExceptionListener {
+public class ExceptionListenerImpl implements ExceptionListener {
 
-    void addException(Throwable throwable);
+    private Queue<Throwable> queue = new ConcurrentLinkedQueue<Throwable>();
 
-    List<Throwable> getExceptions();
+    public void addException(Throwable throwable) {
+        queue.offer(throwable);
+    }
+
+    public List<Throwable> getExceptions() {
+        return new LinkedList<Throwable>(queue);
+    }
 }

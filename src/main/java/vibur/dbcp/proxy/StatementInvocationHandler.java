@@ -22,7 +22,7 @@ import vibur.dbcp.ViburDBCPConfig;
 import vibur.dbcp.cache.ConcurrentCache;
 import vibur.dbcp.cache.ValueHolder;
 import vibur.dbcp.proxy.cache.StatementKey;
-import vibur.dbcp.proxy.listener.SQLExceptionListener;
+import vibur.dbcp.proxy.listener.ExceptionListener;
 import vibur.dbcp.proxy.listener.TransactionListener;
 
 import java.lang.reflect.Method;
@@ -49,8 +49,8 @@ public class StatementInvocationHandler extends ConnectionChildInvocationHandler
                                       Connection connectionProxy,
                                       ViburDBCPConfig config,
                                       TransactionListener transactionListener,
-                                      SQLExceptionListener sqlExceptionListener) {
-        super(statementHolder.value(), connectionProxy, sqlExceptionListener);
+                                      ExceptionListener exceptionListener) {
+        super(statementHolder.value(), connectionProxy, exceptionListener);
         if (config == null || transactionListener == null)
             throw new NullPointerException();
         this.statementHolder = statementHolder;
