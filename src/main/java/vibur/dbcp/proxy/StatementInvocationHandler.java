@@ -22,12 +22,13 @@ import vibur.dbcp.ViburDBCPConfig;
 import vibur.dbcp.cache.ConcurrentCache;
 import vibur.dbcp.cache.ValueHolder;
 import vibur.dbcp.proxy.cache.StatementKey;
-import vibur.dbcp.proxy.listener.ExceptionListener;
+import vibur.dbcp.proxy.listener.SQLExceptionListener;
 import vibur.dbcp.proxy.listener.TransactionListener;
 
 import java.lang.reflect.Method;
 import java.sql.*;
-import java.util.Arrays;
+
+import static vibur.dbcp.util.StatementUtils.toSQLString;
 
 /**
  * @author Simeon Malchev
@@ -48,8 +49,8 @@ public class StatementInvocationHandler extends ConnectionChildInvocationHandler
                                       Connection connectionProxy,
                                       ViburDBCPConfig config,
                                       TransactionListener transactionListener,
-                                      ExceptionListener exceptionListener) {
-        super(statementHolder.value(), connectionProxy, exceptionListener);
+                                      SQLExceptionListener sqlExceptionListener) {
+        super(statementHolder.value(), connectionProxy, sqlExceptionListener);
         if (config == null || transactionListener == null)
             throw new NullPointerException();
         this.statementHolder = statementHolder;
@@ -102,12 +103,5 @@ public class StatementInvocationHandler extends ConnectionChildInvocationHandler
                         toSQLString(statementProxy, args), timeTaken);
             }
         }
-    }
-
-    private String toSQLString(Statement statementProxy, Object[] args) {
-        if (statementProxy instanceof PreparedStatement)
-            return statementProxy.toString();
-
-        return Arrays.toString(args); // when simple JDBC Statement
     }
 }

@@ -37,7 +37,7 @@ public class StatementKey {
     private final Object[] args;
 
     public StatementKey(Connection proxy, Method method, Object[] args) {
-        if (proxy == null || method == null || args == null)
+        if (proxy == null || method == null)
             throw new NullPointerException();
         this.proxy = proxy;
         this.method = method;

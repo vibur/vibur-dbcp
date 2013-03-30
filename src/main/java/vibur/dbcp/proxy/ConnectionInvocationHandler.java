@@ -22,7 +22,7 @@ import vibur.dbcp.ViburDBCPConfig;
 import vibur.dbcp.cache.ConcurrentCache;
 import vibur.dbcp.cache.ValueHolder;
 import vibur.dbcp.proxy.cache.StatementKey;
-import vibur.dbcp.proxy.listener.ExceptionListenerImpl;
+import vibur.dbcp.proxy.listener.SQLExceptionListenerImpl;
 import vibur.dbcp.proxy.listener.TransactionListener;
 import vibur.dbcp.proxy.listener.TransactionListenerImpl;
 import vibur.object_pool.Holder;
@@ -31,6 +31,7 @@ import vibur.object_pool.HolderValidatingPoolService;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.sql.*;
+import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -54,7 +55,7 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
 
     public ConnectionInvocationHandler(HolderValidatingPoolService<Connection> connectionPool,
                                        Holder<Connection> hConnection, ViburDBCPConfig config) {
-        super(hConnection.value(), new ExceptionListenerImpl());
+        super(hConnection.value(), new SQLExceptionListenerImpl());
         if (connectionPool == null || config == null)
             throw new NullPointerException();
         this.connectionPool = connectionPool;
@@ -86,23 +87,23 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
             ValueHolder<Statement> statementHolder =
                 (ValueHolder<Statement>) getStatementHolder(method, args);
             return Proxy.newStatement(statementHolder, proxy,
-                config, transactionListener, getExceptionListener());
+                config, transactionListener, getSqlExceptionListener());
         }
         if (methodName.equals("prepareStatement")) { // *6
             ValueHolder<PreparedStatement> statementHolder =
                 (ValueHolder<PreparedStatement>) getStatementHolder(method, args);
             return Proxy.newPreparedStatement(statementHolder, proxy,
-                config, transactionListener, getExceptionListener());
+                config, transactionListener, getSqlExceptionListener());
         }
         if (methodName.equals("prepareCall")) { // *3
             ValueHolder<CallableStatement> statementHolder =
                 (ValueHolder<CallableStatement>) getStatementHolder(method, args);
             return Proxy.newCallableStatement(statementHolder, proxy,
-                config, transactionListener, getExceptionListener());
+                config, transactionListener, getSqlExceptionListener());
         }
         if (methodName.equals("getMetaData")) { // *1
             DatabaseMetaData metaData = (DatabaseMetaData) targetInvoke(method, args);
-            return Proxy.newDatabaseMetaData(metaData, proxy, getExceptionListener());
+            return Proxy.newDatabaseMetaData(metaData, proxy, getSqlExceptionListener());
         }
 
         if (methodName.equals("setAutoCommit")) {
@@ -129,11 +130,14 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
                 if (statementHolder == null) { // there was no entry for the key
                     inUse = new AtomicBoolean(true);
                     if (statementCache.putIfAbsent(key, statement, inUse) != null)
-                        inUse = null; // because someone manage to put the value before us
+                        inUse = null; // because someone succeeded to put the value before us
                 }
                 return new ValueHolder<Statement>(statement, inUse);
-            } else
+            } else {
+                logger.trace("Using cached statement for connection {}, method {}, args {}",
+                    getTarget(), method, Arrays.toString(args));
                 return statementHolder;
+            }
         } else {
             Statement statement = (Statement) targetInvoke(method, args);
             return new ValueHolder<Statement>(statement, null);
@@ -142,7 +146,7 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
 
     private Object processCloseOrAbort(boolean isClose) {
         logicallyClosed = true;
-        boolean valid = isClose && getExceptionListener().getExceptions().isEmpty();
+        boolean valid = isClose && getSqlExceptionListener().getExceptions().isEmpty();
 
         if (!autoCommit && transactionListener.isInProgress()) {
             if (isClose)

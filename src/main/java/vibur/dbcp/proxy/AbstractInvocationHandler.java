@@ -16,7 +16,7 @@
 
 package vibur.dbcp.proxy;
 
-import vibur.dbcp.proxy.listener.ExceptionListener;
+import vibur.dbcp.proxy.listener.SQLExceptionListener;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
@@ -30,13 +30,13 @@ public abstract class AbstractInvocationHandler<T> implements InvocationHandler 
     /** The real object which we're dynamically proxy-ing.
      *  For example, the underlying JDBC Connection, the underlying JDBC Statement, etc. */
     private final T target;
-    private final ExceptionListener exceptionListener;
+    private final SQLExceptionListener sqlExceptionListener;
 
-    public AbstractInvocationHandler(T target, ExceptionListener exceptionListener) {
-        if (target == null || exceptionListener == null)
+    public AbstractInvocationHandler(T target, SQLExceptionListener sqlExceptionListener) {
+        if (target == null || sqlExceptionListener == null)
             throw new NullPointerException();
         this.target = target;
-        this.exceptionListener = exceptionListener;
+        this.sqlExceptionListener = sqlExceptionListener;
     }
 
     /** @inheritDoc */
@@ -64,13 +64,13 @@ public abstract class AbstractInvocationHandler<T> implements InvocationHandler 
             return method.invoke(target, args);
         } catch (InvocationTargetException e) {
             Throwable cause = e.getCause();
-            exceptionListener.addException(cause);
+            sqlExceptionListener.addException(cause);
             throw cause;
         }
     }
 
-    protected ExceptionListener getExceptionListener() {
-        return exceptionListener;
+    protected SQLExceptionListener getSqlExceptionListener() {
+        return sqlExceptionListener;
     }
 
     protected T getTarget() {

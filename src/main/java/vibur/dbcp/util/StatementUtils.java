@@ -14,16 +14,23 @@
  * limitations under the License.
  */
 
-package vibur.dbcp.proxy.listener;
+package vibur.dbcp.util;
 
-import java.util.List;
+import java.sql.PreparedStatement;
+import java.sql.Statement;
+import java.util.Arrays;
 
 /**
  * @author Simeon Malchev
  */
-public interface ExceptionListener {
+public class StatementUtils {
 
-    void addException(Throwable throwable);
+    private StatementUtils() {}
 
-    List<Throwable> getExceptions();
+    public static String toSQLString(Statement statementProxy, Object[] args) {
+        if (statementProxy instanceof PreparedStatement)
+            return statementProxy.toString();
+
+        return Arrays.toString(args); // when a simple JDBC Statement
+    }
 }

@@ -16,7 +16,7 @@
 
 package vibur.dbcp.proxy;
 
-import vibur.dbcp.proxy.listener.ExceptionListener;
+import vibur.dbcp.proxy.listener.SQLExceptionListener;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -31,8 +31,8 @@ public class ConnectionChildInvocationHandler<T> extends AbstractInvocationHandl
     private final Connection connectionProxy;
 
     public ConnectionChildInvocationHandler(T connectionChild, Connection connectionProxy,
-                                            ExceptionListener exceptionListener) {
-        super(connectionChild, exceptionListener);
+                                            SQLExceptionListener sqlExceptionListener) {
+        super(connectionChild, sqlExceptionListener);
         if (connectionProxy == null)
             throw new NullPointerException();
         this.connectionProxy = connectionProxy;

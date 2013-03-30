@@ -29,8 +29,19 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 /**
- * This test uses the <a href="http://dev.mysql.com/doc/sakila/en/">Sakila Sample Database</a>.
- * The database has to be installed and setup as described in the previous link.
+ * Prerequisites for running the tests:
+ *
+ * <p>1. Install and run MySQL server.
+ *
+ * <p>2. Install the <a href="http://dev.mysql.com/doc/sakila/en/">Sakila Sample Database</a>
+ * as described in the link.
+ *
+ * <p>3. The following system properties have to be provided and set to something similar to:
+ * <p>
+ * -DDriverClassName=com.mysql.jdbc.Driver <br>
+ * -DJdbcUrl=jdbc:mysql://localhost/sakila <br>
+ * -DUsername=USERNAME <br>
+ * -DPassword=PASSWORD <br>
  *
  * @author Simeon Malchev
  */
@@ -40,18 +51,43 @@ public class ProxyTest {
 
     @After
     public void tearDown() throws Exception {
-        viburDS.shutdown();
+        if (viburDS != null) {
+            viburDS.shutdown();
+            viburDS= null;
+        }
     }
 
     @Test
     public void testSimpleStatementSelectNoStatementsCache() throws SQLException {
-        DataSource ds = getSimpleDataSource();
-
+        DataSource ds = getSimpleDataSourceNoStatementsCache();
         Connection connection = null;
+        try {
+            connection = ds.getConnection();
+
+            executeSimpleStatementSelect(connection);
+        } finally {
+            if (connection != null) connection.close();
+        }
+    }
+
+    @Test
+    public void testSimpleStatementSelectWithStatementsCache() throws SQLException {
+        DataSource ds = getSimpleDataSourceWithStatementsCache();
+        Connection connection = null;
+        try {
+            connection = ds.getConnection();
+
+            executeSimpleStatementSelect(connection);
+            executeSimpleStatementSelect(connection);
+        } finally {
+            if (connection != null) connection.close();
+        }
+    }
+
+    private void executeSimpleStatementSelect(Connection connection) throws SQLException {
         Statement statement = null;
         ResultSet resultSet = null;
         try {
-            connection = ds.getConnection();
             connection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
             statement = connection.createStatement();
             resultSet = statement.executeQuery("select * from actor where first_name = 'CHRISTIAN'");
@@ -67,19 +103,40 @@ public class ProxyTest {
         } finally {
             if (resultSet != null) resultSet.close();
             if (statement != null) statement.close();
-            if (connection != null) connection.close();
         }
     }
 
     @Test
     public void testSimplePreparedStatementSelectNoStatementsCache() throws SQLException {
-        DataSource ds = getSimpleDataSource();
-
+        DataSource ds = getSimpleDataSourceNoStatementsCache();
         Connection connection = null;
+        try {
+            connection = ds.getConnection();
+
+            executeSimplePreparedStatementSelect(connection);
+        } finally {
+            if (connection != null) connection.close();
+        }
+    }
+
+    @Test
+    public void testSimplePreparedStatementSelectWithStatementsCache() throws SQLException {
+        DataSource ds = getSimpleDataSourceWithStatementsCache();
+        Connection connection = null;
+        try {
+            connection = ds.getConnection();
+
+            executeSimplePreparedStatementSelect(connection);
+            executeSimplePreparedStatementSelect(connection);
+        } finally {
+            if (connection != null) connection.close();
+        }
+    }
+
+    private void executeSimplePreparedStatementSelect(Connection connection) throws SQLException {
         PreparedStatement pStatement = null;
         ResultSet resultSet = null;
         try {
-            connection = ds.getConnection();
             connection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
             pStatement = connection.prepareStatement("select * from actor where first_name = ?");
             pStatement.setString(1, "CHRISTIAN");
@@ -96,23 +153,43 @@ public class ProxyTest {
         } finally {
             if (resultSet != null) resultSet.close();
             if (pStatement != null) pStatement.close();
-            if (connection != null) connection.close();
         }
     }
 
-    private DataSource getSimpleDataSource() {
+    private DataSource getSimpleDataSourceNoStatementsCache() {
         viburDS = new ViburDBCPDataSource();
 
-        viburDS.setDriverClassName("com.mysql.jdbc.Driver");
-        viburDS.setJdbcUrl("jdbc:mysql://localhost/sakila");
-        viburDS.setUsername("root");
-        viburDS.setPassword("root");
+        viburDS.setDriverClassName(System.getProperty("DriverClassName"));
+        viburDS.setJdbcUrl(System.getProperty("JdbcUrl"));
+        viburDS.setUsername(System.getProperty("Username"));
+        viburDS.setPassword(System.getProperty("Password"));
 
         viburDS.setPoolInitialSize(2);
         viburDS.setValidateOnRestore(true);
 
         viburDS.setLogStatementsEnabled(true);
         viburDS.setQueryExecuteTimeLimitInMs(1);
+
+        viburDS.start();
+
+        return viburDS;
+    }
+
+    private DataSource getSimpleDataSourceWithStatementsCache() {
+        viburDS = new ViburDBCPDataSource();
+
+        viburDS.setDriverClassName(System.getProperty("DriverClassName"));
+        viburDS.setJdbcUrl(System.getProperty("JdbcUrl"));
+        viburDS.setUsername(System.getProperty("Username"));
+        viburDS.setPassword(System.getProperty("Password"));
+
+        viburDS.setPoolInitialSize(2);
+        viburDS.setValidateOnRestore(true);
+
+        viburDS.setLogStatementsEnabled(true);
+        viburDS.setQueryExecuteTimeLimitInMs(1);
+
+        viburDS.setStatementCacheMaxSize(10);
 
         viburDS.start();
 
