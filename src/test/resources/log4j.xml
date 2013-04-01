@@ -24,8 +24,12 @@
         </layout>
     </appender>
 
+    <logger name="vibur.dbcp.proxy.ConnectionInvocationHandler" additivity="false">
+        <level value="trace"/>
+        <appender-ref ref="stdout"/>
+    </logger>
     <root>
-        <priority value="trace"/>
+        <priority value="debug"/>  <!-- enable trace to see log of all intercepted calls -->
         <appender-ref ref="stdout"/>
     </root>
 
