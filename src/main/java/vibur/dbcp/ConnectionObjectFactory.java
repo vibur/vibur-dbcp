@@ -16,6 +16,7 @@
 
 package vibur.dbcp;
 
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import vibur.dbcp.listener.DestroyListener;
 import vibur.object_pool.PoolObjectFactory;
@@ -31,7 +32,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class ConnectionObjectFactory implements PoolObjectFactory<Connection> {
 
-    private static final org.slf4j.Logger logger = LoggerFactory.getLogger(ConnectionObjectFactory.class);
+    private static final Logger logger = LoggerFactory.getLogger(ConnectionObjectFactory.class);
 
     /** Database driver class name */
     private final String driverClassName;
@@ -74,7 +75,8 @@ public class ConnectionObjectFactory implements PoolObjectFactory<Connection> {
 
     public ConnectionObjectFactory(String driverClassName, String jdbcUrl,
                                    String username, String password,
-                                   boolean validateOnTake, boolean validateOnRestore, String testConnectionQuery,
+                                   boolean validateOnTake, boolean validateOnRestore,
+                                   String testConnectionQuery,
                                    long acquireRetryDelayInMs, int acquireRetryAttempts,
                                    Boolean defaultAutoCommit, Boolean defaultReadOnly,
                                    Integer defaultTransactionIsolation, String defaultCatalog,
@@ -110,24 +112,25 @@ public class ConnectionObjectFactory implements PoolObjectFactory<Connection> {
         int retry = 0;
         while (true) {
             try {
-                Connection conn;
+                Connection connection;
                 if (username == null && password == null)
-                    conn = DriverManager.getConnection(jdbcUrl);
+                    connection = DriverManager.getConnection(jdbcUrl);
                 else
-                    conn = DriverManager.getConnection(jdbcUrl, username, password);
+                    connection = DriverManager.getConnection(jdbcUrl, username, password);
 
                 if (defaultAutoCommit != null)
-                    conn.setAutoCommit(defaultAutoCommit);
+                    connection.setAutoCommit(defaultAutoCommit);
                 if (defaultReadOnly != null)
-                    conn.setReadOnly(defaultReadOnly);
+                    connection.setReadOnly(defaultReadOnly);
                 if (defaultTransactionIsolation != null)
-                    conn.setTransactionIsolation(defaultTransactionIsolation);
+                    connection.setTransactionIsolation(defaultTransactionIsolation);
                 if (defaultCatalog != null)
-                    conn.setCatalog(defaultCatalog);
+                    connection.setCatalog(defaultCatalog);
 
-                return conn;
+                logger.trace("Created " + connection);
+                return connection;
             } catch (SQLException e) {
-                logger.debug("Couldn't get a JDBC Connection", e);
+                logger.debug("Couldn't create a java.sql.Connection, attempt " + retry, e);
                 if (retry++ >= acquireRetryAttempts)
                     throw new ViburDBCPException(e);
                 try {
@@ -156,7 +159,7 @@ public class ConnectionObjectFactory implements PoolObjectFactory<Connection> {
             statement.close();
             return true;
         } catch (SQLException e) {
-            logger.debug("Couldn't validate a JDBC Connection", e);
+            logger.debug("Couldn't validate " + connection, e);
             try {
                 if (statement != null) statement.close();
             } catch (SQLException ignore) {
@@ -168,10 +171,12 @@ public class ConnectionObjectFactory implements PoolObjectFactory<Connection> {
     /** {@inheritDoc} */
     public void destroy(Connection connection) {
         try {
+            logger.trace("Destroying " + connection);
+
             destroyListener.onDestroy(connection);
             connection.close();
         } catch (SQLException e) {
-            logger.debug("Couldn't close a JDBC Connection", e);
+            logger.debug("Couldn't close " + connection, e);
         }
     }
 }

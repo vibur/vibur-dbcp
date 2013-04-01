@@ -16,6 +16,8 @@
 
 package vibur.dbcp.proxy;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import vibur.dbcp.proxy.listener.ExceptionListener;
 
 import java.lang.reflect.InvocationHandler;
@@ -26,6 +28,8 @@ import java.lang.reflect.Method;
 * @author Simeon Malchev
 */
 public abstract class AbstractInvocationHandler<T> implements InvocationHandler {
+
+    private static final Logger logger = LoggerFactory.getLogger(AbstractInvocationHandler.class);
 
     /** The real object which we're dynamically proxy-ing.
      *  For example, the underlying JDBC Connection, the underlying JDBC Statement, etc. */
@@ -42,6 +46,7 @@ public abstract class AbstractInvocationHandler<T> implements InvocationHandler 
     /** @inheritDoc */
     @SuppressWarnings("unchecked")
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+        logger.trace("Calling {} with args {} on {}", method, args, target);
         String methodName = method.getName();
 
         if (methodName.equals("equals"))
