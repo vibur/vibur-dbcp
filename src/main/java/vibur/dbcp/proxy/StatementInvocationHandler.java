@@ -99,8 +99,7 @@ public class StatementInvocationHandler extends ConnectionChildInvocationHandler
             if (queryExecuteTimeLimitInMs > 0) {
                 long timeTaken = System.currentTimeMillis() - currentTime;
                 if (timeTaken > queryExecuteTimeLimitInMs)
-                    logger.debug("The execution of {} took {}ms",
-                        toSQLString(statementProxy, args), timeTaken);
+                    logger.debug("The execution of {} took {}ms", toSQLString(statementProxy, args), timeTaken);
             }
         }
     }

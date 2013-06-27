@@ -20,7 +20,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>vibur</groupId>
-    <artifactId>vibur_dbcp</artifactId>
+    <artifactId>vibur-dbcp</artifactId>
     <version>0.5-SNAPSHOT</version>
     <packaging>jar</packaging>
 
@@ -80,7 +80,7 @@
         <java.version>1.5</java.version>
         <junit.version>4.10</junit.version>
 
-        <object_pool.version>0.8.4</object_pool.version>
+        <vibur-object-pool.version>0.8.5</vibur-object-pool.version>
         <slf4j.version>1.7.2</slf4j.version>
         <mysql-connector-java>5.1.13</mysql-connector-java>
 
@@ -94,8 +94,8 @@
     <dependencies>
         <dependency>
             <groupId>vibur</groupId>
-            <artifactId>object_pool</artifactId>
-            <version>${object_pool.version}</version>
+            <artifactId>vibur-object-pool</artifactId>
+            <version>${vibur-object-pool.version}</version>
         </dependency>
 
         <dependency>
@@ -109,7 +109,7 @@
             <version>${slf4j.version}</version>
         </dependency>
 
-        <!-- todo this is for testing purposes only, may need to use something different in future... -->
+        <!-- todo: this dependency is for testing purposes only, may need to use something different in future. -->
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
