@@ -7,9 +7,9 @@
     <session-factory>
         <!-- Database connection settings -->
         <property name="hibernate.connection.driver_class">com.mysql.jdbc.Driver</property>
-        <property name="hibernate.connection.url">jdbc:mysql://localhost/sakila</property>
-        <property name="hibernate.connection.username">root</property>
-        <property name="hibernate.connection.password">root</property>
+        <property name="hibernate.connection.url">jdbc:mysql://localhost/sakila</property> <!-- see http://dev.mysql.com/doc/sakila/en/ -->
+        <property name="hibernate.connection.username">test</property> <!-- change appropriately -->
+        <property name="hibernate.connection.password">pass</property> <!-- change appropriately -->
         <property name="hibernate.connection.isolation">2</property>
         <property name="hibernate.connection.autocommit">false</property>
 
