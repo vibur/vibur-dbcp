@@ -52,7 +52,7 @@ public class ProxyTest {
     @After
     public void tearDown() throws Exception {
         if (viburDS != null) {
-            viburDS.shutdown();
+            viburDS.terminate();
             viburDS= null;
         }
     }
@@ -156,6 +156,17 @@ public class ProxyTest {
         }
     }
 
+    @Test
+    public void testInitialiseFromPropertiesFile() {
+        viburDS = new ViburDBCPDataSource("vibur-dbcp-test.properties");
+    }
+
+    @Test
+    public void testInitialiseFromXMLPropertiesFile() {
+        viburDS = new ViburDBCPDataSource("vibur-dbcp-test.xml");
+        viburDS.start();
+    }
+
     private DataSource getSimpleDataSourceNoStatementsCache() {
         viburDS = new ViburDBCPDataSource();
 
@@ -190,6 +201,8 @@ public class ProxyTest {
         viburDS.setQueryExecuteTimeLimitInMs(1);
 
         viburDS.setStatementCacheMaxSize(10);
+
+        viburDS = new ViburDBCPDataSource("vibur-dbcp-test.properties");
 
         viburDS.start();
 

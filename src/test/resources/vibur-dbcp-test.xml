@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <entry key="driverClassName">com.mysql.jdbc.Driver</entry>
+    <entry key="jdbcUrl">jdbc:mysql://localhost/sakila</entry>
+    <entry key="username">root</entry>
+    <entry key="password">root</entry>
+    <entry key="poolInitialSize">2</entry>
+    <entry key="validateOnRestore">true</entry>
+    <entry key="logStatementsEnabled">true</entry>
+    <entry key="queryExecuteTimeLimitInMs">1</entry>
+    <entry key="statementCacheMaxSize">10</entry>
+</properties>

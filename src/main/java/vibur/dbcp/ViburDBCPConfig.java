@@ -52,7 +52,7 @@ public class ViburDBCPConfig {
     /** The pool max size, i.e. the maximum number of JDBC Connections allocated in this pool. */
     private int poolMaxSize = 10;
     /** The pool's fairness setting with regards to waiting threads. */
-    private boolean poolFair = false;
+    private boolean poolFair = true;
     /** If true, the pool will keep information for the current stack trace of every taken connection. */
     private boolean poolEnableConnectionTracking = false;
 

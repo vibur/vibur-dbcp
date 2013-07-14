@@ -26,7 +26,9 @@ import vibur.dbcp.proxy.listener.ExceptionListener;
 import vibur.dbcp.proxy.listener.TransactionListener;
 
 import java.lang.reflect.Method;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
 
 import static vibur.dbcp.util.StatementUtils.toSQLString;
 

@@ -31,11 +31,17 @@ import vibur.object_pool.util.PoolReducer;
 import vibur.object_pool.util.Reducer;
 
 import javax.sql.DataSource;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintWriter;
+import java.lang.reflect.Field;
+import java.net.URL;
+import java.net.URLConnection;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
 import java.sql.Statement;
+import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
@@ -47,6 +53,9 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
     private static final org.slf4j.Logger logger = LoggerFactory.getLogger(ViburDBCPDataSource.class);
 
     private static final int CACHE_MAX_SIZE = 500;
+
+    public static final String PROPERTIES_CONFIG_FILE_NAME = "vibur-dbcp-test.properties";
+    public static final String XML_CONFIG_FILE_NAME = "vibur-dbcp-test.xml";
 
     private PrintWriter logWriter = null;
 
@@ -63,9 +72,120 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
 
     private State state = State.NEW;
 
-    public ViburDBCPDataSource() { // default constructor
+    /**
+     * Default constructor for programmatic configuration via the {@code ViburDBCPConfig}
+     * setter methods.
+     */
+    public ViburDBCPDataSource() {
     }
 
+    /**
+     * Initialisation via properties file name. Must be either standard properties file
+     * or XML file which is complaint with "http://java.sun.com/dtd/properties.dtd".
+     *
+     * <p>{@code configFileName} can be {@code null} in which case the default resource
+     * file names {@link #XML_CONFIG_FILE_NAME} or {@link #PROPERTIES_CONFIG_FILE_NAME}
+     * will be loaded, in this order.
+     *
+     * @param configFileName the properties config file name
+     * @throws ViburDBCPException if cannot configure successfully
+     */
+    public ViburDBCPDataSource(String configFileName) {
+        URL config;
+        if (configFileName != null) {
+            config = getURL(configFileName);
+            if (config == null)
+                throw new ViburDBCPException("Unable to load resource " + configFileName);
+        } else {
+            config = getURL(XML_CONFIG_FILE_NAME);
+            if (config == null) {
+                config = getURL(PROPERTIES_CONFIG_FILE_NAME);
+                if (config == null)
+                    throw new ViburDBCPException("Unable to load default resources " + XML_CONFIG_FILE_NAME
+                        + " or " + PROPERTIES_CONFIG_FILE_NAME);
+            }
+        }
+        configureFromURL(config);
+    }
+
+    private URL getURL(String configFileName) {
+        URL config = Thread.currentThread().getContextClassLoader().getResource(configFileName);
+        if (config == null) {
+            config = getClass().getClassLoader().getResource(configFileName);
+            if (config == null)
+                config = ClassLoader.getSystemResource(configFileName);
+        }
+        return config;
+    }
+
+    /**
+     * Initialisation via the given properties.
+     *
+     * @param properties the given properties
+     * @throws ViburDBCPException if cannot configure successfully
+     */
+    public ViburDBCPDataSource(Properties properties) {
+        configureFromProperties(properties);
+    }
+
+    private void configureFromURL(URL config) {
+        Properties properties = new Properties();
+        InputStream inputStream = null;
+        try {
+            URLConnection uConn = config.openConnection();
+            uConn.setUseCaches(false);
+            inputStream = uConn.getInputStream();
+            if (config.getFile().endsWith(".xml"))
+                properties.loadFromXML(inputStream);
+            else
+                properties.load(inputStream);
+            configureFromProperties(properties);
+        } catch (IOException e) {
+            throw new ViburDBCPException(e);
+        } finally {
+            if (inputStream != null)
+                try {
+                    inputStream.close();
+                } catch (IOException e) {
+                    throw new ViburDBCPException(e);
+                }
+        }
+    }
+
+    private void configureFromProperties(Properties properties) {
+        for (Field field : ViburDBCPConfig.class.getDeclaredFields()) {
+            try {
+                String val = properties.getProperty(field.getName());
+                if (val != null) {
+                    Class<?> type = field.getType();
+                    if (type == int.class || type == Integer.class)
+                        set(field, Integer.parseInt(val));
+                    else if (type == long.class || type == Long.class)
+                        set(field, Long.parseLong(val));
+                    else if (type == float.class || type == Float.class)
+                        set(field, Float.parseFloat(val));
+                    else if (type == boolean.class || type == Boolean.class)
+                        set(field, Boolean.parseBoolean(val));
+                    else if (type == String.class)
+                        set(field, val);
+                }
+            } catch (NumberFormatException e) {
+                throw new ViburDBCPException(e);
+            } catch (IllegalAccessException e) {
+                throw new ViburDBCPException(e);
+            }
+        }
+    }
+
+    private void set(Field field, Object value) throws IllegalAccessException {
+        field.setAccessible(true);
+        field.set(this, value);
+    }
+
+    /**
+     * Starts this datasource. In order to be used the datasource has to be first initialised
+     * via call to one of the constructors and then started via call to this method.
+     */
     public synchronized void start() {
         if (state != State.NEW)
             throw new IllegalStateException();
@@ -104,10 +224,14 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
                 (statementCacheMaxSize));
     }
 
-    public synchronized void shutdown() {
+    /**
+     * Terminates this datasource. Once terminated the datasource cannot be more revived.
+     */
+    public synchronized void terminate() {
         if (state == State.TERMINATED) return;
-        if (state != State.WORKING)
-            throw new IllegalStateException();
+        State oldState = state;
+        state = State.TERMINATED;
+        if (oldState == State.NEW) return;
 
         ConcurrentCache<StatementKey, Statement> statementCache = getStatementCache();
         if (statementCache != null)
