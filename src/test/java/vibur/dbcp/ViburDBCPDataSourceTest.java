@@ -18,6 +18,8 @@ package vibur.dbcp;
 
 import org.junit.After;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
+import vibur.dbcp.common.IntegrationTest;
 
 import javax.sql.DataSource;
 import java.sql.*;
@@ -45,7 +47,8 @@ import static org.junit.Assert.assertTrue;
  *
  * @author Simeon Malchev
  */
-public class ProxyTest {
+@Category({IntegrationTest.class})
+public class ViburDBCPDataSourceTest {
 
     private ViburDBCPDataSource viburDS = null;
 

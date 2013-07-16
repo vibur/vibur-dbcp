@@ -18,6 +18,8 @@ package vibur.dbcp.integration;
 
 import org.hibernate.Session;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
+import vibur.dbcp.common.IntegrationTest;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -27,6 +29,7 @@ import static org.junit.Assert.assertEquals;
 /**
  * @author Simeon Malchev
  */
+@Category({IntegrationTest.class})
 public class ViburDBCPConnectionProviderTest {
 
     @Test
