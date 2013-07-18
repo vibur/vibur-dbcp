@@ -16,12 +16,12 @@
 
 package vibur.dbcp;
 
+import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap;
 import org.slf4j.LoggerFactory;
-import vibur.dbcp.cache.ConcurrentCache;
-import vibur.dbcp.cache.ConcurrentFifoCache;
+import vibur.dbcp.cache.StatementKey;
+import vibur.dbcp.cache.ValueHolder;
 import vibur.dbcp.listener.DestroyListener;
 import vibur.dbcp.proxy.Proxy;
-import vibur.dbcp.proxy.cache.StatementKey;
 import vibur.object_pool.ConcurrentHolderLinkedPool;
 import vibur.object_pool.Holder;
 import vibur.object_pool.HolderValidatingPoolService;
@@ -42,6 +42,7 @@ import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
 import java.sql.Statement;
 import java.util.Properties;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
@@ -220,8 +221,8 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
         if (statementCacheMaxSize > CACHE_MAX_SIZE)
             statementCacheMaxSize = CACHE_MAX_SIZE;
         if (statementCacheMaxSize > 0)
-            setStatementCache(new ConcurrentFifoCache<StatementKey, Statement>
-                (statementCacheMaxSize));
+            setStatementCache(new ConcurrentLinkedHashMap.Builder<StatementKey, ValueHolder<Statement>>()
+                .maximumWeightedCapacity(statementCacheMaxSize).build());
     }
 
     /**
@@ -233,7 +234,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
         state = State.TERMINATED;
         if (oldState == State.NEW) return;
 
-        ConcurrentCache<StatementKey, Statement> statementCache = getStatementCache();
+        ConcurrentMap<StatementKey, ValueHolder<Statement>> statementCache = getStatementCache();
         if (statementCache != null)
             statementCache.clear();
         poolReducer.terminate();
@@ -317,7 +318,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
     }
 
     public void onDestroy(Connection connection) {
-        ConcurrentCache<StatementKey, Statement> statementCache = getStatementCache();
+        ConcurrentMap<StatementKey, ValueHolder<Statement>> statementCache = getStatementCache();
         if (statementCache != null)
             for (StatementKey key : statementCache.keySet())
                 if (key.getProxy().equals(connection))

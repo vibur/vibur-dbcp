@@ -27,6 +27,8 @@ import java.util.List;
 import static org.junit.Assert.assertEquals;
 
 /**
+ * Simple Hibernate integration test. Also see resources/hibernate-test.cfg.xml.
+ *
  * @author Simeon Malchev
  */
 @Category({IntegrationTest.class})

@@ -19,9 +19,8 @@ package vibur.dbcp.proxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import vibur.dbcp.ViburDBCPConfig;
-import vibur.dbcp.cache.ConcurrentCache;
+import vibur.dbcp.cache.StatementKey;
 import vibur.dbcp.cache.ValueHolder;
-import vibur.dbcp.proxy.cache.StatementKey;
 import vibur.dbcp.proxy.listener.ExceptionListenerImpl;
 import vibur.dbcp.proxy.listener.TransactionListener;
 import vibur.dbcp.proxy.listener.TransactionListenerImpl;
@@ -32,6 +31,7 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.sql.*;
 import java.util.Arrays;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -51,7 +51,7 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
     private volatile boolean autoCommit;
     private volatile boolean logicallyClosed = false;
 
-    private final ConcurrentCache<StatementKey, Statement> statementCache;
+    private final ConcurrentMap<StatementKey, ValueHolder<Statement>> statementCache;
 
     public ConnectionInvocationHandler(HolderValidatingPoolService<Connection> connectionPool,
                                        Holder<Connection> hConnection, ViburDBCPConfig config) {
@@ -124,12 +124,12 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
             Statement statement;
             AtomicBoolean inUse = null;
             StatementKey key = new StatementKey(getTarget(), method, args);
-            ValueHolder<Statement> statementHolder = statementCache.take(key);
+            ValueHolder<Statement> statementHolder = statementCache.get(key);
             if (statementHolder == null || statementHolder.inUse().getAndSet(true)) {
                 statement = (Statement) targetInvoke(method, args);
                 if (statementHolder == null) { // there was no entry for the key
                     inUse = new AtomicBoolean(true);
-                    if (statementCache.putIfAbsent(key, statement, inUse) != null)
+                    if (statementCache.putIfAbsent(key, new ValueHolder<Statement>(statement, inUse)) != null)
                         inUse = null; // because someone else succeeded to put the statement before us
                 }
                 return new ValueHolder<Statement>(statement, inUse);

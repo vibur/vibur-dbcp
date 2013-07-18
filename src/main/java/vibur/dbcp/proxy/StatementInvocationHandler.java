@@ -19,9 +19,8 @@ package vibur.dbcp.proxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import vibur.dbcp.ViburDBCPConfig;
-import vibur.dbcp.cache.ConcurrentCache;
+import vibur.dbcp.cache.StatementKey;
 import vibur.dbcp.cache.ValueHolder;
-import vibur.dbcp.proxy.cache.StatementKey;
 import vibur.dbcp.proxy.listener.ExceptionListener;
 import vibur.dbcp.proxy.listener.TransactionListener;
 
@@ -29,6 +28,7 @@ import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.concurrent.ConcurrentMap;
 
 import static vibur.dbcp.util.StatementUtils.toSQLString;
 
@@ -45,7 +45,7 @@ public class StatementInvocationHandler extends ConnectionChildInvocationHandler
 
     private volatile boolean logicallyClosed = false;
 
-    private final ConcurrentCache<StatementKey, Statement> statementCache;
+    private final ConcurrentMap<StatementKey, ValueHolder<Statement>> statementCache;
 
     public StatementInvocationHandler(ValueHolder<? extends Statement> statementHolder,
                                       Connection connectionProxy,

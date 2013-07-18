@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package vibur.dbcp.proxy.cache;
+package vibur.dbcp.cache;
 
 import java.lang.reflect.Method;
 import java.sql.Connection;
@@ -25,8 +25,8 @@ import java.util.Arrays;
  * Connection object, the Method object which has been called on this Connection, and
  * the Method arguments.
 
- * <p>Used as a key for Statements caching in a {@link vibur.dbcp.cache.ConcurrentCache}
- * implementation.
+ * <p>Used as a key for Statements caching in a {@link java.util.concurrent.ConcurrentMap}
+ * cache implementation.
  *
  * @author Simeon Malchev
  */

@@ -16,10 +16,11 @@
 
 package vibur.dbcp;
 
-import vibur.dbcp.cache.ConcurrentCache;
-import vibur.dbcp.proxy.cache.StatementKey;
+import vibur.dbcp.cache.StatementKey;
+import vibur.dbcp.cache.ValueHolder;
 
 import java.sql.Statement;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * @author Simeon Malchev
@@ -83,7 +84,7 @@ public class ViburDBCPConfig {
 
     /** Defines the maximum statement cache size. {@code 0} disables it, max values is {@code 500} */
     private int statementCacheMaxSize = 0;
-    private ConcurrentCache<StatementKey, Statement> statementCache = null;
+    private ConcurrentMap<StatementKey, ValueHolder<Statement>> statementCache = null;
 
     /** If set to true, log all SQL statements being executed. */
     private boolean logStatementsEnabled = false;
@@ -249,11 +250,11 @@ public class ViburDBCPConfig {
         this.statementCacheMaxSize = statementCacheMaxSize;
     }
 
-    public ConcurrentCache<StatementKey, Statement> getStatementCache() {
+    public ConcurrentMap<StatementKey, ValueHolder<Statement>> getStatementCache() {
         return statementCache;
     }
 
-    public void setStatementCache(ConcurrentCache<StatementKey, Statement> statementCache) {
+    public void setStatementCache(ConcurrentMap<StatementKey, ValueHolder<Statement>> statementCache) {
         this.statementCache = statementCache;
     }
 

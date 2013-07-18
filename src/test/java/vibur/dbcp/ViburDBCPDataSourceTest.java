@@ -205,8 +205,6 @@ public class ViburDBCPDataSourceTest {
 
         viburDS.setStatementCacheMaxSize(10);
 
-        viburDS = new ViburDBCPDataSource("vibur-dbcp-test.properties");
-
         viburDS.start();
 
         return viburDS;
