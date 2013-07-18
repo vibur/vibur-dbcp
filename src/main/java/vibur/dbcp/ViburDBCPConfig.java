@@ -82,7 +82,9 @@ public class ViburDBCPConfig {
     private int acquireRetryAttempts = 3;
 
 
-    /** Defines the maximum statement cache size. {@code 0} disables it, max values is {@code 500} */
+    /** Defines the maximum statement cache size. {@code 0} disables it, max values is {@code 500}.
+     * If the statement's cache is enabled the client application needs to provide dependency to Google's
+     * ConcurrentLinkedCacheMap, see https://code.google.com/p/concurrentlinkedhashmap/. */
     private int statementCacheMaxSize = 0;
     private ConcurrentMap<StatementKey, ValueHolder<Statement>> statementCache = null;
 
