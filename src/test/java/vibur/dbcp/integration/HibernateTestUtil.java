@@ -24,19 +24,29 @@ import org.hibernate.cfg.Configuration;
  */
 public class HibernateTestUtil {
 
-    private static final SessionFactory sessionFactory = buildSessionFactory();
+    private static SessionFactory sessionFactoryNoStmtCache;
+    private static SessionFactory sessionFactoryWithStmtCache;
 
-    private static SessionFactory buildSessionFactory() {
+    static {
+        sessionFactoryNoStmtCache = buildStatementFactory("/hibernate-no-stmt-cache.cfg.xml");
+        sessionFactoryWithStmtCache = buildStatementFactory("/hibernate-with-stmt-cache.cfg.xml");
+    }
+
+    private static SessionFactory buildStatementFactory(String configFileName) {
         try {
             Configuration cfg = new Configuration();
             cfg.addAnnotatedClass(Actor.class);
-            return cfg.configure("/hibernate-test.cfg.xml").buildSessionFactory();
+            return cfg.configure(configFileName).buildSessionFactory();
         } catch (Exception e) {
             throw new ExceptionInInitializerError(e);
         }
     }
 
-    public static SessionFactory getSessionFactory() {
-        return sessionFactory;
+    public static SessionFactory getSessionFactoryNoStmtCache() {
+        return sessionFactoryNoStmtCache;
+    }
+
+    public static SessionFactory getSessionFactoryWithStmtCache() {
+        return sessionFactoryWithStmtCache;
     }
 }

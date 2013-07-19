@@ -22,12 +22,16 @@ import org.junit.experimental.categories.Category;
 import vibur.dbcp.common.IntegrationTest;
 
 import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
- * Simple Hibernate integration test. Also see resources/hibernate-test.cfg.xml.
+ * Simple Hibernate integration test. Also see resources/hibernate-*-stmt-cache.cfg.xml.
  *
  * @author Simeon Malchev
  */
@@ -35,18 +39,47 @@ import static org.junit.Assert.assertEquals;
 public class ViburDBCPConnectionProviderTest {
 
     @Test
-    @SuppressWarnings("unchecked")
     public void testSimpleStatementSelectNoStatementsCache() throws SQLException {
-        Session session = HibernateTestUtil.getSessionFactory().getCurrentSession();
+        Session session = HibernateTestUtil.getSessionFactoryNoStmtCache().getCurrentSession();
         try {
-            session.beginTransaction();
-            List<Actor> list = session.createQuery("from Actor where firstName = ?")
-                .setParameter(0, "Renee").list();
-            session.getTransaction().commit();
-            assertEquals(2, list.size());
+            executeSimpleSelect(session);
         } catch (RuntimeException e) {
             session.getTransaction().rollback();
             throw e;
+        }
+    }
+
+    @Test
+    public void testSimpleStatementSelectWithStatementsCache() throws SQLException {
+        openAndCloseSession();
+        // hibernate-with-stmt-cache.cfg.xml defines pool with only 1 connection, that's why
+        // the second session will hit the same underlying connection.
+        openAndCloseSession();
+    }
+
+    private void openAndCloseSession() {
+        Session session = HibernateTestUtil.getSessionFactoryWithStmtCache().openSession();
+        try {
+            executeSimpleSelect(session);
+        } catch (RuntimeException e) {
+            session.getTransaction().rollback();
+            throw e;
+        } finally {
+            session.close();
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void executeSimpleSelect(Session session) {
+        session.beginTransaction();
+        List<Actor> list = session.createQuery("from Actor where firstName = ?")
+            .setParameter(0, "CHRISTIAN").list();
+        session.getTransaction().commit();
+
+        Set<String> expectedLastNames = new HashSet<String>(Arrays.asList("GABLE", "AKROYD", "NEESON"));
+        assertEquals(expectedLastNames.size(), list.size());
+        for (Actor actor : list) {
+            assertTrue(expectedLastNames.remove(actor.getLastName()));
         }
     }
 }

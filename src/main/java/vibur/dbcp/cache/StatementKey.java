@@ -23,7 +23,7 @@ import java.util.Arrays;
 /**
  * Describes the "parameters" via which a Statement has been created. These are the
  * Connection object, the Method object which has been called on this Connection, and
- * the Method arguments.
+ * the Method's arguments.
 
  * <p>Used as a key for Statements caching in a {@link java.util.concurrent.ConcurrentMap}
  * cache implementation.

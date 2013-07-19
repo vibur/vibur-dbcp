@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-configuration PUBLIC
+        "-//Hibernate/Hibernate Configuration DTD 3.0//EN"
+        "http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
+
+<hibernate-configuration>
+    <session-factory>
+        <!-- Database connection settings -->
+        <property name="hibernate.connection.driver_class">com.mysql.jdbc.Driver</property>
+        <property name="hibernate.connection.url">jdbc:mysql://localhost/sakila</property> <!-- see http://dev.mysql.com/doc/sakila/en/ -->
+        <property name="hibernate.connection.username">test</property> <!-- change appropriately -->
+        <property name="hibernate.connection.password">pass</property> <!-- change appropriately -->
+        <property name="hibernate.connection.isolation">2</property>
+        <property name="hibernate.connection.autocommit">false</property>
+
+        <property name="hibernate.dialect">org.hibernate.dialect.MySQLInnoDBDialect</property>
+        <property name="hibernate.default_schema">sakila</property>
+
+        <property name="hibernate.current_session_context_class">thread</property>
+        <property name="hibernate.show_sql">true</property>
+        <property name="hibernate.format_sql">true</property>
+
+        <!-- Vibur specific properties -->
+        <property name="hibernate.connection.provider_class">
+            vibur.dbcp.integration.ViburDBCPConnectionProvider
+        </property>
+        <property name="hibernate.vibur.poolInitialSize">2</property>
+        <property name="hibernate.vibur.validateOnRestore">true</property>
+        <property name="hibernate.vibur.logStatementsEnabled">true</property>
+        <property name="hibernate.vibur.queryExecuteTimeLimitInMs">1</property>
+    </session-factory>
+</hibernate-configuration>

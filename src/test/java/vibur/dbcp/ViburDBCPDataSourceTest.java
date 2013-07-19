@@ -95,12 +95,12 @@ public class ViburDBCPDataSourceTest {
             statement = connection.createStatement();
             resultSet = statement.executeQuery("select * from actor where first_name = 'CHRISTIAN'");
 
-            Set<String> lastNames = new HashSet<String>(Arrays.asList("GABLE", "AKROYD", "NEESON"));
+            Set<String> expectedLastNames = new HashSet<String>(Arrays.asList("GABLE", "AKROYD", "NEESON"));
             int count = 0;
             while (resultSet.next()) {
                 ++count;
                 String lastName = resultSet.getString("last_name");
-                assertTrue(lastNames.remove(lastName));
+                assertTrue(expectedLastNames.remove(lastName));
             }
             assertEquals(3, count);
         } finally {

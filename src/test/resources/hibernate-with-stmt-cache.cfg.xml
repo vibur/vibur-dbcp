@@ -24,7 +24,8 @@
         <property name="hibernate.connection.provider_class">
             vibur.dbcp.integration.ViburDBCPConnectionProvider
         </property>
-        <property name="hibernate.vibur.poolInitialSize">2</property>
+        <property name="hibernate.vibur.poolInitialSize">1</property>
+        <property name="hibernate.vibur.poolMaxSize">1</property>
         <property name="hibernate.vibur.validateOnRestore">true</property>
         <property name="hibernate.vibur.logStatementsEnabled">true</property>
         <property name="hibernate.vibur.queryExecuteTimeLimitInMs">1</property>
