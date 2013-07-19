@@ -31,7 +31,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 /**
- * Simple Hibernate integration test. Also see resources/hibernate-*-stmt-cache.cfg.xml.
+ * Simple Hibernate integration test.
+ *
+ * Also see the first 2 prerequisites for running the test from {@link vibur.dbcp.ViburDBCPDataSourceTest}
+ * and the resources/hibernate-*-stmt-cache.cfg.xml configuration files.
  *
  * @author Simeon Malchev
  */

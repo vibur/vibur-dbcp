@@ -31,7 +31,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 /**
- * Prerequisites for running the tests:
+ * Simple JDBC integration test. Prerequisites for running the tests:
  *
  * <p>1. Install and run MySQL server.
  *
