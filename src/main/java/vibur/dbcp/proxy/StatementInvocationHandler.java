@@ -66,9 +66,9 @@ public class StatementInvocationHandler extends ConnectionChildInvocationHandler
 
         if (methodName.equals("close")) {
             logicallyClosed = true;
-            if (statementCache != null && statementHolder.inUse() != null) {
-                statementHolder.inUse().set(false);
-                return null;
+            if (statementCache != null && statementHolder.inUse() != null) { // this statementHolder is in the cache
+                statementHolder.inUse().set(false); // we just mark it as available
+                return null; // and we don't pass the call to the underlying close method
             } else
                 return targetInvoke(method, args);
         }

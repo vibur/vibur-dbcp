@@ -119,4 +119,8 @@ public class ViburDBCPConnectionProvider implements ConnectionProvider {
 
         return result;
     }
+
+    public ViburDBCPDataSource getDataSource() {
+        return dataSource;
+    }
 }
