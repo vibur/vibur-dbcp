@@ -17,6 +17,7 @@
 package vibur.dbcp;
 
 import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap;
+import com.googlecode.concurrentlinkedhashmap.EvictionListener;
 import org.slf4j.LoggerFactory;
 import vibur.dbcp.cache.StatementKey;
 import vibur.dbcp.cache.ValueHolder;
@@ -41,6 +42,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
 import java.sql.Statement;
+import java.util.Iterator;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
@@ -221,8 +223,29 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
         if (statementCacheMaxSize > CACHE_MAX_SIZE)
             statementCacheMaxSize = CACHE_MAX_SIZE;
         if (statementCacheMaxSize > 0)
-            setStatementCache(new ConcurrentLinkedHashMap.Builder<StatementKey, ValueHolder<Statement>>()
-                .maximumWeightedCapacity(statementCacheMaxSize).build());
+            setStatementCache(buildStatementCache(statementCacheMaxSize));
+    }
+
+    private ConcurrentMap<StatementKey, ValueHolder<Statement>> buildStatementCache(int statementCacheMaxSize) {
+        EvictionListener<StatementKey, ValueHolder<Statement>> listener =
+            new EvictionListener<StatementKey, ValueHolder<Statement>>() {
+                public void onEviction(StatementKey key, ValueHolder<Statement> value) {
+                    closeStatement(value.value());
+                }
+            };
+        return new ConcurrentLinkedHashMap.Builder<StatementKey, ValueHolder<Statement>>()
+            .initialCapacity(statementCacheMaxSize)
+            .maximumWeightedCapacity(statementCacheMaxSize)
+            .listener(listener)
+            .build();
+    }
+
+    private void closeStatement(Statement statement) {
+        try {
+            statement.close();
+        } catch (SQLException e) {
+            logger.debug("Couldn't close cached statement " + statement);
+        }
     }
 
     /**
@@ -236,7 +259,11 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
 
         ConcurrentMap<StatementKey, ValueHolder<Statement>> statementCache = getStatementCache();
         if (statementCache != null)
-            statementCache.clear();
+            for (Iterator<ValueHolder<Statement>> i = statementCache.values().iterator(); i.hasNext(); ) {
+                ValueHolder<Statement> valueHolder = i.next();
+                closeStatement(valueHolder.value());
+                i.remove();
+            }
         poolReducer.terminate();
         connectionPool.terminate();
     }
@@ -272,10 +299,12 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
         }
     }
 
+    /** {@inheritDoc} */
     public Connection getConnection() throws SQLException {
         return getConnection(getCreateConnectionTimeoutInMs());
     }
 
+    /** {@inheritDoc} */
     public Connection getConnection(String username, String password) throws SQLException {
         throw new UnsupportedOperationException(
             "Having different usernames/passwords is not supported by this DataSource.");
@@ -289,26 +318,32 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
         return Proxy.newConnection(hConnection, connectionPool, this);
     }
 
+    /** {@inheritDoc} */
     public PrintWriter getLogWriter() throws SQLException {
         return logWriter;
     }
 
+    /** {@inheritDoc} */
     public void setLogWriter(PrintWriter out) throws SQLException {
         this.logWriter = out;
     }
 
+    /** {@inheritDoc} */
     public void setLoginTimeout(int seconds) throws SQLException {
         setCreateConnectionTimeoutInMs(seconds * 1000);
     }
 
+    /** {@inheritDoc} */
     public int getLoginTimeout() throws SQLException {
         return (int) getCreateConnectionTimeoutInMs() / 1000;
     }
 
+    /** {@inheritDoc} */
     public Logger getParentLogger() throws SQLFeatureNotSupportedException {
         throw new SQLFeatureNotSupportedException();
     }
 
+    /** {@inheritDoc} */
     public <T> T unwrap(Class<T> iface) throws SQLException {
         throw new SQLException("not a wrapper");
     }
@@ -321,8 +356,11 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
         ConcurrentMap<StatementKey, ValueHolder<Statement>> statementCache = getStatementCache();
         if (statementCache != null)
             for (StatementKey key : statementCache.keySet())
-                if (key.getProxy().equals(connection))
-                    statementCache.remove(key);
+                if (key.getProxy().equals(connection)) {
+                    ValueHolder<Statement> valueHolder = statementCache.remove(key);
+                    if (valueHolder != null)
+                        closeStatement(valueHolder.value());
+                }
     }
 
     public State getState() {
