@@ -28,6 +28,7 @@ import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Iterator;
 import java.util.concurrent.ConcurrentMap;
 
 import static vibur.dbcp.util.StatementUtils.toSQLString;
@@ -65,12 +66,7 @@ public class StatementInvocationHandler extends ConnectionChildInvocationHandler
         String methodName = method.getName();
 
         if (methodName.equals("close")) {
-            logicallyClosed = true;
-            if (statementCache != null && statementHolder.inUse() != null) { // this statementHolder is in the cache
-                statementHolder.inUse().set(false); // we just mark it as available
-                return null; // and we don't pass the call to the underlying close method
-            } else
-                return targetInvoke(method, args);
+            return processClose(method, args);
         }
         if (methodName.equals("isClosed"))
             return logicallyClosed;
@@ -79,10 +75,35 @@ public class StatementInvocationHandler extends ConnectionChildInvocationHandler
         if (logicallyClosed)
             throw new SQLException("Statement is closed.");
 
+        if (methodName.equals("cancel")) {
+            return processCancel(proxy, method, args);
+        }
+
         if (methodName.startsWith("execute"))
             return processExecute(proxy, method, args);
 
         return super.customInvoke(proxy, method, args);
+    }
+
+    private Object processClose(Method method, Object[] args) throws Throwable {
+        logicallyClosed = true;
+        if (statementCache != null && statementHolder.inUse() != null) { // this statementHolder is in the cache
+            statementHolder.inUse().set(false); // we just mark it as available
+            return null; // and we don't pass the call to the underlying close method
+        } else
+            return targetInvoke(method, args);
+    }
+
+    private Object processCancel(Statement statementProxy, Method method, Object[] args) throws Throwable {
+        if (statementCache != null)
+            for (Iterator<ValueHolder<Statement>> i = statementCache.values().iterator(); i.hasNext(); ) {
+                ValueHolder<Statement> valueHolder = i.next();
+                if (valueHolder.value().equals(statementProxy)) {
+                    i.remove();
+                    break;
+                }
+            }
+        return targetInvoke(method, args);
     }
 
     private Object processExecute(Statement statementProxy, Method method, Object[] args) throws Throwable {

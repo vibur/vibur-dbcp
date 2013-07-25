@@ -127,10 +127,10 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
             ValueHolder<Statement> statementHolder = statementCache.get(key);
             if (statementHolder == null || statementHolder.inUse().getAndSet(true)) {
                 statement = (Statement) targetInvoke(method, args);
-                if (statementHolder == null) { // there was no entry for the key
+                if (statementHolder == null) { // there was no entry for the key, so we try to put a new one
                     inUse = new AtomicBoolean(true);
                     if (statementCache.putIfAbsent(key, new ValueHolder<Statement>(statement, inUse)) != null)
-                        inUse = null; // because someone else succeeded to put the statement before us
+                        inUse = null; // because another thread succeeded to put the entry before us
                 }
                 return new ValueHolder<Statement>(statement, inUse);
             } else { // the statementHolder is valid and was not inUse

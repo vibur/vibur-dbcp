@@ -47,7 +47,8 @@ import static org.mockito.AdditionalAnswers.*;
  * <p>2. Install the <a href="http://dev.mysql.com/doc/sakila/en/">Sakila Sample Database</a>
  * as described in the link.
  *
- * <p>3. The following system properties have to be provided and set to something similar to:
+ * <p>3. The following system properties have to be provided on the command line (if building with maven
+ * from the command line) or internally in the IDE. They should be set to something similar to:
  * <p>
  * -DDriverClassName=com.mysql.jdbc.Driver <br>
  * -DJdbcUrl=jdbc:mysql://localhost/sakila <br>
@@ -84,6 +85,7 @@ public class ViburDBCPDataSourceTest {
         } finally {
             if (connection != null) connection.close();
         }
+        assertTrue(connection.isClosed());
     }
 
     @Test
@@ -112,6 +114,7 @@ public class ViburDBCPDataSourceTest {
         } finally {
             if (connection != null) connection.close();
         }
+        assertTrue(connection.isClosed());
     }
 
     private void executeAndVerifySimpleSelectStatement(Connection connection) throws SQLException {
@@ -134,6 +137,7 @@ public class ViburDBCPDataSourceTest {
             if (resultSet != null) resultSet.close();
             if (statement != null) statement.close();
         }
+        assertTrue(statement.isClosed());
     }
 
     @Test
@@ -147,6 +151,7 @@ public class ViburDBCPDataSourceTest {
         } finally {
             if (connection != null) connection.close();
         }
+        assertTrue(connection.isClosed());
     }
 
     @Test
@@ -175,6 +180,7 @@ public class ViburDBCPDataSourceTest {
         } finally {
             if (connection != null) connection.close();
         }
+        assertTrue(connection.isClosed());
     }
 
     private void executeAndVerifySimplePreparedSelectStatement(Connection connection) throws SQLException {
@@ -198,6 +204,7 @@ public class ViburDBCPDataSourceTest {
             if (resultSet != null) resultSet.close();
             if (pStatement != null) pStatement.close();
         }
+        assertTrue(pStatement.isClosed());
     }
 
     @Test

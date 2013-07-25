@@ -97,11 +97,11 @@ public class Proxy {
     private static final Constructor<?> pStatementCtor;
     private static final Constructor<?> cStatementCtor;
     private static final Constructor<?> metadataCtor;
+
+    private static ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
     // static initializer for all constructors:
     static {
         try {
-            ClassLoader classLoader = Proxy.class.getClassLoader();
-
             connectionCtor = java.lang.reflect.Proxy.getProxyClass(classLoader,
                 Connection.class).getConstructor(InvocationHandler.class);
             statementCtor = java.lang.reflect.Proxy.getProxyClass(classLoader,
