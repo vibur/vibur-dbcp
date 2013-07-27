@@ -156,7 +156,8 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
                 hConnection.value().rollback();
             } catch (SQLException e) {
                 logger.debug("Couldn't rollback the connection", e);
-                valid = false;
+                if (!(e instanceof SQLTransientConnectionException))
+                    valid = false;
             }
         }
 

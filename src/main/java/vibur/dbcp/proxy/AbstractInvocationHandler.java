@@ -23,6 +23,7 @@ import vibur.dbcp.proxy.listener.ExceptionListener;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.sql.SQLTransientConnectionException;
 
 /**
 * @author Simeon Malchev
@@ -66,10 +67,11 @@ public abstract class AbstractInvocationHandler<T> implements InvocationHandler 
 
     protected Object targetInvoke(Method method, Object[] args) throws Throwable {
         try {
-            return method.invoke(target, args);
+            return method.invoke(target, args);  // the real method call on the real underlying (proxied) object
         } catch (InvocationTargetException e) {
             Throwable cause = e.getCause();
-            exceptionListener.addException(cause);
+            if (!(cause instanceof SQLTransientConnectionException)) // transient exceptions are not remembered
+                exceptionListener.addException(cause);
             throw cause;
         }
     }
