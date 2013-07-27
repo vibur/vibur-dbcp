@@ -63,7 +63,7 @@ public class ViburDBCPConfig {
      */
     /**
      * The time periods after which the {@code PoolReducer} will wake up. */
-    private long reducerTimeoutInSeconds = 30;
+    private long reducerTimeoutInSeconds = 60;
     /** The ratio between the taken objects from the pool and the available objects in the pool. */
     private float reducerTakenRatio = 0.90f;
     /** The ratio by which the number of available in the pool objects is to be reduced if the above
@@ -73,7 +73,7 @@ public class ViburDBCPConfig {
 
     /** Time to wait before a call to getConnection() times out and returns an error.
      * {@code 0} means forever */
-    private long createConnectionTimeoutInMs = 0;
+    private long createConnectionTimeoutInMs = 60000;
     /** After attempting to acquire a JDBC Connection and failing with an {@code SQLException},
      * wait for this value before attempting to acquire a new JDBC Connection again. */
     private long acquireRetryDelayInMs = 1000;
