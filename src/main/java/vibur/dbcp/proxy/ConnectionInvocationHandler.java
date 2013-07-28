@@ -72,7 +72,7 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
 
         boolean isMethodNameClose = methodName.equals("close");
         if (isMethodNameClose || methodName.equals("abort"))
-            return processCloseOrAbort(isMethodNameClose);
+            return processCloseOrAbort(isMethodNameClose, method, args);
 
         if (methodName.equals("isClosed"))
             return logicallyClosed;
@@ -144,14 +144,12 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
         }
     }
 
-    private Object processCloseOrAbort(boolean isClose) {
+    private Object processCloseOrAbort(boolean isClose, Method method, Object[] args) throws Throwable {
         logicallyClosed = true;
         boolean valid = isClose && getExceptionListener().getExceptions().isEmpty();
 
-        if (!autoCommit && transactionListener.isInProgress()) {
-            if (isClose)
-                logger.error("Neither commit() nor rollback() were called before close()");
-            logger.debug("Calling rollback() now");
+        if (isClose && !autoCommit && transactionListener.isInProgress()) {
+            logger.error("Neither commit() nor rollback() were called before close(). Calling rollback() now.");
             try {
                 hConnection.value().rollback();
             } catch (SQLException e) {
@@ -161,7 +159,8 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
             }
         }
 
+        Object result = isClose ? null : targetInvoke(method, args); // close() is not passed, abort() is passed
         connectionPool.restore(hConnection, valid);
-        return null; // don't pass the close() or abort() calls
+        return result;
     }
 }
