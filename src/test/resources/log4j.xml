@@ -8,7 +8,7 @@
         </layout>
     </appender>
 
-    <logger name="vibur.dbcp.proxy.ConnectionInvocationHandler" additivity="false">
+    <logger name="org.vibur.dbcp.proxy.ConnectionInvocationHandler" additivity="false">
         <level value="trace"/>
         <appender-ref ref="stdout"/>
     </logger>

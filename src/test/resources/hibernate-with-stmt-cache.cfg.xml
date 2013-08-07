@@ -22,7 +22,7 @@
 
         <!-- Vibur specific properties -->
         <property name="hibernate.connection.provider_class">
-            vibur.dbcp.integration.ViburDBCPConnectionProvider
+            org.vibur.dbcp.integration.ViburDBCPConnectionProvider
         </property>
         <property name="hibernate.vibur.poolInitialSize">1</property>
         <property name="hibernate.vibur.poolMaxSize">1</property>

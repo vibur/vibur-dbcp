@@ -3,7 +3,7 @@
 
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>vibur</groupId>
+    <groupId>org.vibur</groupId>
     <artifactId>vibur-dbcp</artifactId>
     <version>0.7.1-SNAPSHOT</version>
     <packaging>jar</packaging>
@@ -28,9 +28,9 @@
     <!--</parent>-->
 
     <scm>
-        <url>http://code.google.com/p/vibur-dbcp/</url>
-        <connection>scm:svn:https://vibur-dbcp.googlecode.com/svn/trunk/</connection>
+        <connection>scm:svn:http://vibur-dbcp.googlecode.com/svn/trunk/</connection>
         <developerConnection>scm:svn:https://vibur-dbcp.googlecode.com/svn/trunk/</developerConnection>
+        <url>http://code.google.com/p/vibur-dbcp/</url>
     </scm>
 
     <developers>
@@ -220,7 +220,7 @@
                         <version>${maven.surefire.plugin.version}</version>
                         <configuration>
                             <excludedGroups>
-                                vibur.dbcp.common.IntegrationTest
+                                org.vibur.dbcp.common.IntegrationTest
                             </excludedGroups>
                         </configuration>
                     </plugin>
@@ -238,7 +238,7 @@
                         <version>${maven.surefire.plugin.version}</version>
                         <configuration>
                             <groups>
-                                vibur.dbcp.common.IntegrationTest
+                                org.vibur.dbcp.common.IntegrationTest
                             </groups>
                         </configuration>
                     </plugin>
