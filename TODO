@@ -1,4 +1,4 @@
-* More javadoc and unit tests needed.
+* Some more javadoc and unit tests.
 
 * JMX, obtaining connection from DataSource,
   calculate and log some statistics.

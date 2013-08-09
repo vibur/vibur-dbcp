@@ -19,7 +19,7 @@ package org.vibur.dbcp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.listener.DestroyListener;
-import vibur.object_pool.PoolObjectFactory;
+import org.vibur.objectpool.PoolObjectFactory;
 
 import java.sql.Connection;
 import java.sql.DriverManager;

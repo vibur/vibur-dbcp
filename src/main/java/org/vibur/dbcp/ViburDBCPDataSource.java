@@ -23,13 +23,13 @@ import org.vibur.dbcp.cache.StatementKey;
 import org.vibur.dbcp.cache.ValueHolder;
 import org.vibur.dbcp.listener.DestroyListener;
 import org.vibur.dbcp.proxy.Proxy;
-import vibur.object_pool.ConcurrentHolderLinkedPool;
-import vibur.object_pool.Holder;
-import vibur.object_pool.HolderValidatingPoolService;
-import vibur.object_pool.PoolObjectFactory;
-import vibur.object_pool.util.DefaultReducer;
-import vibur.object_pool.util.PoolReducer;
-import vibur.object_pool.util.Reducer;
+import org.vibur.objectpool.ConcurrentHolderLinkedPool;
+import org.vibur.objectpool.Holder;
+import org.vibur.objectpool.HolderValidatingPoolService;
+import org.vibur.objectpool.PoolObjectFactory;
+import org.vibur.objectpool.util.DefaultReducer;
+import org.vibur.objectpool.util.PoolReducer;
+import org.vibur.objectpool.util.Reducer;
 
 import javax.sql.DataSource;
 import java.io.IOException;
@@ -306,8 +306,8 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
 
     /** {@inheritDoc} */
     public Connection getConnection(String username, String password) throws SQLException {
-        throw new UnsupportedOperationException(
-            "Having different usernames/passwords is not supported by this DataSource.");
+        logger.warn("Using different usernames/passwords is not supported yet. Will use the defaults.");
+        return getConnection();
     }
 
     private Connection getConnection(long timeout) throws SQLException {
@@ -348,6 +348,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
         throw new SQLException("not a wrapper");
     }
 
+    /** {@inheritDoc} */
     public boolean isWrapperFor(Class<?> iface) throws SQLException {
         return false;
     }

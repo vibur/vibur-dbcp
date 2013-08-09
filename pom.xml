@@ -62,14 +62,14 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <java.version>1.6</java.version>
-        <vibur-object-pool.version>0.8.6</vibur-object-pool.version>
+        <vibur-object-pool.version>0.8.7</vibur-object-pool.version>
         <slf4j.version>1.7.2</slf4j.version>
         <hibernate-core.version>3.6.3.Final</hibernate-core.version>
         <concurrentlinkedhashmap-lru.version>1.3.2</concurrentlinkedhashmap-lru.version>
 
         <junit.version>4.11</junit.version>
         <mockito-all.version>1.9.5</mockito-all.version>
-        <mysql-connector-java>5.1.13</mysql-connector-java>
+        <mysql-connector-java.version>5.1.13</mysql-connector-java.version>
         <javassist.version>3.12.1.GA</javassist.version>
 
         <maven.compiler.plugin.version>2.3.2</maven.compiler.plugin.version>
@@ -81,7 +81,7 @@
 
     <dependencies>
         <dependency>
-            <groupId>vibur</groupId>
+            <groupId>org.vibur</groupId>
             <artifactId>vibur-object-pool</artifactId>
             <version>${vibur-object-pool.version}</version>
         </dependency>
@@ -125,7 +125,7 @@
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
-            <version>${mysql-connector-java}</version>
+            <version>${mysql-connector-java.version}</version>
             <scope>test</scope>
         </dependency>
 

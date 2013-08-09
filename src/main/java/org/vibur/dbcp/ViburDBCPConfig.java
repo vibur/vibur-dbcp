@@ -58,8 +58,8 @@ public class ViburDBCPConfig {
     private boolean poolEnableConnectionTracking = false;
 
 
-    /** For more details on the next 3 parameters see {@link vibur.object_pool.util.PoolReducer}
-     *  and {@link vibur.object_pool.util.DefaultReducer}
+    /** For more details on the next 3 parameters see {@link org.vibur.objectpool.util.PoolReducer}
+     *  and {@link org.vibur.objectpool.util.DefaultReducer}
      */
     /**
      * The time periods after which the {@code PoolReducer} will wake up. */

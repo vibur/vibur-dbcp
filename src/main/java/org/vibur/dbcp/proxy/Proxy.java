@@ -20,8 +20,8 @@ import org.vibur.dbcp.ViburDBCPConfig;
 import org.vibur.dbcp.cache.ValueHolder;
 import org.vibur.dbcp.proxy.listener.ExceptionListener;
 import org.vibur.dbcp.proxy.listener.TransactionListener;
-import vibur.object_pool.Holder;
-import vibur.object_pool.HolderValidatingPoolService;
+import org.vibur.objectpool.Holder;
+import org.vibur.objectpool.HolderValidatingPoolService;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
