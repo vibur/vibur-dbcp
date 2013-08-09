@@ -5,7 +5,7 @@
 
     <groupId>org.vibur</groupId>
     <artifactId>vibur-dbcp</artifactId>
-    <version>0.7.1-SNAPSHOT</version>
+    <version>0.7.1</version>
     <packaging>jar</packaging>
 
     <name>Vibur Database Connections Pool</name>
@@ -28,9 +28,9 @@
     <!--</parent>-->
 
     <scm>
-        <connection>scm:svn:http://vibur-dbcp.googlecode.com/svn/trunk/</connection>
-        <developerConnection>scm:svn:https://vibur-dbcp.googlecode.com/svn/trunk/</developerConnection>
-        <url>http://code.google.com/p/vibur-dbcp/</url>
+        <connection>scm:svn:http://vibur-dbcp.googlecode.com/svn/tags/0.7.1</connection>
+        <developerConnection>scm:svn:https://vibur-dbcp.googlecode.com/svn/tags/0.7.1</developerConnection>
+        <url>http://code.google.com/p/vibur-dbcp/tags/0.7.1</url>
     </scm>
 
     <developers>
