@@ -94,15 +94,29 @@ public class ViburDBCPDataSourceTest {
             assertSame(connection, metaData.getConnection());
 
             assertTrue(metaData.isWrapperFor(DatabaseMetaData.class));
-            assertNotNull(metaData.unwrap(DatabaseMetaData.class));
+            DatabaseMetaData md = metaData.unwrap(DatabaseMetaData.class);
+            assertTrue(md instanceof DatabaseMetaData);
+            assertNotEquals(md, metaData);
+
             assertTrue(cStatement.isWrapperFor(CallableStatement.class));
-            assertNotNull(cStatement.unwrap(CallableStatement.class));
+            CallableStatement cs = cStatement.unwrap(CallableStatement.class);
+            assertTrue(cs instanceof CallableStatement);
+            assertNotEquals(cs, cStatement);
+
             assertTrue(pStatement.isWrapperFor(PreparedStatement.class));
-            assertNotNull(pStatement.unwrap(PreparedStatement.class));
+            PreparedStatement ps = pStatement.unwrap(PreparedStatement.class);
+            assertTrue(ps instanceof PreparedStatement);
+            assertNotEquals(ps, pStatement);
+
             assertTrue(statement.isWrapperFor(Statement.class));
-            assertNotNull(statement.unwrap(Statement.class));
+            Statement s = statement.unwrap(Statement.class);
+            assertTrue(s instanceof Statement);
+            assertNotEquals(s, statement);
+
             assertTrue(connection.isWrapperFor(Connection.class));
-            assertNotNull(connection.unwrap(Connection.class));
+            Connection c = connection.unwrap(Connection.class);
+            assertTrue(c instanceof Connection);
+            assertNotEquals(c, connection);
         } finally {
             if (cStatement != null) cStatement.close();
             if (pStatement != null) pStatement.close();
