@@ -23,18 +23,21 @@ import org.vibur.dbcp.proxy.listener.ExceptionListener;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.sql.SQLException;
 import java.sql.SQLTransientConnectionException;
+import java.sql.Wrapper;
 
 /**
 * @author Simeon Malchev
 */
-public abstract class AbstractInvocationHandler<T> implements InvocationHandler {
+public abstract class AbstractInvocationHandler<T> implements InvocationHandler, Wrapper {
 
     private static final Logger logger = LoggerFactory.getLogger(AbstractInvocationHandler.class);
 
     /** The real object which we're dynamically proxy-ing.
      *  For example, the underlying JDBC Connection, the underlying JDBC Statement, etc. */
     private final T target;
+
     private final ExceptionListener exceptionListener;
 
     public AbstractInvocationHandler(T target, ExceptionListener exceptionListener) {
@@ -57,7 +60,23 @@ public abstract class AbstractInvocationHandler<T> implements InvocationHandler 
         if (methodName.equals("toString"))
             return "Proxy for: " + target;
 
-        return customInvoke((T) proxy, method, args);
+        if (methodName.equals("unwrap"))
+            return unwrap((Class<T>) args[0]);
+        if (methodName.equals("isWrapperFor"))
+            return isWrapperFor((Class<?>) args[0]);
+
+       return customInvoke((T) proxy, method, args);
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> T unwrap(Class<T> iface) throws SQLException {
+        if (isWrapperFor(iface))
+            return (T) target;
+        throw new SQLException("not a wrapper for " + iface);
+    }
+
+    public boolean isWrapperFor(Class<?> iface) throws SQLException {
+        return iface.isInstance(target);
     }
 
     protected Object customInvoke(T proxy, Method method, Object[] args) throws Throwable {

@@ -75,6 +75,43 @@ public class ViburDBCPDataSourceTest {
     }
 
     @Test
+    public void testWrapper() throws SQLException {
+        DataSource ds = getSimpleDataSourceNoStatementsCache();
+        Connection connection = null;
+        Statement statement = null;
+        PreparedStatement pStatement = null;
+        CallableStatement cStatement = null;
+        try {
+            connection = ds.getConnection();
+            statement = connection.createStatement();
+            pStatement = connection.prepareStatement("");
+            cStatement = connection.prepareCall("");
+            DatabaseMetaData metaData = connection.getMetaData();
+
+            assertSame(connection, statement.getConnection());
+            assertSame(connection, pStatement.getConnection());
+            assertSame(connection, cStatement.getConnection());
+            assertSame(connection, metaData.getConnection());
+
+            assertTrue(metaData.isWrapperFor(DatabaseMetaData.class));
+            assertNotNull(metaData.unwrap(DatabaseMetaData.class));
+            assertTrue(cStatement.isWrapperFor(CallableStatement.class));
+            assertNotNull(cStatement.unwrap(CallableStatement.class));
+            assertTrue(pStatement.isWrapperFor(PreparedStatement.class));
+            assertNotNull(pStatement.unwrap(PreparedStatement.class));
+            assertTrue(statement.isWrapperFor(Statement.class));
+            assertNotNull(statement.unwrap(Statement.class));
+            assertTrue(connection.isWrapperFor(Connection.class));
+            assertNotNull(connection.unwrap(Connection.class));
+        } finally {
+            if (cStatement != null) cStatement.close();
+            if (pStatement != null) pStatement.close();
+            if (statement != null) statement.close();
+            if (connection != null) connection.close();
+        }
+    }
+
+    @Test
     public void testSimpleSelectStatementNoStatementsCache() throws SQLException {
         DataSource ds = getSimpleDataSourceNoStatementsCache();
         Connection connection = null;
