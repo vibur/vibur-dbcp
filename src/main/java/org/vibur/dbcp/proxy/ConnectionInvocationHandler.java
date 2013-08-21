@@ -55,8 +55,6 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
 
     public ConnectionInvocationHandler(Holder<Connection> hConnection, ViburDBCPConfig config) {
         super(hConnection.value(), new ExceptionListenerImpl());
-        if (config == null)
-            throw new NullPointerException();
         HolderValidatingPoolService<Connection> connectionPool = config.getConnectionPool();
         if (connectionPool == null)
             throw new NullPointerException();
