@@ -18,7 +18,9 @@ package org.vibur.dbcp;
 
 import org.vibur.dbcp.cache.StatementKey;
 import org.vibur.dbcp.cache.ValueHolder;
+import org.vibur.objectpool.HolderValidatingPoolService;
 
+import java.sql.Connection;
 import java.sql.Statement;
 import java.util.concurrent.ConcurrentMap;
 
@@ -87,6 +89,8 @@ public class ViburDBCPConfig {
      * ConcurrentLinkedCacheMap, see https://code.google.com/p/concurrentlinkedhashmap/. */
     private int statementCacheMaxSize = 0;
     private ConcurrentMap<StatementKey, ValueHolder<Statement>> statementCache = null;
+
+    private HolderValidatingPoolService<Connection> connectionPool;
 
     /** If set to {@code true}, log all SQL statements being executed. */
     private boolean logStatementsEnabled = false;
@@ -258,6 +262,14 @@ public class ViburDBCPConfig {
 
     public void setStatementCache(ConcurrentMap<StatementKey, ValueHolder<Statement>> statementCache) {
         this.statementCache = statementCache;
+    }
+
+    public HolderValidatingPoolService<Connection> getConnectionPool() {
+        return connectionPool;
+    }
+
+    public void setConnectionPool(HolderValidatingPoolService<Connection> connectionPool) {
+        this.connectionPool = connectionPool;
     }
 
     public boolean isLogStatementsEnabled() {

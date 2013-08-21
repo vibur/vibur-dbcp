@@ -53,10 +53,12 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
 
     private final ConcurrentMap<StatementKey, ValueHolder<Statement>> statementCache;
 
-    public ConnectionInvocationHandler(HolderValidatingPoolService<Connection> connectionPool,
-                                       Holder<Connection> hConnection, ViburDBCPConfig config) {
+    public ConnectionInvocationHandler(Holder<Connection> hConnection, ViburDBCPConfig config) {
         super(hConnection.value(), new ExceptionListenerImpl());
-        if (connectionPool == null || config == null)
+        if (config == null)
+            throw new NullPointerException();
+        HolderValidatingPoolService<Connection> connectionPool = config.getConnectionPool();
+        if (connectionPool == null)
             throw new NullPointerException();
         this.connectionPool = connectionPool;
         this.hConnection = hConnection;
@@ -121,18 +123,16 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
     private ValueHolder<? extends Statement> getStatementHolder(Method method, Object[] args)
             throws Throwable {
         if (statementCache != null) {
-            Statement statement;
-            AtomicBoolean inUse = null;
             StatementKey key = new StatementKey(getTarget(), method, args);
             ValueHolder<Statement> statementHolder = statementCache.get(key);
             if (statementHolder == null || statementHolder.inUse().getAndSet(true)) {
-                statement = (Statement) targetInvoke(method, args);
-                if (statementHolder == null) { // there was no entry for the key, so we try to put a new one
-                    inUse = new AtomicBoolean(true);
-                    if (statementCache.putIfAbsent(key, new ValueHolder<Statement>(statement, inUse)) != null)
-                        inUse = null; // because another thread succeeded to put the entry before us
+                Statement statement = (Statement) targetInvoke(method, args);
+                if (statementHolder == null) { // there was no entry for the key, so we'll try to put a new one
+                    statementHolder = new ValueHolder<Statement>(statement, new AtomicBoolean(true));
+                    if (statementCache.putIfAbsent(key, statementHolder) != null)
+                        statementHolder = new ValueHolder<Statement>(statement, null); // because another thread succeeded to put the entry before us
                 }
-                return new ValueHolder<Statement>(statement, inUse);
+                return statementHolder;
             } else { // the statementHolder is valid and was not inUse
                 logger.trace("Using cached statement for connection {}, method {}, args {}",
                     getTarget(), method, Arrays.toString(args));

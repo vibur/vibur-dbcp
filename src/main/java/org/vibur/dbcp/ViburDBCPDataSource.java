@@ -25,7 +25,6 @@ import org.vibur.dbcp.listener.DestroyListener;
 import org.vibur.dbcp.proxy.Proxy;
 import org.vibur.objectpool.ConcurrentHolderLinkedPool;
 import org.vibur.objectpool.Holder;
-import org.vibur.objectpool.HolderValidatingPoolService;
 import org.vibur.objectpool.PoolObjectFactory;
 import org.vibur.objectpool.util.DefaultReducer;
 import org.vibur.objectpool.util.PoolReducer;
@@ -63,7 +62,6 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
     private PrintWriter logWriter = null;
 
     private PoolObjectFactory<Connection> connectionObjectFactory;
-    private HolderValidatingPoolService<Connection> connectionPool;
     private Reducer reducer;
     private PoolReducer poolReducer;
 
@@ -204,11 +202,11 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
             getDefaultAutoCommit(), getDefaultReadOnly(),
             getDefaultTransactionIsolationValue(), getDefaultCatalog(),
             this);
-        connectionPool = new ConcurrentHolderLinkedPool<Connection>(connectionObjectFactory,
-            getPoolInitialSize(), getPoolMaxSize(), isPoolFair(), isPoolEnableConnectionTracking());
+        setConnectionPool(new ConcurrentHolderLinkedPool<Connection>(connectionObjectFactory,
+            getPoolInitialSize(), getPoolMaxSize(), isPoolFair(), isPoolEnableConnectionTracking()));
 
         reducer = new DefaultReducer(getReducerTakenRatio(), getReducerReduceRatio());
-        poolReducer = new PoolReducer(connectionPool, reducer,
+        poolReducer = new PoolReducer(getConnectionPool(), reducer,
             getReducerTimeoutInSeconds(), TimeUnit.SECONDS) {
 
             protected void afterReduce(int reduction, int reduced, Throwable thrown) {
@@ -265,7 +263,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
                 i.remove();
             }
         poolReducer.terminate();
-        connectionPool.terminate();
+        getConnectionPool().terminate();
     }
 
     private void validateConfig() {
@@ -312,10 +310,10 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
 
     private Connection getConnection(long timeout) throws SQLException {
         Holder<Connection> hConnection = timeout == 0 ?
-            connectionPool.take() : connectionPool.tryTake(timeout, TimeUnit.MILLISECONDS);
+            getConnectionPool().take() : getConnectionPool().tryTake(timeout, TimeUnit.MILLISECONDS);
         if (hConnection == null)
             throw new SQLException("Couldn't obtain SQL connection.");
-        return Proxy.newConnection(hConnection, connectionPool, this);
+        return Proxy.newConnection(hConnection, this);
     }
 
     /** {@inheritDoc} */
@@ -366,21 +364,5 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
 
     public State getState() {
         return state;
-    }
-
-    public PoolObjectFactory<Connection> getConnectionObjectFactory() {
-        return connectionObjectFactory;
-    }
-
-    public HolderValidatingPoolService<Connection> getConnectionPool() {
-        return connectionPool;
-    }
-
-    public Reducer getReducer() {
-        return reducer;
-    }
-
-    public PoolReducer getPoolReducer() {
-        return poolReducer;
     }
 }

@@ -21,7 +21,6 @@ import org.vibur.dbcp.cache.ValueHolder;
 import org.vibur.dbcp.proxy.listener.ExceptionListener;
 import org.vibur.dbcp.proxy.listener.TransactionListener;
 import org.vibur.objectpool.Holder;
-import org.vibur.objectpool.HolderValidatingPoolService;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
@@ -34,9 +33,8 @@ import java.sql.*;
 public class Proxy {
 
     public static Connection newConnection(Holder<Connection> hConnection,
-                                           HolderValidatingPoolService<Connection> connectionPool,
                                            ViburDBCPConfig config) {
-        InvocationHandler handler = new ConnectionInvocationHandler(connectionPool, hConnection, config);
+        InvocationHandler handler = new ConnectionInvocationHandler(hConnection, config);
         return (Connection) newProxy(connectionCtor, handler);
     }
 

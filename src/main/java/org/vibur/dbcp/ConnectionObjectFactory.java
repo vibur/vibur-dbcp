@@ -108,7 +108,7 @@ public class ConnectionObjectFactory implements PoolObjectFactory<Connection> {
      *
      * @throws ViburDBCPException if cannot create the underlying JDBC Connection.
      * */
-    public Connection create() {
+    public Connection create() throws ViburDBCPException {
         int retry = 0;
         while (true) {
             try {
@@ -118,14 +118,7 @@ public class ConnectionObjectFactory implements PoolObjectFactory<Connection> {
                 else
                     connection = DriverManager.getConnection(jdbcUrl, username, password);
 
-                if (defaultAutoCommit != null)
-                    connection.setAutoCommit(defaultAutoCommit);
-                if (defaultReadOnly != null)
-                    connection.setReadOnly(defaultReadOnly);
-                if (defaultTransactionIsolation != null)
-                    connection.setTransactionIsolation(defaultTransactionIsolation);
-                if (defaultCatalog != null)
-                    connection.setCatalog(defaultCatalog);
+                setDefaultValues(connection);
 
                 logger.trace("Created " + connection);
                 return connection;
@@ -141,13 +134,33 @@ public class ConnectionObjectFactory implements PoolObjectFactory<Connection> {
         }
     }
 
+    private void setDefaultValues(Connection connection) throws SQLException {
+        if (defaultAutoCommit != null)
+            connection.setAutoCommit(defaultAutoCommit);
+        if (defaultReadOnly != null)
+            connection.setReadOnly(defaultReadOnly);
+        if (defaultTransactionIsolation != null)
+            connection.setTransactionIsolation(defaultTransactionIsolation);
+        if (defaultCatalog != null)
+            connection.setCatalog(defaultCatalog);
+    }
+
     /** {@inheritDoc} */
     public boolean readyToTake(Connection connection) {
         return !validateOnTake || executeTestStatement(connection);
     }
 
-    /** {@inheritDoc} */
-    public boolean readyToRestore(Connection connection) {
+    /**
+     * {@inheritDoc}
+     *
+     * @throws ViburDBCPException if cannot restore the default values for the underlying JDBC Connection.
+     * */
+    public boolean readyToRestore(Connection connection) throws ViburDBCPException {
+        try {
+            setDefaultValues(connection);
+        } catch (SQLException e) {
+            throw new ViburDBCPException(e);
+        }
         return !validateOnRestore || executeTestStatement(connection);
     }
 
