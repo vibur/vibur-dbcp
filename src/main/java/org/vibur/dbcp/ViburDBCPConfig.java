@@ -20,6 +20,10 @@ import org.vibur.dbcp.cache.StatementKey;
 import org.vibur.dbcp.cache.ValueHolder;
 import org.vibur.objectpool.HolderValidatingPoolService;
 
+import javax.management.JMException;
+import javax.management.MBeanServer;
+import javax.management.ObjectName;
+import java.lang.management.ManagementFactory;
 import java.sql.Connection;
 import java.sql.Statement;
 import java.util.concurrent.ConcurrentMap;
@@ -27,7 +31,7 @@ import java.util.concurrent.ConcurrentMap;
 /**
  * @author Simeon Malchev
  */
-public class ViburDBCPConfig {
+public class ViburDBCPConfig implements ViburDBCPConfigMBean {
 
     /** Database driver class name. */
     private String driverClassName;
@@ -75,7 +79,7 @@ public class ViburDBCPConfig {
 
     /** Time to wait before a call to getConnection() times out and returns an error.
      * {@code 0} means forever. */
-    private long createConnectionTimeoutInMs = 60000;
+    private long createConnectionTimeoutInMs = 30000;
     /** After attempting to acquire a JDBC Connection and failing with an {@code SQLException},
      * wait for this long time before attempting to acquire a new JDBC Connection again. */
     private long acquireRetryDelayInMs = 1000;
@@ -109,6 +113,21 @@ public class ViburDBCPConfig {
     /** The parsed transaction isolation value. Default = driver value. */
     private Integer defaultTransactionIsolationValue;
 
+
+    public ViburDBCPConfig() {
+        initJMX();
+    }
+
+    private void initJMX() {
+        try {
+            MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+            ObjectName name = new ObjectName("org.vibur.dbcp:type=ViburDBCPConfig" + "-" + this);
+            if (!mbs.isRegistered(name))
+                mbs.registerMBean(this, name);
+        } catch (JMException e) {
+            throw new ViburDBCPException(e);
+        }
+    }
 
     //////////////////////// Getter & Setters ////////////////////////
 
