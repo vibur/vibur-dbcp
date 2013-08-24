@@ -121,7 +121,8 @@ public class ViburDBCPConfig implements ViburDBCPConfigMBean {
     private void initJMX() {
         try {
             MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
-            ObjectName name = new ObjectName("org.vibur.dbcp:type=ViburDBCPConfig" + "-" + this);
+            ObjectName name = new ObjectName("org.vibur.dbcp:type=ViburDBCPConfig-"
+                + Integer.toHexString(hashCode()));
             if (!mbs.isRegistered(name))
                 mbs.registerMBean(this, name);
         } catch (JMException e) {
