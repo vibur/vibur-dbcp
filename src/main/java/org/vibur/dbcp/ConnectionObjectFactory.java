@@ -151,6 +151,7 @@ public class ConnectionObjectFactory implements PoolObjectFactory<ConnState> {
                 if (!executeTestStatement(connState.connection()))
                     return false;
         }
+
         setDefaultValues(connState.connection());
         return true;
     }
