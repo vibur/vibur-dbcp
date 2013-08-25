@@ -280,7 +280,7 @@ public class ViburDBCPDataSourceTest {
         viburDS.setPassword(System.getProperty("Password"));
 
         viburDS.setPoolInitialSize(2);
-        viburDS.setValidateOnRestore(true);
+        viburDS.setValidateIfIdleForSeconds(120);
 
         viburDS.setLogStatementsEnabled(true);
         viburDS.setQueryExecuteTimeLimitInMs(1);
@@ -299,7 +299,7 @@ public class ViburDBCPDataSourceTest {
         viburDS.setPassword(System.getProperty("Password"));
 
         viburDS.setPoolInitialSize(2);
-        viburDS.setValidateOnRestore(true);
+        viburDS.setValidateIfIdleForSeconds(120);
 
         viburDS.setLogStatementsEnabled(true);
         viburDS.setQueryExecuteTimeLimitInMs(1);

@@ -30,7 +30,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author Simeon Malchev
  */
-public class ConnectionObjectFactory implements PoolObjectFactory<Connection> {
+public class ConnectionObjectFactory implements PoolObjectFactory<ConnState> {
 
     private static final Logger logger = LoggerFactory.getLogger(ConnectionObjectFactory.class);
 
@@ -44,12 +44,11 @@ public class ConnectionObjectFactory implements PoolObjectFactory<Connection> {
     private final String password;
 
 
-    /** If set to true, will validate the taken from the pool JDBC Connections before to give them to
-     * the application. */
-    private final boolean validateOnTake;
-    /** If set to true, will validate the returned by the application JDBC Connection before to restore
-     * it in the pool. */
-    private final boolean validateOnRestore;
+    /** If the connection has stayed in the pool for at least {@code validateIfIdleForSeconds},
+     * it will be validated before being given to the application using the {@code testConnectionQuery}.
+     * If set to zero, will validate the connection always when it is taken from the pool.
+     * If set to a negative number, will never validate the taken from the pool connection. */
+    private final int validateIfIdleForSeconds;
     /** Used to test the validity of the JDBC Connection. Set to {@code null} to disable. */
     private final String testConnectionQuery;
 
@@ -75,8 +74,7 @@ public class ConnectionObjectFactory implements PoolObjectFactory<Connection> {
 
     public ConnectionObjectFactory(String driverClassName, String jdbcUrl,
                                    String username, String password,
-                                   boolean validateOnTake, boolean validateOnRestore,
-                                   String testConnectionQuery,
+                                   int validateIfIdleForSeconds, String testConnectionQuery,
                                    long acquireRetryDelayInMs, int acquireRetryAttempts,
                                    Boolean defaultAutoCommit, Boolean defaultReadOnly,
                                    Integer defaultTransactionIsolation, String defaultCatalog,
@@ -85,8 +83,7 @@ public class ConnectionObjectFactory implements PoolObjectFactory<Connection> {
         this.jdbcUrl = jdbcUrl;
         this.username = username;
         this.password = password;
-        this.validateOnTake = validateOnTake;
-        this.validateOnRestore = validateOnRestore;
+        this.validateIfIdleForSeconds = validateIfIdleForSeconds;
         this.testConnectionQuery = testConnectionQuery;
         this.acquireRetryDelayInMs = acquireRetryDelayInMs;
         this.acquireRetryAttempts = acquireRetryAttempts;
@@ -108,7 +105,7 @@ public class ConnectionObjectFactory implements PoolObjectFactory<Connection> {
      *
      * @throws ViburDBCPException if cannot create the underlying JDBC Connection.
      * */
-    public Connection create() throws ViburDBCPException {
+    public ConnState create() throws ViburDBCPException {
         int attempt = 0;
         Connection connection = null;
         while (connection == null) {
@@ -127,11 +124,8 @@ public class ConnectionObjectFactory implements PoolObjectFactory<Connection> {
                 }
             }
         }
-
-        setDefaultValues(connection);
-
         logger.trace("Created " + connection);
-        return connection;
+        return new ConnState(connection, System.currentTimeMillis());
     }
 
     private void setDefaultValues(Connection connection) throws ViburDBCPException {
@@ -150,8 +144,15 @@ public class ConnectionObjectFactory implements PoolObjectFactory<Connection> {
     }
 
     /** {@inheritDoc} */
-    public boolean readyToTake(Connection connection) {
-        return !validateOnTake || executeTestStatement(connection);
+    public boolean readyToTake(ConnState connState) throws ViburDBCPException {
+        if (validateIfIdleForSeconds >= 0) {
+            int idle = (int) (connState.getLastTimeUsedInMillis() - System.currentTimeMillis()) / 1000;
+            if (idle >= validateIfIdleForSeconds)
+                if (!executeTestStatement(connState.connection()))
+                    return false;
+        }
+        setDefaultValues(connState.connection());
+        return true;
     }
 
     /**
@@ -159,9 +160,9 @@ public class ConnectionObjectFactory implements PoolObjectFactory<Connection> {
      *
      * @throws ViburDBCPException if cannot restore the default values for the underlying JDBC Connection.
      * */
-    public boolean readyToRestore(Connection connection) throws ViburDBCPException {
-        setDefaultValues(connection);
-        return !validateOnRestore || executeTestStatement(connection);
+    public boolean readyToRestore(ConnState connState) {
+        connState.setLastTimeUsedInMillis(System.currentTimeMillis());
+        return true;
     }
 
     private boolean executeTestStatement(Connection connection) {
@@ -182,7 +183,8 @@ public class ConnectionObjectFactory implements PoolObjectFactory<Connection> {
     }
 
     /** {@inheritDoc} */
-    public void destroy(Connection connection) {
+    public void destroy(ConnState connState) {
+        Connection connection = connState.connection();
         try {
             logger.trace("Destroying " + connection);
 

@@ -24,7 +24,6 @@ import javax.management.JMException;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 import java.lang.management.ManagementFactory;
-import java.sql.Connection;
 import java.sql.Statement;
 import java.util.concurrent.ConcurrentMap;
 
@@ -43,12 +42,11 @@ public class ViburDBCPConfig implements ViburDBCPConfigMBean {
     private String password;
 
 
-    /** If set to {@code true}, will validate the taken from the pool JDBC Connections before to give them to
-     * the application. */
-    private boolean validateOnTake = false;
-    /** If set to {@code true}, will validate the returned by the application JDBC Connection before to restore
-     * it in the pool. */
-    private boolean validateOnRestore = false;
+    /** If the connection has stayed in the pool for at least {@code validateIfIdleForSeconds},
+     * it will be validated before being given to the application using the {@code testConnectionQuery}.
+     * If set to zero, will validate the connection always when it is taken from the pool.
+     * If set to a negative number, will never validate the taken from the pool connection. */
+    private int validateIfIdleForSeconds = 60;
     /** Used to test the validity of the JDBC Connection. Should be set to a valid query if any of the
      * {@code validateOnTake} or {@code validateOnRestore} are set to {@code true}. */
     private String testConnectionQuery = "SELECT 1";
@@ -94,7 +92,7 @@ public class ViburDBCPConfig implements ViburDBCPConfigMBean {
     private int statementCacheMaxSize = 0;
     private ConcurrentMap<StatementKey, ValueHolder<Statement>> statementCache = null;
 
-    private HolderValidatingPoolService<Connection> connectionPool;
+    private HolderValidatingPoolService<ConnState> connectionPool;
 
     /** If set to {@code true}, log all SQL statements being executed. */
     private boolean logStatementsEnabled = false;
@@ -164,20 +162,12 @@ public class ViburDBCPConfig implements ViburDBCPConfigMBean {
         this.password = password;
     }
 
-    public boolean isValidateOnTake() {
-        return validateOnTake;
+    public int getValidateIfIdleForSeconds() {
+        return validateIfIdleForSeconds;
     }
 
-    public void setValidateOnTake(boolean validateOnTake) {
-        this.validateOnTake = validateOnTake;
-    }
-
-    public boolean isValidateOnRestore() {
-        return validateOnRestore;
-    }
-
-    public void setValidateOnRestore(boolean validateOnRestore) {
-        this.validateOnRestore = validateOnRestore;
+    public void setValidateIfIdleForSeconds(int validateIfIdleForSeconds) {
+        this.validateIfIdleForSeconds = validateIfIdleForSeconds;
     }
 
     public String getTestConnectionQuery() {
@@ -284,11 +274,11 @@ public class ViburDBCPConfig implements ViburDBCPConfigMBean {
         this.statementCache = statementCache;
     }
 
-    public HolderValidatingPoolService<Connection> getConnectionPool() {
+    public HolderValidatingPoolService<ConnState> getConnectionPool() {
         return connectionPool;
     }
 
-    public void setConnectionPool(HolderValidatingPoolService<Connection> connectionPool) {
+    public void setConnectionPool(HolderValidatingPoolService<ConnState> connectionPool) {
         this.connectionPool = connectionPool;
     }
 

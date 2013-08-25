@@ -1,6 +1,6 @@
 * Some more javadoc and unit tests.
 
-* JMX, obtaining connection from DataSource,
-  calculate and log some statistics.
+* Obtaining connection from DataSource,
+  may be calculate and log some statistics.
 
 * Prepare to upload build artifacts to central maven repo.

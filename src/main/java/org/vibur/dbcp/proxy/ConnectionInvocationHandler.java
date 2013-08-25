@@ -18,6 +18,7 @@ package org.vibur.dbcp.proxy;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.vibur.dbcp.ConnState;
 import org.vibur.dbcp.ViburDBCPConfig;
 import org.vibur.dbcp.cache.StatementKey;
 import org.vibur.dbcp.cache.ValueHolder;
@@ -42,8 +43,8 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
 
     private static final Logger logger = LoggerFactory.getLogger(ConnectionInvocationHandler.class);
 
-    private final HolderValidatingPoolService<Connection> connectionPool;
-    private final Holder<Connection> hConnection;
+    private final HolderValidatingPoolService<ConnState> connectionPool;
+    private final Holder<ConnState> hConnection;
 
     private final TransactionListener transactionListener;
     private final ViburDBCPConfig config;
@@ -53,9 +54,9 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
 
     private final ConcurrentMap<StatementKey, ValueHolder<Statement>> statementCache;
 
-    public ConnectionInvocationHandler(Holder<Connection> hConnection, ViburDBCPConfig config) {
-        super(hConnection.value(), new ExceptionListenerImpl());
-        HolderValidatingPoolService<Connection> connectionPool = config.getConnectionPool();
+    public ConnectionInvocationHandler(Holder<ConnState> hConnection, ViburDBCPConfig config) {
+        super(hConnection.value().connection(), new ExceptionListenerImpl());
+        HolderValidatingPoolService<ConnState> connectionPool = config.getConnectionPool();
         if (connectionPool == null)
             throw new NullPointerException();
         this.connectionPool = connectionPool;
@@ -149,7 +150,7 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
         if (isClose && !autoCommit && transactionListener.isInProgress()) {
             logger.error("Neither commit() nor rollback() were called before close(). Calling rollback() now.");
             try {
-                hConnection.value().rollback();
+                hConnection.value().connection().rollback();
             } catch (SQLException e) {
                 logger.debug("Couldn't rollback the connection", e);
                 if (!(e instanceof SQLTransientConnectionException))

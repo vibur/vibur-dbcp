@@ -32,45 +32,44 @@ dynamic proxies and is built on top of [https://code.google.com/p/vibur-object-p
 
 <tr><td height="4"></td></tr>
 <tr><td><font face="Verdana" size="2" color="black"><b>Database connection validation settings:</b></font></td></tr>
-<tr><td><a href="https://code.google.com/p/vibur-dbcp/#5._validateOnTake"><font face="Verdana" size="2" color="blue"><b>5. validateOnTake</b></font></a></td></tr>
-<tr><td><a href="https://code.google.com/p/vibur-dbcp/#6._validateOnRestore"><font face="Verdana" size="2" color="blue"><b>6. validateOnRestore</b></font></a></td></tr>
-<tr><td><a href="https://code.google.com/p/vibur-dbcp/#7._testConnectionQuery"><font face="Verdana" size="2" color="blue"><b>7. testConnectionQuery</b></font></a></td></tr>
+<tr><td><a href="https://code.google.com/p/vibur-dbcp/#5._validateIfIdleForSeconds"><font face="Verdana" size="2" color="blue"><b>5. validateIfIdleForSeconds</b></font></a></td></tr>
+<tr><td><a href="https://code.google.com/p/vibur-dbcp/#6._testConnectionQuery"><font face="Verdana" size="2" color="blue"><b>7. testConnectionQuery</b></font></a></td></tr>
 
 <tr><td height="4"></td></tr>
 <tr><td><font face="Verdana" size="2" color="black"><b>Basic pool size, growth and fairness settings:</b></font></td></tr>
-<tr><td><a href="https://code.google.com/p/vibur-dbcp/#8._poolInitialSize"><font face="Verdana" size="2" color="blue"><b>8. poolInitialSize</b></font></a></td></tr>
-<tr><td><a href="https://code.google.com/p/vibur-dbcp/#9._poolMaxSize"><font face="Verdana" size="2" color="blue"><b>9. poolMaxSize</b></font></a></td></tr>
-<tr><td><a href="https://code.google.com/p/vibur-dbcp/#10._poolFair"><font face="Verdana" size="2" color="blue"><b>10. poolFair</b></font></a></td></tr>
-<tr><td><a href="https://code.google.com/p/vibur-dbcp/#11._poolEnableConnectionTracking"><font face="Verdana" size="2" color="blue"><b>11. poolEnableConnectionTracking</b></font></a></td></tr>
+<tr><td><a href="https://code.google.com/p/vibur-dbcp/#7._poolInitialSize"><font face="Verdana" size="2" color="blue"><b>8. poolInitialSize</b></font></a></td></tr>
+<tr><td><a href="https://code.google.com/p/vibur-dbcp/#8._poolMaxSize"><font face="Verdana" size="2" color="blue"><b>9. poolMaxSize</b></font></a></td></tr>
+<tr><td><a href="https://code.google.com/p/vibur-dbcp/#9._poolFair"><font face="Verdana" size="2" color="blue"><b>10. poolFair</b></font></a></td></tr>
+<tr><td><a href="https://code.google.com/p/vibur-dbcp/#10._poolEnableConnectionTracking"><font face="Verdana" size="2" color="blue"><b>11. poolEnableConnectionTracking</b></font></a></td></tr>
 
 <tr><td height="4"></td></tr>
 <tr><td><font face="Verdana" size="2" color="black"><b>Pool reduction settings:</b></font></td></tr>
-<tr><td><a href="https://code.google.com/p/vibur-dbcp/#12._reducerTimeoutInSeconds"><font face="Verdana" size="2" color="blue"><b>12. reducerTimeoutInSeconds</b></font></a></td></tr> 
-<tr><td><a href="https://code.google.com/p/vibur-dbcp/#13._reducerTakenRatio"><font face="Verdana" size="2" color="blue"><b>13. reducerTakenRatio</b></font></a></td></tr>
-<tr><td><a href="https://code.google.com/p/vibur-dbcp/#14._reducerReduceRatio"><font face="Verdana" size="2" color="blue"><b>14. reducerReduceRatio</b></font></a></td></tr>
+<tr><td><a href="https://code.google.com/p/vibur-dbcp/#11._reducerTimeoutInSeconds"><font face="Verdana" size="2" color="blue"><b>12. reducerTimeoutInSeconds</b></font></a></td></tr>
+<tr><td><a href="https://code.google.com/p/vibur-dbcp/#12._reducerTakenRatio"><font face="Verdana" size="2" color="blue"><b>13. reducerTakenRatio</b></font></a></td></tr>
+<tr><td><a href="https://code.google.com/p/vibur-dbcp/#13._reducerReduceRatio"><font face="Verdana" size="2" color="blue"><b>14. reducerReduceRatio</b></font></a></td></tr>
 
 <tr><td height="4"></td></tr>
 <tr><td><font face="Verdana" size="2" color="black"><b>Database connection timeout and retries settings:</b></font></td></tr>
-<tr><td><a href="https://code.google.com/p/vibur-dbcp/#15._createConnectionTimeoutInMs"><font face="Verdana" size="2" color="blue"><b>15. createConnectionTimeoutInMs</b></font></a></td></tr>
-<tr><td><a href="https://code.google.com/p/vibur-dbcp/#16._acquireRetryDelayInMs"><font face="Verdana" size="2" color="blue"><b>16. acquireRetryDelayInMs</b></font></a></td></tr>
-<tr><td><a href="https://code.google.com/p/vibur-dbcp/#17._acquireRetryAttempt"><font face="Verdana" size="2" color="blue"><b>17. acquireRetryAttempt</b></font></a></td></tr>
+<tr><td><a href="https://code.google.com/p/vibur-dbcp/#14._createConnectionTimeoutInMs"><font face="Verdana" size="2" color="blue"><b>15. createConnectionTimeoutInMs</b></font></a></td></tr>
+<tr><td><a href="https://code.google.com/p/vibur-dbcp/#15._acquireRetryDelayInMs"><font face="Verdana" size="2" color="blue"><b>16. acquireRetryDelayInMs</b></font></a></td></tr>
+<tr><td><a href="https://code.google.com/p/vibur-dbcp/#16._acquireRetryAttempt"><font face="Verdana" size="2" color="blue"><b>17. acquireRetryAttempt</b></font></a></td></tr>
 
 <tr><td height="4"></td></tr>
 <tr><td><font face="Verdana" size="2" color="black"><b>Database statements caching settings:</b></font></td></tr>
-<tr><td><a href="https://code.google.com/p/vibur-dbcp/#18._statementCacheMaxSize"><font face="Verdana" size="2" color="blue"><b>18. statementCacheMaxSize</b></font></a></td></tr>
+<tr><td><a href="https://code.google.com/p/vibur-dbcp/#17._statementCacheMaxSize"><font face="Verdana" size="2" color="blue"><b>18. statementCacheMaxSize</b></font></a></td></tr>
 
 <tr><td height="4"></td></tr>
 <tr><td><font face="Verdana" size="2" color="black"><b>SQL queries logging settings:</b></font></td></tr>
-<tr><td><a href="https://code.google.com/p/vibur-dbcp/#19._logStatementsEnabled"><font face="Verdana" size="2" color="blue"><b>19. logStatementsEnabled</b></font></a></td></tr>
-<tr><td><a href="https://code.google.com/p/vibur-dbcp/#20._queryExecuteTimeLimitInMs"><font face="Verdana" size="2" color="blue"><b>20. queryExecuteTimeLimitInMs</b></font></a></td></tr>
+<tr><td><a href="https://code.google.com/p/vibur-dbcp/#18._logStatementsEnabled"><font face="Verdana" size="2" color="blue"><b>19. logStatementsEnabled</b></font></a></td></tr>
+<tr><td><a href="https://code.google.com/p/vibur-dbcp/#19._queryExecuteTimeLimitInMs"><font face="Verdana" size="2" color="blue"><b>20. queryExecuteTimeLimitInMs</b></font></a></td></tr>
 
 <tr><td height="4"></td></tr>
 <tr><td><font face="Verdana" size="2" color="black"><b>Database connection default behavior settings:</b></font></td></tr>
-<tr><td><a href="https://code.google.com/p/vibur-dbcp/#21._defaultAutoCommit"><font face="Verdana" size="2" color="blue"><b>21. defaultAutoCommit</b></font></a></td></tr>
-<tr><td><a href="https://code.google.com/p/vibur-dbcp/#22._defaultReadOnly"><font face="Verdana" size="2" color="blue"><b>22. defaultReadOnly</b></font></a></td></tr>
-<tr><td><a href="https://code.google.com/p/vibur-dbcp/#23._defaultTransactionIsolation"><font face="Verdana" size="2" color="blue"><b>23. defaultTransactionIsolation</b></font></a></td></tr>
-<tr><td><a href="https://code.google.com/p/vibur-dbcp/#24._defaultCatalog"><font face="Verdana" size="2" color="blue"><b>24. defaultCatalog</b></font></a></td></tr>
-<tr><td><a href="https://code.google.com/p/vibur-dbcp/#25._defaultTransactionIsolationValue"><font face="Verdana" size="2" color="blue"><b>25. defaultTransactionIsolationValue</b></font></a></td></tr>
+<tr><td><a href="https://code.google.com/p/vibur-dbcp/#20._defaultAutoCommit"><font face="Verdana" size="2" color="blue"><b>21. defaultAutoCommit</b></font></a></td></tr>
+<tr><td><a href="https://code.google.com/p/vibur-dbcp/#21._defaultReadOnly"><font face="Verdana" size="2" color="blue"><b>22. defaultReadOnly</b></font></a></td></tr>
+<tr><td><a href="https://code.google.com/p/vibur-dbcp/#22._defaultTransactionIsolation"><font face="Verdana" size="2" color="blue"><b>23. defaultTransactionIsolation</b></font></a></td></tr>
+<tr><td><a href="https://code.google.com/p/vibur-dbcp/#23._defaultCatalog"><font face="Verdana" size="2" color="blue"><b>24. defaultCatalog</b></font></a></td></tr>
+<tr><td><a href="https://code.google.com/p/vibur-dbcp/#24._defaultTransactionIsolationValue"><font face="Verdana" size="2" color="blue"><b>25. defaultTransactionIsolationValue</b></font></a></td></tr>
 </table>
 
 ===1. driverClassName===
@@ -79,30 +78,29 @@ dynamic proxies and is built on top of [https://code.google.com/p/vibur-object-p
 ===3. username===
 ===4. password===
 
-===5. validateOnTake===
-===6. validateOnRestore===
-===7. testConnectionQuery===
+===5. validateIfIdleForSeconds===
+===6. testConnectionQuery===
 
-===8. poolInitialSize===
-===9. poolMaxSize===
-===10. poolFair===
-===11. poolEnableConnectionTracking===
+===7. poolInitialSize===
+===8. poolMaxSize===
+===9. poolFair===
+===10. poolEnableConnectionTracking===
 
-===12. reducerTimeoutInSeconds===
-===13. reducerTakenRatio===
-===14. reducerReduceRatio===
+===11. reducerTimeoutInSeconds===
+===12. reducerTakenRatio===
+===13. reducerReduceRatio===
 
-===15. createConnectionTimeoutInMs===
-===16. acquireRetryDelayInMs===
-===17. acquireRetryAttempt===
+===14. createConnectionTimeoutInMs===
+===15. acquireRetryDelayInMs===
+===16. acquireRetryAttempt===
 
-===18. statementCacheMaxSize===
+===17. statementCacheMaxSize===
 
-===19. logStatementsEnabled===
-===20. queryExecuteTimeLimitInMs===
+===18. logStatementsEnabled===
+===19. queryExecuteTimeLimitInMs===
 
-===21. defaultAutoCommit===
-===22. defaultReadOnly===
-===23. defaultTransactionIsolation===
-===24. defaultCatalog===
-===25. defaultTransactionIsolationValue===
+===20. defaultAutoCommit===
+===21. defaultReadOnly===
+===22. defaultTransactionIsolation===
+===23. defaultCatalog===
+===24. defaultTransactionIsolationValue===

@@ -1,3 +1,10 @@
+Version 0.7.2 (25/08/2013)
+==========================
+* JMX implementation
+* Validation of connection on take only if it has stayed idle in the pool for at least
+  validateIfIdleForSeconds seconds.
+* Documentation update.
+
 Version 0.7.1 (12/08/2013)
 ==========================
 * Packages structure refactoring.

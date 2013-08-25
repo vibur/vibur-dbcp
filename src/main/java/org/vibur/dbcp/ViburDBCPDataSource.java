@@ -61,7 +61,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
 
     private PrintWriter logWriter = null;
 
-    private PoolObjectFactory<Connection> connectionObjectFactory;
+    private PoolObjectFactory<ConnState> connectionObjectFactory;
     private Reducer reducer;
     private PoolReducer poolReducer;
 
@@ -197,12 +197,12 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
         connectionObjectFactory = new ConnectionObjectFactory(
             getDriverClassName(), getJdbcUrl(),
             getUsername(), getPassword(),
-            isValidateOnTake(), isValidateOnRestore(), getTestConnectionQuery(),
+            getValidateIfIdleForSeconds(), getTestConnectionQuery(),
             getAcquireRetryDelayInMs(), getAcquireRetryAttempts(),
             getDefaultAutoCommit(), getDefaultReadOnly(),
             getDefaultTransactionIsolationValue(), getDefaultCatalog(),
             this);
-        setConnectionPool(new ConcurrentHolderLinkedPool<Connection>(connectionObjectFactory,
+        setConnectionPool(new ConcurrentHolderLinkedPool<ConnState>(connectionObjectFactory,
             getPoolInitialSize(), getPoolMaxSize(), isPoolFair(), isPoolEnableConnectionTracking()));
 
         reducer = new DefaultReducer(getReducerTakenRatio(), getReducerReduceRatio());
@@ -271,7 +271,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
             || getCreateConnectionTimeoutInMs() < 0 || getAcquireRetryDelayInMs() < 0
             || getAcquireRetryAttempts() < 0 || getQueryExecuteTimeLimitInMs() < 0
             || getStatementCacheMaxSize() < 0
-            || (getTestConnectionQuery() == null && (isValidateOnTake() || isValidateOnRestore())))
+            || (getTestConnectionQuery() == null && getValidateIfIdleForSeconds() >= 0))
             throw new IllegalArgumentException();
 
         if (getPassword() == null) logger.warn("JDBC password not specified.");
@@ -309,7 +309,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
     }
 
     private Connection getConnection(long timeout) throws SQLException {
-        Holder<Connection> hConnection = timeout == 0 ?
+        Holder<ConnState> hConnection = timeout == 0 ?
             getConnectionPool().take() : getConnectionPool().tryTake(timeout, TimeUnit.MILLISECONDS);
         if (hConnection == null)
             throw new SQLException("Couldn't obtain SQL connection.");

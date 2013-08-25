@@ -23,7 +23,9 @@ public interface ViburDBCPConfigMBean {
 
     String getJdbcUrl();
 
-    String getTestConnectionQuery();
+    int getValidateIfIdleForSeconds();
+
+    void setValidateIfIdleForSeconds(int validateIfIdleForSeconds);
 
     void setTestConnectionQuery(String testConnectionQuery);
 
