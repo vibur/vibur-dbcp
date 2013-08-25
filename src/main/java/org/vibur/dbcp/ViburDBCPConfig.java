@@ -42,11 +42,11 @@ public class ViburDBCPConfig implements ViburDBCPConfigMBean {
     private String password;
 
 
-    /** If the connection has stayed in the pool for at least {@code validateIfIdleForSeconds},
+    /** If the connection has stayed in the pool for at least {@code connectionIdleLimitInSeconds},
      * it will be validated before being given to the application using the {@code testConnectionQuery}.
      * If set to zero, will validate the connection always when it is taken from the pool.
      * If set to a negative number, will never validate the taken from the pool connection. */
-    private int validateIfIdleForSeconds = 60;
+    private int connectionIdleLimitInSeconds = 60;
     /** Used to test the validity of the JDBC Connection. Should be set to a valid query if any of the
      * {@code validateOnTake} or {@code validateOnRestore} are set to {@code true}. */
     private String testConnectionQuery = "SELECT 1";
@@ -100,6 +100,10 @@ public class ViburDBCPConfig implements ViburDBCPConfigMBean {
     private long queryExecuteTimeLimitInMs = 0;
 
 
+    /** If set to {@code true}, will reset the connection default values below, always after the
+     * connection is restored (returned) to the pool after use. If the calling application never changes
+     * these default values, resetting them is not needed. */
+    private boolean resetDefaultsAfterUse = false;
     /** The default auto-commit state of the created connections. */
     private Boolean defaultAutoCommit;
     /** The default read-only state of the created connections. */
@@ -162,12 +166,12 @@ public class ViburDBCPConfig implements ViburDBCPConfigMBean {
         this.password = password;
     }
 
-    public int getValidateIfIdleForSeconds() {
-        return validateIfIdleForSeconds;
+    public int getConnectionIdleLimitInSeconds() {
+        return connectionIdleLimitInSeconds;
     }
 
-    public void setValidateIfIdleForSeconds(int validateIfIdleForSeconds) {
-        this.validateIfIdleForSeconds = validateIfIdleForSeconds;
+    public void setConnectionIdleLimitInSeconds(int connectionIdleLimitInSeconds) {
+        this.connectionIdleLimitInSeconds = connectionIdleLimitInSeconds;
     }
 
     public String getTestConnectionQuery() {
@@ -296,6 +300,14 @@ public class ViburDBCPConfig implements ViburDBCPConfigMBean {
 
     public void setQueryExecuteTimeLimitInMs(long queryExecuteTimeLimitInMs) {
         this.queryExecuteTimeLimitInMs = queryExecuteTimeLimitInMs;
+    }
+
+    public boolean isResetDefaultsAfterUse() {
+        return resetDefaultsAfterUse;
+    }
+
+    public void setResetDefaultsAfterUse(boolean resetDefaultsAfterUse) {
+        this.resetDefaultsAfterUse = resetDefaultsAfterUse;
     }
 
     public Boolean getDefaultAutoCommit() {

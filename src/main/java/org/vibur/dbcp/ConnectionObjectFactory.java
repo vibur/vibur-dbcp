@@ -34,67 +34,17 @@ public class ConnectionObjectFactory implements PoolObjectFactory<ConnState> {
 
     private static final Logger logger = LoggerFactory.getLogger(ConnectionObjectFactory.class);
 
-    /** Database driver class name */
-    private final String driverClassName;
-    /** Database JDBC Connection string. */
-    private final String jdbcUrl;
-    /** User name to use. */
-    private final String username;
-    /** Password to use. */
-    private final String password;
-
-
-    /** If the connection has stayed in the pool for at least {@code validateIfIdleForSeconds},
-     * it will be validated before being given to the application using the {@code testConnectionQuery}.
-     * If set to zero, will validate the connection always when it is taken from the pool.
-     * If set to a negative number, will never validate the taken from the pool connection. */
-    private final int validateIfIdleForSeconds;
-    /** Used to test the validity of the JDBC Connection. Set to {@code null} to disable. */
-    private final String testConnectionQuery;
-
-
-    /** After attempting to acquire a JDBC Connection and failing with an {@code SQLException},
-     * wait for this value before attempting to acquire a new JDBC Connection again. */
-    private final long acquireRetryDelayInMs;
-    /** After attempting to acquire a JDBC Connection and failing with an {@code SQLException},
-     * try to connect these many times before giving up. */
-    private final int acquireRetryAttempts;
-
-
-    /** The default auto-commit state of created connections. */
-    private final Boolean defaultAutoCommit;
-    /** The default read-only state of created connections. */
-    private final Boolean defaultReadOnly;
-    /** The default transaction isolation state of created connections. */
-    private final Integer defaultTransactionIsolation;
-    /** The default catalog state of created connections. */
-    private final String defaultCatalog;
-
+    private final ViburDBCPConfig config;
     private final DestroyListener destroyListener;
 
-    public ConnectionObjectFactory(String driverClassName, String jdbcUrl,
-                                   String username, String password,
-                                   int validateIfIdleForSeconds, String testConnectionQuery,
-                                   long acquireRetryDelayInMs, int acquireRetryAttempts,
-                                   Boolean defaultAutoCommit, Boolean defaultReadOnly,
-                                   Integer defaultTransactionIsolation, String defaultCatalog,
-                                   DestroyListener destroyListener) {
-        this.driverClassName = driverClassName;
-        this.jdbcUrl = jdbcUrl;
-        this.username = username;
-        this.password = password;
-        this.validateIfIdleForSeconds = validateIfIdleForSeconds;
-        this.testConnectionQuery = testConnectionQuery;
-        this.acquireRetryDelayInMs = acquireRetryDelayInMs;
-        this.acquireRetryAttempts = acquireRetryAttempts;
-        this.defaultAutoCommit = defaultAutoCommit;
-        this.defaultReadOnly = defaultReadOnly;
-        this.defaultTransactionIsolation = defaultTransactionIsolation;
-        this.defaultCatalog = defaultCatalog;
+    public ConnectionObjectFactory(ViburDBCPConfig config, DestroyListener destroyListener) {
+        if (config == null || destroyListener == null)
+            throw new NullPointerException();
+        this.config = config;
         this.destroyListener = destroyListener;
 
         try {
-            Class.forName(this.driverClassName);
+            Class.forName(config.getDriverClassName());
         } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
         }
@@ -110,49 +60,50 @@ public class ConnectionObjectFactory implements PoolObjectFactory<ConnState> {
         Connection connection = null;
         while (connection == null) {
             try {
-                if (username == null && password == null)
-                    connection = DriverManager.getConnection(jdbcUrl);
+                if (config.getUsername() == null && config.getPassword() == null)
+                    connection = DriverManager.getConnection(config.getJdbcUrl());
                 else
-                    connection = DriverManager.getConnection(jdbcUrl, username, password);
+                    connection = DriverManager.getConnection(config.getJdbcUrl(),
+                        config.getUsername(), config.getPassword());
             } catch (SQLException e) {
                 logger.debug("Couldn't create a java.sql.Connection, attempt " + attempt, e);
-                if (attempt++ >= acquireRetryAttempts)
+                if (attempt++ >= config.getAcquireRetryAttempts())
                     throw new ViburDBCPException(e);
                 try {
-                    TimeUnit.MILLISECONDS.sleep(acquireRetryDelayInMs);
+                    TimeUnit.MILLISECONDS.sleep(config.getAcquireRetryAttempts());
                 } catch (InterruptedException ignore) {
                 }
             }
         }
-        logger.trace("Created " + connection);
+
+        setDefaultValues(connection);
+        logger.debug("Created " + connection);
         return new ConnState(connection, System.currentTimeMillis());
     }
 
     private void setDefaultValues(Connection connection) throws ViburDBCPException {
         try {
-            if (defaultAutoCommit != null)
-                connection.setAutoCommit(defaultAutoCommit);
-            if (defaultReadOnly != null)
-                connection.setReadOnly(defaultReadOnly);
-            if (defaultTransactionIsolation != null)
-                connection.setTransactionIsolation(defaultTransactionIsolation);
-            if (defaultCatalog != null)
-                connection.setCatalog(defaultCatalog);
+            if (config.getDefaultAutoCommit() != null)
+                connection.setAutoCommit(config.getDefaultAutoCommit());
+            if (config.getDefaultReadOnly() != null)
+                connection.setReadOnly(config.getDefaultReadOnly());
+            if (config.getDefaultTransactionIsolationValue() != null)
+                connection.setTransactionIsolation(config.getDefaultTransactionIsolationValue());
+            if (config.getDefaultCatalog() != null)
+                connection.setCatalog(config.getDefaultCatalog());
         } catch (SQLException e) {
             throw new ViburDBCPException(e);
         }
     }
 
     /** {@inheritDoc} */
-    public boolean readyToTake(ConnState connState) throws ViburDBCPException {
-        if (validateIfIdleForSeconds >= 0) {
+    public boolean readyToTake(ConnState connState) {
+        int idleLimit = config.getConnectionIdleLimitInSeconds();
+        if (idleLimit >= 0) {
             int idle = (int) (connState.getLastTimeUsedInMillis() - System.currentTimeMillis()) / 1000;
-            if (idle >= validateIfIdleForSeconds)
-                if (!executeTestStatement(connState.connection()))
-                    return false;
+            if (idle >= idleLimit && !executeTestStatement(connState.connection()))
+                return false;
         }
-
-        setDefaultValues(connState.connection());
         return true;
     }
 
@@ -161,7 +112,9 @@ public class ConnectionObjectFactory implements PoolObjectFactory<ConnState> {
      *
      * @throws ViburDBCPException if cannot restore the default values for the underlying JDBC Connection.
      * */
-    public boolean readyToRestore(ConnState connState) {
+    public boolean readyToRestore(ConnState connState) throws ViburDBCPException {
+        if (config.isResetDefaultsAfterUse())
+            setDefaultValues(connState.connection());
         connState.setLastTimeUsedInMillis(System.currentTimeMillis());
         return true;
     }
@@ -170,7 +123,7 @@ public class ConnectionObjectFactory implements PoolObjectFactory<ConnState> {
         Statement statement = null;
         try {
             statement = connection.createStatement();
-            statement.execute(testConnectionQuery);
+            statement.execute(config.getTestConnectionQuery());
             statement.close();
             return true;
         } catch (SQLException e) {
@@ -186,9 +139,8 @@ public class ConnectionObjectFactory implements PoolObjectFactory<ConnState> {
     /** {@inheritDoc} */
     public void destroy(ConnState connState) {
         Connection connection = connState.connection();
+        logger.debug("Destroying " + connection);
         try {
-            logger.trace("Destroying " + connection);
-
             destroyListener.onDestroy(connection);
             connection.close();
         } catch (SQLException e) {

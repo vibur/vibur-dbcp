@@ -23,11 +23,15 @@ public interface ViburDBCPConfigMBean {
 
     String getJdbcUrl();
 
-    int getValidateIfIdleForSeconds();
 
-    void setValidateIfIdleForSeconds(int validateIfIdleForSeconds);
+    int getConnectionIdleLimitInSeconds();
+
+    void setConnectionIdleLimitInSeconds(int validateIfIdleForSeconds);
+
+    String getTestConnectionQuery();
 
     void setTestConnectionQuery(String testConnectionQuery);
+
 
     int getPoolInitialSize();
 
@@ -43,6 +47,7 @@ public interface ViburDBCPConfigMBean {
 
     float getReducerReduceRatio();
 
+
     long getCreateConnectionTimeoutInMs();
 
     void setCreateConnectionTimeoutInMs(long createConnectionTimeoutInMs);
@@ -55,7 +60,9 @@ public interface ViburDBCPConfigMBean {
 
     void setAcquireRetryAttempts(int acquireRetryAttempts);
 
+
     int getStatementCacheMaxSize();
+
 
     boolean isLogStatementsEnabled();
 
@@ -64,6 +71,9 @@ public interface ViburDBCPConfigMBean {
     long getQueryExecuteTimeLimitInMs();
 
     void setQueryExecuteTimeLimitInMs(long queryExecuteTimeLimitInMs);
+
+
+    boolean isResetDefaultsAfterUse();
 
     Boolean getDefaultAutoCommit();
 

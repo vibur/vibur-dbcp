@@ -27,6 +27,8 @@ public class ConnState {
     private long lastTimeUsedInMillis;
 
     public ConnState(Connection connection, long lastTimeUsedInMillis) {
+        if (connection == null)
+            throw new NullPointerException();
         this.connection = connection;
         this.lastTimeUsedInMillis = lastTimeUsedInMillis;
     }

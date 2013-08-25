@@ -194,14 +194,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
 
         validateConfig();
 
-        connectionObjectFactory = new ConnectionObjectFactory(
-            getDriverClassName(), getJdbcUrl(),
-            getUsername(), getPassword(),
-            getValidateIfIdleForSeconds(), getTestConnectionQuery(),
-            getAcquireRetryDelayInMs(), getAcquireRetryAttempts(),
-            getDefaultAutoCommit(), getDefaultReadOnly(),
-            getDefaultTransactionIsolationValue(), getDefaultCatalog(),
-            this);
+        connectionObjectFactory = new ConnectionObjectFactory(this, this);
         setConnectionPool(new ConcurrentHolderLinkedPool<ConnState>(connectionObjectFactory,
             getPoolInitialSize(), getPoolMaxSize(), isPoolFair(), isPoolEnableConnectionTracking()));
 
@@ -271,7 +264,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
             || getCreateConnectionTimeoutInMs() < 0 || getAcquireRetryDelayInMs() < 0
             || getAcquireRetryAttempts() < 0 || getQueryExecuteTimeLimitInMs() < 0
             || getStatementCacheMaxSize() < 0
-            || (getTestConnectionQuery() == null && getValidateIfIdleForSeconds() >= 0))
+            || (getConnectionIdleLimitInSeconds() >= 0 && getTestConnectionQuery() == null))
             throw new IllegalArgumentException();
 
         if (getPassword() == null) logger.warn("JDBC password not specified.");
