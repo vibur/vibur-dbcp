@@ -65,11 +65,12 @@ dynamic proxies and is built on top of [https://code.google.com/p/vibur-object-p
 
 <tr><td height="4"></td></tr>
 <tr><td><font face="Verdana" size="2" color="black"><b>Database connection default behavior settings:</b></font></td></tr>
-<tr><td><a href="https://code.google.com/p/vibur-dbcp/#20._defaultAutoCommit"><font face="Verdana" size="2" color="blue"><b>21. defaultAutoCommit</b></font></a></td></tr>
-<tr><td><a href="https://code.google.com/p/vibur-dbcp/#21._defaultReadOnly"><font face="Verdana" size="2" color="blue"><b>22. defaultReadOnly</b></font></a></td></tr>
-<tr><td><a href="https://code.google.com/p/vibur-dbcp/#22._defaultTransactionIsolation"><font face="Verdana" size="2" color="blue"><b>23. defaultTransactionIsolation</b></font></a></td></tr>
-<tr><td><a href="https://code.google.com/p/vibur-dbcp/#23._defaultCatalog"><font face="Verdana" size="2" color="blue"><b>24. defaultCatalog</b></font></a></td></tr>
-<tr><td><a href="https://code.google.com/p/vibur-dbcp/#24._defaultTransactionIsolationValue"><font face="Verdana" size="2" color="blue"><b>25. defaultTransactionIsolationValue</b></font></a></td></tr>
+<tr><td><a href="https://code.google.com/p/vibur-dbcp/#20._resetDefaultsAfterUse"><font face="Verdana" size="2" color="blue"><b>21. resetDefaultsAfterUse</b></font></a></td></tr>
+<tr><td><a href="https://code.google.com/p/vibur-dbcp/#21._defaultAutoCommit"><font face="Verdana" size="2" color="blue"><b>21. defaultAutoCommit</b></font></a></td></tr>
+<tr><td><a href="https://code.google.com/p/vibur-dbcp/#22._defaultReadOnly"><font face="Verdana" size="2" color="blue"><b>22. defaultReadOnly</b></font></a></td></tr>
+<tr><td><a href="https://code.google.com/p/vibur-dbcp/#23._defaultTransactionIsolation"><font face="Verdana" size="2" color="blue"><b>23. defaultTransactionIsolation</b></font></a></td></tr>
+<tr><td><a href="https://code.google.com/p/vibur-dbcp/#24._defaultCatalog"><font face="Verdana" size="2" color="blue"><b>24. defaultCatalog</b></font></a></td></tr>
+<tr><td><a href="https://code.google.com/p/vibur-dbcp/#25._defaultTransactionIsolationValue"><font face="Verdana" size="2" color="blue"><b>25. defaultTransactionIsolationValue</b></font></a></td></tr>
 </table>
 
 ===1. driverClassName===
@@ -99,8 +100,9 @@ dynamic proxies and is built on top of [https://code.google.com/p/vibur-object-p
 ===18. logStatementsEnabled===
 ===19. queryExecuteTimeLimitInMs===
 
-===20. defaultAutoCommit===
-===21. defaultReadOnly===
-===22. defaultTransactionIsolation===
-===23. defaultCatalog===
-===24. defaultTransactionIsolationValue===
+===20. resetDefaultsAfterUse===
+===21. defaultAutoCommit===
+===22. defaultReadOnly===
+===23. defaultTransactionIsolation===
+===24. defaultCatalog===
+===25. defaultTransactionIsolationValue===
