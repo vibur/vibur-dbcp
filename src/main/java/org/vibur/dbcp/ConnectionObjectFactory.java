@@ -38,7 +38,7 @@ public class ConnectionObjectFactory implements PoolObjectFactory<ConnState> {
     private final DestroyListener destroyListener;
 
     public ConnectionObjectFactory(ViburDBCPConfig config, DestroyListener destroyListener) {
-        if (config == null || destroyListener == null)
+        if (destroyListener == null)
             throw new NullPointerException();
         this.config = config;
         this.destroyListener = destroyListener;

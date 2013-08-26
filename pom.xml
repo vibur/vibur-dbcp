@@ -112,14 +112,13 @@
             <version>${slf4j.version}</version>
         </dependency>
 
-        <!-- ConcurrentLinkedHashMap dependency is optional and is used only
-             for statements caching, which is disabled by default. If the client application
-             enables statements caching, it will need to provide the below dependency. -->
+        <!-- ConcurrentLinkedHashMap dependency is used only for statements caching,
+             which is disabled by default. If the client application doesn't
+             enable statements caching, it may safely exclude this dependency. -->
         <dependency>
             <groupId>com.googlecode.concurrentlinkedhashmap</groupId>
             <artifactId>concurrentlinkedhashmap-lru</artifactId>
             <version>${concurrentlinkedhashmap-lru.version}</version>
-            <optional>true</optional>
         </dependency>
 
         <!-- Hibernate dependency, optional. -->
