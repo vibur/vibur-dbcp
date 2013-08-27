@@ -100,7 +100,7 @@ public class ConnectionObjectFactory implements PoolObjectFactory<ConnState> {
     public boolean readyToTake(ConnState connState) {
         int idleLimit = config.getConnectionIdleLimitInSeconds();
         if (idleLimit >= 0) {
-            int idle = (int) (connState.getLastTimeUsedInMillis() - System.currentTimeMillis()) / 1000;
+            int idle = (int) (System.currentTimeMillis() - connState.getLastTimeUsedInMillis()) / 1000;
             if (idle >= idleLimit && !executeTestStatement(connState.connection()))
                 return false;
         }

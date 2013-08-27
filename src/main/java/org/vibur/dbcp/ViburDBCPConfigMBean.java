@@ -37,6 +37,10 @@ public interface ViburDBCPConfigMBean {
 
     int getPoolMaxSize();
 
+    int getPoolTaken();
+
+    int getPoolRemainingCreated();
+
     boolean isPoolFair();
 
     boolean isPoolEnableConnectionTracking();

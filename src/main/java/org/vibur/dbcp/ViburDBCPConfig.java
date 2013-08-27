@@ -194,6 +194,14 @@ public class ViburDBCPConfig implements ViburDBCPConfigMBean {
         return poolMaxSize;
     }
 
+    public int getPoolTaken() {
+        return connectionPool.taken();
+    }
+
+    public int getPoolRemainingCreated() {
+        return connectionPool.remainingCreated();
+    }
+
     public void setPoolMaxSize(int poolMaxSize) {
         this.poolMaxSize = poolMaxSize;
     }
