@@ -87,8 +87,8 @@ public class ViburDBCPConfig implements ViburDBCPConfigMBean {
 
 
     /** Defines the maximum statement cache size. {@code 0} disables it, max values is {@code 1000}.
-     * If the statement's cache is enabled the client application needs to provide dependency to Google's
-     * ConcurrentLinkedCacheMap, see https://code.google.com/p/concurrentlinkedhashmap/. */
+     * If the statement's cache is not enabled, the client application may safely exclude the dependency
+     * on Google's ConcurrentLinkedCacheMap from its pom.xml file. */
     private int statementCacheMaxSize = 0;
     private ConcurrentMap<StatementKey, ValueHolder<Statement>> statementCache = null;
 
