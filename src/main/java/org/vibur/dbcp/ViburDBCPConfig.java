@@ -47,8 +47,8 @@ public class ViburDBCPConfig implements ViburDBCPConfigMBean {
      * If set to zero, will validate the connection always when it is taken from the pool.
      * If set to a negative number, will never validate the taken from the pool connection. */
     private int connectionIdleLimitInSeconds = 60;
-    /** Used to test the validity of the JDBC Connection. Should be set to a valid query if any of the
-     * {@code validateOnTake} or {@code validateOnRestore} are set to {@code true}. */
+    /** Used to test the validity of the JDBC Connection. Should be set to a valid query if the
+     * {@code connectionIdleLimitInSeconds} is set to a non-negative number. */
     private String testConnectionQuery = "SELECT 1";
 
 
