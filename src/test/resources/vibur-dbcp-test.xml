@@ -6,7 +6,7 @@
     <entry key="username">root</entry>
     <entry key="password">root</entry>
     <entry key="poolInitialSize">2</entry>
-    <entry key="validateOnRestore">true</entry>
+    <entry key="connectionIdleLimitInSeconds">30</entry>
     <entry key="logStatementsEnabled">true</entry>
     <entry key="queryExecuteTimeLimitInMs">1</entry>
     <entry key="statementCacheMaxSize">10</entry>

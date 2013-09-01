@@ -14,95 +14,154 @@
   limitations under the License.
 </wiki:comment>
 
-==Note: this documentation is currently work in progress...==
 
-==Quick Introduction==
+== Quick Introduction ==
 
-Vibur DBCP is a _database connection pool_ which utilises Java
-dynamic proxies and is built on top of [https://code.google.com/p/vibur-object-pool/ Vibur Object Pool].
+The development of Vibur DBCP was originally inspired by the Spring JMS caching connection factory which is implemented
+using Java dynamic proxies. The main goal was to create a standalone and fully-featured JDBC connection pool,
+which is at the same time as simple as possible, has short and concise source code (based on dynamic proxies),
+has as fewer as practical external dependencies, and follows the design principle of having a separate and dedicated
+[https://code.google.com/p/vibur-object-pool/ object pool].
 
-==Configuration Options==
+*Most important features and characteristics:*
 
-<table border="0">
-<tr><td><font face="Verdana" size="2" color="black"><b>Basic database connection settings:</b></font></td></tr>
-<tr><td><a href="https://code.google.com/p/vibur-dbcp/#1._driverClassName"><font face="Verdana" size="2" color="blue"><b>1. driverClassName</b></font></a></td></tr>
-<tr><td><a href="https://code.google.com/p/vibur-dbcp/#2._jdbcUrl"><font face="Verdana" size="2" color="blue"><b>2. jdbcUrl</b></font></a></td></tr>
-<tr><td><a href="https://code.google.com/p/vibur-dbcp/#3._username"><font face="Verdana" size="2" color="blue"><b>3. username</b></font></a></td></tr>
-<tr><td><a href="https://code.google.com/p/vibur-dbcp/#4._password"><font face="Verdana" size="2" color="blue"><b>4. password</b></font></a></td></tr>
+  * Built using the standard Java concurrent utilities, does not use any direct synchronization.
+  * Supports fairness parameter, which when set to true, guarantees that threads invoking the pool's `take` methods will be selected to obtain a connection from it in FIFO order, and no thread is starved out from accessing the pool's underlying resources.
+  * Caching support for JDBC Statements (Prepared and Callable).
+  * SQL queries logging depending on the queries' execution time taken.
+  * Hibernate integration support.
 
-<tr><td height="4"></td></tr>
-<tr><td><font face="Verdana" size="2" color="black"><b>Database connection validation settings:</b></font></td></tr>
-<tr><td><a href="https://code.google.com/p/vibur-dbcp/#5._validateIfIdleForSeconds"><font face="Verdana" size="2" color="blue"><b>5. connectionIdleLimitInSeconds</b></font></a></td></tr>
-<tr><td><a href="https://code.google.com/p/vibur-dbcp/#6._testConnectionQuery"><font face="Verdana" size="2" color="blue"><b>7. testConnectionQuery</b></font></a></td></tr>
+*Other features:*
 
-<tr><td height="4"></td></tr>
-<tr><td><font face="Verdana" size="2" color="black"><b>Basic pool size, growth and fairness settings:</b></font></td></tr>
-<tr><td><a href="https://code.google.com/p/vibur-dbcp/#7._poolInitialSize"><font face="Verdana" size="2" color="blue"><b>8. poolInitialSize</b></font></a></td></tr>
-<tr><td><a href="https://code.google.com/p/vibur-dbcp/#8._poolMaxSize"><font face="Verdana" size="2" color="blue"><b>9. poolMaxSize</b></font></a></td></tr>
-<tr><td><a href="https://code.google.com/p/vibur-dbcp/#9._poolFair"><font face="Verdana" size="2" color="blue"><b>10. poolFair</b></font></a></td></tr>
-<tr><td><a href="https://code.google.com/p/vibur-dbcp/#10._poolEnableConnectionTracking"><font face="Verdana" size="2" color="blue"><b>11. poolEnableConnectionTracking</b></font></a></td></tr>
+  * Validation intervals support, i.e. the taken from the pool connection is not validated before every use but is validated only if given time interval has passed since the connection's last use.
+  * Intelligent pool's sizing - the number of idle connections in the pool will be reduced based on heuristics for the number of connections which were recently used.
+  * The underlying JDBC Connection or Statement object can be retrieved from the respective proxy object via calling the proxy's `unwrap` method.
+  * JDBC Connections which are neither committed nor rollbacked will be automatically rollbacked if the Connection's `close` method is called, and an error message will be logged.
+  * The only external dependencies which Vibur DBCP has are: vibur-object-pool, slf4j (for logging), and the Google's CLHM which can be excluded if the JDBC Statements caching is not used.
+  * JMX support - the pool registers an MBean via which various pool's parameters can be observed and/or set.
 
-<tr><td height="4"></td></tr>
-<tr><td><font face="Verdana" size="2" color="black"><b>Pool reduction settings:</b></font></td></tr>
-<tr><td><a href="https://code.google.com/p/vibur-dbcp/#11._reducerTimeoutInSeconds"><font face="Verdana" size="2" color="blue"><b>12. reducerTimeoutInSeconds</b></font></a></td></tr>
-<tr><td><a href="https://code.google.com/p/vibur-dbcp/#12._reducerTakenRatio"><font face="Verdana" size="2" color="blue"><b>13. reducerTakenRatio</b></font></a></td></tr>
-<tr><td><a href="https://code.google.com/p/vibur-dbcp/#13._reducerReduceRatio"><font face="Verdana" size="2" color="blue"><b>14. reducerReduceRatio</b></font></a></td></tr>
 
-<tr><td height="4"></td></tr>
-<tr><td><font face="Verdana" size="2" color="black"><b>Database connection timeout and retries settings:</b></font></td></tr>
-<tr><td><a href="https://code.google.com/p/vibur-dbcp/#14._createConnectionTimeoutInMs"><font face="Verdana" size="2" color="blue"><b>15. createConnectionTimeoutInMs</b></font></a></td></tr>
-<tr><td><a href="https://code.google.com/p/vibur-dbcp/#15._acquireRetryDelayInMs"><font face="Verdana" size="2" color="blue"><b>16. acquireRetryDelayInMs</b></font></a></td></tr>
-<tr><td><a href="https://code.google.com/p/vibur-dbcp/#16._acquireRetryAttempt"><font face="Verdana" size="2" color="blue"><b>17. acquireRetryAttempt</b></font></a></td></tr>
+== Usage Examples ==
 
-<tr><td height="4"></td></tr>
-<tr><td><font face="Verdana" size="2" color="black"><b>Database statements caching settings:</b></font></td></tr>
-<tr><td><a href="https://code.google.com/p/vibur-dbcp/#17._statementCacheMaxSize"><font face="Verdana" size="2" color="blue"><b>18. statementCacheMaxSize</b></font></a></td></tr>
+*Maven dependency:*
 
-<tr><td height="4"></td></tr>
-<tr><td><font face="Verdana" size="2" color="black"><b>SQL queries logging settings:</b></font></td></tr>
-<tr><td><a href="https://code.google.com/p/vibur-dbcp/#18._logStatementsEnabled"><font face="Verdana" size="2" color="blue"><b>19. logStatementsEnabled</b></font></a></td></tr>
-<tr><td><a href="https://code.google.com/p/vibur-dbcp/#19._queryExecuteTimeLimitInMs"><font face="Verdana" size="2" color="blue"><b>20. queryExecuteTimeLimitInMs</b></font></a></td></tr>
+  * coming soon...
 
-<tr><td height="4"></td></tr>
-<tr><td><font face="Verdana" size="2" color="black"><b>Database connection default behavior settings:</b></font></td></tr>
-<tr><td><a href="https://code.google.com/p/vibur-dbcp/#20._resetDefaultsAfterUse"><font face="Verdana" size="2" color="blue"><b>21. resetDefaultsAfterUse</b></font></a></td></tr>
-<tr><td><a href="https://code.google.com/p/vibur-dbcp/#21._defaultAutoCommit"><font face="Verdana" size="2" color="blue"><b>21. defaultAutoCommit</b></font></a></td></tr>
-<tr><td><a href="https://code.google.com/p/vibur-dbcp/#22._defaultReadOnly"><font face="Verdana" size="2" color="blue"><b>22. defaultReadOnly</b></font></a></td></tr>
-<tr><td><a href="https://code.google.com/p/vibur-dbcp/#23._defaultTransactionIsolation"><font face="Verdana" size="2" color="blue"><b>23. defaultTransactionIsolation</b></font></a></td></tr>
-<tr><td><a href="https://code.google.com/p/vibur-dbcp/#24._defaultCatalog"><font face="Verdana" size="2" color="blue"><b>24. defaultCatalog</b></font></a></td></tr>
-<tr><td><a href="https://code.google.com/p/vibur-dbcp/#25._defaultTransactionIsolationValue"><font face="Verdana" size="2" color="blue"><b>25. defaultTransactionIsolationValue</b></font></a></td></tr>
-</table>
 
-===1. driverClassName===
-    Database driver class name.
-===2. jdbcUrl===
-===3. username===
-===4. password===
+*Hibernate configuration example:*
 
-===5. connectionIdleLimitInSeconds===
-===6. testConnectionQuery===
+{{{
+<hibernate-configuration>
+    <session-factory>
+        <!-- Database connection settings -->
+        <property name="hibernate.connection.driver_class">com.mysql.jdbc.Driver</property>
+        <property name="hibernate.connection.url">jdbc:mysql://localhost/my_db</property>
+        <property name="hibernate.connection.username">test</property>
+        <property name="hibernate.connection.password">pass</property>
 
-===7. poolInitialSize===
-===8. poolMaxSize===
-===9. poolFair===
-===10. poolEnableConnectionTracking===
+        <property name="hibernate.dialect">org.hibernate.dialect.MySQLInnoDBDialect</property>
+        <property name="hibernate.default_schema">my_db</property>
 
-===11. reducerTimeoutInSeconds===
-===12. reducerTakenRatio===
-===13. reducerReduceRatio===
+        <property name="hibernate.current_session_context_class">thread</property>
 
-===14. createConnectionTimeoutInMs===
-===15. acquireRetryDelayInMs===
-===16. acquireRetryAttempt===
+        <!-- Vibur DBCP specific properties -->
+        <property name="hibernate.connection.provider_class">
+            org.vibur.dbcp.integration.ViburDBCPConnectionProvider
+        </property>
+        <property name="hibernate.vibur.poolInitialSize">10</property>
+        <property name="hibernate.vibur.poolMaxSize">100</property>
+        <property name="hibernate.vibur.connectionIdleLimitInSeconds">30</property>
+        <property name="hibernate.vibur.logStatementsEnabled">true</property>
+        <property name="hibernate.vibur.queryExecuteTimeLimitInMs">100</property>
+        <property name="hibernate.vibur.statementCacheMaxSize">200</property>
+    </session-factory>
+</hibernate-configuration>
+}}}
 
-===17. statementCacheMaxSize===
+*Programmatic configuration example:*
 
-===18. logStatementsEnabled===
-===19. queryExecuteTimeLimitInMs===
+{{{
+    public DataSource createDataSourceWithStatementsCache() {
+        viburDS = new ViburDBCPDataSource();
 
-===20. resetDefaultsAfterUse===
-===21. defaultAutoCommit===
-===22. defaultReadOnly===
-===23. defaultTransactionIsolation===
-===24. defaultCatalog===
-===25. defaultTransactionIsolationValue===
+        viburDS.setDriverClassName(System.getProperty("DriverClassName"));
+        viburDS.setJdbcUrl(System.getProperty("JdbcUrl"));
+        viburDS.setUsername(System.getProperty("Username"));
+        viburDS.setPassword(System.getProperty("Password"));
+
+        viburDS.setPoolInitialSize(10);
+        viburDS.setPoolMaxSize(100);
+        viburDS.setConnectionIdleLimitInSeconds(30);
+        viburDS.setLogStatementsEnabled(true);
+        viburDS.setQueryExecuteTimeLimitInMs(100);
+        viburDS.setStatementCacheMaxSize(200);
+
+        viburDS.start();
+
+        return viburDS;
+    }
+}}}
+
+<br/>
+=== Design Rationalities & Trade-offs ===
+
+  * Alternate user names and password are not supported yet. The call to `DataSource.getConnection(username, password)` will simply create and return connection using the configured default username and password.
+  * Obtaining the initial connections from an existing DataSource is not implemented yet.
+<br/>
+
+== Configuration Options ==
+
+*Basic database connection settings:*
+|| *Attribute* || *Description* || *Default value* ||
+|| `driverClassName` || Database driver class name. || Supplied by user ||
+|| `jdbcUrl` || Database JDBC Connection string. || Supplied by user ||
+|| `username` || User name to use. || Supplied by user ||
+|| `password` || Password to use. || Supplied by user ||
+
+*Database connection validation settings:*
+|| *Attribute* || *Description* || *Default value* ||
+|| `connectionIdleLimitInSeconds` || If the connection has stayed in the pool for at least `connectionIdleLimitInSeconds`, it will be validated before being given to the application using the `testConnectionQuery`. If set to zero, will validate the connection always when it is taken from the pool. If set to a negative number, will never validate the taken from the pool connection. || `60` ||
+|| `testConnectionQuery` || Used to test the validity of the JDBC Connection. Should be set to a valid query if the `connectionIdleLimitInSeconds` is set to a non-negative number. || `SELECT 1` ||
+
+*Basic pool size, growth and fairness settings:*
+|| *Attribute* || *Description* || *Default value* ||
+|| `poolInitialSize` || The pool initial size, i.e. the initial number of JDBC Connections allocated in this pool. || `1` ||
+|| `poolMaxSize` || The pool max size, i.e. the maximum number of JDBC Connections allocated in this pool. || `10` ||
+|| `poolFair` || The pool's fairness setting with regards to waiting threads. || `true` ||
+|| `poolEnableConnectionTracking` || If `true`, the pool will keep information for the current stack trace of every taken connection. || `false` ||
+
+*Pool reduction settings:*
+|| *Attribute* || *Description* || *Default value* ||
+|| `reducerTimeoutInSeconds` || The time periods after which the `PoolReducer` will wake up. || `30` ||
+|| `reducerTakenRatio` || The ratio between the taken objects from the pool and the available objects in the pool. || `0.90f` ||
+|| `reducerReduceRatio` || The ratio by which the number of available in the pool objects is to be reduced if the above `reducerTakenRatio` threshold is hit.  || `0.10f` ||
+
+*Database connection timeout and retries settings:*
+|| *Attribute* || *Description* || *Default value* ||
+|| `createConnectionTimeoutInMs` || Time to wait before a call to getConnection() times out and returns an error `0` means forever. || `60000` ||
+|| `acquireRetryDelayInMs` || After attempting to acquire a JDBC Connection and failing with an `SQLException`, wait for this long time before attempting to acquire a new JDBC Connection again. || `1000` ||
+|| `acquireRetryAttempt` || After attempting to acquire a JDBC Connection and failing with an `SQLException`, try to connect these many times before giving up. || `3` ||
+
+*Database statements caching settings:*
+|| *Attribute* || *Description* || *Default value* ||
+|| `statementCacheMaxSize` || Defines the maximum statement cache size. `0` disables it, max values is `1000`. If the statement's cache is not enabled, the client application may safely exclude the dependency on Google's ConcurrentLinkedCacheMap from its pom.xml file. || `0` ||
+
+*SQL queries logging settings:*
+|| *Attribute* || *Description* || *Default value* ||
+|| `logStatementsEnabled` || If set to `true`, log all SQL statements being executed. || `false` ||
+|| `queryExecuteTimeLimitInMs` || Queries taking longer than this limit to execute are logged. `0` disables it. || `0` ||
+
+*Database connection default behavior settings:*
+|| *Attribute* || *Description* || *Default value* ||
+|| `resetDefaultsAfterUse` || If set to `true`, will reset the connection default values below, always after the connection is restored (returned) to the pool after use. If the calling application never changes these default values, resetting them is not needed. || `false` ||
+|| `defaultAutoCommit` || The default auto-commit state of the created connections. || Driver's default ||
+|| `defaultReadOnly` || The default read-only state of the created connections. || Driver's default ||
+|| `defaultTransactionIsolation` || The default symbolic transaction isolation state of the created connections. || Driver's default ||
+|| `defaultCatalog` || The default catalog of the created connections. || Driver's default ||
+
+
+<br/>
+==== Acknowledgements ====
+
+While working on this project the author has often looked at the documentation and/or source code of the
+following projects: Spring Framework, BoneCP, Apache DBCP, C3P0, Tomcat JDBC Connection Pool.

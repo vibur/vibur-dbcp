@@ -20,12 +20,12 @@
         <property name="hibernate.show_sql">true</property>
         <property name="hibernate.format_sql">true</property>
 
-        <!-- Vibur specific properties -->
+        <!-- Vibur DBCP specific properties -->
         <property name="hibernate.connection.provider_class">
             org.vibur.dbcp.integration.ViburDBCPConnectionProvider
         </property>
         <property name="hibernate.vibur.poolInitialSize">2</property>
-        <property name="hibernate.vibur.validateOnRestore">true</property>
+        <property name="hibernate.vibur.connectionIdleLimitInSeconds">30</property>
         <property name="hibernate.vibur.logStatementsEnabled">true</property>
         <property name="hibernate.vibur.queryExecuteTimeLimitInMs">1</property>
     </session-factory>

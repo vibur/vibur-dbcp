@@ -346,13 +346,15 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
 
     public void onDestroy(Connection connection) {
         ConcurrentMap<StatementKey, ValueHolder<Statement>> statementCache = getStatementCache();
-        if (statementCache != null)
-            for (StatementKey key : statementCache.keySet())
-                if (key.getProxy().equals(connection)) {
-                    ValueHolder<Statement> valueHolder = statementCache.remove(key);
-                    if (valueHolder != null)
-                        closeStatement(valueHolder.value());
-                }
+        if (statementCache == null)
+            return;
+
+        for (StatementKey key : statementCache.keySet())
+            if (key.getProxy().equals(connection)) {
+                ValueHolder<Statement> valueHolder = statementCache.remove(key);
+                if (valueHolder != null)
+                    closeStatement(valueHolder.value());
+            }
     }
 
     public State getState() {
