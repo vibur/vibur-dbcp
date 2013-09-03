@@ -3,8 +3,8 @@
 <properties>
     <entry key="driverClassName">com.mysql.jdbc.Driver</entry>
     <entry key="jdbcUrl">jdbc:mysql://localhost/sakila</entry>
-    <entry key="username">root</entry>
-    <entry key="password">root</entry>
+    <entry key="username">test</entry>
+    <entry key="password">pass</entry>
     <entry key="poolInitialSize">2</entry>
     <entry key="connectionIdleLimitInSeconds">30</entry>
     <entry key="logStatementsEnabled">true</entry>

@@ -14,12 +14,17 @@
  * limitations under the License.
  */
 
-package org.vibur.dbcp.integration;
+package org.vibur.dbcp.common;
 
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
+import org.vibur.dbcp.model.Actor;
 
 /**
+ * Simple Hibernate util class. Prerequisites for all tests which call the static methods below:
+ *
+ * <p>1. Configure appropriately the database connection parameters in resources/hibernate-*-stmt-cache.cfg.xml.
+ *
  * @author Simeon Malchev
  */
 public class HibernateTestUtil {

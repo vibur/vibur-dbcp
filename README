@@ -23,7 +23,7 @@ which is at the same time as simple as possible, has short and concise source co
 has as fewer as practical external dependencies, and follows the design principle of having a separate and dedicated
 [https://code.google.com/p/vibur-object-pool/ object pool].
 
-*Most important features and characteristics:*
+====Most important features and characteristics:====
 
   * Built using the standard Java concurrent utilities, does not use any direct synchronization.
   * Supports fairness parameter, which when set to true, guarantees that threads invoking the pool's `take` methods will be selected to obtain a connection from it in FIFO order, and no thread is starved out from accessing the pool's underlying resources.
@@ -31,24 +31,23 @@ has as fewer as practical external dependencies, and follows the design principl
   * SQL queries logging depending on the queries' execution time taken.
   * Hibernate integration support.
 
-*Other features:*
+====Other features:====
 
-  * Validation intervals support, i.e. the taken from the pool connection is not validated before every use but is validated only if given time interval has passed since the connection's last use.
+  * Validation intervals support, i.e. the taken from the pool connection is not validated before every use but is validated only if given time interval has passed since the last time the connection was used.
   * Intelligent pool's sizing - the number of idle connections in the pool will be reduced based on heuristics for the number of connections which were recently used.
   * The underlying JDBC Connection or Statement object can be retrieved from the respective proxy object via calling the proxy's `unwrap` method.
   * JDBC Connections which are neither committed nor rollbacked will be automatically rollbacked if the Connection's `close` method is called, and an error message will be logged.
-  * The only external dependencies which Vibur DBCP has are: vibur-object-pool, slf4j (for logging), and the Google's CLHM which can be excluded if the JDBC Statements caching is not used.
+  * The only external dependencies which Vibur DBCP has are: vibur-object-pool, slf4j, and ConcurrentLinkedHashMap which can be excluded if the JDBC Statements caching is not enabled.
   * JMX support - the pool registers an MBean via which various pool's parameters can be observed and/or set.
 
 
 == Usage Examples ==
 
-*Maven dependency:*
+====Maven dependency:====
 
   * coming soon...
 
-
-*Hibernate configuration example:*
+====Hibernate configuration example:====
 
 {{{
 <hibernate-configuration>
@@ -78,7 +77,7 @@ has as fewer as practical external dependencies, and follows the design principl
 </hibernate-configuration>
 }}}
 
-*Programmatic configuration example:*
+====Programmatic configuration example:====
 
 {{{
     public DataSource createDataSourceWithStatementsCache() {
@@ -102,58 +101,60 @@ has as fewer as practical external dependencies, and follows the design principl
     }
 }}}
 
-<br/>
+== How To Build ==
+
+  * coming soon...
+
 === Design Rationalities & Trade-offs ===
 
   * Alternate user names and password are not supported yet. The call to `DataSource.getConnection(username, password)` will simply create and return connection using the configured default username and password.
   * Obtaining the initial connections from an existing DataSource is not implemented yet.
-<br/>
 
 == Configuration Options ==
 
-*Basic database connection settings:*
+====Basic database connection settings:====
 || *Attribute* || *Description* || *Default value* ||
 || `driverClassName` || Database driver class name. || Supplied by user ||
 || `jdbcUrl` || Database JDBC Connection string. || Supplied by user ||
 || `username` || User name to use. || Supplied by user ||
 || `password` || Password to use. || Supplied by user ||
 
-*Database connection validation settings:*
+====Database connection validation settings:====
 || *Attribute* || *Description* || *Default value* ||
-|| `connectionIdleLimitInSeconds` || If the connection has stayed in the pool for at least `connectionIdleLimitInSeconds`, it will be validated before being given to the application using the `testConnectionQuery`. If set to zero, will validate the connection always when it is taken from the pool. If set to a negative number, will never validate the taken from the pool connection. || `60` ||
-|| `testConnectionQuery` || Used to test the validity of the JDBC Connection. Should be set to a valid query if the `connectionIdleLimitInSeconds` is set to a non-negative number. || `SELECT 1` ||
+|| `connectionIdleLimitInSeconds` || If the connection has stayed in the pool for at least `connectionIdleLimitInSeconds`, it will be validated <br> before being given to the application using the `testConnectionQuery`. If set to zero, will validate <br> the connection always when it is taken from the pool. If set to a negative number, will never validate the <br> taken from the pool connection. || `60` ||
+|| `testConnectionQuery` || Used to test the validity of the JDBC Connection. Should be set to a valid query if the <br> `connectionIdleLimitInSeconds` is set to a non-negative number. || `SELECT 1` ||
 
-*Basic pool size, growth and fairness settings:*
+====Basic pool size, growth and fairness settings:====
 || *Attribute* || *Description* || *Default value* ||
 || `poolInitialSize` || The pool initial size, i.e. the initial number of JDBC Connections allocated in this pool. || `1` ||
 || `poolMaxSize` || The pool max size, i.e. the maximum number of JDBC Connections allocated in this pool. || `10` ||
 || `poolFair` || The pool's fairness setting with regards to waiting threads. || `true` ||
 || `poolEnableConnectionTracking` || If `true`, the pool will keep information for the current stack trace of every taken connection. || `false` ||
 
-*Pool reduction settings:*
+====Pool reduction settings:====
 || *Attribute* || *Description* || *Default value* ||
 || `reducerTimeoutInSeconds` || The time periods after which the `PoolReducer` will wake up. || `30` ||
 || `reducerTakenRatio` || The ratio between the taken objects from the pool and the available objects in the pool. || `0.90f` ||
-|| `reducerReduceRatio` || The ratio by which the number of available in the pool objects is to be reduced if the above `reducerTakenRatio` threshold is hit.  || `0.10f` ||
+|| `reducerReduceRatio` || The ratio by which the number of available in the pool objects is to be reduced if the above `reducerTakenRatio` <br> threshold is hit.  || `0.10f` ||
 
-*Database connection timeout and retries settings:*
+====Database connection timeout and retries settings:====
 || *Attribute* || *Description* || *Default value* ||
 || `createConnectionTimeoutInMs` || Time to wait before a call to getConnection() times out and returns an error `0` means forever. || `60000` ||
-|| `acquireRetryDelayInMs` || After attempting to acquire a JDBC Connection and failing with an `SQLException`, wait for this long time before attempting to acquire a new JDBC Connection again. || `1000` ||
-|| `acquireRetryAttempt` || After attempting to acquire a JDBC Connection and failing with an `SQLException`, try to connect these many times before giving up. || `3` ||
+|| `acquireRetryDelayInMs` || After attempting to acquire a JDBC Connection and failing with an `SQLException`, wait for this long time <br> before attempting to acquire a new JDBC Connection again. || `1000` ||
+|| `acquireRetryAttempt` || After attempting to acquire a JDBC Connection and failing with an `SQLException`, try to connect these <br> many times before giving up. || `3` ||
 
-*Database statements caching settings:*
+====Database statements caching settings:====
 || *Attribute* || *Description* || *Default value* ||
-|| `statementCacheMaxSize` || Defines the maximum statement cache size. `0` disables it, max values is `1000`. If the statement's cache is not enabled, the client application may safely exclude the dependency on Google's ConcurrentLinkedCacheMap from its pom.xml file. || `0` ||
+|| `statementCacheMaxSize` || Defines the maximum statement cache size. `0` disables it, max values is `1000`. If the statement's cache is not <br> enabled, the client application may safely exclude the dependency on ConcurrentLinkedCacheMap. || `0` ||
 
 *SQL queries logging settings:*
 || *Attribute* || *Description* || *Default value* ||
 || `logStatementsEnabled` || If set to `true`, log all SQL statements being executed. || `false` ||
 || `queryExecuteTimeLimitInMs` || Queries taking longer than this limit to execute are logged. `0` disables it. || `0` ||
 
-*Database connection default behavior settings:*
+====Database connection default behavior settings:====
 || *Attribute* || *Description* || *Default value* ||
-|| `resetDefaultsAfterUse` || If set to `true`, will reset the connection default values below, always after the connection is restored (returned) to the pool after use. If the calling application never changes these default values, resetting them is not needed. || `false` ||
+|| `resetDefaultsAfterUse` || If set to `true`, will reset the connection default values below, always after the connection is restored <br> (returned) to the pool after use. If the calling application never changes these default values, resetting them <br> is not needed. || `false` ||
 || `defaultAutoCommit` || The default auto-commit state of the created connections. || Driver's default ||
 || `defaultReadOnly` || The default read-only state of the created connections. || Driver's default ||
 || `defaultTransactionIsolation` || The default symbolic transaction isolation state of the created connections. || Driver's default ||
@@ -161,7 +162,7 @@ has as fewer as practical external dependencies, and follows the design principl
 
 
 <br/>
-==== Acknowledgements ====
+=== Acknowledgements ===
 
 While working on this project the author has often looked at the documentation and/or source code of the
 following projects: Spring Framework, BoneCP, Apache DBCP, C3P0, Tomcat JDBC Connection Pool.

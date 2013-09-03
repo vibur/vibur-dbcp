@@ -255,16 +255,20 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
                 closeStatement(valueHolder.value());
                 i.remove();
             }
+
         poolReducer.terminate();
         getConnectionPool().terminate();
     }
 
     private void validateConfig() {
-        if (getDriverClassName() == null || getJdbcUrl() == null
-            || getCreateConnectionTimeoutInMs() < 0 || getAcquireRetryDelayInMs() < 0
-            || getAcquireRetryAttempts() < 0 || getQueryExecuteTimeLimitInMs() < 0
-            || getStatementCacheMaxSize() < 0
-            || (getConnectionIdleLimitInSeconds() >= 0 && getTestConnectionQuery() == null))
+        if (getDriverClassName() == null) throw new IllegalArgumentException();
+        if (getJdbcUrl() == null) throw new IllegalArgumentException();
+        if (getCreateConnectionTimeoutInMs() < 0) throw new IllegalArgumentException();
+        if (getAcquireRetryDelayInMs() < 0) throw new IllegalArgumentException();
+        if (getAcquireRetryAttempts() < 0) throw new IllegalArgumentException();
+        if (getQueryExecuteTimeLimitInMs() < 0) throw new IllegalArgumentException();
+        if (getStatementCacheMaxSize() < 0) throw new IllegalArgumentException();
+        if (getConnectionIdleLimitInSeconds() >= 0 && getTestConnectionQuery() == null)
             throw new IllegalArgumentException();
 
         if (getPassword() == null) logger.warn("JDBC password not specified.");
@@ -272,7 +276,6 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
 
         if (getDefaultTransactionIsolation() != null) {
             String defaultTransactionIsolation = getDefaultTransactionIsolation().toUpperCase();
-
             if (defaultTransactionIsolation.equals("NONE")) {
                 setDefaultTransactionIsolationValue(Connection.TRANSACTION_NONE);
             } else if (defaultTransactionIsolation.equals("READ_COMMITTED")) {

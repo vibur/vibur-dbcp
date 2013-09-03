@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.vibur.dbcp.integration;
+package org.vibur.dbcp.model;
 
 import javax.persistence.*;
 import java.util.Date;

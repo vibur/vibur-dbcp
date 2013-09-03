@@ -29,7 +29,9 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.vibur.dbcp.ViburDBCPDataSource;
 import org.vibur.dbcp.cache.StatementKey;
 import org.vibur.dbcp.cache.ValueHolder;
+import org.vibur.dbcp.common.HibernateTestUtil;
 import org.vibur.dbcp.common.IntegrationTest;
+import org.vibur.dbcp.model.Actor;
 
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -39,9 +41,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.AdditionalAnswers.delegatesTo;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.same;
@@ -49,11 +49,8 @@ import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 
 /**
- * Simple Hibernate integration test. Prerequisites for running the tests:
- *
- * <p>See the first 2 prerequisites for running the test from {@link org.vibur.dbcp.ViburDBCPDataSourceTest}
- * and configure appropriately the database connection properties in
- * resources/hibernate-*-stmt-cache.cfg.xml configuration files.
+ * Simple Hibernate integration test. See the prerequisites from {@link org.vibur.dbcp.AbstractDataSourceTest}
+ * and from {@link HibernateTestUtil}.
  *
  * @author Simeon Malchev
  */
