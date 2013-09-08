@@ -21,6 +21,7 @@ import com.googlecode.concurrentlinkedhashmap.EvictionListener;
 import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.cache.StatementKey;
 import org.vibur.dbcp.cache.ValueHolder;
+import org.vibur.dbcp.jmx.ViburDBCPMonitoring;
 import org.vibur.dbcp.listener.DestroyListener;
 import org.vibur.dbcp.proxy.Proxy;
 import org.vibur.objectpool.ConcurrentHolderLinkedPool;
@@ -48,6 +49,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 /**
+ * The main DataSource which needs to be configured/instantiated by the application and from which will
+ * then be obtained JDBC Connections via calling the {@link #getConnection()} method.
+ *
  * @author Simeon Malchev
  */
 public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, DestroyListener {
@@ -78,6 +82,11 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
      * setter methods.
      */
     public ViburDBCPDataSource() {
+        initJMX();
+    }
+
+    protected void initJMX() {
+        new ViburDBCPMonitoring(this);
     }
 
     /**
@@ -92,6 +101,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
      * @throws ViburDBCPException if cannot configure successfully
      */
     public ViburDBCPDataSource(String configFileName) {
+        this();
         URL config;
         if (configFileName != null) {
             config = getURL(configFileName);
@@ -126,6 +136,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
      * @throws ViburDBCPException if cannot configure successfully
      */
     public ViburDBCPDataSource(Properties properties) {
+        this();
         configureFromProperties(properties);
     }
 
@@ -184,7 +195,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
     }
 
     /**
-     * Starts this datasource. In order to be used the datasource has to be first initialised
+     * Starts this DataSource. In order to be used, the DataSource has to be first initialised
      * via call to one of the constructors and then started via call to this method.
      */
     public synchronized void start() {
@@ -240,7 +251,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
     }
 
     /**
-     * Terminates this datasource. Once terminated the datasource cannot be more revived.
+     * Terminates this DataSource. Once terminated the DataSource cannot be more revived.
      */
     public synchronized void terminate() {
         if (state == State.TERMINATED) return;

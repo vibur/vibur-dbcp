@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.vibur.dbcp;
+package org.vibur.dbcp.jmx;
 
 /**
  * @author Simeon Malchev
  */
-public interface ViburDBCPConfigMBean {
+public interface ViburDBCPMonitoringMBean {
 
     String getJdbcUrl();
 
@@ -86,4 +86,7 @@ public interface ViburDBCPConfigMBean {
     String getDefaultTransactionIsolation();
 
     String getDefaultCatalog();
+
+
+    String showTakenConnections();
 }

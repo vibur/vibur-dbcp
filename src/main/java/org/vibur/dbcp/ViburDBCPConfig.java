@@ -20,17 +20,13 @@ import org.vibur.dbcp.cache.StatementKey;
 import org.vibur.dbcp.cache.ValueHolder;
 import org.vibur.objectpool.HolderValidatingPoolService;
 
-import javax.management.JMException;
-import javax.management.MBeanServer;
-import javax.management.ObjectName;
-import java.lang.management.ManagementFactory;
 import java.sql.Statement;
 import java.util.concurrent.ConcurrentMap;
 
 /**
  * @author Simeon Malchev
  */
-public class ViburDBCPConfig implements ViburDBCPConfigMBean {
+public class ViburDBCPConfig {
 
     /** Database driver class name. */
     private String driverClassName;
@@ -116,22 +112,6 @@ public class ViburDBCPConfig implements ViburDBCPConfigMBean {
     private Integer defaultTransactionIsolationValue;
 
 
-    public ViburDBCPConfig() {
-        initJMX();
-    }
-
-    private void initJMX() {
-        try {
-            MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
-            ObjectName name = new ObjectName("org.vibur.dbcp:type=ViburDBCPConfig-"
-                + Integer.toHexString(hashCode()));
-            if (!mbs.isRegistered(name))
-                mbs.registerMBean(this, name);
-        } catch (JMException e) {
-            throw new ViburDBCPException(e);
-        }
-    }
-
     //////////////////////// Getter & Setters ////////////////////////
 
     public String getDriverClassName() {
@@ -192,14 +172,6 @@ public class ViburDBCPConfig implements ViburDBCPConfigMBean {
 
     public int getPoolMaxSize() {
         return poolMaxSize;
-    }
-
-    public int getPoolTaken() {
-        return connectionPool.taken();
-    }
-
-    public int getPoolRemainingCreated() {
-        return connectionPool.remainingCreated();
     }
 
     public void setPoolMaxSize(int poolMaxSize) {

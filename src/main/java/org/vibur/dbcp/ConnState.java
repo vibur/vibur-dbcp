@@ -19,6 +19,10 @@ package org.vibur.dbcp;
 import java.sql.Connection;
 
 /**
+ * Represents the state object which we hold in the object pool. It is just a thin wrapper class
+ * which allows us to augment the Connection object with useful additional "state" information
+ * like the {@code lastTimeUsedInMillis} and similar.
+ *
  * @author Simeon Malchev
  */
 public class ConnState {
