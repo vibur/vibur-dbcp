@@ -116,11 +116,18 @@ has as fewer as practical external dependencies, and follows the design principl
 
 === How To Build ===
 
-Vibur DBCP has two sets of tests, unit and integration. While the unit tests should be able to run and pass out of the box, the integration tests will try to connect to a running instance of MySQL with deployed [http://dev.mysql.com/doc/sakila/en/ Sakila] database into it. By default, the integration tests will try to connect to a MySQL instance running on localhost with username/password credentials `test/pass`. If the MySQL instance is running on a different machine, or if the credentials `test/pass` cannot be used, then the following files will need to be modified in order to set in them the desired jdbcUrl, username and password: vibur-dbcp-test.properties and hibernate-`*`-stmt-cache.cfg.
+Vibur DBCP has two sets of tests, unit and integration. While the unit tests should be able to run and pass
+out of the box, the integration tests will try to connect to a running instance of MySQL with deployed
+[http://dev.mysql.com/doc/sakila/en/ Sakila] database into it. By default, the integration tests will try to
+connect to a MySQL instance running on localhost with username/password credentials `test/pass`. If the MySQL
+instance is running on a different machine, or if the credentials `test/pass` cannot be used, then the following
+files will need to be modified in order to set in them the desired jdbcUrl, username and password:
+vibur-dbcp-test.properties and hibernate-`*`-stmt-cache.cfg.
 
 Running a particular set of tests is a matter of specifying a profile name after `mvn clean install`, i.e:
 
-  `mvn clean install -P unit-tests` will run the unit tests only. This profile is also the `activeByDefault` profile if none is specified.
+  `mvn clean install -P unit-tests` will run the unit tests only. This profile is also the `activeByDefault`
+  profile if none is specified.
 
   `mvn clean install -P integration-tests` will run the integration tests only.
 
@@ -137,8 +144,8 @@ Running a particular set of tests is a matter of specifying a profile name after
 
 ==== Database connection validation settings: ====
 || *Attribute* || *Description* || *Default value* ||
-|| `connectionIdleLimitInSeconds` || If the connection has stayed in the pool for at least `connectionIdleLimitInSeconds`, it will be validated <br> before being given to the application using the `testConnectionQuery`. If set to zero, will validate <br> the connection always when it is taken from the pool. If set to a negative number, will never validate the <br> taken from the pool connection. || `60` ||
-|| `testConnectionQuery` || Used to test the validity of the JDBC Connection. Should be set to a valid query if the <br> `connectionIdleLimitInSeconds` is set to a non-negative number. || `SELECT 1` ||
+|| `connectionIdleLimitInSeconds` || If the connection has stayed in the pool for at least `connectionIdleLimitInSeconds`, it will be validated before being given to the application using the `testConnectionQuery`. If set to zero, will validate the connection always when it is taken from the pool. If set to a negative number, will never validate the taken from the pool connection. || `60` ||
+|| `testConnectionQuery` || Used to test the validity of the JDBC Connection. Should be set to a valid query if the `connectionIdleLimitInSeconds` is set to a non-negative number. || `SELECT 1` ||
 
 ==== Basic pool size, growth and fairness settings: ====
 || *Attribute* || *Description* || *Default value* ||
@@ -151,17 +158,17 @@ Running a particular set of tests is a matter of specifying a profile name after
 || *Attribute* || *Description* || *Default value* ||
 || `reducerTimeoutInSeconds` || The time periods after which the `PoolReducer` will wake up. || `30` ||
 || `reducerTakenRatio` || The ratio between the taken objects from the pool and the available objects in the pool. || `0.90f` ||
-|| `reducerReduceRatio` || The ratio by which the number of available in the pool objects is to be reduced if the above `reducerTakenRatio` <br> threshold is hit.  || `0.10f` ||
+|| `reducerReduceRatio` || The ratio by which the number of available in the pool objects is to be reduced if the above `reducerTakenRatio` threshold is hit.  || `0.10f` ||
 
 ==== Database connection timeout and retries settings: ====
 || *Attribute* || *Description* || *Default value* ||
 || `createConnectionTimeoutInMs` || Time to wait before a call to getConnection() times out and returns an error `0` means forever. || `60000` ||
-|| `acquireRetryDelayInMs` || After attempting to acquire a JDBC Connection and failing with an `SQLException`, wait for this long time <br> before attempting to acquire a new JDBC Connection again. || `1000` ||
-|| `acquireRetryAttempt` || After attempting to acquire a JDBC Connection and failing with an `SQLException`, try to connect these <br> many times before giving up. || `3` ||
+|| `acquireRetryDelayInMs` || After attempting to acquire a JDBC Connection and failing with an `SQLException`, wait for this long time before attempting to acquire a new JDBC Connection again. || `1000` ||
+|| `acquireRetryAttempt` || After attempting to acquire a JDBC Connection and failing with an `SQLException`, try to connect these many times before giving up. || `3` ||
 
 ==== Database statements caching settings: ====
 || *Attribute* || *Description* || *Default value* ||
-|| `statementCacheMaxSize` || Defines the maximum statement cache size. `0` disables it, max values is `1000`. If the statement's cache is not <br> enabled, the client application may safely exclude the dependency on ConcurrentLinkedCacheMap. || `0` ||
+|| `statementCacheMaxSize` || Defines the maximum statement cache size. `0` disables it, max values is `1000`. If the statement's cache is not enabled, the client application may safely exclude the dependency on ConcurrentLinkedCacheMap. || `0` ||
 
 ==== SQL queries logging settings ====
 || *Attribute* || *Description* || *Default value* ||
@@ -170,7 +177,7 @@ Running a particular set of tests is a matter of specifying a profile name after
 
 ==== Database connection default behavior settings: ====
 || *Attribute* || *Description* || *Default value* ||
-|| `resetDefaultsAfterUse` || If set to `true`, will reset the connection default values below, always after the connection is restored <br> (returned) to the pool after use. If the calling application never changes these default values, resetting them <br> is not needed. || `false` ||
+|| `resetDefaultsAfterUse` || If set to `true`, will reset the connection default values below, always after the connection is restored (returned) to the pool after use. If the calling application never changes these default values, resetting them is not needed. || `false` ||
 || `defaultAutoCommit` || The default auto-commit state of the created connections. || Driver's default ||
 || `defaultReadOnly` || The default read-only state of the created connections. || Driver's default ||
 || `defaultTransactionIsolation` || The default symbolic transaction isolation state of the created connections. || Driver's default ||
