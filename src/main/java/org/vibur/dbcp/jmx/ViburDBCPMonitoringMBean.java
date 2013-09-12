@@ -45,11 +45,9 @@ public interface ViburDBCPMonitoringMBean {
 
     boolean isPoolEnableConnectionTracking();
 
-    long getReducerTimeoutInSeconds();
+    long getReducerTimeIntervalInSeconds();
 
-    float getReducerTakenRatio();
-
-    float getReducerReduceRatio();
+    float getReducerSamples();
 
 
     long getCreateConnectionTimeoutInMs();

@@ -27,9 +27,8 @@ import org.vibur.dbcp.proxy.Proxy;
 import org.vibur.objectpool.ConcurrentHolderLinkedPool;
 import org.vibur.objectpool.Holder;
 import org.vibur.objectpool.PoolObjectFactory;
-import org.vibur.objectpool.util.DefaultReducer;
 import org.vibur.objectpool.util.PoolReducer;
-import org.vibur.objectpool.util.Reducer;
+import org.vibur.objectpool.util.SamplingPoolReducer;
 
 import javax.sql.DataSource;
 import java.io.IOException;
@@ -66,7 +65,6 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
     private PrintWriter logWriter = null;
 
     private PoolObjectFactory<ConnState> connectionObjectFactory;
-    private Reducer reducer;
     private PoolReducer poolReducer;
 
     public enum State {
@@ -209,9 +207,8 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
         setConnectionPool(new ConcurrentHolderLinkedPool<ConnState>(connectionObjectFactory,
             getPoolInitialSize(), getPoolMaxSize(), isPoolFair(), isPoolEnableConnectionTracking()));
 
-        reducer = new DefaultReducer(getReducerTakenRatio(), getReducerReduceRatio());
-        poolReducer = new PoolReducer(getConnectionPool(), reducer,
-            getReducerTimeoutInSeconds(), TimeUnit.SECONDS) {
+        poolReducer = new SamplingPoolReducer(
+            getConnectionPool(), getReducerTimeIntervalInSeconds(), TimeUnit.SECONDS, getReducerSamples()) {
 
             protected void afterReduce(int reduction, int reduced, Throwable thrown) {
                 if (thrown != null)

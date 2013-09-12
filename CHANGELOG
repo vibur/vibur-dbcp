@@ -4,6 +4,7 @@ Version 0.7.2 (25/08/2013)
 * Validation of connection on take only if it has stayed idle in the pool for at least
   connectionIdleLimitInSeconds time.
 * Documentation update.
+* Adopted changes from vibur-object-pool 0.8.8 version, particularly the PoolReducer changes.
 
 Version 0.7.1 (12/08/2013)
 ==========================

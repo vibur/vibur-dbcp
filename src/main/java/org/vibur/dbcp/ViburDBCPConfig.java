@@ -58,17 +58,15 @@ public class ViburDBCPConfig {
     private boolean poolEnableConnectionTracking = false;
 
 
-    /** For more details on the next 3 parameters see {@link org.vibur.objectpool.util.PoolReducer}
-     *  and {@link org.vibur.objectpool.util.DefaultReducer}
+    /** For more details on the next 2 parameters see {@link org.vibur.objectpool.util.PoolReducer}
+     *  and {@link org.vibur.objectpool.util.SamplingPoolReducer}.
      */
-    /**
-     * The time periods after which the {@code PoolReducer} will wake up. */
-    private long reducerTimeoutInSeconds = 60;
-    /** The ratio between the taken objects from the pool and the available objects in the pool. */
-    private float reducerTakenRatio = 0.90f;
-    /** The ratio by which the number of available in the pool objects is to be reduced if the above
-     *  {@code reducerTakenRatio} threshold is hit. */
-    private float reducerReduceRatio = 0.10f;
+    /** The time period after which the {@code poolReducer} will try to possibly reduce the number of created
+     * but unused JDBC Connections in this pool. */
+    private long reducerTimeIntervalInSeconds = 30;
+    /** How many times the {@code poolReducer} will wake up during the given
+     * {@code reducerTimeIntervalInSeconds} period in order to sample various information from this pool. */
+    private int reducerSamples = 10;
 
 
     /** Time to wait before a call to getConnection() times out and returns an error.
@@ -194,28 +192,20 @@ public class ViburDBCPConfig {
         this.poolEnableConnectionTracking = poolEnableConnectionTracking;
     }
 
-    public long getReducerTimeoutInSeconds() {
-        return reducerTimeoutInSeconds;
+    public long getReducerTimeIntervalInSeconds() {
+        return reducerTimeIntervalInSeconds;
     }
 
-    public void setReducerTimeoutInSeconds(long reducerTimeoutInSeconds) {
-        this.reducerTimeoutInSeconds = reducerTimeoutInSeconds;
+    public void setReducerTimeIntervalInSeconds(long reducerTimeIntervalInSeconds) {
+        this.reducerTimeIntervalInSeconds = reducerTimeIntervalInSeconds;
     }
 
-    public float getReducerTakenRatio() {
-        return reducerTakenRatio;
+    public int getReducerSamples() {
+        return reducerSamples;
     }
 
-    public void setReducerTakenRatio(float reducerTakenRatio) {
-        this.reducerTakenRatio = reducerTakenRatio;
-    }
-
-    public float getReducerReduceRatio() {
-        return reducerReduceRatio;
-    }
-
-    public void setReducerReduceRatio(float reducerReduceRatio) {
-        this.reducerReduceRatio = reducerReduceRatio;
+    public void setReducerSamples(int reducerSamples) {
+        this.reducerSamples = reducerSamples;
     }
 
     public long getCreateConnectionTimeoutInMs() {

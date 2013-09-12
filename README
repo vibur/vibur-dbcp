@@ -154,11 +154,10 @@ Running a particular set of tests is a matter of specifying a profile name after
 || `poolFair` || The pool's fairness setting with regards to waiting threads. || `true` ||
 || `poolEnableConnectionTracking` || If `true`, the pool will keep information for the current stack trace of every taken connection. || `false` ||
 
-==== Pool reduction settings: ====
+==== Pool size reduction settings: ====
 || *Attribute* || *Description* || *Default value* ||
-|| `reducerTimeoutInSeconds` || The time periods after which the `PoolReducer` will wake up. || `30` ||
-|| `reducerTakenRatio` || The ratio between the taken objects from the pool and the available objects in the pool. || `0.90f` ||
-|| `reducerReduceRatio` || The ratio by which the number of available in the pool objects is to be reduced if the above `reducerTakenRatio` threshold is hit.  || `0.10f` ||
+|| `reducerTimeIntervalInSeconds` || The time period after which the `poolReducer` will try to possibly reduce the number of created but unused JDBC Connections in this pool. || `30` ||
+|| `reducerSamples` || How many times the `poolReducer` will wake up during the given `reducerTimeIntervalInSeconds` period in order to sample various information from this pool. || `10` ||
 
 ==== Database connection timeout and retries settings: ====
 || *Attribute* || *Description* || *Default value* ||
