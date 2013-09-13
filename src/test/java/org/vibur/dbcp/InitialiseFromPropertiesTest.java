@@ -27,13 +27,13 @@ public class InitialiseFromPropertiesTest {
 
     @Test
     public void testInitialiseFromPropertiesFile() {
-        ViburDBCPDataSource ds = new ViburDBCPDataSource("vibur-dbcp-test.properties");
+        ViburDBCPDataSourceImpl ds = new ViburDBCPDataSourceImpl("vibur-dbcp-test.properties");
         assertEquals(2, ds.getPoolInitialSize());
     }
 
     @Test
     public void testInitialiseFromXMLPropertiesFile() {
-        ViburDBCPDataSource ds = new ViburDBCPDataSource("vibur-dbcp-test.xml");
+        ViburDBCPDataSourceImpl ds = new ViburDBCPDataSourceImpl("vibur-dbcp-test.xml");
         assertEquals(2, ds.getPoolInitialSize());
     }
 }

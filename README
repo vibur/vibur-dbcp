@@ -25,8 +25,8 @@
 === Quick Introduction ===
 
 The development of Vibur DBCP was originally inspired by the Spring JMS caching connection factory which is implemented
-using Java dynamic proxies. The main goal was to create a standalone and fully-featured JDBC connection pool,
-which is at the same time as simple as possible, has short and concise source code (based on dynamic proxies),
+using Java dynamic proxies. The main goal was to create a standalone and fully-featured JDBC Connection pool,
+which is at the same time as simple as possible, has concise and easy to maintain source code (based on dynamic proxies),
 has as fewer as practical external dependencies, and follows the design principle of having a separate and dedicated
 [https://code.google.com/p/vibur-object-pool/ object pool].
 
@@ -44,7 +44,7 @@ has as fewer as practical external dependencies, and follows the design principl
   * Intelligent pool's sizing - the number of idle connections in the pool will be reduced based on heuristics for the number of connections which were recently used.
   * The underlying JDBC Connection or Statement object can be retrieved from the respective proxy object via calling the proxy's `unwrap` method.
   * JDBC Connections which are neither committed nor rollbacked will be automatically rollbacked if the Connection's `close` method is called, and an error message will be logged.
-  * Can provide records for all JDBC connections which are currently taken, including the stack traces with which they have been taken. Useful if debugging lost (not closed) connections.
+  * Can provide records for all JDBC Connections which are currently taken, including the stack traces with which they have been taken. Useful if debugging lost (not closed) connections.
 
   * The only external dependencies which Vibur DBCP has are: vibur-object-pool, slf4j, and ConcurrentLinkedHashMap which can be excluded if the JDBC Statements caching is not enabled.
   * JMX support - the pool registers an MBean via which various pool's parameters can be observed and/or set.
@@ -93,24 +93,24 @@ has as fewer as practical external dependencies, and follows the design principl
 ==== Programmatic configuration example: ====
 
 {{{
-    public DataSource createDataSourceWithStatementsCache() {
-        viburDS = new ViburDBCPDataSource();
+    public ViburDBCPDataSourceImpl createDataSourceWithStatementsCache() {
+        ViburDBCPDataSourceImpl dataSource = new ViburDBCPDataSourceImpl();
 
-        viburDS.setDriverClassName(System.getProperty("DriverClassName"));
-        viburDS.setJdbcUrl(System.getProperty("JdbcUrl"));
-        viburDS.setUsername(System.getProperty("Username"));
-        viburDS.setPassword(System.getProperty("Password"));
+        dataSource.setDriverClassName(System.getProperty("DriverClassName"));
+        dataSource.setJdbcUrl(System.getProperty("JdbcUrl"));
+        dataSource.setUsername(System.getProperty("Username"));
+        dataSource.setPassword(System.getProperty("Password"));
 
-        viburDS.setPoolInitialSize(10);
-        viburDS.setPoolMaxSize(100);
-        viburDS.setConnectionIdleLimitInSeconds(30);
-        viburDS.setLogStatementsEnabled(true);
-        viburDS.setQueryExecuteTimeLimitInMs(100);
-        viburDS.setStatementCacheMaxSize(200);
+        dataSource.setPoolInitialSize(10);
+        dataSource.setPoolMaxSize(100);
+        dataSource.setConnectionIdleLimitInSeconds(30);
+        dataSource.setLogStatementsEnabled(true);
+        dataSource.setQueryExecuteTimeLimitInMs(100);
+        dataSource.setStatementCacheMaxSize(200);
 
-        viburDS.start();
+        dataSource.start();
 
-        return viburDS;
+        return dataSource;
     }
 }}}
 
@@ -154,11 +154,6 @@ Running a particular set of tests is a matter of specifying a profile name after
 || `poolFair` || The pool's fairness setting with regards to waiting threads. || `true` ||
 || `poolEnableConnectionTracking` || If `true`, the pool will keep information for the current stack trace of every taken connection. || `false` ||
 
-==== Pool size reduction settings: ====
-|| *Attribute* || *Description* || *Default value* ||
-|| `reducerTimeIntervalInSeconds` || The time period after which the `poolReducer` will try to possibly reduce the number of created but unused JDBC Connections in this pool. || `30` ||
-|| `reducerSamples` || How many times the `poolReducer` will wake up during the given `reducerTimeIntervalInSeconds` period in order to sample various information from this pool. || `10` ||
-
 ==== Database connection timeout and retries settings: ====
 || *Attribute* || *Description* || *Default value* ||
 || `createConnectionTimeoutInMs` || Time to wait before a call to getConnection() times out and returns an error `0` means forever. || `60000` ||
@@ -181,6 +176,11 @@ Running a particular set of tests is a matter of specifying a profile name after
 || `defaultReadOnly` || The default read-only state of the created connections. || Driver's default ||
 || `defaultTransactionIsolation` || The default symbolic transaction isolation state of the created connections. || Driver's default ||
 || `defaultCatalog` || The default catalog of the created connections. || Driver's default ||
+
+==== Pool size reduction settings (advanced): ====
+|| *Attribute* || *Description* || *Default value* ||
+|| `reducerTimeIntervalInSeconds` || The time period after which the `poolReducer` will try to possibly reduce the number of created but unused JDBC Connections in this pool. || `30` ||
+|| `reducerSamples` || How many times the `poolReducer` will wake up during the given `reducerTimeIntervalInSeconds` period in order to sample various information from this pool. || `10` ||
 
 
 <br/>

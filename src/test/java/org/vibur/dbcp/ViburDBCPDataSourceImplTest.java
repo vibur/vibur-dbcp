@@ -46,14 +46,14 @@ import static org.mockito.Mockito.*;
  */
 @Category({IntegrationTest.class})
 @RunWith(MockitoJUnitRunner.class)
-public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
+public class ViburDBCPDataSourceImplTest extends AbstractDataSourceTest {
 
     @Captor
     private ArgumentCaptor<StatementKey> key1, key2;
 
     @Test
     public void testSimpleSelectStatementNoStatementsCache() throws SQLException, IOException {
-        DataSource ds = getSimpleDataSourceNoStatementsCache();
+        DataSource ds = createDataSourceNoStatementsCache();
         Connection connection = null;
         try {
             connection = ds.getConnection();
@@ -68,7 +68,7 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
     @Test
     @SuppressWarnings("unchecked")
     public void testSimpleSelectStatementWithStatementsCache() throws SQLException, IOException {
-        ViburDBCPDataSource ds = getSimpleDataSourceWithStatementsCache();
+        ViburDBCPDataSourceImpl ds = createDataSourceWithStatementsCache();
         Connection connection = null;
         try {
             ConcurrentMap<StatementKey, ValueHolder<Statement>> mockedStatementCache =
@@ -96,7 +96,7 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
 
     @Test
     public void testSimplePreparedSelectStatementNoStatementsCache() throws SQLException, IOException {
-        DataSource ds = getSimpleDataSourceNoStatementsCache();
+        DataSource ds = createDataSourceNoStatementsCache();
         Connection connection = null;
         try {
             connection = ds.getConnection();
@@ -111,7 +111,7 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
     @Test
     @SuppressWarnings("unchecked")
     public void testSimplePreparedSelectStatementWithStatementsCache() throws SQLException, IOException {
-        ViburDBCPDataSource ds = getSimpleDataSourceWithStatementsCache();
+        ViburDBCPDataSourceImpl ds = createDataSourceWithStatementsCache();
         Connection connection = null;
         try {
             ConcurrentMap<StatementKey, ValueHolder<Statement>> mockedStatementCache =

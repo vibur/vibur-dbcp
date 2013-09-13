@@ -31,7 +31,7 @@ public class ConnectionProxyTest extends AbstractDataSourceTest {
 
     @Test
     public void testSameConnection() throws SQLException, IOException {
-        DataSource ds = getSimpleDataSourceNoStatementsCache();
+        DataSource ds = createDataSourceNoStatementsCache();
         Connection connection = null;
         Statement statement = null;
         PreparedStatement pStatement = null;
@@ -57,7 +57,7 @@ public class ConnectionProxyTest extends AbstractDataSourceTest {
 
     @Test
     public void testUnwrap() throws SQLException, IOException {
-        DataSource ds = getSimpleDataSourceNoStatementsCache();
+        DataSource ds = createDataSourceNoStatementsCache();
         Connection connection = null;
         Statement statement = null;
         PreparedStatement pStatement = null;

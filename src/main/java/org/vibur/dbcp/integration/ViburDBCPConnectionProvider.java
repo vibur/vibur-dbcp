@@ -19,7 +19,7 @@ package org.vibur.dbcp.integration;
 import org.hibernate.HibernateException;
 import org.hibernate.cfg.Environment;
 import org.hibernate.connection.ConnectionProvider;
-import org.vibur.dbcp.ViburDBCPDataSource;
+import org.vibur.dbcp.ViburDBCPDataSourceImpl;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -53,11 +53,11 @@ public class ViburDBCPConnectionProvider implements ConnectionProvider {
 
     private static final String VIBUR_PREFIX = "hibernate.vibur.";
 
-    private ViburDBCPDataSource dataSource = null;
+    private ViburDBCPDataSourceImpl dataSource = null;
 
     /** {@inheritDoc} */
     public void configure(Properties props) throws HibernateException {
-        dataSource = new ViburDBCPDataSource(transform(props));
+        dataSource = new ViburDBCPDataSourceImpl(transform(props));
         dataSource.start();
     }
 
@@ -120,7 +120,7 @@ public class ViburDBCPConnectionProvider implements ConnectionProvider {
         return result;
     }
 
-    public ViburDBCPDataSource getDataSource() {
+    public ViburDBCPDataSourceImpl getDataSource() {
         return dataSource;
     }
 }

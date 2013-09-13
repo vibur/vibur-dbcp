@@ -36,56 +36,56 @@ import java.util.Properties;
  */
 public abstract class AbstractDataSourceTest {
 
-    private ViburDBCPDataSource viburDS = null;
+    private ViburDBCPDataSourceImpl dataSource = null;
 
     @After
     public void cleanup() {
-        if (viburDS != null) {
-            viburDS.terminate();
-            viburDS = null;
+        if (dataSource != null) {
+            dataSource.terminate();
+            dataSource = null;
         }
     }
 
-    protected ViburDBCPDataSource getSimpleDataSourceNoStatementsCache() throws IOException {
-        viburDS = new ViburDBCPDataSource();
+    protected ViburDBCPDataSourceImpl createDataSourceNoStatementsCache() throws IOException {
+        dataSource = new ViburDBCPDataSourceImpl();
 
         Properties properties = loadProperties();
-        viburDS.setDriverClassName(properties.getProperty("driverClassName"));
-        viburDS.setJdbcUrl(properties.getProperty("jdbcUrl"));
-        viburDS.setUsername(properties.getProperty("username"));
-        viburDS.setPassword(properties.getProperty("password"));
+        dataSource.setDriverClassName(properties.getProperty("driverClassName"));
+        dataSource.setJdbcUrl(properties.getProperty("jdbcUrl"));
+        dataSource.setUsername(properties.getProperty("username"));
+        dataSource.setPassword(properties.getProperty("password"));
 
-        viburDS.setPoolInitialSize(2);
-        viburDS.setConnectionIdleLimitInSeconds(120);
+        dataSource.setPoolInitialSize(2);
+        dataSource.setConnectionIdleLimitInSeconds(120);
 
-        viburDS.setLogStatementsEnabled(true);
-        viburDS.setQueryExecuteTimeLimitInMs(1);
+        dataSource.setLogStatementsEnabled(true);
+        dataSource.setQueryExecuteTimeLimitInMs(1);
 
-        viburDS.start();
+        dataSource.start();
 
-        return viburDS;
+        return dataSource;
     }
 
-    protected ViburDBCPDataSource getSimpleDataSourceWithStatementsCache() throws IOException {
-        viburDS = new ViburDBCPDataSource();
+    protected ViburDBCPDataSourceImpl createDataSourceWithStatementsCache() throws IOException {
+        dataSource = new ViburDBCPDataSourceImpl();
 
         Properties properties = loadProperties();
-        viburDS.setDriverClassName(properties.getProperty("driverClassName"));
-        viburDS.setJdbcUrl(properties.getProperty("jdbcUrl"));
-        viburDS.setUsername(properties.getProperty("username"));
-        viburDS.setPassword(properties.getProperty("password"));
+        dataSource.setDriverClassName(properties.getProperty("driverClassName"));
+        dataSource.setJdbcUrl(properties.getProperty("jdbcUrl"));
+        dataSource.setUsername(properties.getProperty("username"));
+        dataSource.setPassword(properties.getProperty("password"));
 
-        viburDS.setPoolInitialSize(2);
-        viburDS.setConnectionIdleLimitInSeconds(120);
+        dataSource.setPoolInitialSize(2);
+        dataSource.setConnectionIdleLimitInSeconds(120);
 
-        viburDS.setLogStatementsEnabled(true);
-        viburDS.setQueryExecuteTimeLimitInMs(1);
+        dataSource.setLogStatementsEnabled(true);
+        dataSource.setQueryExecuteTimeLimitInMs(1);
 
-        viburDS.setStatementCacheMaxSize(10);
+        dataSource.setStatementCacheMaxSize(10);
 
-        viburDS.start();
+        dataSource.start();
 
-        return viburDS;
+        return dataSource;
     }
 
     private Properties loadProperties() throws IOException {
