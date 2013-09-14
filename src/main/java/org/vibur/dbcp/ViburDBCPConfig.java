@@ -24,6 +24,8 @@ import java.sql.Statement;
 import java.util.concurrent.ConcurrentMap;
 
 /**
+ * Specifies all {@link ViburDBCPDataSource} configuration options.
+ *
  * @author Simeon Malchev
  */
 public class ViburDBCPConfig {

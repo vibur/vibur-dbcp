@@ -28,6 +28,9 @@ import java.sql.Statement;
 import java.util.concurrent.TimeUnit;
 
 /**
+ * The object factory which controls the lifecycle of the underlying JDBC Connections: creates them,
+ * validates them if needed, and destroys them. Used by {@link ViburDBCPDataSource}.
+ *
  * @author Simeon Malchev
  */
 public class ConnectionObjectFactory implements PoolObjectFactory<ConnState> {
