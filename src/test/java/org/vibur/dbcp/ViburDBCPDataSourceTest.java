@@ -46,7 +46,7 @@ import static org.mockito.Mockito.*;
  */
 @Category({IntegrationTest.class})
 @RunWith(MockitoJUnitRunner.class)
-public class ViburDBCPDataSourceImplTest extends AbstractDataSourceTest {
+public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
 
     @Captor
     private ArgumentCaptor<StatementKey> key1, key2;
@@ -68,7 +68,7 @@ public class ViburDBCPDataSourceImplTest extends AbstractDataSourceTest {
     @Test
     @SuppressWarnings("unchecked")
     public void testSimpleSelectStatementWithStatementsCache() throws SQLException, IOException {
-        ViburDBCPDataSourceImpl ds = createDataSourceWithStatementsCache();
+        ViburDBCPDataSource ds = createDataSourceWithStatementsCache();
         Connection connection = null;
         try {
             ConcurrentMap<StatementKey, ValueHolder<Statement>> mockedStatementCache =
@@ -111,7 +111,7 @@ public class ViburDBCPDataSourceImplTest extends AbstractDataSourceTest {
     @Test
     @SuppressWarnings("unchecked")
     public void testSimplePreparedSelectStatementWithStatementsCache() throws SQLException, IOException {
-        ViburDBCPDataSourceImpl ds = createDataSourceWithStatementsCache();
+        ViburDBCPDataSource ds = createDataSourceWithStatementsCache();
         Connection connection = null;
         try {
             ConcurrentMap<StatementKey, ValueHolder<Statement>> mockedStatementCache =

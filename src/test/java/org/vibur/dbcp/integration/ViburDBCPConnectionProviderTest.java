@@ -26,7 +26,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InOrder;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.vibur.dbcp.ViburDBCPDataSourceImpl;
+import org.vibur.dbcp.ViburDBCPDataSource;
 import org.vibur.dbcp.cache.StatementKey;
 import org.vibur.dbcp.cache.ValueHolder;
 import org.vibur.dbcp.common.HibernateTestUtil;
@@ -79,7 +79,7 @@ public class ViburDBCPConnectionProviderTest {
 
         ConnectionProvider cp = ((SessionFactoryImplementor) session.getSessionFactory()).getConnectionProvider();
         ViburDBCPConnectionProvider vcp = (ViburDBCPConnectionProvider) cp;
-        ViburDBCPDataSourceImpl ds = vcp.getDataSource();
+        ViburDBCPDataSource ds = vcp.getDataSource();
 
         ConcurrentMap<StatementKey, ValueHolder<Statement>> mockedStatementCache =
             mock(ConcurrentMap.class, delegatesTo(ds.getStatementCache()));

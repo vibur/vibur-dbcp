@@ -36,7 +36,7 @@ import java.util.Properties;
  */
 public abstract class AbstractDataSourceTest {
 
-    private ViburDBCPDataSourceImpl dataSource = null;
+    private ViburDBCPDataSource dataSource = null;
 
     @After
     public void cleanup() {
@@ -46,8 +46,8 @@ public abstract class AbstractDataSourceTest {
         }
     }
 
-    protected ViburDBCPDataSourceImpl createDataSourceNoStatementsCache() throws IOException {
-        dataSource = new ViburDBCPDataSourceImpl();
+    protected ViburDBCPDataSource createDataSourceNoStatementsCache() throws IOException {
+        dataSource = new ViburDBCPDataSource();
 
         Properties properties = loadProperties();
         dataSource.setDriverClassName(properties.getProperty("driverClassName"));
@@ -66,8 +66,8 @@ public abstract class AbstractDataSourceTest {
         return dataSource;
     }
 
-    protected ViburDBCPDataSourceImpl createDataSourceWithStatementsCache() throws IOException {
-        dataSource = new ViburDBCPDataSourceImpl();
+    protected ViburDBCPDataSource createDataSourceWithStatementsCache() throws IOException {
+        dataSource = new ViburDBCPDataSource();
 
         Properties properties = loadProperties();
         dataSource.setDriverClassName(properties.getProperty("driverClassName"));

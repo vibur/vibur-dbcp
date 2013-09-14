@@ -16,24 +16,34 @@
 
 package org.vibur.dbcp;
 
-import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
-
 /**
+ * Defines the {@link ViburDBCPDataSource} lifecycle operations.
+ *
  * @author Simeon Malchev
  */
-public class InitialiseFromPropertiesTest {
+public interface DataSourceLifecycle {
 
-    @Test
-    public void testInitialiseFromPropertiesFile() {
-        ViburDBCPDataSource ds = new ViburDBCPDataSource("vibur-dbcp-test.properties");
-        assertEquals(2, ds.getPoolInitialSize());
+    enum State {
+        NEW,
+        WORKING,
+        TERMINATED
     }
 
-    @Test
-    public void testInitialiseFromXMLPropertiesFile() {
-        ViburDBCPDataSource ds = new ViburDBCPDataSource("vibur-dbcp-test.xml");
-        assertEquals(2, ds.getPoolInitialSize());
-    }
+    /**
+     * Starts this DataSource. In order to be used, the implementing DataSource has to be
+     * first initialised via call to one of the constructors and then started via call to this method.
+     */
+    void start();
+
+    /**
+     * Terminates this DataSource. Once terminated the DataSource cannot be more revived.
+     */
+    void terminate();
+
+    /**
+     * Returns this DataSource current state.
+     *
+     * @return see above
+     */
+    State getState();
 }

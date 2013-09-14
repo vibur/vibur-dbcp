@@ -46,7 +46,7 @@ has as fewer as practical external dependencies, and follows the design principl
   * JDBC Connections which are neither committed nor rollbacked will be automatically rollbacked if the Connection's `close` method is called, and an error message will be logged.
   * Can provide records for all JDBC Connections which are currently taken, including the stack traces with which they have been taken. Useful if debugging lost (not closed) connections.
 
-  * The only external dependencies which Vibur DBCP has are: vibur-object-pool, slf4j, and ConcurrentLinkedHashMap which can be excluded if the JDBC Statements caching is not enabled.
+  * The only external dependencies which Vibur DBCP has are: vibur-object-pool, slf4j, and ConcurrentLinkedHashMap. The CLHM dependency can be excluded if the JDBC Statements caching is not needed.
   * JMX support - the pool registers an MBean via which various pool's parameters can be observed and/or set.
 
 ==== Trade-offs: ====
@@ -93,8 +93,8 @@ has as fewer as practical external dependencies, and follows the design principl
 ==== Programmatic configuration example: ====
 
 {{{
-    public ViburDBCPDataSourceImpl createDataSourceWithStatementsCache() {
-        ViburDBCPDataSourceImpl dataSource = new ViburDBCPDataSourceImpl();
+    public ViburDBCPDataSource createDataSourceWithStatementsCache() {
+        ViburDBCPDataSource dataSource = new ViburDBCPDataSource();
 
         dataSource.setDriverClassName(System.getProperty("DriverClassName"));
         dataSource.setJdbcUrl(System.getProperty("JdbcUrl"));
