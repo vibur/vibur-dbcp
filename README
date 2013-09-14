@@ -132,7 +132,7 @@ instance is running on a different machine, or if the credentials `test/pass` ca
 files will need to be modified in order to set in them the desired jdbcUrl, username and password:
 vibur-dbcp-test.properties and hibernate-`*`-stmt-cache.cfg.
 
-Running a particular set of tests while building it is a matter of specifying a profile name after `mvn clean install`, i.e:
+Running a particular set of tests while building it is simply a matter of specifying a profile name after `mvn clean install`, i.e:
 
   `mvn clean install -P unit-tests` will run the unit tests only. This profile is also the `activeByDefault`
   profile if none is specified.
