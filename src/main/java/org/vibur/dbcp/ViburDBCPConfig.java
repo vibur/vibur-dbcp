@@ -90,8 +90,8 @@ public class ViburDBCPConfig {
 
     /** If set to {@code true}, log all SQL statements being executed. */
     private boolean logStatementsEnabled = false;
-    /** Queries taking longer than this limit to execute are logged. {@code 0} disables it. */
-    private long queryExecuteTimeLimitInMs = 0;
+    /** Queries taking longer than this time limit to execute are logged. {@code 0} disables it. */
+    private long queryExecutionTimeLimitInMs = 0;
 
 
     /** If set to {@code true}, will reset the connection default values below, always after the
@@ -264,12 +264,12 @@ public class ViburDBCPConfig {
         this.logStatementsEnabled = logStatementsEnabled;
     }
 
-    public long getQueryExecuteTimeLimitInMs() {
-        return queryExecuteTimeLimitInMs;
+    public long getQueryExecutionTimeLimitInMs() {
+        return queryExecutionTimeLimitInMs;
     }
 
-    public void setQueryExecuteTimeLimitInMs(long queryExecuteTimeLimitInMs) {
-        this.queryExecuteTimeLimitInMs = queryExecuteTimeLimitInMs;
+    public void setQueryExecutionTimeLimitInMs(long queryExecutionTimeLimitInMs) {
+        this.queryExecutionTimeLimitInMs = queryExecutionTimeLimitInMs;
     }
 
     public boolean isResetDefaultsAfterUse() {

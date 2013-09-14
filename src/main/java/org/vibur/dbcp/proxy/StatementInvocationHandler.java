@@ -111,7 +111,7 @@ public class StatementInvocationHandler extends ConnectionChildInvocationHandler
             logger.debug("Executing SQL -> {}", toSQLString(statementProxy, args));
 
         long currentTime = 0;
-        long queryExecuteTimeLimitInMs = config.getQueryExecuteTimeLimitInMs();
+        long queryExecuteTimeLimitInMs = config.getQueryExecutionTimeLimitInMs();
         if (queryExecuteTimeLimitInMs > 0)
             currentTime = System.currentTimeMillis();
         try {

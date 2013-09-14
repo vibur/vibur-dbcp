@@ -267,7 +267,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig
         if (getCreateConnectionTimeoutInMs() < 0) throw new IllegalArgumentException();
         if (getAcquireRetryDelayInMs() < 0) throw new IllegalArgumentException();
         if (getAcquireRetryAttempts() < 0) throw new IllegalArgumentException();
-        if (getQueryExecuteTimeLimitInMs() < 0) throw new IllegalArgumentException();
+        if (getQueryExecutionTimeLimitInMs() < 0) throw new IllegalArgumentException();
         if (getStatementCacheMaxSize() < 0) throw new IllegalArgumentException();
         if (getConnectionIdleLimitInSeconds() >= 0 && getTestConnectionQuery() == null)
             throw new IllegalArgumentException();

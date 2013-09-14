@@ -17,7 +17,7 @@
 === Table of Contents ===
   # [#Quick_Introduction Quick Introduction]
   # [#Usage_Examples Usage Examples]
-  # [#How_To_Build How To Build]
+  # [#Latest_Version_&_How_To_Build Latest Version & How To Build]
   # [#Configuration_Options Configuration Options]
   # [#Acknowledgements Acknowledgements]
 
@@ -56,16 +56,12 @@ has as fewer as practical external dependencies, and follows the design principl
 
 === Usage Examples ===
 
-==== Maven dependency: ====
-
-  * coming soon...
-
 ==== Hibernate configuration example: ====
 
 {{{
 <hibernate-configuration>
     <session-factory>
-        <!-- Database connection settings -->
+        <!-- Database connection settings: -->
         <property name="hibernate.connection.driver_class">com.mysql.jdbc.Driver</property>
         <property name="hibernate.connection.url">jdbc:mysql://localhost/my_db</property>
         <property name="hibernate.connection.username">test</property>
@@ -76,7 +72,7 @@ has as fewer as practical external dependencies, and follows the design principl
 
         <property name="hibernate.current_session_context_class">thread</property>
 
-        <!-- Vibur DBCP specific properties -->
+        <!-- Vibur DBCP specific properties: -->
         <property name="hibernate.connection.provider_class">
             org.vibur.dbcp.integration.ViburDBCPConnectionProvider
         </property>
@@ -84,7 +80,7 @@ has as fewer as practical external dependencies, and follows the design principl
         <property name="hibernate.vibur.poolMaxSize">100</property>
         <property name="hibernate.vibur.connectionIdleLimitInSeconds">30</property>
         <property name="hibernate.vibur.logStatementsEnabled">true</property>
-        <property name="hibernate.vibur.queryExecuteTimeLimitInMs">100</property>
+        <property name="hibernate.vibur.queryExecutionTimeLimitInMs">100</property>
         <property name="hibernate.vibur.statementCacheMaxSize">200</property>
     </session-factory>
 </hibernate-configuration>
@@ -94,27 +90,39 @@ has as fewer as practical external dependencies, and follows the design principl
 
 {{{
     public ViburDBCPDataSource createDataSourceWithStatementsCache() {
-        ViburDBCPDataSource dataSource = new ViburDBCPDataSource();
+        ViburDBCPDataSource ds = new ViburDBCPDataSource();
 
-        dataSource.setDriverClassName(System.getProperty("DriverClassName"));
-        dataSource.setJdbcUrl(System.getProperty("JdbcUrl"));
-        dataSource.setUsername(System.getProperty("Username"));
-        dataSource.setPassword(System.getProperty("Password"));
+        ds.setDriverClassName("com.mysql.jdbc.Driver");
+        ds.setJdbcUrl("jdbc:mysql://localhost/my_db");
+        ds.setUsername("test");
+        ds.setPassword("pass");
 
-        dataSource.setPoolInitialSize(10);
-        dataSource.setPoolMaxSize(100);
-        dataSource.setConnectionIdleLimitInSeconds(30);
-        dataSource.setLogStatementsEnabled(true);
-        dataSource.setQueryExecuteTimeLimitInMs(100);
-        dataSource.setStatementCacheMaxSize(200);
+        ds.setPoolInitialSize(10);
+        ds.setPoolMaxSize(100);
+        ds.setConnectionIdleLimitInSeconds(30);
+        ds.setLogStatementsEnabled(true);
+        ds.setQueryExecutionTimeLimitInMs(100);
+        ds.setStatementCacheMaxSize(200);
 
-        dataSource.start();
+        ds.start();
 
-        return dataSource;
+        return ds;
     }
 }}}
 
-=== How To Build ===
+=== Latest Version & How To Build ===
+
+Vibur DBCP latest version is 0.7.2 and a read-only copy of it can be checked out via:
+
+  `svn checkout http://vibur-dbcp.googlecode.com/svn/tags/0.7.2 vibur-dbcp-0.7.2`
+
+==== Maven dependency: ====
+
+  * coming soon...
+
+A read-only copy of the development trunk can be checked out via:
+
+  `svn checkout http://vibur-dbcp.googlecode.com/svn/trunk/ vibur-dbcp-trunk`
 
 Vibur DBCP has two sets of tests, unit and integration. While the unit tests should be able to run and pass
 out of the box, the integration tests will try to connect to a running instance of MySQL with deployed
@@ -124,7 +132,7 @@ instance is running on a different machine, or if the credentials `test/pass` ca
 files will need to be modified in order to set in them the desired jdbcUrl, username and password:
 vibur-dbcp-test.properties and hibernate-`*`-stmt-cache.cfg.
 
-Running a particular set of tests is a matter of specifying a profile name after `mvn clean install`, i.e:
+Running a particular set of tests while building it is a matter of specifying a profile name after `mvn clean install`, i.e:
 
   `mvn clean install -P unit-tests` will run the unit tests only. This profile is also the `activeByDefault`
   profile if none is specified.
@@ -167,7 +175,7 @@ Running a particular set of tests is a matter of specifying a profile name after
 ==== SQL queries logging settings ====
 || *Attribute* || *Description* || *Default value* ||
 || `logStatementsEnabled` || If set to `true`, log all SQL statements being executed. || `false` ||
-|| `queryExecuteTimeLimitInMs` || Queries taking longer than this limit to execute are logged. `0` disables it. || `0` ||
+|| `queryExecutionTimeLimitInMs` || Queries taking longer than this time limit to execute are logged. `0` disables it. || `0` ||
 
 ==== Database connection default behavior settings: ====
 || *Attribute* || *Description* || *Default value* ||

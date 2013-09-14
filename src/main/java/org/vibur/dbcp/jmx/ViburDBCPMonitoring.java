@@ -143,11 +143,11 @@ public class ViburDBCPMonitoring implements ViburDBCPMonitoringMBean {
     }
 
     public long getQueryExecuteTimeLimitInMs() {
-        return viburDBCPConfig.getQueryExecuteTimeLimitInMs();
+        return viburDBCPConfig.getQueryExecutionTimeLimitInMs();
     }
 
     public void setQueryExecuteTimeLimitInMs(long queryExecuteTimeLimitInMs) {
-        viburDBCPConfig.setQueryExecuteTimeLimitInMs(queryExecuteTimeLimitInMs);
+        viburDBCPConfig.setQueryExecutionTimeLimitInMs(queryExecuteTimeLimitInMs);
     }
 
     public boolean isResetDefaultsAfterUse() {
