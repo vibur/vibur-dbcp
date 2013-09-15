@@ -58,6 +58,10 @@ has as fewer as practical external dependencies, and follows the design principl
 
 ==== Hibernate configuration example: ====
 
+==== Maven dependency: ====
+
+  * coming soon...
+
 {{{
 <hibernate-configuration>
     <session-factory>
@@ -112,17 +116,10 @@ has as fewer as practical external dependencies, and follows the design principl
 
 === Latest Version & How To Build ===
 
-Vibur DBCP latest version is 0.7.2 and a read-only copy of it can be checked out via:
+Vibur DBCP latest version is 0.7.2. Maven dependency example for it is shown [#Maven_dependency: here].
+A read-only copy of the source code can be checked out via:
 
   `svn checkout http://vibur-dbcp.googlecode.com/svn/tags/0.7.2 vibur-dbcp-0.7.2`
-
-==== Maven dependency: ====
-
-  * coming soon...
-
-A read-only copy of the development trunk can be checked out via:
-
-  `svn checkout http://vibur-dbcp.googlecode.com/svn/trunk/ vibur-dbcp-trunk`
 
 Vibur DBCP has two sets of tests, unit and integration. While the unit tests should be able to run and pass
 out of the box, the integration tests will try to connect to a running instance of MySQL with deployed
