@@ -51,9 +51,9 @@ public class ViburDBCPConfig {
 
 
     /** The pool initial size, i.e. the initial number of JDBC Connections allocated in this pool. */
-    private int poolInitialSize = 1;
+    private int poolInitialSize = 10;
     /** The pool max size, i.e. the maximum number of JDBC Connections allocated in this pool. */
-    private int poolMaxSize = 10;
+    private int poolMaxSize = 100;
     /** The pool's fairness setting with regards to waiting threads. */
     private boolean poolFair = true;
     /** If {@code true}, the pool will keep information for the current stack trace of every taken connection. */
@@ -90,10 +90,12 @@ public class ViburDBCPConfig {
 
     private HolderValidatingPoolService<ConnState> connectionPool;
 
-    /** If set to {@code true}, log all SQL statements being executed. */
-    private boolean logStatementsEnabled = false;
-    /** Queries taking longer than this time limit to execute are logged. {@code 0} disables it. */
-    private long queryExecutionTimeLimitInMs = 0;
+    /** {@code getConnection} method calls taking longer than or equal to this time limit are logged at WARN level.
+     * A value of {@code 0} will log all calls to {@code getConnection}. {@code Negative number} disables it. */
+    private long connectionTimeLimitInMs = 3000;
+    /** SQL queries taking longer than or equal to this time limit to execute are logged at WARN level.
+     * A value of {@code 0} will log all SQL queries. {@code Negative number} disables it. */
+    private long queryExecutionTimeLimitInMs = 3000;
 
 
     /** If set to {@code true}, will reset the connection default values below, always after the
@@ -258,12 +260,12 @@ public class ViburDBCPConfig {
         this.connectionPool = connectionPool;
     }
 
-    public boolean isLogStatementsEnabled() {
-        return logStatementsEnabled;
+    public long getConnectionTimeLimitInMs() {
+        return connectionTimeLimitInMs;
     }
 
-    public void setLogStatementsEnabled(boolean logStatementsEnabled) {
-        this.logStatementsEnabled = logStatementsEnabled;
+    public void setConnectionTimeLimitInMs(long connectionTimeLimitInMs) {
+        this.connectionTimeLimitInMs = connectionTimeLimitInMs;
     }
 
     public long getQueryExecutionTimeLimitInMs() {

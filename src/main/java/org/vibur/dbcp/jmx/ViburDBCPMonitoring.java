@@ -134,12 +134,12 @@ public class ViburDBCPMonitoring implements ViburDBCPMonitoringMBean {
         return viburDBCPConfig.getStatementCacheMaxSize();
     }
 
-    public boolean isLogStatementsEnabled() {
-        return viburDBCPConfig.isLogStatementsEnabled();
+    public long getConnectionTimeLimitInMs() {
+        return viburDBCPConfig.getConnectionTimeLimitInMs();
     }
 
-    public void setLogStatementsEnabled(boolean logStatementsEnabled) {
-        viburDBCPConfig.setLogStatementsEnabled(logStatementsEnabled);
+    public void setConnectionTimeLimitInMs(long connectionTimeLimitInMs) {
+        viburDBCPConfig.setConnectionTimeLimitInMs(connectionTimeLimitInMs);
     }
 
     public long getQueryExecuteTimeLimitInMs() {

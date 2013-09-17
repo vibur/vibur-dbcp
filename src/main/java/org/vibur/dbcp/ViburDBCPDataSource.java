@@ -306,6 +306,22 @@ public class ViburDBCPDataSource extends ViburDBCPConfig
     }
 
     private Connection getConnection(long timeout) throws SQLException {
+        long connectionTimeLimitInMs = getConnectionTimeLimitInMs();
+        boolean shouldLog = connectionTimeLimitInMs >= 0;
+        long startTime = shouldLog ? System.currentTimeMillis() : 0L;
+
+        try {
+            return doGetConnection(timeout);
+        } finally {
+            if (shouldLog) {
+                long timeTaken = System.currentTimeMillis() - startTime;
+                if (timeTaken >= connectionTimeLimitInMs)
+                    logger.warn("Call to getConnection({}) took {}ms", timeout, timeTaken);
+            }
+        }
+    }
+
+    private Connection doGetConnection(long timeout) throws SQLException {
         Holder<ConnState> hConnection = timeout == 0 ?
             getConnectionPool().take() : getConnectionPool().tryTake(timeout, TimeUnit.MILLISECONDS);
         if (hConnection == null)

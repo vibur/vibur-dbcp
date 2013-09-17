@@ -107,23 +107,24 @@ public class StatementInvocationHandler extends ConnectionChildInvocationHandler
     }
 
     private Object processExecute(Statement statementProxy, Method method, Object[] args) throws Throwable {
-        if (config.isLogStatementsEnabled())
-            logger.debug("Executing SQL -> {}", toSQLString(statementProxy, args));
-
-        long currentTime = 0;
         long queryExecuteTimeLimitInMs = config.getQueryExecutionTimeLimitInMs();
-        if (queryExecuteTimeLimitInMs > 0)
-            currentTime = System.currentTimeMillis();
+        boolean shouldLog = queryExecuteTimeLimitInMs >= 0;
+        long startTime = shouldLog ? System.currentTimeMillis() : 0L;
+
         try {
-            Object result = targetInvoke(method, args); // the real executeXYZ call
-            transactionListener.setInProgress(true);
-            return result;
+            return doProcessExecute(method, args);
         } finally {
-            if (queryExecuteTimeLimitInMs > 0) {
-                long timeTaken = System.currentTimeMillis() - currentTime;
-                if (timeTaken > queryExecuteTimeLimitInMs)
-                    logger.debug("The execution of {} took {}ms", toSQLString(statementProxy, args), timeTaken);
+            if (shouldLog) {
+                long timeTaken = System.currentTimeMillis() - startTime;
+                if (timeTaken >= queryExecuteTimeLimitInMs)
+                    logger.warn("SQL query {} execution took {}ms", toSQLString(statementProxy, args), timeTaken);
             }
         }
+    }
+
+    private Object doProcessExecute(Method method, Object[] args) throws Throwable {
+        transactionListener.setInProgress(true);
+        Object result = targetInvoke(method, args); // the real executeXYZ call
+        return result;
     }
 }

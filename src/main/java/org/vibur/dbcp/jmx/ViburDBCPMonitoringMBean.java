@@ -66,9 +66,9 @@ public interface ViburDBCPMonitoringMBean {
     int getStatementCacheMaxSize();
 
 
-    boolean isLogStatementsEnabled();
+    long getConnectionTimeLimitInMs();
 
-    void setLogStatementsEnabled(boolean logStatementsEnabled);
+    void setConnectionTimeLimitInMs(long getConnectionTimeLimitInMs);
 
     long getQueryExecuteTimeLimitInMs();
 

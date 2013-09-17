@@ -35,7 +35,9 @@ has as fewer as practical external dependencies, and follows the design principl
   * Built using the standard Java concurrent utilities, does not use any direct synchronization.
   * Supports fairness parameter, which when set to true, guarantees that threads invoking the pool's `take` methods will be selected to obtain a connection from it in FIFO order, and no thread is starved out from accessing the pool's underlying resources.
   * Caching support for JDBC Statements (Prepared and Callable).
-  * SQL queries logging depending on the queries' execution time taken.
+  * SQL queries logging depending on the execution time taken.
+  * getConnection() calls logging depending on the time taken.
+
   * Hibernate integration support.
 
 ==== Other features: ====
@@ -83,7 +85,6 @@ has as fewer as practical external dependencies, and follows the design principl
         <property name="hibernate.vibur.poolInitialSize">10</property>
         <property name="hibernate.vibur.poolMaxSize">100</property>
         <property name="hibernate.vibur.connectionIdleLimitInSeconds">30</property>
-        <property name="hibernate.vibur.logStatementsEnabled">true</property>
         <property name="hibernate.vibur.queryExecutionTimeLimitInMs">100</property>
         <property name="hibernate.vibur.statementCacheMaxSize">200</property>
     </session-factory>
@@ -104,7 +105,6 @@ has as fewer as practical external dependencies, and follows the design principl
         ds.setPoolInitialSize(10);
         ds.setPoolMaxSize(100);
         ds.setConnectionIdleLimitInSeconds(30);
-        ds.setLogStatementsEnabled(true);
         ds.setQueryExecutionTimeLimitInMs(100);
         ds.setStatementCacheMaxSize(200);
 
@@ -154,8 +154,8 @@ Running a particular set of tests while building it is simply a matter of specif
 
 ==== Basic pool size, growth and fairness settings: ====
 || *Attribute* || *Description* || *Default value* ||
-|| `poolInitialSize` || The pool initial size, i.e. the initial number of JDBC Connections allocated in this pool. || `1` ||
-|| `poolMaxSize` || The pool max size, i.e. the maximum number of JDBC Connections allocated in this pool. || `10` ||
+|| `poolInitialSize` || The pool initial size, i.e. the initial number of JDBC Connections allocated in this pool. || `10` ||
+|| `poolMaxSize` || The pool max size, i.e. the maximum number of JDBC Connections allocated in this pool. || `100` ||
 || `poolFair` || The pool's fairness setting with regards to waiting threads. || `true` ||
 || `poolEnableConnectionTracking` || If `true`, the pool will keep information for the current stack trace of every taken connection. || `false` ||
 
@@ -171,8 +171,8 @@ Running a particular set of tests while building it is simply a matter of specif
 
 ==== SQL queries logging settings ====
 || *Attribute* || *Description* || *Default value* ||
-|| `logStatementsEnabled` || If set to `true`, log all SQL statements being executed. || `false` ||
-|| `queryExecutionTimeLimitInMs` || Queries taking longer than this time limit to execute are logged. `0` disables it. || `0` ||
+|| `connectionTimeLimitInMs` || `getConnection` method calls taking longer than or equal to this time limit are logged at WARN level. A value of `0` will log all calls to `getConnection`. `Negative number` disables it. || `3000` ||
+|| `queryExecutionTimeLimitInMs` || SQL queries taking longer than or equal to this time limit to execute are logged at WARN level. A value of `0` will log all SQL queries. `Negative number` disables it. || `3000` ||
 
 ==== Database connection default behavior settings: ====
 || *Attribute* || *Description* || *Default value* ||

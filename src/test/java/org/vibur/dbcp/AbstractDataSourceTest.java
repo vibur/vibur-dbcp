@@ -58,7 +58,6 @@ public abstract class AbstractDataSourceTest {
         dataSource.setPoolInitialSize(2);
         dataSource.setConnectionIdleLimitInSeconds(120);
 
-        dataSource.setLogStatementsEnabled(true);
         dataSource.setQueryExecutionTimeLimitInMs(1);
 
         dataSource.start();
@@ -78,9 +77,7 @@ public abstract class AbstractDataSourceTest {
         dataSource.setPoolInitialSize(2);
         dataSource.setConnectionIdleLimitInSeconds(120);
 
-        dataSource.setLogStatementsEnabled(true);
         dataSource.setQueryExecutionTimeLimitInMs(1);
-
         dataSource.setStatementCacheMaxSize(10);
 
         dataSource.start();
