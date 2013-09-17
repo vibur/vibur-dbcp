@@ -124,7 +124,6 @@ public class StatementInvocationHandler extends ConnectionChildInvocationHandler
 
     private Object doProcessExecute(Method method, Object[] args) throws Throwable {
         transactionListener.setInProgress(true);
-        Object result = targetInvoke(method, args); // the real executeXYZ call
-        return result;
+        return targetInvoke(method, args); // the real executeXYZ call
     }
 }
