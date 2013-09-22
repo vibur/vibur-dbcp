@@ -23,8 +23,6 @@ import org.vibur.dbcp.ViburDBCPConfig;
 import org.vibur.dbcp.cache.StatementKey;
 import org.vibur.dbcp.cache.ValueHolder;
 import org.vibur.dbcp.proxy.listener.ExceptionListenerImpl;
-import org.vibur.dbcp.proxy.listener.TransactionListener;
-import org.vibur.dbcp.proxy.listener.TransactionListenerImpl;
 import org.vibur.objectpool.Holder;
 import org.vibur.objectpool.HolderValidatingPoolService;
 
@@ -46,24 +44,18 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
     private final HolderValidatingPoolService<ConnState> connectionPool;
     private final Holder<ConnState> hConnection;
 
-    private final TransactionListener transactionListener;
     private final ViburDBCPConfig config;
-
-    private volatile boolean autoCommit;
-    private volatile boolean logicallyClosed = false;
-
     private final ConcurrentMap<StatementKey, ValueHolder<Statement>> statementCache;
+
+    private volatile boolean logicallyClosed = false;
 
     public ConnectionInvocationHandler(Holder<ConnState> hConnection, ViburDBCPConfig config) {
         super(hConnection.value().connection(), new ExceptionListenerImpl());
-        HolderValidatingPoolService<ConnState> connectionPool = config.getConnectionPool();
-        if (connectionPool == null)
+        this.connectionPool = config.getConnectionPool();
+        if (this.connectionPool == null)
             throw new NullPointerException();
-        this.connectionPool = connectionPool;
         this.hConnection = hConnection;
-        this.transactionListener = new TransactionListenerImpl();
         this.config = config;
-        this.autoCommit = config.getDefaultAutoCommit() != null ? config.getDefaultAutoCommit() : true;
         this.statementCache = config.getStatementCache();
     }
 
@@ -88,39 +80,29 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
             ValueHolder<Statement> statementHolder =
                 (ValueHolder<Statement>) getStatementHolder(method, args);
             return Proxy.newStatement(statementHolder, proxy,
-                config, transactionListener, getExceptionListener());
+                config, getExceptionListener());
         }
         if (methodName.equals("prepareStatement")) { // *6
             ValueHolder<PreparedStatement> statementHolder =
                 (ValueHolder<PreparedStatement>) getStatementHolder(method, args);
             return Proxy.newPreparedStatement(statementHolder, proxy,
-                config, transactionListener, getExceptionListener());
+                config, getExceptionListener());
         }
         if (methodName.equals("prepareCall")) { // *3
             ValueHolder<CallableStatement> statementHolder =
                 (ValueHolder<CallableStatement>) getStatementHolder(method, args);
             return Proxy.newCallableStatement(statementHolder, proxy,
-                config, transactionListener, getExceptionListener());
+                config, getExceptionListener());
         }
         if (methodName.equals("getMetaData")) { // *1
             DatabaseMetaData metaData = (DatabaseMetaData) targetInvoke(method, args);
             return Proxy.newDatabaseMetaData(metaData, proxy, getExceptionListener());
         }
 
-        if (methodName.equals("setAutoCommit")) {
-            autoCommit = ((Boolean) args[0]);
-            return targetInvoke(method, args);
-        }
-        if (methodName.equals("commit") || methodName.equals("rollback")) {
-            transactionListener.setInProgress(false);
-            return targetInvoke(method, args);
-        }
-
         return super.customInvoke(proxy, method, args);
     }
 
-    private ValueHolder<? extends Statement> getStatementHolder(Method method, Object[] args)
-            throws Throwable {
+    private ValueHolder<? extends Statement> getStatementHolder(Method method, Object[] args) throws Throwable {
         if (statementCache != null) {
             StatementKey key = new StatementKey(getTarget(), method, args);
             ValueHolder<Statement> statementHolder = statementCache.get(key);
@@ -145,21 +127,11 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
 
     private Object processCloseOrAbort(boolean isClose, Method method, Object[] args) throws Throwable {
         logicallyClosed = true;
-        boolean valid = isClose && getExceptionListener().getExceptions().isEmpty();
-
-        if (isClose && !autoCommit && transactionListener.isInProgress()) {
-            logger.error("Neither commit() nor rollback() were called before close(). Calling rollback() now.");
-            try {
-                hConnection.value().connection().rollback();
-            } catch (SQLException e) {
-                logger.debug("Couldn't rollback the connection", e);
-                if (!(e instanceof SQLTransientConnectionException))
-                    valid = false;
-            }
+        try {
+            return isClose ? null : targetInvoke(method, args); // close() is not passed, abort() is passed
+        } finally {
+            boolean valid = isClose && getExceptionListener().getExceptions().isEmpty();
+            connectionPool.restore(hConnection, valid);
         }
-
-        Object result = isClose ? null : targetInvoke(method, args); // close() is not passed, abort() is passed
-        connectionPool.restore(hConnection, valid);
-        return result;
     }
 }

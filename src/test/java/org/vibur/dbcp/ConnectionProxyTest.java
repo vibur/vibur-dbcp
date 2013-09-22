@@ -17,6 +17,8 @@
 package org.vibur.dbcp;
 
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
+import org.vibur.dbcp.common.IntegrationTest;
 
 import javax.sql.DataSource;
 import java.io.IOException;
@@ -27,6 +29,7 @@ import static org.junit.Assert.*;
 /**
  * @author Simeon Malchev
  */
+@Category({IntegrationTest.class})
 public class ConnectionProxyTest extends AbstractDataSourceTest {
 
     @Test

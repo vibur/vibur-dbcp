@@ -22,7 +22,6 @@ import org.vibur.dbcp.ViburDBCPConfig;
 import org.vibur.dbcp.cache.StatementKey;
 import org.vibur.dbcp.cache.ValueHolder;
 import org.vibur.dbcp.proxy.listener.ExceptionListener;
-import org.vibur.dbcp.proxy.listener.TransactionListener;
 
 import java.lang.reflect.Method;
 import java.sql.Connection;
@@ -42,7 +41,6 @@ public class StatementInvocationHandler extends ConnectionChildInvocationHandler
 
     private final ValueHolder<? extends Statement> statementHolder;
     private final ViburDBCPConfig config;
-    private final TransactionListener transactionListener;
 
     private volatile boolean logicallyClosed = false;
 
@@ -51,14 +49,12 @@ public class StatementInvocationHandler extends ConnectionChildInvocationHandler
     public StatementInvocationHandler(ValueHolder<? extends Statement> statementHolder,
                                       Connection connectionProxy,
                                       ViburDBCPConfig config,
-                                      TransactionListener transactionListener,
                                       ExceptionListener exceptionListener) {
         super(statementHolder.value(), connectionProxy, exceptionListener);
-        if (config == null || transactionListener == null)
+        if (config == null)
             throw new NullPointerException();
         this.statementHolder = statementHolder;
         this.config = config;
-        this.transactionListener = transactionListener;
         this.statementCache = config.getStatementCache();
     }
 
@@ -112,7 +108,7 @@ public class StatementInvocationHandler extends ConnectionChildInvocationHandler
         long startTime = shouldLog ? System.currentTimeMillis() : 0L;
 
         try {
-            return doProcessExecute(method, args);
+            return targetInvoke(method, args); // the real executeXYZ call
         } finally {
             if (shouldLog) {
                 long timeTaken = System.currentTimeMillis() - startTime;
@@ -120,10 +116,5 @@ public class StatementInvocationHandler extends ConnectionChildInvocationHandler
                     logger.warn("SQL query {} execution took {}ms", toSQLString(statementProxy, args), timeTaken);
             }
         }
-    }
-
-    private Object doProcessExecute(Method method, Object[] args) throws Throwable {
-        transactionListener.setInProgress(true);
-        return targetInvoke(method, args); // the real executeXYZ call
     }
 }

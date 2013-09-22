@@ -20,7 +20,6 @@ import org.vibur.dbcp.ConnState;
 import org.vibur.dbcp.ViburDBCPConfig;
 import org.vibur.dbcp.cache.ValueHolder;
 import org.vibur.dbcp.proxy.listener.ExceptionListener;
-import org.vibur.dbcp.proxy.listener.TransactionListener;
 import org.vibur.objectpool.Holder;
 
 import java.lang.reflect.Constructor;
@@ -42,30 +41,27 @@ public class Proxy {
     public static Statement newStatement(ValueHolder<Statement> statementHolder,
                                          Connection connectionProxy,
                                          ViburDBCPConfig config,
-                                         TransactionListener transactionListener,
                                          ExceptionListener exceptionListener) {
         InvocationHandler handler = new StatementInvocationHandler(
-            statementHolder, connectionProxy, config, transactionListener, exceptionListener);
+            statementHolder, connectionProxy, config, exceptionListener);
         return (Statement) newProxy(statementCtor, handler);
     }
 
     public static PreparedStatement newPreparedStatement(ValueHolder<PreparedStatement> pStatementHolder,
                                                          Connection connectionProxy,
                                                          ViburDBCPConfig config,
-                                                         TransactionListener transactionListener,
                                                          ExceptionListener exceptionListener) {
         InvocationHandler handler = new StatementInvocationHandler(
-            pStatementHolder, connectionProxy, config, transactionListener, exceptionListener);
+            pStatementHolder, connectionProxy, config, exceptionListener);
         return (PreparedStatement) newProxy(pStatementCtor, handler);
     }
 
     public static CallableStatement newCallableStatement(ValueHolder<CallableStatement> cStatementHolder,
                                                          Connection connectionProxy,
                                                          ViburDBCPConfig config,
-                                                         TransactionListener transactionListener,
                                                          ExceptionListener exceptionListener) {
         InvocationHandler handler = new StatementInvocationHandler(
-            cStatementHolder, connectionProxy, config, transactionListener, exceptionListener);
+            cStatementHolder, connectionProxy, config, exceptionListener);
         return (CallableStatement) newProxy(cStatementCtor, handler);
     }
 

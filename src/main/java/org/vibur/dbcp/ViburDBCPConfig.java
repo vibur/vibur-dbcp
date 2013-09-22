@@ -65,10 +65,10 @@ public class ViburDBCPConfig {
      */
     /** The time period after which the {@code poolReducer} will try to possibly reduce the number of created
      * but unused JDBC Connections in this pool. */
-    private long reducerTimeIntervalInSeconds = 30;
+    private long reducerTimeIntervalInSeconds = 60;
     /** How many times the {@code poolReducer} will wake up during the given
      * {@code reducerTimeIntervalInSeconds} period in order to sample various information from this pool. */
-    private int reducerSamples = 10;
+    private int reducerSamples = 20;
 
 
     /** Time to wait before a call to getConnection() times out and returns an error.
@@ -84,7 +84,7 @@ public class ViburDBCPConfig {
 
     /** Defines the maximum statement cache size. {@code 0} disables it, max values is {@code 1000}.
      * If the statement's cache is not enabled, the client application may safely exclude the dependency
-     * on Google's ConcurrentLinkedCacheMap from its pom.xml file. */
+     * on ConcurrentLinkedCacheMap from its pom.xml file. */
     private int statementCacheMaxSize = 0;
     private ConcurrentMap<StatementKey, ValueHolder<Statement>> statementCache = null;
 
