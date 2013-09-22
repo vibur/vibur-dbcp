@@ -83,7 +83,7 @@ has as fewer as practical external dependencies, and follows the design principl
         <property name="hibernate.vibur.poolInitialSize">10</property>
         <property name="hibernate.vibur.poolMaxSize">100</property>
         <property name="hibernate.vibur.connectionIdleLimitInSeconds">30</property>
-        <property name="hibernate.vibur.queryExecutionTimeLimitInMs">100</property>
+        <property name="hibernate.vibur.logQueryExecutionLongerThanMs">100</property>
         <property name="hibernate.vibur.statementCacheMaxSize">200</property>
     </session-factory>
 </hibernate-configuration>
@@ -103,7 +103,7 @@ has as fewer as practical external dependencies, and follows the design principl
         ds.setPoolInitialSize(10);
         ds.setPoolMaxSize(100);
         ds.setConnectionIdleLimitInSeconds(30);
-        ds.setQueryExecutionTimeLimitInMs(100);
+        ds.setLogQueryExecutionLongerThanMs(100);
         ds.setStatementCacheMaxSize(200);
 
         ds.start();
@@ -114,10 +114,10 @@ has as fewer as practical external dependencies, and follows the design principl
 
 === Latest Version & How To Build ===
 
-Vibur DBCP latest version is 0.7.2. Maven dependency example for it is shown [#Maven_dependency: here].
+Vibur DBCP latest version is 0.7.3. Maven dependency example for it is shown [#Maven_dependency: here].
 A read-only copy of the source code can be checked out via:
 
-  `svn checkout http://vibur-dbcp.googlecode.com/svn/tags/0.7.2 vibur-dbcp-0.7.2`
+  `svn checkout http://vibur-dbcp.googlecode.com/svn/tags/0.7.3 vibur-dbcp-0.7.3`
 
 Vibur DBCP has two sets of tests, unit and integration. While the unit tests should be able to run and pass
 out of the box, the integration tests will try to connect to a running instance of MySQL with deployed
@@ -169,8 +169,10 @@ Running a particular set of tests while building it is simply a matter of specif
 
 ==== SQL queries logging settings ====
 || *Attribute* || *Description* || *Default value* ||
-|| `connectionTimeLimitInMs` || `getConnection` method calls taking longer than or equal to this time limit are logged at WARN level. A value of `0` will log all calls to `getConnection`. `Negative number` disables it. || `3000` ||
-|| `queryExecutionTimeLimitInMs` || SQL queries taking longer than or equal to this time limit to execute are logged at WARN level. A value of `0` will log all SQL queries. `Negative number` disables it. || `3000` ||
+|| `logCreateConnectionLongerThanMs` || `getConnection` method calls taking longer than or equal to this time limit are logged at WARN level. A value of `0` will log all calls to `getConnection`. `Negative number` disables it. || `3000` ||
+|| `logStackTraceForLongCreateConnection` || Will apply only if `logCreateConnectionLongerThanMs` is enabled, and if set to `true`, will log at WARN level the current `getConnection` call stack trace together with the time taken. || `false` ||
+|| `logQueryExecutionLongerThanMs` || SQL queries taking longer than or equal to this time limit to execute are logged at WARN level. A value of `0` will log all SQL queries. `Negative number` disables it. || `3000` ||
+|| `logStackTraceForLongQueryExecution` || Will apply only if `logQueryExecutionLongerThanMs` is enabled, and if set to `true`, will log at WARN level the current query execution call stack trace together with the query itself and the time taken. || `false` ||
 
 ==== Database connection default behavior settings: ====
 || *Attribute* || *Description* || *Default value* ||

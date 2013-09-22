@@ -30,6 +30,9 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 
+import static org.vibur.dbcp.util.ViburUtils.NEW_LINE;
+import static org.vibur.dbcp.util.ViburUtils.getStackTraceAsString;
+
 /**
  * @author Simeon Malchev
  */
@@ -134,20 +137,36 @@ public class ViburDBCPMonitoring implements ViburDBCPMonitoringMBean {
         return viburDBCPConfig.getStatementCacheMaxSize();
     }
 
-    public long getConnectionTimeLimitInMs() {
-        return viburDBCPConfig.getConnectionTimeLimitInMs();
+    public long getLogCreateConnectionLongerThanMs() {
+        return viburDBCPConfig.getLogCreateConnectionLongerThanMs();
     }
 
-    public void setConnectionTimeLimitInMs(long connectionTimeLimitInMs) {
-        viburDBCPConfig.setConnectionTimeLimitInMs(connectionTimeLimitInMs);
+    public void setLogCreateConnectionLongerThanMs(long logCreateConnectionLongerThanMs) {
+        viburDBCPConfig.setLogCreateConnectionLongerThanMs(logCreateConnectionLongerThanMs);
     }
 
-    public long getQueryExecuteTimeLimitInMs() {
-        return viburDBCPConfig.getQueryExecutionTimeLimitInMs();
+    public boolean isLogStackTraceForLongCreateConnection() {
+        return viburDBCPConfig.isLogStackTraceForLongCreateConnection();
     }
 
-    public void setQueryExecuteTimeLimitInMs(long queryExecuteTimeLimitInMs) {
-        viburDBCPConfig.setQueryExecutionTimeLimitInMs(queryExecuteTimeLimitInMs);
+    public void setLogStackTraceForLongCreateConnection(boolean logStackTraceForLongCreateConnection) {
+        viburDBCPConfig.setLogStackTraceForLongCreateConnection(logStackTraceForLongCreateConnection);
+    }
+
+    public long getLogQueryExecutionLongerThanMs() {
+        return viburDBCPConfig.getLogQueryExecutionLongerThanMs();
+    }
+
+    public void setLogQueryExecutionLongerThanMs(long logQueryExecutionLongerThanMs) {
+        viburDBCPConfig.setLogQueryExecutionLongerThanMs(logQueryExecutionLongerThanMs);
+    }
+
+    public boolean isLogStackTraceForLongQueryExecution() {
+        return viburDBCPConfig.isLogStackTraceForLongQueryExecution();
+    }
+
+    public void setLogStackTraceForLongQueryExecution(boolean logStackTraceForLongQueryExecution) {
+        viburDBCPConfig.setLogStackTraceForLongQueryExecution(logStackTraceForLongQueryExecution);
     }
 
     public boolean isResetDefaultsAfterUse() {
@@ -183,13 +202,10 @@ public class ViburDBCPMonitoring implements ViburDBCPMonitoringMBean {
         });
 
         StringBuilder builder = new StringBuilder(4096);
-        String newLine = System.getProperty("line.separator");
         for (Holder<ConnState> holder : holders) {
             builder.append("time taken: ").append(new Date(holder.getTime()))
-                .append(", millis = ").append(holder.getTime()).append(newLine);
-            for (StackTraceElement element : holder.getStackTrace())
-                builder.append("  at ").append(element).append(newLine);
-            builder.append(newLine);
+                .append(", millis = ").append(holder.getTime()).append(NEW_LINE)
+                .append(getStackTraceAsString(holder.getStackTrace())).append(NEW_LINE);
         }
         return builder.toString();
     }

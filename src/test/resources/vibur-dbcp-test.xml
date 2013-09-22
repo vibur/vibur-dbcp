@@ -7,6 +7,6 @@
     <entry key="password">pass</entry>
     <entry key="poolInitialSize">2</entry>
     <entry key="connectionIdleLimitInSeconds">30</entry>
-    <entry key="queryExecutionTimeLimitInMs">1</entry>
+    <entry key="logQueryExecutionLongerThanMs">1</entry>
     <entry key="statementCacheMaxSize">10</entry>
 </properties>

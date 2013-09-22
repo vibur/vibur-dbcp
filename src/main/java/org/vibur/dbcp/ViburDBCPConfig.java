@@ -92,10 +92,17 @@ public class ViburDBCPConfig {
 
     /** {@code getConnection} method calls taking longer than or equal to this time limit are logged at WARN level.
      * A value of {@code 0} will log all calls to {@code getConnection}. {@code Negative number} disables it. */
-    private long connectionTimeLimitInMs = 3000;
+    private long logCreateConnectionLongerThanMs = 3000;
+    /** Will apply only if {@link #logCreateConnectionLongerThanMs} is enabled, and if set to {@code true},
+     * will log at WARN level the current {@code getConnection} call stack trace together with the time taken. */
+    private boolean logStackTraceForLongCreateConnection = false;
     /** SQL queries taking longer than or equal to this time limit to execute are logged at WARN level.
      * A value of {@code 0} will log all SQL queries. {@code Negative number} disables it. */
-    private long queryExecutionTimeLimitInMs = 3000;
+    private long logQueryExecutionLongerThanMs = 3000;
+    /** Will apply only if {@link #logQueryExecutionLongerThanMs} is enabled, and if set to {@code true},
+     * will log at WARN level the current query execution call stack trace together with the query itself
+     * and the time taken. */
+    private boolean logStackTraceForLongQueryExecution = false;
 
 
     /** If set to {@code true}, will reset the connection default values below, always after the
@@ -260,20 +267,36 @@ public class ViburDBCPConfig {
         this.connectionPool = connectionPool;
     }
 
-    public long getConnectionTimeLimitInMs() {
-        return connectionTimeLimitInMs;
+    public long getLogCreateConnectionLongerThanMs() {
+        return logCreateConnectionLongerThanMs;
     }
 
-    public void setConnectionTimeLimitInMs(long connectionTimeLimitInMs) {
-        this.connectionTimeLimitInMs = connectionTimeLimitInMs;
+    public void setLogCreateConnectionLongerThanMs(long logCreateConnectionLongerThanMs) {
+        this.logCreateConnectionLongerThanMs = logCreateConnectionLongerThanMs;
     }
 
-    public long getQueryExecutionTimeLimitInMs() {
-        return queryExecutionTimeLimitInMs;
+    public boolean isLogStackTraceForLongCreateConnection() {
+        return logStackTraceForLongCreateConnection;
     }
 
-    public void setQueryExecutionTimeLimitInMs(long queryExecutionTimeLimitInMs) {
-        this.queryExecutionTimeLimitInMs = queryExecutionTimeLimitInMs;
+    public void setLogStackTraceForLongCreateConnection(boolean logStackTraceForLongCreateConnection) {
+        this.logStackTraceForLongCreateConnection = logStackTraceForLongCreateConnection;
+    }
+
+    public long getLogQueryExecutionLongerThanMs() {
+        return logQueryExecutionLongerThanMs;
+    }
+
+    public void setLogQueryExecutionLongerThanMs(long logQueryExecutionLongerThanMs) {
+        this.logQueryExecutionLongerThanMs = logQueryExecutionLongerThanMs;
+    }
+
+    public boolean isLogStackTraceForLongQueryExecution() {
+        return logStackTraceForLongQueryExecution;
+    }
+
+    public void setLogStackTraceForLongQueryExecution(boolean logStackTraceForLongQueryExecution) {
+        this.logStackTraceForLongQueryExecution = logStackTraceForLongQueryExecution;
     }
 
     public boolean isResetDefaultsAfterUse() {

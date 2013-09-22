@@ -31,6 +31,8 @@ import java.util.Iterator;
 import java.util.concurrent.ConcurrentMap;
 
 import static org.vibur.dbcp.util.StatementUtils.toSQLString;
+import static org.vibur.dbcp.util.ViburUtils.NEW_LINE;
+import static org.vibur.dbcp.util.ViburUtils.getStackTraceAsString;
 
 /**
  * @author Simeon Malchev
@@ -103,18 +105,26 @@ public class StatementInvocationHandler extends ConnectionChildInvocationHandler
     }
 
     private Object processExecute(Statement statementProxy, Method method, Object[] args) throws Throwable {
-        long queryExecuteTimeLimitInMs = config.getQueryExecutionTimeLimitInMs();
-        boolean shouldLog = queryExecuteTimeLimitInMs >= 0;
+        boolean shouldLog = config.getLogQueryExecutionLongerThanMs() >= 0;
         long startTime = shouldLog ? System.currentTimeMillis() : 0L;
 
         try {
             return targetInvoke(method, args); // the real executeXYZ call
         } finally {
-            if (shouldLog) {
-                long timeTaken = System.currentTimeMillis() - startTime;
-                if (timeTaken >= queryExecuteTimeLimitInMs)
-                    logger.warn("SQL query {} execution took {}ms", toSQLString(statementProxy, args), timeTaken);
+            if (shouldLog)
+                logQuery(statementProxy, args, startTime);
+        }
+    }
+
+    private void logQuery(Statement statementProxy, Object[] args, long startTime) {
+        long timeTaken = System.currentTimeMillis() - startTime;
+        if (timeTaken >= config.getLogQueryExecutionLongerThanMs()) {
+            StringBuilder log = new StringBuilder(String.format("SQL query \"%s\" execution took %dms",
+                toSQLString(statementProxy, args), timeTaken));
+            if (config.isLogStackTraceForLongQueryExecution()) {
+                log.append(NEW_LINE).append(getStackTraceAsString(new Throwable().getStackTrace()));
             }
+            logger.warn(log.toString());
         }
     }
 }

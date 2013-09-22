@@ -47,6 +47,9 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
+import static org.vibur.dbcp.util.ViburUtils.NEW_LINE;
+import static org.vibur.dbcp.util.ViburUtils.getStackTraceAsString;
+
 /**
  * The main DataSource which needs to be configured/instantiated by the calling application and from
  * which the JDBC Connections will be obtained via calling the {@link #getConnection()} method. The
@@ -267,7 +270,6 @@ public class ViburDBCPDataSource extends ViburDBCPConfig
         if (getCreateConnectionTimeoutInMs() < 0) throw new IllegalArgumentException();
         if (getAcquireRetryDelayInMs() < 0) throw new IllegalArgumentException();
         if (getAcquireRetryAttempts() < 0) throw new IllegalArgumentException();
-        if (getQueryExecutionTimeLimitInMs() < 0) throw new IllegalArgumentException();
         if (getStatementCacheMaxSize() < 0) throw new IllegalArgumentException();
         if (getConnectionIdleLimitInSeconds() >= 0 && getTestConnectionQuery() == null)
             throw new IllegalArgumentException();
@@ -306,18 +308,14 @@ public class ViburDBCPDataSource extends ViburDBCPConfig
     }
 
     private Connection getConnection(long timeout) throws SQLException {
-        long connectionTimeLimitInMs = getConnectionTimeLimitInMs();
-        boolean shouldLog = connectionTimeLimitInMs >= 0;
+        boolean shouldLog = getLogCreateConnectionLongerThanMs() >= 0;
         long startTime = shouldLog ? System.currentTimeMillis() : 0L;
 
         try {
             return doGetConnection(timeout);
         } finally {
-            if (shouldLog) {
-                long timeTaken = System.currentTimeMillis() - startTime;
-                if (timeTaken >= connectionTimeLimitInMs)
-                    logger.warn("Call to getConnection({}) took {}ms", timeout, timeTaken);
-            }
+            if (shouldLog)
+                logGetConnection(timeout, startTime);
         }
     }
 
@@ -327,6 +325,18 @@ public class ViburDBCPDataSource extends ViburDBCPConfig
         if (hConnection == null)
             throw new SQLException("Couldn't obtain SQL connection.");
         return Proxy.newConnection(hConnection, this);
+    }
+
+    private void logGetConnection(long timeout, long startTime) {
+        long timeTaken = System.currentTimeMillis() - startTime;
+        if (timeTaken >= getLogCreateConnectionLongerThanMs()) {
+            StringBuilder log = new StringBuilder(String.format("Call to \"getConnection(%d)\" took %dms",
+                timeout, timeTaken));
+            if (isLogStackTraceForLongCreateConnection()) {
+                log.append(NEW_LINE).append(getStackTraceAsString(new Throwable().getStackTrace()));
+            }
+            logger.warn(log.toString());
+        }
     }
 
     /** {@inheritDoc} */

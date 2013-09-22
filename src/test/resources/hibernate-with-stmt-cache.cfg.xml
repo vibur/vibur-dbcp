@@ -27,7 +27,7 @@
         <property name="hibernate.vibur.poolInitialSize">1</property>
         <property name="hibernate.vibur.poolMaxSize">1</property>
         <property name="hibernate.vibur.connectionIdleLimitInSeconds">30</property>
-        <property name="hibernate.vibur.queryExecutionTimeLimitInMs">1</property>
+        <property name="hibernate.vibur.logQueryExecutionLongerThanMs">1</property>
         <property name="hibernate.vibur.statementCacheMaxSize">10</property>
     </session-factory>
 </hibernate-configuration>
