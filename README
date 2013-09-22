@@ -35,8 +35,7 @@ has as fewer as practical external dependencies, and follows the design principl
   * Built using the standard Java concurrent utilities, does not use any direct synchronization.
   * Supports fairness parameter, which when set to true, guarantees that threads invoking the pool's `take` methods will be selected to obtain a connection from it in FIFO order, and no thread is starved out from accessing the pool's underlying resources.
   * Caching support for JDBC Statements (Prepared and Callable).
-  * SQL queries logging depending on the execution time taken.
-  * getConnection() calls logging depending on the time taken.
+  * SQL queries logging & getConnection() calls logging depending on the execution time taken.
 
   * Hibernate integration support.
 
@@ -45,7 +44,6 @@ has as fewer as practical external dependencies, and follows the design principl
   * Validation intervals support, i.e. the taken from the pool connection is not validated before every use but is validated only if given time interval has passed since the last time the connection was used.
   * Intelligent pool's sizing - the number of idle connections in the pool will be reduced based on heuristics for the number of connections which were recently used.
   * The underlying JDBC Connection or Statement object can be retrieved from the respective proxy object via calling the proxy's `unwrap` method.
-  * JDBC Connections which are neither committed nor rollbacked will be automatically rollbacked if the Connection's `close` method is called, and an error message will be logged.
   * Can provide records for all JDBC Connections which are currently taken, including the stack traces with which they have been taken. Useful if debugging lost (not closed) connections.
 
   * The only external dependencies which Vibur DBCP has are: vibur-object-pool, slf4j, and ConcurrentLinkedHashMap. The CLHM dependency can be excluded if the JDBC Statements caching is not needed.
