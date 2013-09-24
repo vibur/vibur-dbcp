@@ -109,7 +109,7 @@ public class StatementInvocationHandler extends ConnectionChildInvocationHandler
         long startTime = shouldLog ? System.currentTimeMillis() : 0L;
 
         try {
-            return targetInvoke(method, args); // the real executeXYZ call
+            return targetInvoke(method, args); // the real "execute..." call
         } finally {
             if (shouldLog)
                 logQuery(statementProxy, args, startTime);
