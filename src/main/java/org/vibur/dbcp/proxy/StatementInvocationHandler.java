@@ -77,7 +77,7 @@ public class StatementInvocationHandler extends ConnectionChildInvocationHandler
             return processCancel(proxy, method, args);
         }
 
-        if (methodName.startsWith("execute")) // these are all "execute..." JDBC Statements methods
+        if (methodName.startsWith("execute")) // this intercepts all "execute..." JDBC Statements methods
             return processExecute(proxy, method, args);
 
         return super.customInvoke(proxy, method, args);
