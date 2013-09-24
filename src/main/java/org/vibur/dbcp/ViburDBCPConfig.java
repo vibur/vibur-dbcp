@@ -91,17 +91,22 @@ public class ViburDBCPConfig {
     private HolderValidatingPoolService<ConnState> connectionPool;
 
     /** {@code getConnection} method calls taking longer than or equal to this time limit are logged at WARN level.
-     * A value of {@code 0} will log all calls to {@code getConnection}. {@code Negative number} disables it. */
+     * A value of {@code 0} will log all such calls. A {@code negative number} disables it. */
     private long logCreateConnectionLongerThanMs = 3000;
     /** Will apply only if {@link #logCreateConnectionLongerThanMs} is enabled, and if set to {@code true},
-     * will log at WARN level the current {@code getConnection} call stack trace together with the time taken. */
+     * will log at WARN level the current {@code getConnection} call stack trace plus the time taken. */
     private boolean logStackTraceForLongCreateConnection = false;
-    /** SQL queries taking longer than or equal to this time limit to execute are logged at WARN level.
-     * A value of {@code 0} will log all SQL queries. {@code Negative number} disables it. */
+    /** JDBC Statement {@code execute...} calls taking longer than or equal to this time limit are logged at
+     * WARN level. A value of {@code 0} will log all such calls. A {@code negative number} disables it.
+     *
+     * <p><b>Note</b> that while a JDBC Statements {@code execute...} call duration is roughly equivalent to
+     * the execution duration of the underlying SQL query, the call duration may also include Java GC time,
+     * JDBC driver specific execution time, and threads context switching time (particularly in the case of
+     * a heavily multithreaded application). */
     private long logQueryExecutionLongerThanMs = 3000;
     /** Will apply only if {@link #logQueryExecutionLongerThanMs} is enabled, and if set to {@code true},
-     * will log at WARN level the current query execution call stack trace together with the query itself
-     * and the time taken. */
+     * will log at WARN level the current JDBC Statement {@code execute...} call stack trace plus the
+     * underlying SQL query and the time taken. */
     private boolean logStackTraceForLongQueryExecution = false;
 
 

@@ -32,24 +32,20 @@ import java.sql.*;
  */
 public class Proxy {
 
-    public static Connection newConnection(Holder<ConnState> hConnection,
-                                           ViburDBCPConfig config) {
+    public static Connection newConnection(Holder<ConnState> hConnection, ViburDBCPConfig config) {
         InvocationHandler handler = new ConnectionInvocationHandler(hConnection, config);
         return (Connection) newProxy(connectionCtor, handler);
     }
 
-    public static Statement newStatement(ValueHolder<Statement> statementHolder,
-                                         Connection connectionProxy,
-                                         ViburDBCPConfig config,
-                                         ExceptionListener exceptionListener) {
+    public static Statement newStatement(ValueHolder<Statement> statementHolder, Connection connectionProxy,
+                                         ViburDBCPConfig config, ExceptionListener exceptionListener) {
         InvocationHandler handler = new StatementInvocationHandler(
             statementHolder, connectionProxy, config, exceptionListener);
         return (Statement) newProxy(statementCtor, handler);
     }
 
     public static PreparedStatement newPreparedStatement(ValueHolder<PreparedStatement> pStatementHolder,
-                                                         Connection connectionProxy,
-                                                         ViburDBCPConfig config,
+                                                         Connection connectionProxy, ViburDBCPConfig config,
                                                          ExceptionListener exceptionListener) {
         InvocationHandler handler = new StatementInvocationHandler(
             pStatementHolder, connectionProxy, config, exceptionListener);
@@ -57,16 +53,14 @@ public class Proxy {
     }
 
     public static CallableStatement newCallableStatement(ValueHolder<CallableStatement> cStatementHolder,
-                                                         Connection connectionProxy,
-                                                         ViburDBCPConfig config,
+                                                         Connection connectionProxy, ViburDBCPConfig config,
                                                          ExceptionListener exceptionListener) {
         InvocationHandler handler = new StatementInvocationHandler(
             cStatementHolder, connectionProxy, config, exceptionListener);
         return (CallableStatement) newProxy(cStatementCtor, handler);
     }
 
-    public static DatabaseMetaData newDatabaseMetaData(DatabaseMetaData metaData,
-                                                       Connection connectionProxy,
+    public static DatabaseMetaData newDatabaseMetaData(DatabaseMetaData metaData, Connection connectionProxy,
                                                        ExceptionListener exceptionListener) {
         InvocationHandler handler = new ConnectionChildInvocationHandler<DatabaseMetaData>(
             metaData, connectionProxy, exceptionListener);

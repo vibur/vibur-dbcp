@@ -111,7 +111,8 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
                 if (statementHolder == null) { // there was no entry for the key, so we'll try to put a new one
                     statementHolder = new ValueHolder<Statement>(statement, new AtomicBoolean(true));
                     if (statementCache.putIfAbsent(key, statementHolder) != null)
-                        statementHolder = new ValueHolder<Statement>(statement, null); // because another thread succeeded to put the entry before us
+                        // because another thread succeeded to put the entry before us
+                        statementHolder = new ValueHolder<Statement>(statement, null);
                 }
                 return statementHolder;
             } else { // the statementHolder is valid and was not inUse

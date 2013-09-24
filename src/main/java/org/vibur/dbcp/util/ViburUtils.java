@@ -24,9 +24,15 @@ public class ViburUtils {
     public static final String NEW_LINE = System.getProperty("line.separator");
 
     public static String getStackTraceAsString(StackTraceElement[] stackTrace) {
+        int i;
+        for (i = 0; i < stackTrace.length; i++)
+            if (!stackTrace[i].getClassName().startsWith("org.vibur.dbcp")
+                || stackTrace[i].getClassName().endsWith("Test"))
+                break;
+
         StringBuilder builder = new StringBuilder(4096);
-        for (StackTraceElement element : stackTrace)
-            builder.append("  at ").append(element).append(NEW_LINE);
+        for ( ; i < stackTrace.length; i++)
+            builder.append("  at ").append(stackTrace[i]).append(NEW_LINE);
         return builder.toString();
     }
 }

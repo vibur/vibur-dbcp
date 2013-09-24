@@ -167,12 +167,12 @@ Running a particular set of tests while building it is simply a matter of specif
 || *Attribute* || *Description* || *Default value* ||
 || `statementCacheMaxSize` || Defines the maximum statement cache size. `0` disables it, max values is `1000`. If the statement's cache is not enabled, the client application may safely exclude the dependency on ConcurrentLinkedCacheMap. || `0` ||
 
-==== SQL queries logging settings ====
+==== Database connections and SQL queries logging settings ====
 || *Attribute* || *Description* || *Default value* ||
-|| `logCreateConnectionLongerThanMs` || `getConnection` method calls taking longer than or equal to this time limit are logged at WARN level. A value of `0` will log all calls to `getConnection`. `Negative number` disables it. || `3000` ||
-|| `logStackTraceForLongCreateConnection` || Will apply only if `logCreateConnectionLongerThanMs` is enabled, and if set to `true`, will log at WARN level the current `getConnection` call stack trace together with the time taken. || `false` ||
-|| `logQueryExecutionLongerThanMs` || SQL queries taking longer than or equal to this time limit to execute are logged at WARN level. A value of `0` will log all SQL queries. `Negative number` disables it. || `3000` ||
-|| `logStackTraceForLongQueryExecution` || Will apply only if `logQueryExecutionLongerThanMs` is enabled, and if set to `true`, will log at WARN level the current query execution call stack trace together with the query itself and the time taken. || `false` ||
+|| `logCreateConnectionLongerThanMs` || `getConnection` method calls taking longer than or equal to this time limit are logged at WARN level. A value of `0` will log all such calls. A `negative number` disables it. || `3000` ||
+|| `logStackTraceForLongCreateConnection` || Will apply only if `logCreateConnectionLongerThanMs` is enabled, and if set to `true`, will log at WARN level the current `getConnection` call stack trace plus the time taken. || `false` ||
+|| `logQueryExecutionLongerThanMs` || JDBC Statements `execute...` calls taking longer than or equal to this time limit are logged at WARN level. A value of `0` will log all such calls. A `negative number` disables it. <p><b>Note</b> that while a JDBC Statement `execute...` call duration is roughly equivalent to the execution duration of the underlying SQL query, the call duration may also include Java GC time, JDBC driver specific execution time, and threads context switching time (particularly in the case of a heavily multithreaded application). || `3000` ||
+|| `logStackTraceForLongQueryExecution` || Will apply only if `logQueryExecutionLongerThanMs` is enabled, and if set to `true`, will log at WARN level the current JDBC Statement `execute...` call stack trace plus the underlying SQL query and the time taken. || `false` ||
 
 ==== Database connection default behavior settings: ====
 || *Attribute* || *Description* || *Default value* ||
