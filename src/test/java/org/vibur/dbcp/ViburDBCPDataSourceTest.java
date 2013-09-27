@@ -17,7 +17,6 @@
 package org.vibur.dbcp;
 
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
@@ -25,7 +24,6 @@ import org.mockito.InOrder;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.vibur.dbcp.cache.StatementKey;
 import org.vibur.dbcp.cache.ValueHolder;
-import org.vibur.dbcp.common.IntegrationTest;
 
 import javax.sql.DataSource;
 import java.io.IOException;
@@ -40,11 +38,10 @@ import static org.mockito.AdditionalAnswers.delegatesTo;
 import static org.mockito.Mockito.*;
 
 /**
- * Simple JDBC integration test. See the prerequisites from {@link AbstractDataSourceTest}.
+ * Simple JDBC integration test.
  *
  * @author Simeon Malchev
  */
-@Category({IntegrationTest.class})
 @RunWith(MockitoJUnitRunner.class)
 public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
 

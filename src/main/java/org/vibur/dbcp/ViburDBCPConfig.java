@@ -99,10 +99,10 @@ public class ViburDBCPConfig {
     /** JDBC Statement {@code execute...} calls taking longer than or equal to this time limit are logged at
      * WARN level. A value of {@code 0} will log all such calls. A {@code negative number} disables it.
      *
-     * <p><b>Note</b> that while a JDBC Statements {@code execute...} call duration is roughly equivalent to
-     * the execution duration of the underlying SQL query, the call duration may also include Java GC time,
-     * JDBC driver specific execution time, and threads context switching time (particularly in the case of
-     * a heavily multithreaded application). */
+     * <p><b>Note</b> that while a JDBC Statement {@code execute...} call duration is roughly equivalent to
+     * the execution time of the underlying SQL query, the overall call duration may also include some Java GC
+     * time, JDBC driver specific execution time, and threads context switching time (the last particularly
+     * in the case of a heavily multithreaded application). */
     private long logQueryExecutionLongerThanMs = 3000;
     /** Will apply only if {@link #logQueryExecutionLongerThanMs} is enabled, and if set to {@code true},
      * will log at WARN level the current JDBC Statement {@code execute...} call stack trace plus the

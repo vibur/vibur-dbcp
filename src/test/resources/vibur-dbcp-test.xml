@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
 <properties>
-    <entry key="driverClassName">com.mysql.jdbc.Driver</entry>
-    <entry key="jdbcUrl">jdbc:mysql://localhost/sakila</entry>
-    <entry key="username">test</entry>
-    <entry key="password">pass</entry>
+    <entry key="driverClassName">org.hsqldb.jdbcDriver</entry>
+    <entry key="jdbcUrl">jdbc:hsqldb:mem:sakila;shutdown=false</entry>
+    <entry key="username">sa</entry>
+    <entry key="password"></entry>
     <entry key="poolInitialSize">2</entry>
     <entry key="connectionIdleLimitInSeconds">30</entry>
     <entry key="logQueryExecutionLongerThanMs">1</entry>

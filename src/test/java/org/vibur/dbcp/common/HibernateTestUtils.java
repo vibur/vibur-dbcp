@@ -21,13 +21,11 @@ import org.hibernate.cfg.Configuration;
 import org.vibur.dbcp.model.Actor;
 
 /**
- * Simple Hibernate util class. Prerequisites for all tests which call the static methods below:
- *
- * <p>1. Configure appropriately the database connection parameters in resources/hibernate-*-stmt-cache.cfg.xml.
+ * Simple Hibernate utils class.
  *
  * @author Simeon Malchev
  */
-public class HibernateTestUtil {
+public class HibernateTestUtils {
 
     private static SessionFactory sessionFactoryNoStmtCache;
     private static SessionFactory sessionFactoryWithStmtCache;
@@ -39,9 +37,9 @@ public class HibernateTestUtil {
 
     private static SessionFactory buildStatementFactory(String configFileName) {
         try {
-            Configuration cfg = new Configuration();
+            Configuration cfg = new Configuration().configure(configFileName);
             cfg.addAnnotatedClass(Actor.class);
-            return cfg.configure(configFileName).buildSessionFactory();
+            return cfg.buildSessionFactory();
         } catch (Exception e) {
             throw new ExceptionInInitializerError(e);
         }

@@ -16,30 +16,33 @@
 
 package org.vibur.dbcp;
 
+import org.hsqldb.cmdline.SqlToolError;
 import org.junit.After;
+import org.junit.BeforeClass;
+import org.vibur.dbcp.common.HsqldbUtils;
 
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Properties;
 
 /**
- * Abstract JDBC integration super test. Prerequisites for running all tests which inherit from it:
- *
- * <p>1. Install and run MySQL server.
- *
- * <p>2. Install <a href="http://dev.mysql.com/doc/sakila/en/">Sakila Sample Database</a>
- * as described in the link.
- *
- * <p>3. Configure appropriately the database connection parameters in resources/vibur-dbcp-test.properties.
+ * Abstract JDBC integration super test.
  *
  * @author Simeon Malchev
  */
 public abstract class AbstractDataSourceTest {
 
+    @BeforeClass
+    public static void deployDatabaseSchemaAndData() throws IOException, SqlToolError {
+        Properties properties = loadProperties();
+        HsqldbUtils.deployDatabaseSchemaAndData(properties.getProperty("driverClassName"),
+            properties.getProperty("jdbcUrl"), properties.getProperty("username"), properties.getProperty("password"));
+    }
+
     private ViburDBCPDataSource dataSource = null;
 
     @After
-    public void cleanup() {
+    public void terminateDataSource() {
         if (dataSource != null) {
             dataSource.terminate();
             dataSource = null;
@@ -86,7 +89,7 @@ public abstract class AbstractDataSourceTest {
         return dataSource;
     }
 
-    private Properties loadProperties() throws IOException {
+    protected static Properties loadProperties() throws IOException {
         Properties properties = new Properties();
         properties.load(new FileInputStream("src/test/resources/vibur-dbcp-test.properties"));
         return properties;

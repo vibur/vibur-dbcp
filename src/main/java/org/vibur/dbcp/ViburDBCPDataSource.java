@@ -66,8 +66,8 @@ public class ViburDBCPDataSource extends ViburDBCPConfig
 
     private static final int CACHE_MAX_SIZE = 1000;
 
-    public static final String PROPERTIES_CONFIG_FILE_NAME = "vibur-dbcp-test.properties";
-    public static final String XML_CONFIG_FILE_NAME = "vibur-dbcp-test.xml";
+    public static final String PROPERTIES_CONFIG_FILE_NAME = "vibur-dbcp-config.properties";
+    public static final String XML_CONFIG_FILE_NAME = "vibur-dbcp-config.xml";
 
     private PrintWriter logWriter = null;
 

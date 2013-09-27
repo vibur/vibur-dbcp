@@ -1,8 +1,9 @@
-Version 0.7.3 (23/09/2013)
+Version 0.8.0 (28/09/2013)
 ==========================
 * Removed TransactionListener.
 * Changed some configuration defaults, introduced logQueryExecutionLongerThanMs.
 * Introduced logStackTraceForLongCreateConnection and logStackTraceForLongQueryExecution.
+* Replaced MySQL with HyperSQL for unit/integration testing purposes.
 
 Version 0.7.2 (14/09/2013)
 ==========================

@@ -17,8 +17,6 @@
 package org.vibur.dbcp;
 
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
-import org.vibur.dbcp.common.IntegrationTest;
 
 import javax.sql.DataSource;
 import java.io.IOException;
@@ -29,7 +27,6 @@ import static org.junit.Assert.*;
 /**
  * @author Simeon Malchev
  */
-@Category({IntegrationTest.class})
 public class ConnectionProxyTest extends AbstractDataSourceTest {
 
     @Test
@@ -42,8 +39,8 @@ public class ConnectionProxyTest extends AbstractDataSourceTest {
         try {
             connection = ds.getConnection();
             statement = connection.createStatement();
-            pStatement = connection.prepareStatement("");
-            cStatement = connection.prepareCall("");
+            pStatement = connection.prepareStatement("select count(*) from Actor");
+            cStatement = connection.prepareCall("select count(*) from Actor");
             DatabaseMetaData metaData = connection.getMetaData();
 
             assertSame(connection, statement.getConnection());
@@ -68,8 +65,8 @@ public class ConnectionProxyTest extends AbstractDataSourceTest {
         try {
             connection = ds.getConnection();
             statement = connection.createStatement();
-            pStatement = connection.prepareStatement("");
-            cStatement = connection.prepareCall("");
+            pStatement = connection.prepareStatement("select count(*) from Actor");
+            cStatement = connection.prepareCall("select count(*) from Actor");
             DatabaseMetaData metaData = connection.getMetaData();
 
             assertTrue(metaData.isWrapperFor(DatabaseMetaData.class));

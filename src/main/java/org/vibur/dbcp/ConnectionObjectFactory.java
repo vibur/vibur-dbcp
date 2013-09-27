@@ -49,7 +49,7 @@ public class ConnectionObjectFactory implements PoolObjectFactory<ConnState> {
         try {
             Class.forName(config.getDriverClassName());
         } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
+            throw new ViburDBCPException(e);
         }
     }
 
@@ -57,7 +57,7 @@ public class ConnectionObjectFactory implements PoolObjectFactory<ConnState> {
      * {@inheritDoc}
      *
      * @throws ViburDBCPException if cannot create the underlying JDBC Connection.
-     * */
+     */
     public ConnState create() throws ViburDBCPException {
         int attempt = 0;
         Connection connection = null;
@@ -114,7 +114,7 @@ public class ConnectionObjectFactory implements PoolObjectFactory<ConnState> {
      * {@inheritDoc}
      *
      * @throws ViburDBCPException if cannot restore the default values for the underlying JDBC Connection.
-     * */
+     */
     public boolean readyToRestore(ConnState connState) throws ViburDBCPException {
         if (config.isResetDefaultsAfterUse())
             setDefaultValues(connState.connection());
