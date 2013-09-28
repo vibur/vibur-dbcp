@@ -39,8 +39,8 @@ public class ConnectionProxyTest extends AbstractDataSourceTest {
         try {
             connection = ds.getConnection();
             statement = connection.createStatement();
-            pStatement = connection.prepareStatement("select count(*) from Actor");
-            cStatement = connection.prepareCall("select count(*) from Actor");
+            pStatement = connection.prepareStatement("select count(*) from actor");
+            cStatement = connection.prepareCall("select count(*) from actor");
             DatabaseMetaData metaData = connection.getMetaData();
 
             assertSame(connection, statement.getConnection());
@@ -65,8 +65,8 @@ public class ConnectionProxyTest extends AbstractDataSourceTest {
         try {
             connection = ds.getConnection();
             statement = connection.createStatement();
-            pStatement = connection.prepareStatement("select count(*) from Actor");
-            cStatement = connection.prepareCall("select count(*) from Actor");
+            pStatement = connection.prepareStatement("select count(*) from actor");
+            cStatement = connection.prepareCall("select count(*) from actor");
             DatabaseMetaData metaData = connection.getMetaData();
 
             assertTrue(metaData.isWrapperFor(DatabaseMetaData.class));
