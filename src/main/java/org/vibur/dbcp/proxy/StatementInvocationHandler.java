@@ -49,36 +49,33 @@ public class StatementInvocationHandler extends ConnectionChildInvocationHandler
     private final ConcurrentMap<StatementKey, ValueHolder<Statement>> statementCache;
 
     public StatementInvocationHandler(ValueHolder<? extends Statement> statementHolder,
-                                      Connection connectionProxy,
-                                      ViburDBCPConfig config,
+                                      ConcurrentMap<StatementKey, ValueHolder<Statement>> statementCache,
+                                      Connection connectionProxy, ViburDBCPConfig config,
                                       ExceptionListener exceptionListener) {
         super(statementHolder.value(), connectionProxy, exceptionListener);
         if (config == null)
             throw new NullPointerException();
         this.statementHolder = statementHolder;
+        this.statementCache = statementCache;
         this.config = config;
-        this.statementCache = config.getStatementCache();
     }
 
     protected Object customInvoke(Statement proxy, Method method, Object[] args) throws Throwable {
         String methodName = method.getName();
 
-        if (methodName.equals("close")) {
+        if (methodName.equals("close"))
             return processClose(method, args);
-        }
         if (methodName.equals("isClosed"))
             return logicallyClosed;
 
         // All other Statement interface methods cannot work if the JDBC Statement is closed:
         if (logicallyClosed)
-            throw new SQLException("Statement is closed.");
+            throw new SQLException(getTarget().getClass().getName() + " is closed.");
 
-        if (methodName.equals("cancel")) {
-            return processCancel(proxy, method, args);
-        }
-
+        if (methodName.equals("cancel"))
+            return processCancel(method, args);
         if (methodName.startsWith("execute")) // this intercepts all "execute..." JDBC Statements methods
-            return processExecute(proxy, method, args);
+            return processExecute(method, args);
 
         return super.customInvoke(proxy, method, args);
     }
@@ -92,19 +89,21 @@ public class StatementInvocationHandler extends ConnectionChildInvocationHandler
             return targetInvoke(method, args);
     }
 
-    private Object processCancel(Statement statementProxy, Method method, Object[] args) throws Throwable {
-        if (statementCache != null)
+    private Object processCancel(Method method, Object[] args) throws Throwable {
+        if (statementCache != null) {
+            Statement target = getTarget();
             for (Iterator<ValueHolder<Statement>> i = statementCache.values().iterator(); i.hasNext(); ) {
                 ValueHolder<Statement> valueHolder = i.next();
-                if (valueHolder.value().equals(statementProxy)) {
+                if (valueHolder.value().equals(target)) {
                     i.remove();
                     break;
                 }
             }
+        }
         return targetInvoke(method, args);
     }
 
-    private Object processExecute(Statement statementProxy, Method method, Object[] args) throws Throwable {
+    private Object processExecute(Method method, Object[] args) throws Throwable {
         boolean shouldLog = config.getLogQueryExecutionLongerThanMs() >= 0;
         long startTime = shouldLog ? System.currentTimeMillis() : 0L;
 
@@ -112,18 +111,17 @@ public class StatementInvocationHandler extends ConnectionChildInvocationHandler
             return targetInvoke(method, args); // the real "execute..." call
         } finally {
             if (shouldLog)
-                logQuery(statementProxy, args, startTime);
+                logQuery(args, startTime);
         }
     }
 
-    private void logQuery(Statement statementProxy, Object[] args, long startTime) {
+    private void logQuery(Object[] args, long startTime) {
         long timeTaken = System.currentTimeMillis() - startTime;
         if (timeTaken >= config.getLogQueryExecutionLongerThanMs()) {
             StringBuilder log = new StringBuilder(String.format("SQL query \"%s\" execution took %dms",
-                toSQLString(statementProxy, args), timeTaken));
-            if (config.isLogStackTraceForLongQueryExecution()) {
+                toSQLString(getTarget(), args), timeTaken));
+            if (config.isLogStackTraceForLongQueryExecution())
                 log.append(NEW_LINE).append(getStackTraceAsString(new Throwable().getStackTrace()));
-            }
             logger.warn(log.toString());
         }
     }

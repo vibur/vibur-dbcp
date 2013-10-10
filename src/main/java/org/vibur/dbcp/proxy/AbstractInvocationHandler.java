@@ -50,7 +50,8 @@ public abstract class AbstractInvocationHandler<T> implements InvocationHandler,
     /** @inheritDoc */
     @SuppressWarnings("unchecked")
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        logger.trace("Calling {} with args {} on {}", method, args, target);
+        if (logger.isTraceEnabled())
+            logger.trace("Calling {} with args {} on {}", method, args, target);
         String methodName = method.getName();
 
         if (methodName.equals("equals"))

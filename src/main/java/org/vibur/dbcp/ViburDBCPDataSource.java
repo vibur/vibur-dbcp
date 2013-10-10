@@ -26,7 +26,7 @@ import org.vibur.dbcp.listener.DestroyListener;
 import org.vibur.dbcp.proxy.Proxy;
 import org.vibur.objectpool.ConcurrentHolderLinkedPool;
 import org.vibur.objectpool.Holder;
-import org.vibur.objectpool.PoolObjectFactory;
+import org.vibur.objectpool.HolderValidatingPoolService;
 import org.vibur.objectpool.util.SamplingPoolReducer;
 import org.vibur.objectpool.util.ThreadedPoolReducer;
 
@@ -42,6 +42,7 @@ import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
 import java.sql.Statement;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
@@ -71,7 +72,6 @@ public class ViburDBCPDataSource extends ViburDBCPConfig
 
     private PrintWriter logWriter = null;
 
-    private PoolObjectFactory<ConnState> connectionObjectFactory;
     private ThreadedPoolReducer poolReducer;
 
     private State state = State.NEW;
@@ -201,12 +201,13 @@ public class ViburDBCPDataSource extends ViburDBCPConfig
 
         validateConfig();
 
-        connectionObjectFactory = new ConnectionObjectFactory(this, this);
-        setConnectionPool(new ConcurrentHolderLinkedPool<ConnState>(connectionObjectFactory,
-            getPoolInitialSize(), getPoolMaxSize(), isPoolFair(), isPoolEnableConnectionTracking()));
+        HolderValidatingPoolService<ConnState> pool = new ConcurrentHolderLinkedPool<ConnState>(
+            new ConnectionObjectFactory(this, this),
+            getPoolInitialSize(), getPoolMaxSize(), isPoolFair(), isPoolEnableConnectionTracking());
+        setConnectionPool(pool);
 
-        poolReducer = new SamplingPoolReducer(
-            getConnectionPool(), getReducerTimeIntervalInSeconds(), TimeUnit.SECONDS, getReducerSamples()) {
+        poolReducer = new SamplingPoolReducer(pool,
+            getReducerTimeIntervalInSeconds(), TimeUnit.SECONDS, getReducerSamples()) {
 
             protected void afterReduce(int reduction, int reduced, Throwable thrown) {
                 if (thrown != null)
@@ -215,6 +216,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig
                     logger.debug("Intended reduction {} actual {}", reduction, reduced);
             }
         };
+        poolReducer.start();
 
         int statementCacheMaxSize = getStatementCacheMaxSize();
         if (statementCacheMaxSize > CACHE_MAX_SIZE)
@@ -253,12 +255,14 @@ public class ViburDBCPDataSource extends ViburDBCPConfig
         if (oldState == State.NEW) return;
 
         ConcurrentMap<StatementKey, ValueHolder<Statement>> statementCache = getStatementCache();
-        if (statementCache != null)
+        if (statementCache != null) {
             for (Iterator<ValueHolder<Statement>> i = statementCache.values().iterator(); i.hasNext(); ) {
                 ValueHolder<Statement> valueHolder = i.next();
                 closeStatement(valueHolder.value());
                 i.remove();
             }
+            setStatementCache(null);
+        }
 
         poolReducer.terminate();
         getConnectionPool().terminate();
@@ -332,9 +336,8 @@ public class ViburDBCPDataSource extends ViburDBCPConfig
         if (timeTaken >= getLogCreateConnectionLongerThanMs()) {
             StringBuilder log = new StringBuilder(String.format("Call to \"getConnection(%d)\" took %dms",
                 timeout, timeTaken));
-            if (isLogStackTraceForLongCreateConnection()) {
+            if (isLogStackTraceForLongCreateConnection())
                 log.append(NEW_LINE).append(getStackTraceAsString(new Throwable().getStackTrace()));
-            }
             logger.warn(log.toString());
         }
     }
@@ -379,12 +382,14 @@ public class ViburDBCPDataSource extends ViburDBCPConfig
         if (statementCache == null)
             return;
 
-        for (StatementKey key : statementCache.keySet())
-            if (key.getProxy().equals(connection)) {
-                ValueHolder<Statement> valueHolder = statementCache.remove(key);
-                if (valueHolder != null)
-                    closeStatement(valueHolder.value());
+        for (Iterator<Map.Entry<StatementKey, ValueHolder<Statement>>> i = statementCache.entrySet().iterator();
+             i.hasNext(); ) {
+            Map.Entry<StatementKey, ValueHolder<Statement>> entry = i.next();
+            if (entry.getKey().getProxy().equals(connection)) {
+                closeStatement(entry.getValue().value());
+                i.remove();
             }
+        }
     }
 
     /** {@inheritDoc} */

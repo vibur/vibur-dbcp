@@ -72,27 +72,26 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
 
         // All other Connection interface methods cannot work if the JDBC Connection is closed:
         if (logicallyClosed)
-            throw new SQLException("Connection is closed.");
+            throw new SQLException(getTarget().getClass().getName() + " is closed.");
 
         // Methods which results have to be proxied so that when getConnection() is called
         // on them the return value to be current JDBC Connection proxy.
         if (methodName.equals("createStatement")) { // *3
             ValueHolder<Statement> statementHolder =
-                (ValueHolder<Statement>) getStatementHolder(method, args);
-            return Proxy.newStatement(statementHolder, proxy,
-                config, getExceptionListener());
+                (ValueHolder<Statement>) getUncachedStatementHolder(method, args);
+            return Proxy.newStatement(statementHolder, null, proxy, config, getExceptionListener());
         }
         if (methodName.equals("prepareStatement")) { // *6
             ValueHolder<PreparedStatement> statementHolder =
                 (ValueHolder<PreparedStatement>) getStatementHolder(method, args);
-            return Proxy.newPreparedStatement(statementHolder, proxy,
-                config, getExceptionListener());
+            return Proxy.newPreparedStatement(statementHolder, config.getStatementCache(), proxy, config,
+                getExceptionListener());
         }
         if (methodName.equals("prepareCall")) { // *3
             ValueHolder<CallableStatement> statementHolder =
                 (ValueHolder<CallableStatement>) getStatementHolder(method, args);
-            return Proxy.newCallableStatement(statementHolder, proxy,
-                config, getExceptionListener());
+            return Proxy.newCallableStatement(statementHolder, config.getStatementCache(), proxy, config,
+                getExceptionListener());
         }
         if (methodName.equals("getMetaData")) { // *1
             DatabaseMetaData metaData = (DatabaseMetaData) targetInvoke(method, args);
@@ -104,7 +103,8 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
 
     private ValueHolder<? extends Statement> getStatementHolder(Method method, Object[] args) throws Throwable {
         if (statementCache != null) {
-            StatementKey key = new StatementKey(getTarget(), method, args);
+            Connection target = getTarget();
+            StatementKey key = new StatementKey(target, method, args);
             ValueHolder<Statement> statementHolder = statementCache.get(key);
             if (statementHolder == null || statementHolder.inUse().getAndSet(true)) {
                 Statement statement = (Statement) targetInvoke(method, args);
@@ -116,14 +116,19 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
                 }
                 return statementHolder;
             } else { // the statementHolder is valid and was not inUse
-                logger.trace("Using cached statement for connection {}, method {}, args {}",
-                    getTarget(), method, Arrays.toString(args));
+                if (logger.isTraceEnabled())
+                    logger.trace("Using cached statement for connection {}, method {}, args {}",
+                        target, method, Arrays.toString(args));
                 return statementHolder;
             }
         } else {
-            Statement statement = (Statement) targetInvoke(method, args);
-            return new ValueHolder<Statement>(statement, null);
+            return getUncachedStatementHolder(method, args);
         }
+    }
+
+    private ValueHolder<? extends Statement> getUncachedStatementHolder(Method method, Object[] args) throws Throwable {
+        Statement statement = (Statement) targetInvoke(method, args);
+        return new ValueHolder<Statement>(statement, null);
     }
 
     private Object processCloseOrAbort(boolean isClose, Method method, Object[] args) throws Throwable {

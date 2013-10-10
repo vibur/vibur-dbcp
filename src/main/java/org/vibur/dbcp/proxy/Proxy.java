@@ -18,6 +18,7 @@ package org.vibur.dbcp.proxy;
 
 import org.vibur.dbcp.ConnState;
 import org.vibur.dbcp.ViburDBCPConfig;
+import org.vibur.dbcp.cache.StatementKey;
 import org.vibur.dbcp.cache.ValueHolder;
 import org.vibur.dbcp.proxy.listener.ExceptionListener;
 import org.vibur.objectpool.Holder;
@@ -26,6 +27,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.sql.*;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * @author Simeon Malchev
@@ -37,26 +39,30 @@ public class Proxy {
         return (Connection) newProxy(connectionCtor, handler);
     }
 
-    public static Statement newStatement(ValueHolder<Statement> statementHolder, Connection connectionProxy,
-                                         ViburDBCPConfig config, ExceptionListener exceptionListener) {
+    public static Statement newStatement(ValueHolder<Statement> statementHolder,
+                                         ConcurrentMap<StatementKey, ValueHolder<Statement>> statementCache,
+                                         Connection connectionProxy, ViburDBCPConfig config,
+                                         ExceptionListener exceptionListener) {
         InvocationHandler handler = new StatementInvocationHandler(
-            statementHolder, connectionProxy, config, exceptionListener);
+            statementHolder, statementCache,connectionProxy, config, exceptionListener);
         return (Statement) newProxy(statementCtor, handler);
     }
 
     public static PreparedStatement newPreparedStatement(ValueHolder<PreparedStatement> pStatementHolder,
+                                                         ConcurrentMap<StatementKey, ValueHolder<Statement>> statementCache,
                                                          Connection connectionProxy, ViburDBCPConfig config,
                                                          ExceptionListener exceptionListener) {
         InvocationHandler handler = new StatementInvocationHandler(
-            pStatementHolder, connectionProxy, config, exceptionListener);
+            pStatementHolder, statementCache,connectionProxy, config, exceptionListener);
         return (PreparedStatement) newProxy(pStatementCtor, handler);
     }
 
     public static CallableStatement newCallableStatement(ValueHolder<CallableStatement> cStatementHolder,
+                                                         ConcurrentMap<StatementKey, ValueHolder<Statement>> statementCache,
                                                          Connection connectionProxy, ViburDBCPConfig config,
                                                          ExceptionListener exceptionListener) {
         InvocationHandler handler = new StatementInvocationHandler(
-            cStatementHolder, connectionProxy, config, exceptionListener);
+            cStatementHolder, statementCache,connectionProxy, config, exceptionListener);
         return (CallableStatement) newProxy(cStatementCtor, handler);
     }
 
