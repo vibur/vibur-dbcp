@@ -1,3 +1,8 @@
+Version 0.8.1 (12/10/2013)
+==========================
+* Bugs fixes and refactoring.
+* Simple JDBC Statements are not longer cached.
+
 Version 0.8.0 (28/09/2013)
 ==========================
 * Removed TransactionListener.

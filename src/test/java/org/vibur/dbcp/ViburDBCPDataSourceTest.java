@@ -76,15 +76,7 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
             executeAndVerifySimpleSelectStatement(connection);
             executeAndVerifySimpleSelectStatement(connection);
 
-            InOrder inOrder = inOrder(mockedStatementCache);
-            inOrder.verify(mockedStatementCache).get(key1.capture());
-            inOrder.verify(mockedStatementCache).putIfAbsent(same(key1.getValue()), any(ValueHolder.class));
-            inOrder.verify(mockedStatementCache).get(key2.capture());
-
-            assertEquals(key1.getValue(), key2.getValue());
-            assertEquals("createStatement", key1.getValue().getMethod().getName());
-            ValueHolder<Statement> valueHolder = mockedStatementCache.get(key1.getValue());
-            assertFalse(valueHolder.inUse().get());
+            verifyZeroInteractions(mockedStatementCache);
         } finally {
             if (connection != null) connection.close();
         }
