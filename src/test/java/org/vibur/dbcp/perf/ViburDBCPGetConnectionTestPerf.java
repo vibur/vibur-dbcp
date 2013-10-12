@@ -32,7 +32,7 @@ public class ViburDBCPGetConnectionTestPerf {
     private static final int MAX_SIZE = 100;
     private static final int ITERATIONS = 50000;
     private static final int TIMEOUT = 5000;
-    private static final int THREADS_COUNT = 200;
+    private static final int THREADS_COUNT = 100;
     private static final boolean FAIR = true;
 
     public static void main(String[] args) {
