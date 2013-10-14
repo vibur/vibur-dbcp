@@ -1,4 +1,4 @@
-Version 0.8.1 (12/10/2013)
+Version 0.8.1 (15/10/2013)
 ==========================
 * Bugs fixes and refactoring.
 * Simple JDBC Statements are not longer cached.
