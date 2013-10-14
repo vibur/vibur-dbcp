@@ -16,11 +16,11 @@
 
 === Vibur DBCP ===
 
-The development of Vibur DBCP was originally inspired by the Spring Framework's JMS caching connection factory which is implemented
-using Java dynamic proxies. The main goal was to create a concurrent, standalone and fully-featured JDBC Connection pool,
-which is at the same time as simple as possible, has concise and easy to maintain source code, has as little as practical
-external dependencies, and follows the design principle of having a separate and dedicated
-[https://code.google.com/p/vibur-object-pool/ object pool].
+The development of Vibur DBCP was originally inspired by the Spring Framework's JMS caching connection factory which is
+implemented using Java dynamic proxies. The main goal was to create a concurrent, standalone and fully-featured JDBC
+Connection pool, which is at the same time as simple as possible, has [#Some_Code_Metrics concise] and easy to maintain
+source code, has as little as practical external dependencies, and follows the design principle of having a separate and
+dedicated [https://code.google.com/p/vibur-object-pool/ object pool].
 
   # [#Quick_Introduction Quick Introduction]
   # [#Some_Code_Metrics Some Code Metrics]
@@ -65,8 +65,8 @@ external dependencies, and follows the design principle of having a separate and
 
 === Some Code Metrics ===
 
-Here are some source code metrics for Vibur DBCP and Vibur Object Pool, excluding their testing directories
-and not accounting for the Apache License header which is at the top of each source file:
+The below source code metrics are not accounting for the projects' testing directories
+and for the Apache License header which is at the top of each source file:
 
 || *Project* || *Source Files* || *Lines of Code* ||
 || Vibur DBCP || 21 || 1990 ||
