@@ -18,7 +18,6 @@ package org.vibur.dbcp.perf;
 
 import org.vibur.dbcp.ViburDBCPDataSource;
 
-import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -28,12 +27,15 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class ViburDBCPGetConnectionTestPerf {
 
+    // pool metrics:
     private static final int INITIAL_SIZE = 10;
     private static final int MAX_SIZE = 100;
-    private static final int ITERATIONS = 50000;
-    private static final int TIMEOUT = 5000;
-    private static final int THREADS_COUNT = 100;
+    private static final long TIMEOUT_MS = 5000;
     private static final boolean FAIR = true;
+
+    private static final int ITERATIONS = 100;
+    private static final int THREADS_COUNT = 500;
+    private static final long DO_WORK_FOR_MS = 10;
 
     public static void main(String[] args) {
 
@@ -42,16 +44,17 @@ public class ViburDBCPGetConnectionTestPerf {
         // DataSource. Each getConnection() call has TIMEOUT in ms and the number of unsuccessful calls is recorded.
         // Measures and reports the total time taken by the test in ms.
 
-        final DataSource dataSource = createDataSource();
+        final ViburDBCPDataSource ds = createDataSource();
+        ds.start();
 
         long start = System.currentTimeMillis();
         final AtomicInteger unsuccessful = new AtomicInteger(0);
         Runnable r = new Runnable() {
             public void run() {
                 for (int i = 0; i < ITERATIONS; i++) {
-                    Connection connection;
                     try {
-                        connection = dataSource.getConnection();
+                        Connection connection = ds.getConnection();
+                        doWork(DO_WORK_FOR_MS);
                         connection.close();
                     } catch (SQLException e) {
                         unsuccessful.incrementAndGet();
@@ -76,12 +79,11 @@ public class ViburDBCPGetConnectionTestPerf {
         System.out.println(String.format("Total execution time %dms, unsuccessful takes %d",
             (System.currentTimeMillis() - start), unsuccessful.get()));
 
-        ((ViburDBCPDataSource) dataSource).terminate();
+        ds.terminate();
     }
 
-    private static DataSource createDataSource() {
+    private static ViburDBCPDataSource createDataSource() {
         ViburDBCPDataSource ds = new ViburDBCPDataSource();
-
         ds.setDriverClassName("org.hsqldb.jdbcDriver");
         ds.setJdbcUrl("jdbc:hsqldb:mem:sakila;shutdown=false");
         ds.setUsername("sa");
@@ -89,11 +91,18 @@ public class ViburDBCPGetConnectionTestPerf {
 
         ds.setPoolInitialSize(INITIAL_SIZE);
         ds.setPoolMaxSize(MAX_SIZE);
-        ds.setCreateConnectionTimeoutInMs(TIMEOUT);
+        ds.setCreateConnectionTimeoutInMs(TIMEOUT_MS);
         ds.setPoolFair(FAIR);
-
-        ds.start();
-
         return ds;
+    }
+
+    private static void doWork(long millis) {
+        if (millis <= 0)
+            return;
+
+        try {
+            Thread.sleep(millis);
+        } catch (InterruptedException ignored) {
+        }
     }
 }
