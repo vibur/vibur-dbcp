@@ -16,8 +16,6 @@
 
 package org.vibur.dbcp;
 
-import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap;
-import com.googlecode.concurrentlinkedhashmap.EvictionListener;
 import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.cache.StatementKey;
 import org.vibur.dbcp.cache.ValueHolder;
@@ -48,6 +46,8 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
+import static org.vibur.dbcp.cache.ClhmCacheProvider.buildStatementCache;
+import static org.vibur.dbcp.util.StatementUtils.closeStatement;
 import static org.vibur.dbcp.util.ViburUtils.NEW_LINE;
 import static org.vibur.dbcp.util.ViburUtils.getStackTraceAsString;
 
@@ -223,28 +223,6 @@ public class ViburDBCPDataSource extends ViburDBCPConfig
             statementCacheMaxSize = CACHE_MAX_SIZE;
         if (statementCacheMaxSize > 0)
             setStatementCache(buildStatementCache(statementCacheMaxSize));
-    }
-
-    private ConcurrentMap<StatementKey, ValueHolder<Statement>> buildStatementCache(int statementCacheMaxSize) {
-        EvictionListener<StatementKey, ValueHolder<Statement>> listener =
-            new EvictionListener<StatementKey, ValueHolder<Statement>>() {
-                public void onEviction(StatementKey key, ValueHolder<Statement> value) {
-                    closeStatement(value.value());
-                }
-            };
-        return new ConcurrentLinkedHashMap.Builder<StatementKey, ValueHolder<Statement>>()
-            .initialCapacity(statementCacheMaxSize)
-            .maximumWeightedCapacity(statementCacheMaxSize)
-            .listener(listener)
-            .build();
-    }
-
-    private void closeStatement(Statement statement) {
-        try {
-            statement.close();
-        } catch (SQLException e) {
-            logger.debug("Couldn't close cached statement " + statement);
-        }
     }
 
     /** {@inheritDoc} */

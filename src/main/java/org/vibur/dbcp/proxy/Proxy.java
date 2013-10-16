@@ -34,6 +34,8 @@ import java.util.concurrent.ConcurrentMap;
  */
 public class Proxy {
 
+    private Proxy() { }
+
     public static Connection newConnection(Holder<ConnState> hConnection, ViburDBCPConfig config) {
         InvocationHandler handler = new ConnectionInvocationHandler(hConnection, config);
         return (Connection) newProxy(connectionCtor, handler);

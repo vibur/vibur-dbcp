@@ -16,7 +16,10 @@
 
 package org.vibur.dbcp.util;
 
+import org.slf4j.LoggerFactory;
+
 import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Arrays;
 
@@ -25,7 +28,17 @@ import java.util.Arrays;
  */
 public class StatementUtils {
 
-    private StatementUtils() {}
+    private static final org.slf4j.Logger logger = LoggerFactory.getLogger(StatementUtils.class);
+
+    private StatementUtils() { }
+
+    public static void closeStatement(Statement statement) {
+        try {
+            statement.close();
+        } catch (SQLException e) {
+            logger.debug("Couldn't close cached statement " + statement);
+        }
+    }
 
     public static String toSQLString(Statement statementProxy, Object[] args) {
         if (statementProxy instanceof PreparedStatement)

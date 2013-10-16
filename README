@@ -16,10 +16,10 @@
 
 === Vibur DBCP ===
 
-The development of Vibur DBCP was originally inspired by the Spring Framework's JMS caching connection factory which is
-implemented using Java dynamic proxies. The main goal was to create a concurrent, standalone and fully-featured JDBC
-Connection pool, which is at the same time as simple as possible, has [#Some_Code_Metrics concise] and easy to maintain
-source code, has as little as practical external dependencies, and follows the design principle of having a separate and
+The development of Vibur DBCP was originally inspired by the Spring Framework's JMS caching connection factory which is 
+implemented using Java dynamic proxies. The main goal was to create a concurrent, standalone and fully-featured JDBC 
+Connection pool, which is at the same time as simple as possible, has concise and easy to maintain 
+source code, has as little as practical external dependencies, and follows the design principle of having a separate and 
 dedicated [https://code.google.com/p/vibur-object-pool/ object pool].
 
   # [#Quick_Introduction Quick Introduction]
@@ -69,7 +69,7 @@ The below source code metrics are not accounting for the projects' testing direc
 and for the Apache License header which is at the top of each source file:
 
 || *Project* || *Source Files* || *Lines of Code* ||
-|| Vibur DBCP || 21 || 1990 ||
+|| Vibur DBCP || 22 || 2017||
 || Vibur Object Pool || 11 || 1122 ||
 
 
@@ -79,7 +79,7 @@ and for the Apache License header which is at the top of each source file:
 ==== Maven dependency: ====
 
   * coming soon...
-
+  
 ==== Hibernate configuration example: ====
 
 {{{
@@ -123,7 +123,7 @@ and for the Apache License header which is at the top of each source file:
         <property name="jdbcUrl" value="jdbc:hsqldb:mem:sakila;shutdown=false"/>
         <property name="username" value="sa"/>
         <property name="password" value=""/>
-
+		        
         <property name="poolInitialSize">10</property>
         <property name="poolMaxSize">100</property>
 
@@ -132,19 +132,19 @@ and for the Apache License header which is at the top of each source file:
 
         <property name="logQueryExecutionLongerThanMs" value="500"/>
         <property name="logStackTraceForLongQueryExecution" value="true"/>
-
+		
         <property name="statementCacheMaxSize" value="200"/>
     </bean>
 
     <!-- Spring's session factory (Hibernate 3) and transaction manager beans definitions: -->
 
-    <bean id="baseSessionFactory" class="org.springframework.orm.hibernate3.annotation.AnnotationSessionFactoryBean"
+    <bean id="baseSessionFactory" class="org.springframework.orm.hibernate3.annotation.AnnotationSessionFactoryBean" 
             abstract="true" >
         <property name="dataSource" ref="dataSource"/>
         <property name="packagesToScan" value="the.project.packages"/>
     </bean>
 
-    <bean id="sessionFactory" class="org.springframework.orm.hibernate3.annotation.AnnotationSessionFactoryBean"
+    <bean id="sessionFactory" class="org.springframework.orm.hibernate3.annotation.AnnotationSessionFactoryBean" 
             parent="baseSessionFactory">
         <property name="hibernateProperties">
             <props>
@@ -201,10 +201,10 @@ and for the Apache License header which is at the top of each source file:
 
 === Latest Version & How to Build ===
 
-Vibur DBCP latest version is 0.8.1. Maven dependency example for it is shown [#Maven_dependency: above].
+Vibur DBCP latest version is 0.8.2. Maven dependency example for it is shown [#Maven_dependency: above].
 A read-only copy of the source code can be checked out via:
 
-  `svn checkout http://vibur-dbcp.googlecode.com/svn/tags/0.8.1 vibur-dbcp-0.8.1`
+  `svn checkout http://vibur-dbcp.googlecode.com/svn/tags/0.8.2 vibur-dbcp-0.8.2`
 
 Vibur DBCP uses an in-memory HyperSQL database for unit/integration testing purposes, and building it is simply a matter of executing:
 
@@ -267,15 +267,15 @@ Vibur DBCP uses an in-memory HyperSQL database for unit/integration testing purp
 <br/>
 ===Development Team===
 
-Vibur DBCP is designed, developed and provided to you by Simeon Malchev (firstname.lastname at gmail.com).
-If you need to report any bugs or issues, or if you just wish to provide some general feedback, please use the
+Vibur DBCP is designed, developed and provided to you by Simeon Malchev (firstname.lastname at gmail.com). 
+If you need to report any issues, to request features, or if you just wish to provide some general feedback, please use the 
 project's issues tracking [https://code.google.com/p/vibur-dbcp/issues/list system] or the author's email.
 
 
 === Acknowledgements ===
 
-I would like to thank all my friends and colleagues who reviewed the original project documentation and source code.
+I would like to thank all my friends and colleagues who reviewed the original project documentation and source code. 
 Your encouragement and feedback helped me to bring the project to its current state.
 
-Vibur DBCP was developed from scratch, however while working on it the author has often looked at the documentation
+Vibur DBCP was developed from scratch, however while working on it the author has often looked at the documentation 
 and/or source code of projects such as Spring Framework, BoneCP, Tomcat JDBC Connection Pool, between others.
