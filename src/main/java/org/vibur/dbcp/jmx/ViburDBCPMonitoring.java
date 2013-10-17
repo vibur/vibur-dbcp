@@ -137,20 +137,20 @@ public class ViburDBCPMonitoring implements ViburDBCPMonitoringMBean {
         return viburDBCPConfig.getStatementCacheMaxSize();
     }
 
-    public long getLogCreateConnectionLongerThanMs() {
-        return viburDBCPConfig.getLogCreateConnectionLongerThanMs();
+    public long getLogConnectionLongerThanMs() {
+        return viburDBCPConfig.getLogConnectionLongerThanMs();
     }
 
-    public void setLogCreateConnectionLongerThanMs(long logCreateConnectionLongerThanMs) {
-        viburDBCPConfig.setLogCreateConnectionLongerThanMs(logCreateConnectionLongerThanMs);
+    public void setLogConnectionLongerThanMs(long logConnectionLongerThanMs) {
+        viburDBCPConfig.setLogConnectionLongerThanMs(logConnectionLongerThanMs);
     }
 
-    public boolean isLogStackTraceForLongCreateConnection() {
-        return viburDBCPConfig.isLogStackTraceForLongCreateConnection();
+    public boolean isLogStackTraceForLongConnection() {
+        return viburDBCPConfig.isLogStackTraceForLongConnection();
     }
 
-    public void setLogStackTraceForLongCreateConnection(boolean logStackTraceForLongCreateConnection) {
-        viburDBCPConfig.setLogStackTraceForLongCreateConnection(logStackTraceForLongCreateConnection);
+    public void setLogStackTraceForLongConnection(boolean logStackTraceForLongConnection) {
+        viburDBCPConfig.setLogStackTraceForLongConnection(logStackTraceForLongConnection);
     }
 
     public long getLogQueryExecutionLongerThanMs() {
