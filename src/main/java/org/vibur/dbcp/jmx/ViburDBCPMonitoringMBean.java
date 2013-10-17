@@ -50,9 +50,9 @@ public interface ViburDBCPMonitoringMBean {
     float getReducerSamples();
 
 
-    long getCreateConnectionTimeoutInMs();
+    long getConnectionTimeoutInMs();
 
-    void setCreateConnectionTimeoutInMs(long createConnectionTimeoutInMs);
+    void setConnectionTimeoutInMs(long connectionTimeoutInMs);
 
     long getAcquireRetryDelayInMs();
 

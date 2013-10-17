@@ -91,7 +91,7 @@ public class ViburDBCPGetConnectionTestPerf {
 
         ds.setPoolInitialSize(INITIAL_SIZE);
         ds.setPoolMaxSize(MAX_SIZE);
-        ds.setCreateConnectionTimeoutInMs(TIMEOUT_MS);
+        ds.setConnectionTimeoutInMs(TIMEOUT_MS);
         ds.setPoolFair(FAIR);
         return ds;
     }

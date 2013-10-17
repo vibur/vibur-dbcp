@@ -235,7 +235,7 @@ Vibur DBCP uses an in-memory HyperSQL database for unit/integration testing purp
 
 ==== Database connection timeout and retries settings: ====
 || *Attribute* || *Description* || *Default value* ||
-|| `createConnectionTimeoutInMs` || Time to wait before a call to getConnection() times out and returns an error. `0` means wait forever. || `60000` ||
+|| `connectionTimeoutInMs` || Time to wait before a call to getConnection() times out and returns an error. `0` means wait forever. || `60000` ||
 || `acquireRetryDelayInMs` || After attempting to acquire a JDBC Connection and failing with an `SQLException`, wait for this long time before attempting to acquire a new JDBC Connection again. || `1000` ||
 || `acquireRetryAttempt` || After attempting to acquire a JDBC Connection and failing with an `SQLException`, try to connect these many times before giving up. || `3` ||
 

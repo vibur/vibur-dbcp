@@ -73,7 +73,7 @@ public class ViburDBCPConfig {
 
     /** Time to wait before a call to getConnection() times out and returns an error.
      * {@code 0} means forever. */
-    private long createConnectionTimeoutInMs = 30000;
+    private long connectionTimeoutInMs = 30000;
     /** After attempting to acquire a JDBC Connection and failing with an {@code SQLException},
      * wait for this long time before attempting to acquire a new JDBC Connection again. */
     private long acquireRetryDelayInMs = 1000;
@@ -224,12 +224,12 @@ public class ViburDBCPConfig {
         this.reducerSamples = reducerSamples;
     }
 
-    public long getCreateConnectionTimeoutInMs() {
-        return createConnectionTimeoutInMs;
+    public long getConnectionTimeoutInMs() {
+        return connectionTimeoutInMs;
     }
 
-    public void setCreateConnectionTimeoutInMs(long createConnectionTimeoutInMs) {
-        this.createConnectionTimeoutInMs = createConnectionTimeoutInMs;
+    public void setConnectionTimeoutInMs(long connectionTimeoutInMs) {
+        this.connectionTimeoutInMs = connectionTimeoutInMs;
     }
 
     public long getAcquireRetryDelayInMs() {

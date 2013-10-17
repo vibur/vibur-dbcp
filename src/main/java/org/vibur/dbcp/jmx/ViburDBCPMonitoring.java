@@ -109,12 +109,12 @@ public class ViburDBCPMonitoring implements ViburDBCPMonitoringMBean {
         return viburDBCPConfig.getReducerSamples();
     }
 
-    public long getCreateConnectionTimeoutInMs() {
-        return viburDBCPConfig.getCreateConnectionTimeoutInMs();
+    public long getConnectionTimeoutInMs() {
+        return viburDBCPConfig.getConnectionTimeoutInMs();
     }
 
-    public void setCreateConnectionTimeoutInMs(long createConnectionTimeoutInMs) {
-        viburDBCPConfig.setCreateConnectionTimeoutInMs(createConnectionTimeoutInMs);
+    public void setConnectionTimeoutInMs(long connectionTimeoutInMs) {
+        viburDBCPConfig.setConnectionTimeoutInMs(connectionTimeoutInMs);
     }
 
     public long getAcquireRetryDelayInMs() {
