@@ -66,13 +66,13 @@ public interface ViburDBCPMonitoringMBean {
     int getStatementCacheMaxSize();
 
 
-    long getLogCreateConnectionLongerThanMs();
+    long getLogConnectionLongerThanMs();
 
-    void setLogCreateConnectionLongerThanMs(long logCreateConnectionLongerThanMs);
+    void setLogConnectionLongerThanMs(long logConnectionLongerThanMs);
 
-    boolean isLogStackTraceForLongCreateConnection();
+    boolean isLogStackTraceForLongConnection();
 
-    void setLogStackTraceForLongCreateConnection(boolean logStackTraceForLongCreateConnection);
+    void setLogStackTraceForLongConnection(boolean logStackTraceForLongConnection);
 
     long getLogQueryExecutionLongerThanMs();
 

@@ -245,8 +245,8 @@ Vibur DBCP uses an in-memory HyperSQL database for unit/integration testing purp
 
 ==== Database connections and SQL queries logging settings ====
 || *Attribute* || *Description* || *Default value* ||
-|| `logCreateConnectionLongerThanMs` || `getConnection` method calls taking longer than or equal to this time limit are logged at WARN level. A value of `0` will log all such calls. A `negative number` disables it. || `3000` ||
-|| `logStackTraceForLongCreateConnection` || Will apply only if `logCreateConnectionLongerThanMs` is enabled, and if set to `true`, will log at WARN level the current `getConnection` call stack trace plus the time taken. || `false` ||
+|| `logConnectionLongerThanMs` || `getConnection` method calls taking longer than or equal to this time limit are logged at WARN level. A value of `0` will log all such calls. A `negative number` disables it. || `3000` ||
+|| `logStackTraceForLongConnection` || Will apply only if `logConnectionLongerThanMs` is enabled, and if set to `true`, will log at WARN level the current `getConnection` call stack trace plus the time taken. || `false` ||
 || `logQueryExecutionLongerThanMs` || The underlying SQL queries from JDBC Statements `execute...` calls taking longer than or equal to this time limit are logged at WARN level. A value of `0` will log all such calls. A `negative number` disables it. <p><b>Note</b> that while a JDBC Statement `execute...` call duration is roughly equivalent to the execution time of the underlying SQL query, the overall call duration may also include some Java GC time, JDBC driver specific execution time, and context switching time (the last particularly in the case of a heavily multithreaded application). || `3000` ||
 || `logStackTraceForLongQueryExecution` || Will apply only if `logQueryExecutionLongerThanMs` is enabled, and if set to `true`, will log at WARN level the current JDBC Statement `execute...` call stack trace plus the underlying SQL query and the time taken. || `false` ||
 

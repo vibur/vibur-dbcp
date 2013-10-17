@@ -290,7 +290,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig
     }
 
     private Connection getConnection(long timeout) throws SQLException {
-        boolean shouldLog = getLogCreateConnectionLongerThanMs() >= 0;
+        boolean shouldLog = getLogConnectionLongerThanMs() >= 0;
         long startTime = shouldLog ? System.currentTimeMillis() : 0L;
 
         try {
@@ -311,10 +311,10 @@ public class ViburDBCPDataSource extends ViburDBCPConfig
 
     private void logGetConnection(long timeout, long startTime) {
         long timeTaken = System.currentTimeMillis() - startTime;
-        if (timeTaken >= getLogCreateConnectionLongerThanMs()) {
+        if (timeTaken >= getLogConnectionLongerThanMs()) {
             StringBuilder log = new StringBuilder(String.format("Call to \"getConnection(%d)\" took %dms",
                 timeout, timeTaken));
-            if (isLogStackTraceForLongCreateConnection())
+            if (isLogStackTraceForLongConnection())
                 log.append(NEW_LINE).append(getStackTraceAsString(new Throwable().getStackTrace()));
             logger.warn(log.toString());
         }

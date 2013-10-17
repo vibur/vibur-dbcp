@@ -92,10 +92,10 @@ public class ViburDBCPConfig {
 
     /** {@code getConnection} method calls taking longer than or equal to this time limit are logged at WARN level.
      * A value of {@code 0} will log all such calls. A {@code negative number} disables it. */
-    private long logCreateConnectionLongerThanMs = 3000;
-    /** Will apply only if {@link #logCreateConnectionLongerThanMs} is enabled, and if set to {@code true},
+    private long logConnectionLongerThanMs = 3000;
+    /** Will apply only if {@link #logConnectionLongerThanMs} is enabled, and if set to {@code true},
      * will log at WARN level the current {@code getConnection} call stack trace plus the time taken. */
-    private boolean logStackTraceForLongCreateConnection = false;
+    private boolean logStackTraceForLongConnection = false;
     /** JDBC Statement {@code execute...} calls taking longer than or equal to this time limit are logged at
      * WARN level. A value of {@code 0} will log all such calls. A {@code negative number} disables it.
      *
@@ -272,20 +272,20 @@ public class ViburDBCPConfig {
         this.connectionPool = connectionPool;
     }
 
-    public long getLogCreateConnectionLongerThanMs() {
-        return logCreateConnectionLongerThanMs;
+    public long getLogConnectionLongerThanMs() {
+        return logConnectionLongerThanMs;
     }
 
-    public void setLogCreateConnectionLongerThanMs(long logCreateConnectionLongerThanMs) {
-        this.logCreateConnectionLongerThanMs = logCreateConnectionLongerThanMs;
+    public void setLogConnectionLongerThanMs(long logConnectionLongerThanMs) {
+        this.logConnectionLongerThanMs = logConnectionLongerThanMs;
     }
 
-    public boolean isLogStackTraceForLongCreateConnection() {
-        return logStackTraceForLongCreateConnection;
+    public boolean isLogStackTraceForLongConnection() {
+        return logStackTraceForLongConnection;
     }
 
-    public void setLogStackTraceForLongCreateConnection(boolean logStackTraceForLongCreateConnection) {
-        this.logStackTraceForLongCreateConnection = logStackTraceForLongCreateConnection;
+    public void setLogStackTraceForLongConnection(boolean logStackTraceForLongConnection) {
+        this.logStackTraceForLongConnection = logStackTraceForLongConnection;
     }
 
     public long getLogQueryExecutionLongerThanMs() {

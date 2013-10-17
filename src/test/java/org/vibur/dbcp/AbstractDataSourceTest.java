@@ -62,7 +62,7 @@ public abstract class AbstractDataSourceTest {
         dataSource.setConnectionIdleLimitInSeconds(120);
 
         dataSource.setLogQueryExecutionLongerThanMs(0);
-        dataSource.setLogCreateConnectionLongerThanMs(0);
+        dataSource.setLogConnectionLongerThanMs(0);
 
         dataSource.start();
 
