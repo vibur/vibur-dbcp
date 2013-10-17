@@ -249,7 +249,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig
     private void validateConfig() {
         if (getDriverClassName() == null) throw new IllegalArgumentException();
         if (getJdbcUrl() == null) throw new IllegalArgumentException();
-        if (getCreateConnectionTimeoutInMs() < 0) throw new IllegalArgumentException();
+        if (getConnectionTimeoutInMs() < 0) throw new IllegalArgumentException();
         if (getAcquireRetryDelayInMs() < 0) throw new IllegalArgumentException();
         if (getAcquireRetryAttempts() < 0) throw new IllegalArgumentException();
         if (getStatementCacheMaxSize() < 0) throw new IllegalArgumentException();
@@ -280,7 +280,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig
 
     /** {@inheritDoc} */
     public Connection getConnection() throws SQLException {
-        return getConnection(getCreateConnectionTimeoutInMs());
+        return getConnection(getConnectionTimeoutInMs());
     }
 
     /** {@inheritDoc} */
@@ -332,12 +332,12 @@ public class ViburDBCPDataSource extends ViburDBCPConfig
 
     /** {@inheritDoc} */
     public void setLoginTimeout(int seconds) throws SQLException {
-        setCreateConnectionTimeoutInMs(seconds * 1000);
+        setConnectionTimeoutInMs(seconds * 1000);
     }
 
     /** {@inheritDoc} */
     public int getLoginTimeout() throws SQLException {
-        return (int) getCreateConnectionTimeoutInMs() / 1000;
+        return (int) getConnectionTimeoutInMs() / 1000;
     }
 
     /** {@inheritDoc} */
