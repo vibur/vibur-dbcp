@@ -45,7 +45,7 @@
     <scm>
         <connection>scm:svn:http://vibur-dbcp.googlecode.com/svn/trunk/</connection>
         <developerConnection>scm:svn:https://vibur-dbcp.googlecode.com/svn/trunk/</developerConnection>
-        <url>http://code.google.com/p/vibur-dbcp/</url>
+        <url>http://vibur-dbcp.googlecode.com/svn/trunk/</url>
     </scm>
 
     <developers>
