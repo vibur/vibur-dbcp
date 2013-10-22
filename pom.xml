@@ -45,7 +45,7 @@
     <scm>
         <connection>scm:svn:http://vibur-dbcp.googlecode.com/svn/tags/0.8.2</connection>
         <developerConnection>scm:svn:https://vibur-dbcp.googlecode.com/svn/tags/0.8.2</developerConnection>
-        <url>http://code.google.com/p/vibur-dbcp/tags/0.8.2</url>
+        <url>http://vibur-dbcp.googlecode.com/svn/tags/0.8.2</url>
     </scm>
 
     <developers>
