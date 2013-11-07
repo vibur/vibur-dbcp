@@ -40,7 +40,7 @@ public class ViburDBCPGetConnectionTestPerf {
     public static void main(String[] args) {
 
         // Creates a DataSource with INITIAL_SIZE and MAX_SIZE, and starts THREADS_COUNT threads where each thread
-        // executes ITERATIONS times getConnection() and then immediately close() operation on an object from the
+        // calls ITERATIONS times getConnection() and after TIMEOUT_MS close() operation on an object from the
         // DataSource. Each getConnection() call has TIMEOUT in ms and the number of unsuccessful calls is recorded.
         // Measures and reports the total time taken by the test in ms.
 
