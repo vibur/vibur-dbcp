@@ -27,29 +27,22 @@ import static org.junit.Assert.*;
 /**
  * @author Simeon Malchev
  */
-public class ConnectionProxyTest extends AbstractDataSourceTest {
+public class StatementProxyTest extends AbstractDataSourceTest {
 
     @Test
-    public void testSameConnection() throws SQLException, IOException {
+    public void testSameStatement() throws SQLException, IOException {
         DataSource ds = createDataSourceNoStatementsCache();
         Connection connection = null;
         Statement statement = null;
-        PreparedStatement pStatement = null;
-        CallableStatement cStatement = null;
+        ResultSet resultSet = null;
         try {
             connection = ds.getConnection();
             statement = connection.createStatement();
-            pStatement = connection.prepareStatement("select count(*) from actor");
-            cStatement = connection.prepareCall("select count(*) from actor");
-            DatabaseMetaData metaData = connection.getMetaData();
+            resultSet = statement.executeQuery("select * from actor where first_name = 'CHRISTIAN'");
 
-            assertSame(connection, statement.getConnection());
-            assertSame(connection, pStatement.getConnection());
-            assertSame(connection, cStatement.getConnection());
-            assertSame(connection, metaData.getConnection());
+            assertSame(statement, resultSet.getStatement());
         } finally {
-            if (cStatement != null) cStatement.close();
-            if (pStatement != null) pStatement.close();
+            if (resultSet != null) resultSet.close();
             if (statement != null) statement.close();
             if (connection != null) connection.close();
         }
