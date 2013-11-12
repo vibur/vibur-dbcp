@@ -20,6 +20,7 @@ import org.vibur.dbcp.ViburDBCPDataSource;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -30,56 +31,87 @@ public class ViburDBCPGetConnectionTestPerf {
     // pool metrics:
     private static final int INITIAL_SIZE = 50;
     private static final int MAX_SIZE = 200;
-    private static final long TIMEOUT_MS = 5000;
+    private static final long TIMEOUT_MS = 500;
     private static final boolean FAIR = true;
 
+    // threads metrics:
     private static final int ITERATIONS = 100;
     private static final int THREADS_COUNT = 500;
     private static final long DO_WORK_FOR_MS = 10;
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
 
         // Creates a DataSource with INITIAL_SIZE and MAX_SIZE, and starts THREADS_COUNT threads where each thread
         // calls ITERATIONS times getConnection() and then after TIMEOUT_MS close() method on an object from the
-        // DataSource. Each getConnection() call has TIMEOUT in ms and the number of unsuccessful calls is recorded.
+        // DataSource. Each getConnection() call has TIMEOUT in ms and the number of errors calls is recorded.
         // Measures and reports the total time taken by the test in ms.
 
-        final ViburDBCPDataSource ds = createDataSource();
+        ViburDBCPDataSource ds = createDataSource();
         ds.start();
 
+        AtomicInteger errors = new AtomicInteger(0);
+
+        CountDownLatch startSignal = new CountDownLatch(1);
+        CountDownLatch readySignal = new CountDownLatch(THREADS_COUNT);
+        CountDownLatch doneSignal = new CountDownLatch(THREADS_COUNT);
+
+        Worker w = new Worker(ds, errors, DO_WORK_FOR_MS, readySignal, startSignal, doneSignal);
+
+        for (int i = 0; i < THREADS_COUNT; i++) {
+            Thread thread = new Thread(w);
+            thread.start();
+        }
+
+        readySignal.await();
         long start = System.currentTimeMillis();
-        final AtomicInteger unsuccessful = new AtomicInteger(0);
-        Runnable r = new Runnable() {
-            public void run() {
+        startSignal.countDown();
+        doneSignal.await();
+
+        System.out.println(String.format("Total execution time %dms, errors %d",
+            (System.currentTimeMillis() - start), errors.get()));
+
+        ds.terminate();
+    }
+
+    private static class Worker implements Runnable {
+        private final ViburDBCPDataSource ds;
+        private final AtomicInteger errors;
+        private final long millis;
+
+        private final CountDownLatch readySignal;
+        private final CountDownLatch startSignal;
+        private final CountDownLatch doneSignal;
+
+        private Worker(ViburDBCPDataSource ds, AtomicInteger errors, long millis,
+                       CountDownLatch readySignal, CountDownLatch startSignal, CountDownLatch doneSignal) {
+            this.ds = ds;
+            this.errors = errors;
+            this.millis = millis;
+            this.startSignal = startSignal;
+            this.readySignal = readySignal;
+            this.doneSignal = doneSignal;
+        }
+
+        public void run() {
+            try {
+                readySignal.countDown();
+                startSignal.await();
+
                 for (int i = 0; i < ITERATIONS; i++) {
                     try {
                         Connection connection = ds.getConnection();
-                        doWork(DO_WORK_FOR_MS);
+                        doWork(millis);
                         connection.close();
                     } catch (SQLException e) {
-                        unsuccessful.incrementAndGet();
+                        errors.incrementAndGet();
                     }
                 }
-            }
-        };
 
-        int threadsCount = THREADS_COUNT;
-        Thread[] threads = new Thread[threadsCount];
-        for (int i = 0; i < threadsCount; i++) {
-            threads[i] = new Thread(r);
-            threads[i].start();
-        }
-        for (int i = 0; i < threadsCount; i++) {
-            try {
-                threads[i].join();
+                doneSignal.countDown();
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                errors.incrementAndGet();
             }
         }
-        System.out.println(String.format("Total execution time %dms, unsuccessful takes %d",
-            (System.currentTimeMillis() - start), unsuccessful.get()));
-
-        ds.terminate();
     }
 
     private static ViburDBCPDataSource createDataSource() {
