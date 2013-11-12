@@ -29,6 +29,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Iterator;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.vibur.dbcp.util.StatementUtils.toSQLString;
 import static org.vibur.dbcp.util.ViburUtils.NEW_LINE;
@@ -44,7 +45,7 @@ public class StatementInvocationHandler extends ConnectionChildInvocationHandler
     private final ValueHolder<? extends Statement> statementHolder;
     private final ViburDBCPConfig config;
 
-    private volatile boolean logicallyClosed = false;
+    private final AtomicBoolean logicallyClosed = new AtomicBoolean(false);
 
     private final ConcurrentMap<StatementKey, ValueHolder<Statement>> statementCache;
 
@@ -66,10 +67,10 @@ public class StatementInvocationHandler extends ConnectionChildInvocationHandler
         if (methodName.equals("close"))
             return processClose(method, args);
         if (methodName.equals("isClosed"))
-            return logicallyClosed;
+            return logicallyClosed.get();
 
         // All other Statement interface methods cannot work if the JDBC Statement is closed:
-        if (logicallyClosed)
+        if (logicallyClosed.get())
             throw new SQLException(getTarget().getClass().getName() + " is closed.");
 
         if (methodName.equals("cancel"))
@@ -81,7 +82,8 @@ public class StatementInvocationHandler extends ConnectionChildInvocationHandler
     }
 
     private Object processClose(Method method, Object[] args) throws Throwable {
-        logicallyClosed = true;
+        if (logicallyClosed.getAndSet(true))
+            return null;
         if (statementCache != null && statementHolder.inUse() != null) { // this statementHolder is in the cache
             statementHolder.inUse().set(false); // we just mark it as available
             return null; // and we don't pass the call to the underlying close method

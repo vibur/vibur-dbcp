@@ -194,16 +194,17 @@ public class ViburDBCPMonitoring implements ViburDBCPMonitoringMBean {
             return null;
 
         List<Holder<ConnState>> holders = viburDBCPConfig.getConnectionPool().takenHolders();
-        Collections.sort(holders, new Comparator<Holder<ConnState>>() { // sort oldest on top
+        Collections.sort(holders, new Comparator<Holder<ConnState>>() { // sort newest on top
             public int compare(Holder<ConnState> h1, Holder<ConnState> h2) {
-                long diff = h1.getTime() - h2.getTime();
+                long diff = h2.getTime() - h1.getTime();
                 return diff < 0 ? -1 : diff > 0 ? 1 : 0;
             }
         });
 
         StringBuilder builder = new StringBuilder(4096);
         for (Holder<ConnState> holder : holders) {
-            builder.append("time taken: ").append(new Date(holder.getTime()))
+            builder.append(holder.value())
+                .append(", taken at: ").append(new Date(holder.getTime()))
                 .append(", millis = ").append(holder.getTime()).append(NEW_LINE)
                 .append(getStackTraceAsString(holder.getStackTrace())).append(NEW_LINE);
         }

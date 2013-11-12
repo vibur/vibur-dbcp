@@ -47,7 +47,7 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
     private final ViburDBCPConfig config;
     private final ConcurrentMap<StatementKey, ValueHolder<Statement>> statementCache;
 
-    private volatile boolean logicallyClosed = false;
+    private final AtomicBoolean logicallyClosed = new AtomicBoolean(false);
 
     public ConnectionInvocationHandler(Holder<ConnState> hConnection, ViburDBCPConfig config) {
         super(hConnection.value().connection(), new ExceptionListenerImpl());
@@ -67,11 +67,13 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
         if (isMethodNameClose || methodName.equals("abort"))
             return processCloseOrAbort(isMethodNameClose, method, args);
 
+        if (methodName.equals("isValid"))
+            return targetInvoke(method, args);
         if (methodName.equals("isClosed"))
-            return logicallyClosed;
+            return logicallyClosed.get();
 
         // All other Connection interface methods cannot work if the JDBC Connection is closed:
-        if (logicallyClosed)
+        if (logicallyClosed.get())
             throw new SQLException(getTarget().getClass().getName() + " is closed.");
 
         // Methods which results have to be proxied so that when getConnection() is called
@@ -132,7 +134,8 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
     }
 
     private Object processCloseOrAbort(boolean isClose, Method method, Object[] args) throws Throwable {
-        logicallyClosed = true;
+        if (logicallyClosed.getAndSet(true))
+            return null;
         try {
             return isClose ? null : targetInvoke(method, args); // close() is not passed, abort() is passed
         } finally {

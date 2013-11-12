@@ -306,6 +306,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig
             getConnectionPool().take() : getConnectionPool().tryTake(timeout, TimeUnit.MILLISECONDS);
         if (hConnection == null)
             throw new SQLException("Couldn't obtain SQL connection.");
+        logger.trace("Getting ", hConnection.value());
         return Proxy.newConnection(hConnection, this);
     }
 

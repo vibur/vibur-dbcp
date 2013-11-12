@@ -80,7 +80,7 @@ public class ConnectionObjectFactory implements PoolObjectFactory<ConnState> {
         }
 
         setDefaultValues(connection);
-        logger.debug("Created " + connection);
+        logger.trace("Created ", connection);
         return new ConnState(connection, System.currentTimeMillis());
     }
 
@@ -142,7 +142,7 @@ public class ConnectionObjectFactory implements PoolObjectFactory<ConnState> {
     /** {@inheritDoc} */
     public void destroy(ConnState connState) {
         Connection connection = connState.connection();
-        logger.debug("Destroying " + connection);
+        logger.trace("Destroying ", connection);
         try {
             destroyListener.onDestroy(connection);
             connection.close();
