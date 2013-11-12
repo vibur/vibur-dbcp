@@ -28,8 +28,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class ViburDBCPGetConnectionTestPerf {
 
     // pool metrics:
-    private static final int INITIAL_SIZE = 10;
-    private static final int MAX_SIZE = 100;
+    private static final int INITIAL_SIZE = 50;
+    private static final int MAX_SIZE = 200;
     private static final long TIMEOUT_MS = 5000;
     private static final boolean FAIR = true;
 

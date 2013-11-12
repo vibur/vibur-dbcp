@@ -20,29 +20,30 @@ import org.vibur.dbcp.proxy.listener.ExceptionListener;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
-import java.sql.Connection;
 
 /**
  * @author Simeon Malchev
  */
-public class ConnectionChildInvocationHandler<T> extends AbstractInvocationHandler<T>
+public class ChildObjectInvocationHandler<P, T> extends AbstractInvocationHandler<T>
     implements InvocationHandler {
 
-    private final Connection connectionProxy;
+    private final P parentProxy;
+    private final String getParentMethod;
 
-    public ConnectionChildInvocationHandler(T connectionChild, Connection connectionProxy,
-                                            ExceptionListener exceptionListener) {
+    public ChildObjectInvocationHandler(T connectionChild, P parentProxy, String getParentMethod,
+                                        ExceptionListener exceptionListener) {
         super(connectionChild, exceptionListener);
-        if (connectionProxy == null)
+        if (parentProxy == null || getParentMethod == null)
             throw new NullPointerException();
-        this.connectionProxy = connectionProxy;
+        this.parentProxy = parentProxy;
+        this.getParentMethod = getParentMethod;
     }
 
     protected Object customInvoke(T proxy, Method method, Object[] args) throws Throwable {
         String methodName = method.getName();
 
-        if (methodName.equals("getConnection"))
-            return connectionProxy;
+        if (methodName.equals(getParentMethod))
+            return parentProxy;
 
         return super.customInvoke(proxy, method, args);
     }

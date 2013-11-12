@@ -70,9 +70,16 @@ public class Proxy {
 
     public static DatabaseMetaData newDatabaseMetaData(DatabaseMetaData metaData, Connection connectionProxy,
                                                        ExceptionListener exceptionListener) {
-        InvocationHandler handler = new ConnectionChildInvocationHandler<DatabaseMetaData>(
-            metaData, connectionProxy, exceptionListener);
+        InvocationHandler handler = new ChildObjectInvocationHandler<Connection, DatabaseMetaData>(
+            metaData, connectionProxy, "getConnection", exceptionListener);
         return (DatabaseMetaData) newProxy(metadataCtor, handler);
+    }
+
+    public static ResultSet newResultSet(ResultSet resultSet, Statement statementProxy,
+                                         ExceptionListener exceptionListener) {
+        InvocationHandler handler = new ChildObjectInvocationHandler<Statement, ResultSet>(
+            resultSet, statementProxy, "getStatement", exceptionListener);
+        return (ResultSet) newProxy(resultSetCtor, handler);
     }
 
     private static Object newProxy(Constructor<?> proxyCtor, InvocationHandler invocationHandler) {
@@ -94,6 +101,7 @@ public class Proxy {
     private static final Constructor<?> pStatementCtor;
     private static final Constructor<?> cStatementCtor;
     private static final Constructor<?> metadataCtor;
+    private static final Constructor<?> resultSetCtor;
 
     private static ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
     // static initializer for all constructors:
@@ -109,6 +117,8 @@ public class Proxy {
                 CallableStatement.class).getConstructor(InvocationHandler.class);
             metadataCtor = java.lang.reflect.Proxy.getProxyClass(classLoader,
                 DatabaseMetaData.class).getConstructor(InvocationHandler.class);
+            resultSetCtor = java.lang.reflect.Proxy.getProxyClass(classLoader,
+                ResultSet.class).getConstructor(InvocationHandler.class);
         } catch (NoSuchMethodException e) {
             throw new InternalError(e.toString());
         }

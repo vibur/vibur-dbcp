@@ -77,7 +77,7 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
             throw new SQLException(getTarget().getClass().getName() + " is closed.");
 
         // Methods which results have to be proxied so that when getConnection() is called
-        // on them the return value to be current JDBC Connection proxy.
+        // on their results the return value to be current JDBC Connection proxy.
         if (methodName.equals("createStatement")) { // *3
             ValueHolder<Statement> statementHolder =
                 (ValueHolder<Statement>) getUncachedStatementHolder(method, args);

@@ -25,6 +25,7 @@ import org.vibur.dbcp.proxy.listener.ExceptionListener;
 
 import java.lang.reflect.Method;
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Iterator;
@@ -38,7 +39,7 @@ import static org.vibur.dbcp.util.ViburUtils.getStackTraceAsString;
 /**
  * @author Simeon Malchev
  */
-public class StatementInvocationHandler extends ConnectionChildInvocationHandler<Statement> {
+public class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection, Statement> {
 
     private static final Logger logger = LoggerFactory.getLogger(StatementInvocationHandler.class);
 
@@ -53,7 +54,7 @@ public class StatementInvocationHandler extends ConnectionChildInvocationHandler
                                       ConcurrentMap<StatementKey, ValueHolder<Statement>> statementCache,
                                       Connection connectionProxy, ViburDBCPConfig config,
                                       ExceptionListener exceptionListener) {
-        super(statementHolder.value(), connectionProxy, exceptionListener);
+        super(statementHolder.value(), connectionProxy, "getConnection", exceptionListener);
         if (config == null)
             throw new NullPointerException();
         this.statementHolder = statementHolder;
@@ -76,7 +77,12 @@ public class StatementInvocationHandler extends ConnectionChildInvocationHandler
         if (methodName.equals("cancel"))
             return processCancel(method, args);
         if (methodName.startsWith("execute")) // this intercepts all "execute..." JDBC Statements methods
-            return processExecute(method, args);
+            return processExecute(proxy, method, args);
+
+        // Methods which results have to be proxied so that when getStatement() is called
+        // on their results the return value to be current JDBC Statement proxy.
+        if (methodName.equals("getResultSet") || methodName.equals("getGeneratedKeys")) // *2
+            return newResultSet(proxy, method, args);
 
         return super.customInvoke(proxy, method, args);
     }
@@ -105,12 +111,20 @@ public class StatementInvocationHandler extends ConnectionChildInvocationHandler
         return targetInvoke(method, args);
     }
 
-    private Object processExecute(Method method, Object[] args) throws Throwable {
+    /**
+     * Mainly exists to provide Statement.execute... methods timing logging.
+     */
+    private Object processExecute(Statement proxy, Method method, Object[] args) throws Throwable {
         boolean shouldLog = config.getLogQueryExecutionLongerThanMs() >= 0;
         long startTime = shouldLog ? System.currentTimeMillis() : 0L;
 
         try {
-            return targetInvoke(method, args); // the real "execute..." call
+            // executeQuery result has to be proxied so that when getStatement() is called
+            // on its result the return value to be current JDBC Statement proxy.
+            if (method.getName().equals("executeQuery")) // *1
+                return newResultSet(proxy, method, args);
+            else
+                return targetInvoke(method, args); // the real "execute..." call
         } finally {
             if (shouldLog)
                 logQuery(args, startTime);
@@ -126,5 +140,10 @@ public class StatementInvocationHandler extends ConnectionChildInvocationHandler
                 log.append(NEW_LINE).append(getStackTraceAsString(new Throwable().getStackTrace()));
             logger.warn(log.toString());
         }
+    }
+
+    private ResultSet newResultSet(Statement proxy, Method method, Object[] args) throws Throwable {
+        ResultSet resultSet = (ResultSet) targetInvoke(method, args);
+        return Proxy.newResultSet(resultSet, proxy, getExceptionListener());
     }
 }

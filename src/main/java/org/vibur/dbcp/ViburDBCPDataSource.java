@@ -289,6 +289,9 @@ public class ViburDBCPDataSource extends ViburDBCPConfig
         return getConnection();
     }
 
+    /**
+     * Mainly exists to provide getConnection() method timing logging.
+     */
     private Connection getConnection(long timeout) throws SQLException {
         boolean shouldLog = getLogConnectionLongerThanMs() >= 0;
         long startTime = shouldLog ? System.currentTimeMillis() : 0L;
