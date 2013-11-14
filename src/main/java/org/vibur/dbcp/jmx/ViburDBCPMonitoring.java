@@ -203,7 +203,7 @@ public class ViburDBCPMonitoring implements ViburDBCPMonitoringMBean {
 
         StringBuilder builder = new StringBuilder(4096);
         for (Holder<ConnState> holder : holders) {
-            builder.append(holder.value())
+            builder.append(holder.value().connection())
                 .append(", taken at: ").append(new Date(holder.getTime()))
                 .append(", millis = ").append(holder.getTime()).append(NEW_LINE)
                 .append(getStackTraceAsString(holder.getStackTrace())).append(NEW_LINE);
