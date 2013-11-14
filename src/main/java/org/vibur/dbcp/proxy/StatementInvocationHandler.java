@@ -26,11 +26,9 @@ import org.vibur.dbcp.proxy.listener.ExceptionListener;
 import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Iterator;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.vibur.dbcp.util.StatementUtils.toSQLString;
 import static org.vibur.dbcp.util.ViburUtils.NEW_LINE;
@@ -45,8 +43,6 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
 
     private final ValueHolder<? extends Statement> statementHolder;
     private final ViburDBCPConfig config;
-
-    private final AtomicBoolean logicallyClosed = new AtomicBoolean(false);
 
     private final ConcurrentMap<StatementKey, ValueHolder<Statement>> statementCache;
 
@@ -68,11 +64,9 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
         if (methodName.equals("close"))
             return processClose(method, args);
         if (methodName.equals("isClosed"))
-            return logicallyClosed.get();
+            return isClosed();
 
-        // All other Statement interface methods cannot work if the JDBC Statement is closed:
-        if (logicallyClosed.get())
-            throw new SQLException(getTarget().getClass().getName() + " is closed.");
+        ensureNotClosed(); // all other Statement interface methods cannot work if the JDBC Statement is closed
 
         if (methodName.equals("cancel"))
             return processCancel(method, args);
@@ -82,13 +76,13 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
         // Methods which results have to be proxied so that when getStatement() is called
         // on their results the return value to be current JDBC Statement proxy.
         if (methodName.equals("getResultSet") || methodName.equals("getGeneratedKeys")) // *2
-            return newResultSet(proxy, method, args);
+            return newProxiedResultSet(proxy, method, args);
 
         return super.customInvoke(proxy, method, args);
     }
 
     private Object processClose(Method method, Object[] args) throws Throwable {
-        if (logicallyClosed.getAndSet(true))
+        if (getAndSetClosed())
             return null;
         if (statementCache != null && statementHolder.inUse() != null) { // this statementHolder is in the cache
             statementHolder.inUse().set(false); // we just mark it as available
@@ -122,7 +116,7 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
             // executeQuery result has to be proxied so that when getStatement() is called
             // on its result the return value to be current JDBC Statement proxy.
             if (method.getName().equals("executeQuery")) // *1
-                return newResultSet(proxy, method, args);
+                return newProxiedResultSet(proxy, method, args);
             else
                 return targetInvoke(method, args); // the real "execute..." call
         } finally {
@@ -142,7 +136,7 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
         }
     }
 
-    private ResultSet newResultSet(Statement proxy, Method method, Object[] args) throws Throwable {
+    private ResultSet newProxiedResultSet(Statement proxy, Method method, Object[] args) throws Throwable {
         ResultSet resultSet = (ResultSet) targetInvoke(method, args);
         return Proxy.newResultSet(resultSet, proxy, getExceptionListener());
     }

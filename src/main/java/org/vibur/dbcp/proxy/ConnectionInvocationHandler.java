@@ -47,8 +47,6 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
     private final ViburDBCPConfig config;
     private final ConcurrentMap<StatementKey, ValueHolder<Statement>> statementCache;
 
-    private final AtomicBoolean logicallyClosed = new AtomicBoolean(false);
-
     public ConnectionInvocationHandler(Holder<ConnState> hConnection, ViburDBCPConfig config) {
         super(hConnection.value().connection(), new ExceptionListenerImpl());
         this.connectionPool = config.getConnectionPool();
@@ -63,18 +61,16 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
     protected Object customInvoke(Connection proxy, Method method, Object[] args) throws Throwable {
         String methodName = method.getName();
 
-        boolean isMethodNameClose = methodName.equals("close");
-        if (isMethodNameClose || methodName.equals("abort"))
-            return processCloseOrAbort(isMethodNameClose, method, args);
-
         if (methodName.equals("isValid"))
             return targetInvoke(method, args);
-        if (methodName.equals("isClosed"))
-            return logicallyClosed.get();
 
-        // All other Connection interface methods cannot work if the JDBC Connection is closed:
-        if (logicallyClosed.get())
-            throw new SQLException(getTarget().getClass().getName() + " is closed.");
+        boolean isCloseMethod = methodName.equals("close");
+        if (isCloseMethod || methodName.equals("abort"))
+            return processCloseOrAbort(isCloseMethod, method, args);
+        if (methodName.equals("isClosed"))
+            return isClosed();
+
+        ensureNotClosed(); // all other Connection interface methods cannot work if the JDBC Connection is closed
 
         // Methods which results have to be proxied so that when getConnection() is called
         // on their results the return value to be current JDBC Connection proxy.
@@ -133,13 +129,13 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
         return new ValueHolder<Statement>(statement, null);
     }
 
-    private Object processCloseOrAbort(boolean isClose, Method method, Object[] args) throws Throwable {
-        if (logicallyClosed.getAndSet(true))
+    private Object processCloseOrAbort(boolean isCloseMethod, Method method, Object[] args) throws Throwable {
+        if (getAndSetClosed())
             return null;
         try {
-            return isClose ? null : targetInvoke(method, args); // close() is not passed, abort() is passed
+            return isCloseMethod ? null : targetInvoke(method, args); // close() is not passed, abort() is passed
         } finally {
-            boolean valid = isClose && getExceptionListener().getExceptions().isEmpty();
+            boolean valid = isCloseMethod && getExceptionListener().getExceptions().isEmpty();
             connectionPool.restore(hConnection, valid);
         }
     }

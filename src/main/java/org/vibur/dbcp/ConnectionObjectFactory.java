@@ -125,8 +125,13 @@ public class ConnectionObjectFactory implements PoolObjectFactory<ConnState> {
     private boolean executeTestStatement(Connection connection) {
         Statement statement = null;
         try {
+            String testConnectionQuery = config.getTestConnectionQuery();
+            if (testConnectionQuery.equals(ViburDBCPConfig.IS_VALID_QUERY))
+                return connection.isValid(ViburDBCPConfig.TEST_CONNECTION_TIMEOUT);
+
             statement = connection.createStatement();
-            statement.execute(config.getTestConnectionQuery());
+            statement.setQueryTimeout(ViburDBCPConfig.TEST_CONNECTION_TIMEOUT);
+            statement.execute(testConnectionQuery);
             statement.close();
             return true;
         } catch (SQLException e) {

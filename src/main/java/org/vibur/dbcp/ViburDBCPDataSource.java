@@ -355,7 +355,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig
     }
 
     /** {@inheritDoc} */
-    public boolean isWrapperFor(Class<?> iface) throws SQLException {
+    public boolean isWrapperFor(Class<?> iface) {
         return false;
     }
 

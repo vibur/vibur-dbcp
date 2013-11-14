@@ -25,12 +25,12 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.sql.SQLException;
 import java.sql.SQLTransientConnectionException;
-import java.sql.Wrapper;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
 * @author Simeon Malchev
 */
-public abstract class AbstractInvocationHandler<T> implements InvocationHandler, Wrapper {
+public abstract class AbstractInvocationHandler<T> implements InvocationHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(AbstractInvocationHandler.class);
 
@@ -39,6 +39,7 @@ public abstract class AbstractInvocationHandler<T> implements InvocationHandler,
     private final T target;
 
     private final ExceptionListener exceptionListener;
+    private final AtomicBoolean logicallyClosed = new AtomicBoolean(false);
 
     public AbstractInvocationHandler(T target, ExceptionListener exceptionListener) {
         if (target == null || exceptionListener == null)
@@ -70,13 +71,13 @@ public abstract class AbstractInvocationHandler<T> implements InvocationHandler,
     }
 
     @SuppressWarnings("unchecked")
-    public <T> T unwrap(Class<T> iface) throws SQLException {
+    private <T> T unwrap(Class<T> iface) throws SQLException {
         if (isWrapperFor(iface))
             return (T) target;
         throw new SQLException("not a wrapper for " + iface);
     }
 
-    public boolean isWrapperFor(Class<?> iface) throws SQLException {
+    private boolean isWrapperFor(Class<?> iface) {
         return iface.isInstance(target);
     }
 
@@ -94,6 +95,19 @@ public abstract class AbstractInvocationHandler<T> implements InvocationHandler,
                 exceptionListener.addException(cause);
             throw cause;
         }
+    }
+
+    protected void ensureNotClosed() throws SQLException {
+        if (logicallyClosed.get())
+            throw new SQLException(target.getClass().getName() + " is closed.");
+    }
+
+    protected boolean isClosed() {
+        return logicallyClosed.get();
+    }
+
+    protected boolean getAndSetClosed() {
+        return logicallyClosed.getAndSet(true);
     }
 
     protected ExceptionListener getExceptionListener() {

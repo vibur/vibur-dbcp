@@ -16,6 +16,7 @@
 
 package org.vibur.dbcp.proxy.listener;
 
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
@@ -26,13 +27,13 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  */
 public class ExceptionListenerImpl implements ExceptionListener {
 
-    private Queue<Throwable> queue = new ConcurrentLinkedQueue<Throwable>();
+    private final Queue<Throwable> exceptions = new ConcurrentLinkedQueue<Throwable>();
 
     public void addException(Throwable throwable) {
-        queue.offer(throwable);
+        exceptions.offer(throwable);
     }
 
     public List<Throwable> getExceptions() {
-        return new LinkedList<Throwable>(queue);
+        return exceptions.isEmpty() ? Collections.<Throwable>emptyList() : new LinkedList<Throwable>(exceptions);
     }
 }

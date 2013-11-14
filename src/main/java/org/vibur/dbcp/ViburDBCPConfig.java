@@ -45,9 +45,14 @@ public class ViburDBCPConfig {
      * If set to zero, will validate the connection always when it is taken from the pool.
      * If set to a negative number, will never validate the taken from the pool connection. */
     private int connectionIdleLimitInSeconds = 60;
-    /** Used to test the validity of the JDBC Connection. Should be set to a valid query if the
-     * {@code connectionIdleLimitInSeconds} is set to a non-negative number. */
-    private String testConnectionQuery = "SELECT 1";
+
+    public static final String IS_VALID_QUERY = "isValid";
+    public static final int TEST_CONNECTION_TIMEOUT = 5;
+
+    /** Used to test the validity of a JDBC Connection. If the {@code connectionIdleLimitInSeconds} is set to
+     * a non-negative number, the {@code testConnectionQuery} should be set to a valid SQL query, for example
+     * {@code SELECT 1}, or to {@code isValid} in which case the {@code Connection.isValid()} method will be used. */
+    private String testConnectionQuery = IS_VALID_QUERY;
 
 
     /** The pool initial size, i.e. the initial number of JDBC Connections allocated in this pool. */
