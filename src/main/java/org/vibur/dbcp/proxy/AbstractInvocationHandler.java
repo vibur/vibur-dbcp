@@ -97,17 +97,17 @@ public abstract class AbstractInvocationHandler<T> implements InvocationHandler 
         }
     }
 
-    protected void ensureNotClosed() throws SQLException {
-        if (logicallyClosed.get())
-            throw new SQLException(target.getClass().getName() + " is closed.");
-    }
-
     protected boolean isClosed() {
         return logicallyClosed.get();
     }
 
     protected boolean getAndSetClosed() {
         return logicallyClosed.getAndSet(true);
+    }
+
+    protected void ensureNotClosed() throws SQLException {
+        if (logicallyClosed.get())
+            throw new SQLException(target.getClass().getName() + " is closed.");
     }
 
     protected ExceptionListener getExceptionListener() {
