@@ -14,23 +14,22 @@
   limitations under the License.
 </wiki:comment>
 
-=== Vibur DBCP ===
+<font size="3" color="#660099"><b>Vibur DBCP</b></font>
+
+Latest version from maven central is [#Maven_Dependency_and_How_to_Build: 0.8.3]. Link to [https://code.google.com/p/vibur-dbcp/source/browse/trunk/CHANGELOG change log].
 
 The development of Vibur DBCP was originally inspired by the Spring Framework's JMS caching connection factory which is
-implemented using Java dynamic proxies. The main goal was to create a highly concurrent, standalone and fully-featured JDBC
-Connection pool, which is at the same time as simple as possible, has concise and easy to maintain
-source code, has as little as practical external dependencies, and follows the modular design principle of having a separate and
-dedicated [https://code.google.com/p/vibur-object-pool/ object pool].
+implemented using Java dynamic proxies. The main goal was to create a concurrent, [#Some_Code_Metrics_and_Performance_Results fast] and fully-featured JDBC
+Connection pool, which is at the same time as simple as possible, has [#Some_Code_Metrics_and_Performance_Results concise] and easy to maintain
+source code, has as little as practical external [#Most_important_features_and_characteristics: dependencies], and is built on top of a separate and dedicated [https://code.google.com/p/vibur-object-pool/ object pool].
 
   # [#Quick_Introduction Quick Introduction]
-  # [#Some_Code_Metrics Some Code Metrics]
+  # [#Some_Code_Metrics_and_Performance_Results Some Code Metrics and Performance Results]
   # [#Usage_Examples Usage Examples]
-    * [#Maven_dependency: Maven Dependency]
+    * [#Maven_Dependency_and_How_to_Build: Maven Dependency and How to Build]
     * [#Hibernate_configuration_example: Hibernate Configuration]
     * [#Spring_(with_Hibernate)_configuration_example: Spring (with Hibernate) Configuration]
     * [#Programming_configuration_example: Programming Configuration]
-    * [#Log4j_configuration_example: Log4j Configuration]
-  # [#Latest_Version_&_How_to_Build Latest Version & How to Build]
   # [#Configuration_Options Configuration Options]
   # [#Development_Team Development Team]
   # [#Acknowledgements Acknowledgements]
@@ -42,20 +41,20 @@ dedicated [https://code.google.com/p/vibur-object-pool/ object pool].
 
   * Built using standard Java concurrency utilities and dynamic proxies, does not use any synchronized blocks/methods during normal pool operations.
   * Supports fairness parameter, which when set to true, guarantees that threads invoking the pool's `take` methods will be selected to obtain a connection from it in FIFO order, and no thread is starved out from accessing the pool's underlying resources.
-  * Caching support for JDBC Statements (Prepared and Callable).
-  * SQL queries logging and getConnection() calls logging if their execution time is longer than a given limit.
+  * The only external dependencies for Vibur DBCP are its dedicated [https://code.google.com/p/vibur-object-pool/ object pool], slf4j & log4j, and ConcurrentLinkedHashMap. The CLHM dependency can be excluded if the JDBC Statement caching is not needed.
 
+  * SQL queries logging and getConnection() calls logging if their execution time is longer than a given limit.
+  * Caching support for JDBC Statements (Prepared and Callable).
   * Hibernate integration support.
 
 ==== Other features: ====
 
   * Validation intervals support, i.e. the taken from the pool connection is not validated before every use but is validated only if a given time has passed since the connection's last use.
-  * Intelligent pool's sizing - the number of idle connections in the pool will be reduced based on heuristics for the number of connections recently used.
-  * The underlying JDBC Connection or Statement object can be retrieved from the respective proxy object via calling the proxy's `unwrap` method.
-  * Ability to provide records for all JDBC Connections which are currently taken, including the stack traces with which they were taken. Useful if debugging lost (unclosed) connections.
+  * Intelligent pool sizing - the number of idle connections in the pool will be reduced based on heuristics for the number of connections recently used.
 
-  * The only external dependencies for Vibur DBCP are its dedicated [https://code.google.com/p/vibur-object-pool/ object pool], slf4j, and ConcurrentLinkedHashMap. The CLHM dependency can be excluded if the JDBC Statement caching is not needed.
-  * JMX support - the pool registers an MBean via which various pool's parameters can be observed and/or set.
+  * The underlying JDBC connection or Statement object can be retrieved from the respective proxy object via calling the proxy's `unwrap` method.
+  * Ability to provide records for all JDBC connections which are currently taken, including the stack traces with which they were taken. Useful if debugging lost (unclosed) connections.
+  * JMX support - the pool registers an MBean via which various pool parameters can be observed and/or set.
 
 ==== Trade-offs: ====
 
@@ -63,22 +62,52 @@ dedicated [https://code.google.com/p/vibur-object-pool/ object pool].
   * Creating the initial connections for the pool from an existing DataSource is not implemented yet.
 
 
-=== Some Code Metrics ===
+=== Some Code Metrics and Performance Results ===
 
 The below source code metrics are not accounting for the projects' testing directories
 and for the Apache License header which is at the top of each source file:
 
 || *Project* || *Source Files* || *Lines of Code* ||
-|| Vibur DBCP || 22 || 2017||
+|| Vibur DBCP || 22 || 2072||
 || Vibur Object Pool || 11 || 1122 ||
+
+The below performance results were obtained via running this [https://code.google.com/p/vibur-dbcp/source/browse/trunk/src/test/java/org/vibur/dbcp/perf/ViburDBCPGetConnectionTestPerf.java test] with Java 1.7 on an Intel i7-3615QM 2.3 GHz CPU box. The test was run with settings of 500 threads, each thread attempting 100 take/restore operations from a pool with initial size 50 and max size 200. Each thread simulated work for 10 or 20 milliseconds via calling Thread.sleep(), and the pool fairness parameter was set as shown in the table. The execution time was calculated as the average of three consecutive runs.
+
+|| *Pool Fairness* || *Simulated Work for* || *Execution Time* ||
+|| true || 10 ms || 3036 ms ||
+|| false || 10 ms || 4342 ms ||
+|| true || 20 ms || 5520 ms ||
+|| false || 20 ms || 6314 ms ||
+
+Same results, this time obtained for each thread attempting 1000 take/restore operations instead of 100.
+
+|| *Pool Fairness* || *Simulated Work for* || *Execution Time* ||
+|| true || 10 ms || 28810 ms ||
+|| false || 10 ms || 31488 ms ||
+|| true || 20 ms || 53638 ms ||
+|| false || 20 ms || 58691 ms ||
 
 
 <br/>
 === Usage Examples ===
 
-==== Maven dependency: ====
+==== Maven Dependency and How to Build: ====
 
-  * coming soon...
+{{{
+<dependency>
+  <groupId>org.vibur</groupId>
+  <artifactId>vibur-dbcp</artifactId>
+  <version>0.8.3</version>
+</dependency>
+}}}
+
+A read-only copy of the source code can be checked out via:
+
+  `svn checkout http://vibur-dbcp.googlecode.com/svn/tags/0.8.3 vibur-dbcp-0.8.3`
+
+Vibur DBCP uses an in-memory HyperSQL database for unit/integration testing purposes, and building it is simply a matter of executing:
+
+  `mvn clean install`
 
 ==== Hibernate configuration example: ====
 
@@ -136,7 +165,7 @@ and for the Apache License header which is at the top of each source file:
         <property name="statementCacheMaxSize" value="200"/>
     </bean>
 
-    <!-- Spring's session factory (Hibernate 3) and transaction manager beans definitions: -->
+    <!-- Spring session factory (Hibernate 3) and transaction manager beans definitions: -->
 
     <bean id="baseSessionFactory" class="org.springframework.orm.hibernate3.annotation.AnnotationSessionFactoryBean"
             abstract="true" >
@@ -199,45 +228,33 @@ and for the Apache License header which is at the top of each source file:
 }}}
 
 
-=== Latest Version & How to Build ===
-
-Vibur DBCP latest version is 0.8.2. Maven dependency example for it is shown [#Maven_dependency: above].
-A read-only copy of the source code can be checked out via:
-
-  `svn checkout http://vibur-dbcp.googlecode.com/svn/tags/0.8.2 vibur-dbcp-0.8.2`
-
-Vibur DBCP uses an in-memory HyperSQL database for unit/integration testing purposes, and building it is simply a matter of executing:
-
-  `mvn clean install`
-
-
 <br/>
 === Configuration Options ===
 
 ==== Basic database connection settings: ====
 || *Attribute* || *Description* || *Default value* ||
 || `driverClassName` || Database driver class name. || Supplied by user ||
-|| `jdbcUrl` || Database JDBC Connection string. || Supplied by user ||
+|| `jdbcUrl` || Database JDBC connection string. || Supplied by user ||
 || `username` || User name to use. || Supplied by user ||
 || `password` || Password to use. || Supplied by user ||
 
 ==== Database connection validation settings: ====
 || *Attribute* || *Description* || *Default value* ||
 || `connectionIdleLimitInSeconds` || If the connection has stayed in the pool for at least `connectionIdleLimitInSeconds`, it will be validated using the `testConnectionQuery` before being given to the application. If set to zero, will validate the connection always when it is taken from the pool. If set to a negative number, will never validate the taken from the pool connection. || `60` ||
-|| `testConnectionQuery` || Used to test the validity of the JDBC Connection. Should be set to a valid query if the `connectionIdleLimitInSeconds` is set to a non-negative number. || `SELECT 1` ||
+|| `testConnectionQuery` || Used to test the validity of a JDBC Connection. If the `connectionIdleLimitInSeconds` is set to a non-negative number, the `testConnectionQuery` should be set to a valid SQL query, for example `SELECT 1`, or to `isValid` in which case the `Connection.isValid()` method will be used.|| `isValid` ||
 
 ==== Basic pool size, growth and fairness settings: ====
 || *Attribute* || *Description* || *Default value* ||
-|| `poolInitialSize` || The pool initial size, i.e. the initial number of JDBC Connections allocated in this pool. || `10` ||
-|| `poolMaxSize` || The pool max size, i.e. the maximum number of JDBC Connections allocated in this pool. || `100` ||
+|| `poolInitialSize` || The pool initial size, i.e. the initial number of JDBC connections allocated in this pool. || `10` ||
+|| `poolMaxSize` || The pool max size, i.e. the maximum number of JDBC connections allocated in this pool. || `100` ||
 || `poolFair` || The pool's fairness setting with regards to waiting threads. || `true` ||
 || `poolEnableConnectionTracking` || If `true`, the pool will keep information for the current stack trace of every taken connection. || `false` ||
 
 ==== Database connection timeout and retries settings: ====
 || *Attribute* || *Description* || *Default value* ||
 || `connectionTimeoutInMs` || Time to wait before a call to getConnection() times out and returns an error. `0` means wait forever. || `60000` ||
-|| `acquireRetryDelayInMs` || After attempting to acquire a JDBC Connection and failing with an `SQLException`, wait for this long time before attempting to acquire a new JDBC Connection again. || `1000` ||
-|| `acquireRetryAttempt` || After attempting to acquire a JDBC Connection and failing with an `SQLException`, try to connect these many times before giving up. || `3` ||
+|| `acquireRetryDelayInMs` || After attempting to acquire a JDBC connection and failing with an `SQLException`, wait for this long time before attempting to acquire a new JDBC connection again. || `1000` ||
+|| `acquireRetryAttempt` || After attempting to acquire a JDBC connection and failing with an `SQLException`, try to connect these many times before giving up. || `3` ||
 
 ==== JDBC statement caching settings: ====
 || *Attribute* || *Description* || *Default value* ||
@@ -260,7 +277,7 @@ Vibur DBCP uses an in-memory HyperSQL database for unit/integration testing purp
 
 ==== Pool size reduction settings (advanced): ====
 || *Attribute* || *Description* || *Default value* ||
-|| `reducerTimeIntervalInSeconds` || The time period after which the `poolReducer` will try to (possibly) reduce the number of created but unused JDBC Connections in this pool. || `60` ||
+|| `reducerTimeIntervalInSeconds` || The time period after which the `poolReducer` will try to (possibly) reduce the number of created but unused JDBC connections in this pool. || `60` ||
 || `reducerSamples` || How many times the `poolReducer` will wake up during the given `reducerTimeIntervalInSeconds` period in order to sample various statistics from the pool. || `20` ||
 
 
