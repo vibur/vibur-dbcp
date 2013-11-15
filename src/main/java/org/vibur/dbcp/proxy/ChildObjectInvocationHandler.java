@@ -42,7 +42,7 @@ public class ChildObjectInvocationHandler<P, T> extends AbstractInvocationHandle
     protected Object customInvoke(T proxy, Method method, Object[] args) throws Throwable {
         String methodName = method.getName();
 
-        if (methodName.equals(getParentMethod))
+        if (methodName == getParentMethod)
             return parentProxy;
 
         return super.customInvoke(proxy, method, args);

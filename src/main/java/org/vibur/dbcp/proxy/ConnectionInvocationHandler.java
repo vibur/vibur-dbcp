@@ -61,37 +61,37 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
     protected Object customInvoke(Connection proxy, Method method, Object[] args) throws Throwable {
         String methodName = method.getName();
 
-        if (methodName.equals("isValid"))
+        if (methodName == "isValid")
             return targetInvoke(method, args);
 
-        boolean isCloseMethod = methodName.equals("close");
-        if (isCloseMethod || methodName.equals("abort"))
+        boolean isCloseMethod = methodName == "close";
+        if (isCloseMethod || methodName == "abort")
             return processCloseOrAbort(isCloseMethod, method, args);
-        if (methodName.equals("isClosed"))
+        if (methodName == "isClosed")
             return isClosed();
 
         ensureNotClosed(); // all other Connection interface methods cannot work if the JDBC Connection is closed
 
         // Methods which results have to be proxied so that when getConnection() is called
         // on their results the return value to be current JDBC Connection proxy.
-        if (methodName.equals("createStatement")) { // *3
+        if (methodName == "createStatement") { // *3
             ValueHolder<Statement> statementHolder =
                 (ValueHolder<Statement>) getUncachedStatementHolder(method, args);
             return Proxy.newStatement(statementHolder, null, proxy, config, getExceptionListener());
         }
-        if (methodName.equals("prepareStatement")) { // *6
+        if (methodName == "prepareStatement") { // *6
             ValueHolder<PreparedStatement> statementHolder =
                 (ValueHolder<PreparedStatement>) getStatementHolder(method, args);
             return Proxy.newPreparedStatement(statementHolder, config.getStatementCache(), proxy, config,
                 getExceptionListener());
         }
-        if (methodName.equals("prepareCall")) { // *3
+        if (methodName == "prepareCall") { // *3
             ValueHolder<CallableStatement> statementHolder =
                 (ValueHolder<CallableStatement>) getStatementHolder(method, args);
             return Proxy.newCallableStatement(statementHolder, config.getStatementCache(), proxy, config,
                 getExceptionListener());
         }
-        if (methodName.equals("getMetaData")) { // *1
+        if (methodName == "getMetaData") { // *1
             DatabaseMetaData metaData = (DatabaseMetaData) targetInvoke(method, args);
             return Proxy.newDatabaseMetaData(metaData, proxy, getExceptionListener());
         }

@@ -55,16 +55,16 @@ public abstract class AbstractInvocationHandler<T> implements InvocationHandler 
             logger.trace("Calling {} with args {} on {}", method, args, target);
         String methodName = method.getName();
 
-        if (methodName.equals("equals"))
+        if (methodName == "equals")
             return proxy == args[0];
-        if (methodName.equals("hashCode"))
+        if (methodName == "hashCode")
             return System.identityHashCode(proxy);
-        if (methodName.equals("toString"))
+        if (methodName == "toString")
             return "Proxy for: " + target;
 
-        if (methodName.equals("unwrap"))
+        if (methodName == "unwrap")
             return unwrap((Class<T>) args[0]);
-        if (methodName.equals("isWrapperFor"))
+        if (methodName == "isWrapperFor")
             return isWrapperFor((Class<?>) args[0]);
 
        return customInvoke((T) proxy, method, args);

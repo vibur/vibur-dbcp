@@ -61,21 +61,21 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
     protected Object customInvoke(Statement proxy, Method method, Object[] args) throws Throwable {
         String methodName = method.getName();
 
-        if (methodName.equals("close"))
+        if (methodName == "close")
             return processClose(method, args);
-        if (methodName.equals("isClosed"))
+        if (methodName == "isClosed")
             return isClosed();
 
         ensureNotClosed(); // all other Statement interface methods cannot work if the JDBC Statement is closed
 
-        if (methodName.equals("cancel"))
+        if (methodName == "cancel")
             return processCancel(method, args);
         if (methodName.startsWith("execute")) // this intercepts all "execute..." JDBC Statements methods
             return processExecute(proxy, method, args);
 
         // Methods which results have to be proxied so that when getStatement() is called
         // on their results the return value to be current JDBC Statement proxy.
-        if (methodName.equals("getResultSet") || methodName.equals("getGeneratedKeys")) // *2
+        if (methodName == "getResultSet" || methodName == "getGeneratedKeys") // *2
             return newProxiedResultSet(proxy, method, args);
 
         return super.customInvoke(proxy, method, args);
@@ -115,7 +115,7 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
         try {
             // executeQuery result has to be proxied so that when getStatement() is called
             // on its result the return value to be current JDBC Statement proxy.
-            if (method.getName().equals("executeQuery")) // *1
+            if (method.getName() == "executeQuery") // *1
                 return newProxiedResultSet(proxy, method, args);
             else
                 return targetInvoke(method, args); // the real "execute..." call
