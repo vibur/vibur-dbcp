@@ -31,7 +31,7 @@ public class ViburDBCPGetConnectionTestPerf {
     // pool metrics:
     private static final int INITIAL_SIZE = 50;
     private static final int MAX_SIZE = 200;
-    private static final long TIMEOUT_MS = 500;
+    private static final long TIMEOUT_MS = 2000;
     private static final boolean FAIR = true;
 
     // threads metrics:
@@ -67,7 +67,7 @@ public class ViburDBCPGetConnectionTestPerf {
         startSignal.countDown();
         doneSignal.await();
 
-        System.out.println(String.format("Total execution time %dms, errors %d",
+        System.out.println(String.format("Total execution time %d ms, unsuccessful takes %d.",
             (System.currentTimeMillis() - start), errors.get()));
 
         ds.terminate();
