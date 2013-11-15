@@ -1,3 +1,12 @@
+Version 0.8.3 (15/11/2013)
+==========================
+* Implemented the ResultSet returned by Statement interface methods as a dynamic proxy so that
+  ResultSet.getStatement() will return the correct proxied Statement.
+* Implemented proper handling of Connection.isValid() method and made it a default option
+  for Connection testing and verification.
+* Improved logging.
+* Various other refactoring and small improvements/optimizations.
+
 Version 0.8.2 (16/10/2013)
 ==========================
 * Fix to allow for exclusion of ConcurrentLinkedHashMap from maven dependencies.
@@ -9,7 +18,7 @@ Version 0.8.1 (15/10/2013)
 
 Version 0.8.0 (28/09/2013)
 ==========================
-* Removed TransactionListener.
+* Removed TransactionListener as being implemented incorrectly.
 * Changed some configuration defaults, introduced logQueryExecutionLongerThanMs.
 * Introduced logStackTraceForLongConnection and logStackTraceForLongQueryExecution.
 * Replaced MySQL with HyperSQL for unit/integration testing purposes.
