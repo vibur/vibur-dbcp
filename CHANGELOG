@@ -2,7 +2,7 @@ Version 0.8.3 (15/11/2013)
 ==========================
 * Implemented the ResultSet returned by Statement interface methods as a dynamic proxy so that
   ResultSet.getStatement() will return the correct proxied Statement.
-* Implemented proper handling of Connection.isValid() method and made it a default option
+* Implemented proper handling of Connection.isValid() method and made it the default option
   for Connection testing and verification.
 * Improved logging.
 * Various other refactoring and small improvements/optimizations.
