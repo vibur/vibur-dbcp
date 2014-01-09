@@ -45,12 +45,6 @@ public class ConnectionObjectFactory implements PoolObjectFactory<ConnState> {
             throw new NullPointerException();
         this.config = config;
         this.destroyListener = destroyListener;
-
-        try {
-            Class.forName(config.getDriverClassName());
-        } catch (ClassNotFoundException e) {
-            throw new ViburDBCPException(e);
-        }
     }
 
     /**

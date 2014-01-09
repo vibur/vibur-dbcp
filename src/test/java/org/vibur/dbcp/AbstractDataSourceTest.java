@@ -35,8 +35,8 @@ public abstract class AbstractDataSourceTest {
     @BeforeClass
     public static void deployDatabaseSchemaAndData() throws IOException, SqlToolError {
         Properties properties = loadProperties();
-        HsqldbUtils.deployDatabaseSchemaAndData(properties.getProperty("driverClassName"),
-            properties.getProperty("jdbcUrl"), properties.getProperty("username"), properties.getProperty("password"));
+        HsqldbUtils.deployDatabaseSchemaAndData(properties.getProperty("jdbcUrl"),
+            properties.getProperty("username"), properties.getProperty("password"));
     }
 
     private ViburDBCPDataSource dataSource = null;

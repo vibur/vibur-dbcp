@@ -22,8 +22,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.ViburDBCPException;
 
-import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -35,20 +35,16 @@ public class HsqldbUtils {
 
     private static final Logger logger = LoggerFactory.getLogger(HsqldbUtils.class);
 
-    private static final String HSQLDB_SCHEMA_AND_DATA_SQL = "src/test/resources/hsqldb_schema_and_data.sql";
+    private static final String HSQLDB_SCHEMA_AND_DATA_SQL = "hsqldb_schema_and_data.sql";
 
-    public static void deployDatabaseSchemaAndData(String driverClassName, String jdbcUrl, String username,
+    public static void deployDatabaseSchemaAndData(String jdbcUrl, String username,
                                                    String password) throws IOException, SqlToolError {
-        try {
-            Class.forName(driverClassName);
-        } catch (ClassNotFoundException e) {
-            throw new ViburDBCPException(e);
-        }
-
         Connection connection = null;
         try {
             connection = DriverManager.getConnection(jdbcUrl, username, password);
-            SqlFile sqlFile = new SqlFile(new File(HSQLDB_SCHEMA_AND_DATA_SQL));
+            InputStreamReader isr = new InputStreamReader(Thread.currentThread().getContextClassLoader()
+                .getResourceAsStream(HSQLDB_SCHEMA_AND_DATA_SQL), System.getProperty("file.encoding"));
+            SqlFile sqlFile = new SqlFile(isr, HSQLDB_SCHEMA_AND_DATA_SQL, System.out, null, false, null);
             sqlFile.setConnection(connection);
             sqlFile.execute();
         } catch (SQLException e) {

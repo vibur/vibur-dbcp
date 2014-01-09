@@ -2,5 +2,3 @@
 
 * Obtaining connection from DataSource,
   may be calculate and log some statistics.
-
-* Prepare to upload build artifacts to central maven repo.
