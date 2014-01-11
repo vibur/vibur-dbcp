@@ -72,19 +72,21 @@ public class ViburDBCPDataSource extends ViburDBCPConfig
 
     private PrintWriter logWriter = null;
 
-    private ThreadedPoolReducer poolReducer;
+    private ThreadedPoolReducer poolReducer = null;
 
     private State state = State.NEW;
 
     /**
      * Default constructor for programmatic configuration via the {@code ViburDBCPConfig}
      * setter methods.
+     *
+     * @throws ViburDBCPException if cannot configure successfully
      */
-    public ViburDBCPDataSource() {
+    public ViburDBCPDataSource() throws ViburDBCPException {
         initJMX();
     }
 
-    protected void initJMX() {
+    protected void initJMX() throws ViburDBCPException {
         new ViburDBCPMonitoring(this);
     }
 
@@ -99,7 +101,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig
      * @param configFileName the properties config file name
      * @throws ViburDBCPException if cannot configure successfully
      */
-    public ViburDBCPDataSource(String configFileName) {
+    public ViburDBCPDataSource(String configFileName) throws ViburDBCPException {
         this();
         URL config;
         if (configFileName != null) {
@@ -134,12 +136,12 @@ public class ViburDBCPDataSource extends ViburDBCPConfig
      * @param properties the given properties
      * @throws ViburDBCPException if cannot configure successfully
      */
-    public ViburDBCPDataSource(Properties properties) {
+    public ViburDBCPDataSource(Properties properties) throws ViburDBCPException {
         this();
         configureFromProperties(properties);
     }
 
-    private void configureFromURL(URL config) {
+    private void configureFromURL(URL config) throws ViburDBCPException {
         Properties properties = new Properties();
         InputStream inputStream = null;
         try {
@@ -163,7 +165,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig
         }
     }
 
-    private void configureFromProperties(Properties properties) {
+    private void configureFromProperties(Properties properties) throws ViburDBCPException {
         for (Field field : ViburDBCPConfig.class.getDeclaredFields()) {
             try {
                 String val = properties.getProperty(field.getName());
@@ -206,23 +208,8 @@ public class ViburDBCPDataSource extends ViburDBCPConfig
             getPoolInitialSize(), getPoolMaxSize(), isPoolFair(), isPoolEnableConnectionTracking());
         setConnectionPool(pool);
 
-        poolReducer = new SamplingPoolReducer(pool,
-            getReducerTimeIntervalInSeconds(), TimeUnit.SECONDS, getReducerSamples()) {
-
-            protected void afterReduce(int reduction, int reduced, Throwable thrown) {
-                if (thrown != null)
-                    logger.error("{} thrown while intending to reduce by {}", thrown, reduction);
-                else
-                    logger.debug("Intended reduction {} actual {}", reduction, reduced);
-            }
-        };
-        poolReducer.start();
-
-        int statementCacheMaxSize = getStatementCacheMaxSize();
-        if (statementCacheMaxSize > CACHE_MAX_SIZE)
-            statementCacheMaxSize = CACHE_MAX_SIZE;
-        if (statementCacheMaxSize > 0)
-            setStatementCache(buildStatementCache(statementCacheMaxSize));
+        startPoolReducer(pool);
+        initStatementCache();
     }
 
     /** {@inheritDoc} */
@@ -242,7 +229,9 @@ public class ViburDBCPDataSource extends ViburDBCPConfig
             setStatementCache(null);
         }
 
-        poolReducer.terminate();
+        if (poolReducer != null)
+            poolReducer.terminate();
+
         getConnectionPool().terminate();
     }
 
@@ -253,6 +242,8 @@ public class ViburDBCPDataSource extends ViburDBCPConfig
         if (getAcquireRetryDelayInMs() < 0) throw new IllegalArgumentException();
         if (getAcquireRetryAttempts() < 0) throw new IllegalArgumentException();
         if (getStatementCacheMaxSize() < 0) throw new IllegalArgumentException();
+        if (getReducerTimeIntervalInSeconds() < 0) throw new IllegalArgumentException();
+        if (getReducerSamples() <= 0) throw new IllegalArgumentException();
         if (getConnectionIdleLimitInSeconds() >= 0 && getTestConnectionQuery() == null)
             throw new IllegalArgumentException();
 
@@ -276,6 +267,30 @@ public class ViburDBCPDataSource extends ViburDBCPConfig
                     getDefaultTransactionIsolation());
             }
         }
+    }
+
+    private void startPoolReducer(final HolderValidatingPoolService<ConnState> pool) {
+        if (getReducerTimeIntervalInSeconds() > 0) {
+            poolReducer = new SamplingPoolReducer(pool,
+                getReducerTimeIntervalInSeconds(), TimeUnit.SECONDS, getReducerSamples()) {
+
+                protected void afterReduce(int reduction, int reduced, Throwable thrown) {
+                    if (thrown != null)
+                        logger.error("{} thrown while intending to reduce by {}", thrown, reduction);
+                    else
+                        logger.debug("Intended reduction {} actual {}", reduction, reduced);
+                }
+            };
+            poolReducer.start();
+        }
+    }
+
+    private void initStatementCache() {
+        int statementCacheMaxSize = getStatementCacheMaxSize();
+        if (statementCacheMaxSize > CACHE_MAX_SIZE)
+            statementCacheMaxSize = CACHE_MAX_SIZE;
+        if (statementCacheMaxSize > 0)
+            setStatementCache(buildStatementCache(statementCacheMaxSize));
     }
 
     /** {@inheritDoc} */

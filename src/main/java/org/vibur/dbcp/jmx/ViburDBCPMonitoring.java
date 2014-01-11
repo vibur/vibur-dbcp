@@ -45,7 +45,7 @@ public class ViburDBCPMonitoring implements ViburDBCPMonitoringMBean {
         initJMX();
     }
 
-    protected void initJMX() {
+    protected void initJMX() throws ViburDBCPException {
         try {
             MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
             ObjectName name = new ObjectName("org.vibur.dbcp:type=ViburDBCP-"

@@ -69,7 +69,7 @@ public class ViburDBCPConfig {
      *  and {@link org.vibur.objectpool.util.SamplingPoolReducer}.
      */
     /** The time period after which the {@code poolReducer} will try to possibly reduce the number of created
-     * but unused JDBC Connections in this pool. */
+     * but unused JDBC Connections in this pool. {@code 0} disables it. */
     private long reducerTimeIntervalInSeconds = 60;
     /** How many times the {@code poolReducer} will wake up during the given
      * {@code reducerTimeIntervalInSeconds} period in order to sample various information from this pool. */

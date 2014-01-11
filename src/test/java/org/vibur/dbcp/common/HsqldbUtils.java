@@ -37,8 +37,9 @@ public class HsqldbUtils {
 
     private static final String HSQLDB_SCHEMA_AND_DATA_SQL = "hsqldb_schema_and_data.sql";
 
-    public static void deployDatabaseSchemaAndData(String jdbcUrl, String username,
-                                                   String password) throws IOException, SqlToolError {
+    public static void deployDatabaseSchemaAndData(String jdbcUrl, String username, String password)
+        throws IOException, SqlToolError, ViburDBCPException {
+
         Connection connection = null;
         try {
             connection = DriverManager.getConnection(jdbcUrl, username, password);

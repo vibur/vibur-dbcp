@@ -32,6 +32,9 @@ public interface DataSourceLifecycle {
     /**
      * Starts this DataSource. In order to be used, the implementing DataSource has to be
      * first initialised via call to one of the constructors and then started via call to this method.
+     *
+     * @throws IllegalStateException if not in NEW state when started
+     * @throws IllegalArgumentException if configuration error found during start
      */
     void start();
 
