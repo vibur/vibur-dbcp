@@ -63,6 +63,20 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
     }
 
     @Test
+    public void testSimpleSelectStatementFromExternalDataSource() throws SQLException, IOException {
+        DataSource ds = createDataSourceFromExternalDataSource();
+        Connection connection = null;
+        try {
+            connection = ds.getConnection();
+
+            executeAndVerifySimpleSelectStatement(connection);
+        } finally {
+            if (connection != null) connection.close();
+        }
+        assertTrue(connection.isClosed());
+    }
+
+    @Test
     @SuppressWarnings("unchecked")
     public void testSimpleSelectStatementWithStatementsCache() throws SQLException, IOException {
         ViburDBCPDataSource ds = createDataSourceWithStatementsCache();
@@ -86,6 +100,20 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
     @Test
     public void testSimplePreparedSelectStatementNoStatementsCache() throws SQLException, IOException {
         DataSource ds = createDataSourceNoStatementsCache();
+        Connection connection = null;
+        try {
+            connection = ds.getConnection();
+
+            executeAndVerifySimplePreparedSelectStatement(connection);
+        } finally {
+            if (connection != null) connection.close();
+        }
+        assertTrue(connection.isClosed());
+    }
+
+    @Test
+    public void testSimplePreparedSelectStatementFromExternalDataSource() throws SQLException, IOException {
+        DataSource ds = createDataSourceFromExternalDataSource();
         Connection connection = null;
         try {
             connection = ds.getConnection();

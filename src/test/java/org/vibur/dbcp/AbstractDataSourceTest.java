@@ -19,7 +19,7 @@ package org.vibur.dbcp;
 import org.hsqldb.cmdline.SqlToolError;
 import org.junit.After;
 import org.junit.BeforeClass;
-import org.vibur.dbcp.common.HsqldbUtils;
+import org.vibur.dbcp.util.HsqldbUtils;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -32,11 +32,19 @@ import java.util.Properties;
  */
 public abstract class AbstractDataSourceTest {
 
+    public static final String PROPERTIES_FILE = "src/test/resources/vibur-dbcp-test.properties";
+
+    private static String jdbcUrl;
+    private static String username;
+    private static String password;
+
     @BeforeClass
     public static void deployDatabaseSchemaAndData() throws IOException, SqlToolError {
         Properties properties = loadProperties();
-        HsqldbUtils.deployDatabaseSchemaAndData(properties.getProperty("jdbcUrl"),
-            properties.getProperty("username"), properties.getProperty("password"));
+        jdbcUrl = properties.getProperty("jdbcUrl");
+        username = properties.getProperty("username");
+        password = properties.getProperty("password");
+        HsqldbUtils.deployDatabaseSchemaAndData(jdbcUrl, username, password);
     }
 
     private ViburDBCPDataSource dataSource = null;
@@ -52,10 +60,27 @@ public abstract class AbstractDataSourceTest {
     protected ViburDBCPDataSource createDataSourceNoStatementsCache() throws IOException {
         dataSource = new ViburDBCPDataSource();
 
-        Properties properties = loadProperties();
-        dataSource.setJdbcUrl(properties.getProperty("jdbcUrl"));
-        dataSource.setUsername(properties.getProperty("username"));
-        dataSource.setPassword(properties.getProperty("password"));
+        dataSource.setJdbcUrl(jdbcUrl);
+        dataSource.setUsername(username);
+        dataSource.setPassword(password);
+
+        dataSource.setPoolInitialSize(2);
+        dataSource.setConnectionIdleLimitInSeconds(120);
+
+        dataSource.setLogQueryExecutionLongerThanMs(0);
+        dataSource.setLogConnectionLongerThanMs(0);
+
+        dataSource.start();
+
+        return dataSource;
+    }
+
+    protected ViburDBCPDataSource createDataSourceFromExternalDataSource() throws IOException {
+        dataSource = new ViburDBCPDataSource();
+
+        dataSource.setExternalDataSource(new SimpleDataSource(jdbcUrl));
+        dataSource.setUsername(username);
+        dataSource.setPassword(password);
 
         dataSource.setPoolInitialSize(2);
         dataSource.setConnectionIdleLimitInSeconds(120);
@@ -71,10 +96,9 @@ public abstract class AbstractDataSourceTest {
     protected ViburDBCPDataSource createDataSourceWithStatementsCache() throws IOException {
         dataSource = new ViburDBCPDataSource();
 
-        Properties properties = loadProperties();
-        dataSource.setJdbcUrl(properties.getProperty("jdbcUrl"));
-        dataSource.setUsername(properties.getProperty("username"));
-        dataSource.setPassword(properties.getProperty("password"));
+        dataSource.setJdbcUrl(jdbcUrl);
+        dataSource.setUsername(username);
+        dataSource.setPassword(password);
 
         dataSource.setPoolInitialSize(2);
         dataSource.setConnectionIdleLimitInSeconds(120);
@@ -89,7 +113,7 @@ public abstract class AbstractDataSourceTest {
 
     protected static Properties loadProperties() throws IOException {
         Properties properties = new Properties();
-        properties.load(new FileInputStream("src/test/resources/vibur-dbcp-test.properties"));
+        properties.load(new FileInputStream(PROPERTIES_FILE));
         return properties;
     }
 }
