@@ -14,52 +14,59 @@
   limitations under the License.
 </wiki:comment>
 
-<font size="3" color="#660099"><b>Vibur DBCP</b></font>
+<font size="3" color="#660099"><b>Vibur DBCP</b></font> <g:plusone size="small"></g:plusone> 
 
-Latest version from maven central is [#Maven_Dependency_and_How_to_Build: 0.8.3]. Link to [https://code.google.com/p/vibur-dbcp/source/browse/trunk/CHANGELOG change log].
+<table border="0" width="840"><tr>
+<td width="59%" valign="top" align="left">
+The latest version from maven central is [#Maven_Dependency_and_How_to_Build: 0.8.3]. 
+Here is a link to the [https://code.google.com/p/vibur-dbcp/source/browse/trunk/CHANGELOG changelog].
 
-The development of Vibur DBCP was originally inspired by the Spring Framework's JMS caching connection factory which is
-implemented using Java dynamic proxies. The main goal was to create a concurrent, [#Some_Code_Metrics_and_Performance_Results fast] and fully-featured JDBC
-Connection pool, which is at the same time as simple as possible, has [#Some_Code_Metrics_and_Performance_Results concise] and easy to maintain
-source code, has as little as practical external [#Most_important_features_and_characteristics: dependencies], and is built on top of a separate and dedicated [https://code.google.com/p/vibur-object-pool/ object pool].
+Vibur DBCP is a concurrent, [#Some_Code_Metrics_and_Performance_Results fast] and fully-featured JDBC connection pool based on Java [https://www.google.com/search?num=10&q=Java+dynamic+proxies dynamic proxies]. It supports a fairness parameter, statement caching, SQL queries logging, among other features.
 
-  # [#Quick_Introduction Quick Introduction]
+What makes it different from most of its competitors are its [#Some_Code_Metrics_and_Performance_Results concise] and easy to maintain
+source code, and its modular design which includes a separate and dedicated [https://code.google.com/p/vibur-object-pool/ object pool]. A comparison of the features and characteristics of Vibur DBCP with those of Apache Commons DBCP and C3P0 can be found [http://www.coderanch.com/t/623874/ba/Vibur-DBCP-Released#2858629 here].
+
+One of the main benefits of being implemented with dynamic proxies is that Vibur DBCP source code does not have to implement (depend on) every single method of the concrete JDBC API spec. For example, the 6 main JDBC interfaces for which Vibur DBCP provides proxies have a total of ~480 methods, however the invocations of only 36 of these methods are explicitly intercepted and handled.
+</td>
+
+<td width="4%"></td>
+
+<td width="37%" valign="top" align="left">
+  # [#Main_features_and_characteristics: Main Features and Characteristics]
   # [#Some_Code_Metrics_and_Performance_Results Some Code Metrics and Performance Results]
   # [#Usage_Examples Usage Examples]
     * [#Maven_Dependency_and_How_to_Build: Maven Dependency and How to Build]
-    * [#Hibernate_configuration_example: Hibernate Configuration]
-    * [#Spring_(with_Hibernate)_configuration_example: Spring (with Hibernate) Configuration]
+    * [#Hibernate_3.x_configuration_example: Hibernate Configuration]
+    * [#Spring_(with_Hibernate_3.x)_configuration_example: Spring (with Hibernate) Configuration]
     * [#Programming_configuration_example: Programming Configuration]
   # [#Configuration_Options Configuration Options]
   # [#Development_Team Development Team]
   # [#Acknowledgements Acknowledgements]
+</td>
+</tr></table>
 
+==== Main features and characteristics: ====
 
-=== Quick Introduction ===
-
-==== Most important features and characteristics: ====
-
-  * Built using standard Java concurrency utilities and dynamic proxies, does not use any synchronized blocks/methods during normal pool operations.
-  * Supports fairness parameter, which when set to true, guarantees that threads invoking the pool's `take` methods will be selected to obtain a connection from it in FIFO order, and no thread is starved out from accessing the pool's underlying resources.
-  * The only external dependencies for Vibur DBCP are its dedicated [https://code.google.com/p/vibur-object-pool/ object pool], slf4j & log4j, and ConcurrentLinkedHashMap. The CLHM dependency can be excluded if the JDBC Statement caching is not needed.
+  * Built using standard Java concurrency utilities and dynamic proxies. Does not use any synchronized blocks/methods during normal pool operations.
+  * Supports fairness parameter, which when set to true, guarantees that the threads invoking the pool's `take` methods will be selected to obtain a connection from it in FIFO order, and no thread will be starved out from accessing the pool's underlying resources.
+  * Vibur DBCP requires Java 1.6+ and the following external dependencies: its dedicated [https://code.google.com/p/vibur-object-pool/ object pool], slf4j/log4j, and ConcurrentLinkedHashMap. The CLHM dependency can be excluded if the JDBC Statement caching is not needed.
 
   * SQL queries logging and getConnection() calls logging if their execution time is longer than a given limit.
   * Caching support for JDBC Statements (Prepared and Callable).
-  * Hibernate integration support.
+  * Hibernate 3.x integration support.
 
 ==== Other features: ====
 
   * Validation intervals support, i.e. the taken from the pool connection is not validated before every use but is validated only if a given time has passed since the connection's last use.
-  * Intelligent pool sizing - the number of idle connections in the pool will be reduced based on heuristics for the number of connections recently used.
+  * Intelligent pool sizing - the number of idle connections in the pool can be reduced based on heuristics for the number of recently used connections.
 
-  * The underlying JDBC connection or Statement object can be retrieved from the respective proxy object via calling the proxy's `unwrap` method.
+  * The raw JDBC connection or Statement object can be retrieved from the respective proxy object via calling the proxy's `unwrap` method.
   * Ability to provide records for all JDBC connections which are currently taken, including the stack traces with which they were taken. Useful if debugging lost (unclosed) connections.
   * JMX support - the pool registers an MBean via which various pool parameters can be observed and/or set.
 
-==== Trade-offs: ====
+==== Todo: ====
 
-  * Alternate user names and password are not supported yet. The call to `DataSource.getConnection(username, password)` will simply create and return connection using the configured default username and password.
-  * Creating the initial connections for the pool from an existing DataSource is not implemented yet.
+  * Different usernames and passwords are not supported yet. The call to `DataSource.getConnection(username, password)` will simply create and return connection using the configured default username and password.
 
 
 === Some Code Metrics and Performance Results ===
@@ -71,7 +78,7 @@ and for the Apache License header which is at the top of each source file:
 || Vibur DBCP || 22 || 2072||
 || Vibur Object Pool || 11 || 1122 ||
 
-The below performance results were obtained via running this [https://code.google.com/p/vibur-dbcp/source/browse/trunk/src/test/java/org/vibur/dbcp/perf/ViburDBCPGetConnectionTestPerf.java test] with Java 1.7 on an Intel i7-3615QM 2.3 GHz CPU box. The test was run with settings of 500 threads, each thread attempting 100 take/restore operations from a pool with initial size 50 and max size 200. Each thread simulated work for 10 or 20 milliseconds via calling Thread.sleep(), and the pool fairness parameter was set as shown in the table. The execution time was calculated as the average of three consecutive runs.
+The below performance results were obtained via running this [https://code.google.com/p/vibur-dbcp/source/browse/trunk/src/test/java/org/vibur/dbcp/perf/ViburDBCPGetConnectionTestPerf.java test] with Java 1.7 on a machine with an Intel i7-3615QM 2.3 GHz processor. The test was run with settings of 500 threads, each thread attempting 100 take/restore operations from a pool with initial size 50 and max size 200. Each thread simulated work for 10 or 20 milliseconds via calling Thread.sleep(), and the pool fairness parameter was set as shown in the table. The execution time was calculated as the average of three consecutive runs.
 
 || *Pool Fairness* || *Simulated Work for* || *Execution Time* ||
 || true || 10 ms || 3036 ms ||
@@ -79,16 +86,7 @@ The below performance results were obtained via running this [https://code.googl
 || true || 20 ms || 5520 ms ||
 || false || 20 ms || 6314 ms ||
 
-Same results, this time obtained for each thread attempting 1000 take/restore operations instead of 100.
 
-|| *Pool Fairness* || *Simulated Work for* || *Execution Time* ||
-|| true || 10 ms || 28810 ms ||
-|| false || 10 ms || 31488 ms ||
-|| true || 20 ms || 53638 ms ||
-|| false || 20 ms || 58691 ms ||
-
-
-<br/>
 === Usage Examples ===
 
 ==== Maven Dependency and How to Build: ====
@@ -105,11 +103,11 @@ A read-only copy of the source code can be checked out via:
 
   `svn checkout http://vibur-dbcp.googlecode.com/svn/tags/0.8.3 vibur-dbcp-0.8.3`
 
-Vibur DBCP uses an in-memory HyperSQL database for unit/integration testing purposes, and building it is simply a matter of executing:
+Vibur DBCP uses an in-memory HyperSQL database for unit/integration testing purposes, and building the sources is simply a matter of executing:
 
   `mvn clean install`
-
-==== Hibernate configuration example: ====
+  
+==== Hibernate 3.x configuration example: ====
 
 {{{
 <hibernate-configuration>
@@ -133,7 +131,7 @@ Vibur DBCP uses an in-memory HyperSQL database for unit/integration testing purp
         <property name="hibernate.vibur.poolMaxSize">100</property>
 
         <property name="hibernate.vibur.connectionIdleLimitInSeconds">30</property>
-        <property name="hibernate.vibur.testConnectionQuery">SELECT 1</property>
+        <property name="hibernate.vibur.testConnectionQuery">isValid</property>
 
         <property name="hibernate.vibur.logQueryExecutionLongerThanMs">500</property>
         <property name="hibernate.vibur.logStackTraceForLongQueryExecution">true</property>
@@ -143,7 +141,7 @@ Vibur DBCP uses an in-memory HyperSQL database for unit/integration testing purp
 </hibernate-configuration>
 }}}
 
-==== Spring (with Hibernate) configuration example: ====
+==== Spring (with Hibernate 3.x) configuration example: ====
 
 {{{
    <!-- Vibur DBCP bean definition: -->
@@ -152,28 +150,28 @@ Vibur DBCP uses an in-memory HyperSQL database for unit/integration testing purp
         <property name="jdbcUrl" value="jdbc:hsqldb:mem:sakila;shutdown=false"/>
         <property name="username" value="sa"/>
         <property name="password" value=""/>
-
+		        
         <property name="poolInitialSize">10</property>
         <property name="poolMaxSize">100</property>
 
         <property name="connectionIdleLimitInSeconds">30</property>
-        <property name="testConnectionQuery">SELECT 1</property>
+        <property name="testConnectionQuery">isValid</property>
 
         <property name="logQueryExecutionLongerThanMs" value="500"/>
         <property name="logStackTraceForLongQueryExecution" value="true"/>
-
+		
         <property name="statementCacheMaxSize" value="200"/>
     </bean>
 
     <!-- Spring session factory (Hibernate 3) and transaction manager beans definitions: -->
 
-    <bean id="baseSessionFactory" class="org.springframework.orm.hibernate3.annotation.AnnotationSessionFactoryBean"
+    <bean id="baseSessionFactory" class="org.springframework.orm.hibernate3.annotation.AnnotationSessionFactoryBean" 
             abstract="true" >
         <property name="dataSource" ref="dataSource"/>
         <property name="packagesToScan" value="the.project.packages"/>
     </bean>
 
-    <bean id="sessionFactory" class="org.springframework.orm.hibernate3.annotation.AnnotationSessionFactoryBean"
+    <bean id="sessionFactory" class="org.springframework.orm.hibernate3.annotation.AnnotationSessionFactoryBean" 
             parent="baseSessionFactory">
         <property name="hibernateProperties">
             <props>
@@ -205,7 +203,7 @@ Vibur DBCP uses an in-memory HyperSQL database for unit/integration testing purp
         ds.setPoolMaxSize(100);
 
         ds.setConnectionIdleLimitInSeconds(30);
-        ds.setTestConnectionQuery("SELECT 1");
+        ds.setTestConnectionQuery("isValid");
 
         ds.setLogQueryExecutionLongerThanMs(500);
         ds.setLogStackTraceForLongQueryExecution(true);
@@ -262,10 +260,10 @@ Vibur DBCP uses an in-memory HyperSQL database for unit/integration testing purp
 
 ==== Database connections and SQL queries logging settings ====
 || *Attribute* || *Description* || *Default value* ||
-|| `logConnectionLongerThanMs` || `getConnection` method calls taking longer than or equal to this time limit are logged at WARN level. A value of `0` will log all such calls. A `negative number` disables it. || `3000` ||
-|| `logStackTraceForLongConnection` || Will apply only if `logConnectionLongerThanMs` is enabled, and if set to `true`, will log at WARN level the current `getConnection` call stack trace plus the time taken. || `false` ||
-|| `logQueryExecutionLongerThanMs` || The underlying SQL queries from a JDBC Statement `execute...` calls taking longer than or equal to this time limit are logged at WARN level. A value of `0` will log all such calls. A `negative number` disables it. <p><b>Note</b> that while a JDBC Statement `execute...` call duration is roughly equivalent to the execution time of the underlying SQL query, the overall call duration may also include some Java GC time, JDBC driver specific execution time, and context switching time (the last particularly in the case of a heavily multithreaded application). || `3000` ||
-|| `logStackTraceForLongQueryExecution` || Will apply only if `logQueryExecutionLongerThanMs` is enabled, and if set to `true`, will log at WARN level the current JDBC Statement `execute...` call stack trace plus the underlying SQL query and the time taken. || `false` ||
+|| `logConnectionLongerThanMs` || `getConnection` method calls taking longer than or equal to this time limit are logged at the WARN level. A value of `0` will log all such calls. A `negative number` disables it. || `3000` ||
+|| `logStackTraceForLongConnection` || Will apply only if `logConnectionLongerThanMs` is enabled, and if set to `true`, will log at the WARN level the current `getConnection` call stack trace plus the time taken. || `false` ||
+|| `logQueryExecutionLongerThanMs` || The underlying SQL queries from a JDBC Statement `execute...` calls taking longer than or equal to this time limit are logged at the WARN level. A value of `0` will log all such calls. A `negative number` disables it. <p><b>Note</b> that while a JDBC Statement `execute...` call duration is roughly equivalent to the execution time of the underlying SQL query, the overall call duration may also include some Java GC time, JDBC driver specific execution time, and context switching time (the last particularly in the case of a heavily multithreaded application). || `3000` ||
+|| `logStackTraceForLongQueryExecution` || Will apply only if `logQueryExecutionLongerThanMs` is enabled, and if set to `true`, will log at the WARN level the current JDBC Statement `execute...` call stack trace plus the underlying SQL query and the time taken. || `false` ||
 
 ==== Database connection default behavior settings: ====
 || *Attribute* || *Description* || *Default value* ||
@@ -284,15 +282,15 @@ Vibur DBCP uses an in-memory HyperSQL database for unit/integration testing purp
 <br/>
 ===Development Team===
 
-Vibur DBCP is designed, developed and provided to you by Simeon Malchev (firstname.lastname at gmail.com).
-If you need to report any issues, to request features, or if you just wish to provide some general feedback, please use the
+Vibur DBCP is designed, developed and provided to you by Simeon Malchev (firstname.lastname at gmail.com). 
+If you need to report any issues, to request features, or if you just wish to provide some general feedback, please use the 
 project's issues tracking [https://code.google.com/p/vibur-dbcp/issues/list system] or the author's email.
 
 
 === Acknowledgements ===
 
-I would like to thank all my friends and colleagues who reviewed the original project documentation and source code.
+I would like to thank to all my friends and colleagues who reviewed the original project documentation and source code. 
 Your encouragement and feedback helped me to bring the project to its current state.
 
-Vibur DBCP was developed from scratch, however while working on it the author has often looked at the documentation
+Vibur DBCP was developed from scratch, however while working on it the author has often looked at the documentation 
 and/or source code of projects such as Spring Framework, BoneCP, Tomcat JDBC Connection Pool, between others.

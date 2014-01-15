@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.listener.DestroyListener;
 import org.vibur.objectpool.PoolObjectFactory;
 
+import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -41,10 +42,24 @@ public class ConnectionObjectFactory implements PoolObjectFactory<ConnState> {
     private final DestroyListener destroyListener;
 
     public ConnectionObjectFactory(ViburDBCPConfig config, DestroyListener destroyListener) {
-        if (destroyListener == null)
+        if (config == null || destroyListener == null)
             throw new NullPointerException();
         this.config = config;
         this.destroyListener = destroyListener;
+
+        initLoginTimeout(config);
+    }
+
+    private void initLoginTimeout(ViburDBCPConfig config) {
+        int loginTimeout = (int) config.getConnectionTimeoutInMs() / 1000;
+        if (config.getExternalDataSource() == null)
+            DriverManager.setLoginTimeout(loginTimeout);
+        else
+            try {
+                config.getExternalDataSource().setLoginTimeout(loginTimeout);
+            } catch (SQLException e) {
+                logger.warn("Couldn't set the login timeout to the configured external DataSource", e);
+            }
     }
 
     /**
@@ -57,17 +72,13 @@ public class ConnectionObjectFactory implements PoolObjectFactory<ConnState> {
         Connection connection = null;
         while (connection == null) {
             try {
-                if (config.getUsername() == null && config.getPassword() == null)
-                    connection = DriverManager.getConnection(config.getJdbcUrl());
-                else
-                    connection = DriverManager.getConnection(config.getJdbcUrl(),
-                        config.getUsername(), config.getPassword());
+                connection = doCreate();
             } catch (SQLException e) {
                 logger.debug("Couldn't create a java.sql.Connection, attempt " + attempt, e);
                 if (attempt++ >= config.getAcquireRetryAttempts())
                     throw new ViburDBCPException(e);
                 try {
-                    TimeUnit.MILLISECONDS.sleep(config.getAcquireRetryAttempts());
+                    TimeUnit.MILLISECONDS.sleep(config.getAcquireRetryDelayInMs());
                 } catch (InterruptedException ignore) {
                 }
             }
@@ -76,6 +87,24 @@ public class ConnectionObjectFactory implements PoolObjectFactory<ConnState> {
         setDefaultValues(connection);
         logger.trace("Created {}", connection);
         return new ConnState(connection, System.currentTimeMillis());
+    }
+
+    private Connection doCreate() throws SQLException {
+        Connection connection;
+        DataSource externalDataSource = config.getExternalDataSource();
+        if (externalDataSource == null) {
+            if (config.getUsername() != null)
+                connection = DriverManager.getConnection(config.getJdbcUrl(),
+                    config.getUsername(), config.getPassword());
+            else
+                connection = DriverManager.getConnection(config.getJdbcUrl());
+        } else {
+            if (config.getUsername() != null)
+                connection = externalDataSource.getConnection(config.getUsername(), config.getPassword());
+            else
+                connection = externalDataSource.getConnection();
+        }
+        return connection;
     }
 
     private void setDefaultValues(Connection connection) throws ViburDBCPException {

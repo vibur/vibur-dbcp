@@ -20,6 +20,7 @@ import org.vibur.dbcp.cache.StatementKey;
 import org.vibur.dbcp.cache.ValueHolder;
 import org.vibur.objectpool.HolderValidatingPoolService;
 
+import javax.sql.DataSource;
 import java.sql.Statement;
 import java.util.concurrent.ConcurrentMap;
 
@@ -30,8 +31,9 @@ import java.util.concurrent.ConcurrentMap;
  */
 public class ViburDBCPConfig {
 
-    /** Database driver class name. */
-    private String driverClassName;
+    /** If specified, this {@code externalDataSource} wil be used to obtain the initial pool connections
+     * instead of {@code DriverManager.getConnection()}. */
+    private DataSource externalDataSource;
     /** Database JDBC Connection string. */
     private String jdbcUrl;
     /** User name to use. */
@@ -46,8 +48,8 @@ public class ViburDBCPConfig {
      * If set to a negative number, will never validate the taken from the pool connection. */
     private int connectionIdleLimitInSeconds = 60;
 
-    public static final String IS_VALID_QUERY = "isValid";
     public static final int TEST_CONNECTION_TIMEOUT = 5;
+    public static final String IS_VALID_QUERY = "isValid";
 
     /** Used to test the validity of a JDBC Connection. If the {@code connectionIdleLimitInSeconds} is set to
      * a non-negative number, the {@code testConnectionQuery} should be set to a valid SQL query, for example
@@ -131,14 +133,14 @@ public class ViburDBCPConfig {
     private Integer defaultTransactionIsolationValue;
 
 
-    //////////////////////// Getter & Setters ////////////////////////
+    //////////////////////// Getters & Setters ////////////////////////
 
-    public String getDriverClassName() {
-        return driverClassName;
+    public DataSource getExternalDataSource() {
+        return externalDataSource;
     }
 
-    public void setDriverClassName(String driverClassName) {
-        this.driverClassName = driverClassName;
+    public void setExternalDataSource(DataSource externalDataSource) {
+        this.externalDataSource = externalDataSource;
     }
 
     public String getJdbcUrl() {

@@ -116,7 +116,6 @@ public class ViburDBCPGetConnectionTestPerf {
 
     private static ViburDBCPDataSource createDataSource() {
         ViburDBCPDataSource ds = new ViburDBCPDataSource();
-        ds.setDriverClassName("org.hsqldb.jdbcDriver");
         ds.setJdbcUrl("jdbc:hsqldb:mem:sakila;shutdown=false");
         ds.setUsername("sa");
         ds.setPassword("");

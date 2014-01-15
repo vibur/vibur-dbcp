@@ -53,7 +53,6 @@ public abstract class AbstractDataSourceTest {
         dataSource = new ViburDBCPDataSource();
 
         Properties properties = loadProperties();
-        dataSource.setDriverClassName(properties.getProperty("driverClassName"));
         dataSource.setJdbcUrl(properties.getProperty("jdbcUrl"));
         dataSource.setUsername(properties.getProperty("username"));
         dataSource.setPassword(properties.getProperty("password"));
@@ -73,7 +72,6 @@ public abstract class AbstractDataSourceTest {
         dataSource = new ViburDBCPDataSource();
 
         Properties properties = loadProperties();
-        dataSource.setDriverClassName(properties.getProperty("driverClassName"));
         dataSource.setJdbcUrl(properties.getProperty("jdbcUrl"));
         dataSource.setUsername(properties.getProperty("username"));
         dataSource.setPassword(properties.getProperty("password"));

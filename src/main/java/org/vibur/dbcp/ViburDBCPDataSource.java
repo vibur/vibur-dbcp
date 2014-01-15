@@ -61,14 +61,14 @@ import static org.vibur.dbcp.util.ViburUtils.getStackTraceAsString;
  * @author Simeon Malchev
  */
 public class ViburDBCPDataSource extends ViburDBCPConfig
-    implements DataSourceLifecycle, DataSource, DestroyListener {
+    implements DataSource, DataSourceLifecycle, DestroyListener {
 
     private static final org.slf4j.Logger logger = LoggerFactory.getLogger(ViburDBCPDataSource.class);
 
     private static final int CACHE_MAX_SIZE = 1000;
 
-    public static final String PROPERTIES_CONFIG_FILE_NAME = "vibur-dbcp-config.properties";
-    public static final String XML_CONFIG_FILE_NAME = "vibur-dbcp-config.xml";
+    public static final String DEFAULT_PROPERTIES_CONFIG_FILE_NAME = "vibur-dbcp-config.properties";
+    public static final String DEFAULT_XML_CONFIG_FILE_NAME = "vibur-dbcp-config.xml";
 
     private PrintWriter logWriter = null;
 
@@ -95,7 +95,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig
      * or XML file which is complaint with "http://java.sun.com/dtd/properties.dtd".
      *
      * <p>{@code configFileName} can be {@code null} in which case the default resource
-     * file names {@link #XML_CONFIG_FILE_NAME} or {@link #PROPERTIES_CONFIG_FILE_NAME}
+     * file names {@link #DEFAULT_XML_CONFIG_FILE_NAME} or {@link #DEFAULT_PROPERTIES_CONFIG_FILE_NAME}
      * will be loaded, in this order.
      *
      * @param configFileName the properties config file name
@@ -109,12 +109,12 @@ public class ViburDBCPDataSource extends ViburDBCPConfig
             if (config == null)
                 throw new ViburDBCPException("Unable to load resource " + configFileName);
         } else {
-            config = getURL(XML_CONFIG_FILE_NAME);
+            config = getURL(DEFAULT_XML_CONFIG_FILE_NAME);
             if (config == null) {
-                config = getURL(PROPERTIES_CONFIG_FILE_NAME);
+                config = getURL(DEFAULT_PROPERTIES_CONFIG_FILE_NAME);
                 if (config == null)
-                    throw new ViburDBCPException("Unable to load default resources " + XML_CONFIG_FILE_NAME
-                        + " or " + PROPERTIES_CONFIG_FILE_NAME);
+                    throw new ViburDBCPException("Unable to load default resources " + DEFAULT_XML_CONFIG_FILE_NAME
+                        + " or " + DEFAULT_PROPERTIES_CONFIG_FILE_NAME);
             }
         }
         configureFromURL(config);
@@ -236,11 +236,12 @@ public class ViburDBCPDataSource extends ViburDBCPConfig
     }
 
     private void validateConfig() {
-        if (getDriverClassName() == null) throw new IllegalArgumentException();
-        if (getJdbcUrl() == null) throw new IllegalArgumentException();
-        if (getConnectionTimeoutInMs() < 0) throw new IllegalArgumentException();
+        if (getExternalDataSource() == null) {
+            if (getJdbcUrl() == null) throw new IllegalArgumentException();
+        }
         if (getAcquireRetryDelayInMs() < 0) throw new IllegalArgumentException();
         if (getAcquireRetryAttempts() < 0) throw new IllegalArgumentException();
+        if (getConnectionTimeoutInMs() < 0) throw new IllegalArgumentException();
         if (getStatementCacheMaxSize() < 0) throw new IllegalArgumentException();
         if (getReducerTimeIntervalInSeconds() < 0) throw new IllegalArgumentException();
         if (getReducerSamples() <= 0) throw new IllegalArgumentException();
