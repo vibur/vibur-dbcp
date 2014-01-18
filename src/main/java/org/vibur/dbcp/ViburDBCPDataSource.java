@@ -142,25 +142,29 @@ public class ViburDBCPDataSource extends ViburDBCPConfig
     }
 
     private void configureFromURL(URL config) throws ViburDBCPException {
-        Properties properties = new Properties();
         InputStream inputStream = null;
+        IOException ioe = null;
         try {
             URLConnection uConn = config.openConnection();
             uConn.setUseCaches(false);
             inputStream = uConn.getInputStream();
+            Properties properties = new Properties();
             if (config.getFile().endsWith(".xml"))
                 properties.loadFromXML(inputStream);
             else
                 properties.load(inputStream);
             configureFromProperties(properties);
         } catch (IOException e) {
-            throw new ViburDBCPException(e);
+            ioe = e;
+            throw new ViburDBCPException(config.toString(), e);
         } finally {
             if (inputStream != null)
                 try {
                     inputStream.close();
                 } catch (IOException e) {
-                    throw new ViburDBCPException(e);
+                    if (ioe != null)
+                        logger.error("IOException while configuring from URL " + config.toString(), ioe);
+                    throw new ViburDBCPException(config.toString(), e);
                 }
         }
     }
@@ -181,11 +185,13 @@ public class ViburDBCPDataSource extends ViburDBCPConfig
                         set(field, Boolean.parseBoolean(val));
                     else if (type == String.class)
                         set(field, val);
+                    else
+                        logger.error("Unexpected field {} found in ViburDBCPConfig", field.getName());
                 }
             } catch (NumberFormatException e) {
-                throw new ViburDBCPException(e);
+                throw new ViburDBCPException(field.getName(), e);
             } catch (IllegalAccessException e) {
-                throw new ViburDBCPException(e);
+                throw new ViburDBCPException(field.getName(), e);
             }
         }
     }
@@ -248,8 +254,8 @@ public class ViburDBCPDataSource extends ViburDBCPConfig
         if (getConnectionIdleLimitInSeconds() >= 0 && getTestConnectionQuery() == null)
             throw new IllegalArgumentException();
 
-        if (getPassword() == null) logger.warn("JDBC password not specified.");
-        if (getUsername() == null) logger.warn("JDBC username not specified.");
+        if (getPassword() == null) logger.warn("JDBC password is not specified.");
+        if (getUsername() == null) logger.warn("JDBC username is not specified.");
 
         if (getDefaultTransactionIsolation() != null) {
             String defaultTransactionIsolation = getDefaultTransactionIsolation().toUpperCase();
@@ -301,7 +307,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig
 
     /** {@inheritDoc} */
     public Connection getConnection(String username, String password) throws SQLException {
-        logger.warn("Using different usernames/passwords is not supported yet. Will use the defaults.");
+        logger.warn("Different usernames/passwords are not supported yet. Will use the configured defaults.");
         return getConnection();
     }
 
