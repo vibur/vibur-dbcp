@@ -17,6 +17,9 @@
 package org.vibur.dbcp;
 
 /**
+ * The exception which is thrown from different Vibur DBCP classes/methods when an underlying error has happened.
+ * Note that this is a RuntimeException however all methods which throw this exception will explicitly declare it.
+ *
  * @author Simeon Malchev
  */
 public class ViburDBCPException extends RuntimeException {
