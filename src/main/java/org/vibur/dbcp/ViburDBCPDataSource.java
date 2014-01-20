@@ -21,6 +21,8 @@ import org.vibur.dbcp.cache.StatementKey;
 import org.vibur.dbcp.cache.ValueHolder;
 import org.vibur.dbcp.jmx.ViburDBCPMonitoring;
 import org.vibur.dbcp.listener.DestroyListener;
+import org.vibur.dbcp.pool.ConnState;
+import org.vibur.dbcp.pool.ConnectionFactory;
 import org.vibur.dbcp.proxy.Proxy;
 import org.vibur.objectpool.ConcurrentHolderLinkedPool;
 import org.vibur.objectpool.Holder;
@@ -57,6 +59,7 @@ import static org.vibur.dbcp.util.ViburUtils.getStackTraceAsString;
  * lifecycle operations of this DataSource are defined by the {@link DataSourceLifecycle} interface.
  *
  * @see DataSource
+ * @see org.vibur.dbcp.pool.ConnectionFactory
  *
  * @author Simeon Malchev
  */
@@ -163,7 +166,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig
                     inputStream.close();
                 } catch (IOException e) {
                     if (ioe != null)
-                        logger.error("IOException while configuring from URL " + config.toString(), ioe);
+                        logger.error("IOException while configuring from URL " + config, ioe);
                     throw new ViburDBCPException(config.toString(), e);
                 }
         }
@@ -210,11 +213,11 @@ public class ViburDBCPDataSource extends ViburDBCPConfig
         validateConfig();
 
         HolderValidatingPoolService<ConnState> pool = new ConcurrentHolderLinkedPool<ConnState>(
-            new ConnectionObjectFactory(this, this),
+            new ConnectionFactory(this, this),
             getPoolInitialSize(), getPoolMaxSize(), isPoolFair(), isPoolEnableConnectionTracking());
+        startPoolReducer(pool);
         setConnectionPool(pool);
 
-        startPoolReducer(pool);
         initStatementCache();
     }
 

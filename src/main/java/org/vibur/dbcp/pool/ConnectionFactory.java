@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-package org.vibur.dbcp;
+package org.vibur.dbcp.pool;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.vibur.dbcp.ViburDBCPConfig;
+import org.vibur.dbcp.ViburDBCPException;
 import org.vibur.dbcp.listener.DestroyListener;
 import org.vibur.objectpool.PoolObjectFactory;
 
@@ -27,21 +29,23 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * The object factory which controls the lifecycle of the underlying JDBC Connections: creates them,
- * validates them if needed, and destroys them. Used by {@link ViburDBCPDataSource}.
+ * validates them if needed, and destroys them. Used by {@link org.vibur.dbcp.ViburDBCPDataSource}.
  *
  * @author Simeon Malchev
  */
-public class ConnectionObjectFactory implements PoolObjectFactory<ConnState> {
+public class ConnectionFactory implements PoolObjectFactory<ConnState>, VersionedObject {
 
-    private static final Logger logger = LoggerFactory.getLogger(ConnectionObjectFactory.class);
+    private static final Logger logger = LoggerFactory.getLogger(ConnectionFactory.class);
 
     private final ViburDBCPConfig config;
     private final DestroyListener destroyListener;
+    private final AtomicInteger version = new AtomicInteger(0);
 
-    public ConnectionObjectFactory(ViburDBCPConfig config, DestroyListener destroyListener) {
+    public ConnectionFactory(ViburDBCPConfig config, DestroyListener destroyListener) {
         if (config == null || destroyListener == null)
             throw new NullPointerException();
         this.config = config;
@@ -58,14 +62,14 @@ public class ConnectionObjectFactory implements PoolObjectFactory<ConnState> {
             try {
                 config.getExternalDataSource().setLoginTimeout(loginTimeout);
             } catch (SQLException e) {
-                logger.warn("Couldn't set the login timeout to the configured external DataSource", e);
+                logger.error("Couldn't set the login timeout to " + config.getExternalDataSource(), e);
             }
     }
 
     /**
      * {@inheritDoc}
      *
-     * @throws ViburDBCPException if cannot create the underlying JDBC Connection.
+     * @throws org.vibur.dbcp.ViburDBCPException if cannot create the underlying JDBC Connection.
      */
     public ConnState create() throws ViburDBCPException {
         int attempt = 0;
@@ -86,7 +90,7 @@ public class ConnectionObjectFactory implements PoolObjectFactory<ConnState> {
 
         setDefaultValues(connection);
         logger.trace("Created {}", connection);
-        return new ConnState(connection, System.currentTimeMillis());
+        return new ConnState(connection, getVersion(), System.currentTimeMillis());
     }
 
     private Connection doCreate() throws SQLException {
@@ -177,5 +181,20 @@ public class ConnectionObjectFactory implements PoolObjectFactory<ConnState> {
         } catch (SQLException e) {
             logger.debug("Couldn't close " + connection, e);
         }
+    }
+
+    /** {@inheritDoc} */
+    public int getVersion() {
+        return version.get();
+    }
+
+    /** {@inheritDoc} */
+    public void setVersion(int newValue) {
+        version.set(newValue);
+    }
+
+    /** {@inheritDoc} */
+    public boolean compareAndSetVersion(int expect, int update) {
+        return version.compareAndSet(expect, update);
     }
 }

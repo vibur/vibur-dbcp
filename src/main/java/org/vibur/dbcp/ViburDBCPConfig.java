@@ -18,6 +18,7 @@ package org.vibur.dbcp;
 
 import org.vibur.dbcp.cache.StatementKey;
 import org.vibur.dbcp.cache.ValueHolder;
+import org.vibur.dbcp.pool.ConnState;
 import org.vibur.objectpool.HolderValidatingPoolService;
 
 import javax.sql.DataSource;

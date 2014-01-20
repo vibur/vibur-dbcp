@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.vibur.dbcp;
+package org.vibur.dbcp.pool;
 
 import java.sql.Connection;
 
@@ -28,12 +28,14 @@ import java.sql.Connection;
 public class ConnState {
 
     private final Connection connection;
+    private final int version;
     private long lastTimeUsedInMillis;
 
-    public ConnState(Connection connection, long lastTimeUsedInMillis) {
+    public ConnState(Connection connection, int version, long lastTimeUsedInMillis) {
         if (connection == null)
             throw new NullPointerException();
         this.connection = connection;
+        this.version = version;
         this.lastTimeUsedInMillis = lastTimeUsedInMillis;
     }
 
