@@ -21,14 +21,7 @@ import org.vibur.dbcp.cache.StatementKey;
 import org.vibur.dbcp.cache.ValueHolder;
 import org.vibur.dbcp.jmx.ViburDBCPMonitoring;
 import org.vibur.dbcp.listener.DestroyListener;
-import org.vibur.dbcp.pool.ConnState;
-import org.vibur.dbcp.pool.ConnectionFactory;
-import org.vibur.dbcp.proxy.Proxy;
-import org.vibur.objectpool.ConcurrentHolderLinkedPool;
-import org.vibur.objectpool.Holder;
-import org.vibur.objectpool.HolderValidatingPoolService;
-import org.vibur.objectpool.util.SamplingPoolReducer;
-import org.vibur.objectpool.util.ThreadedPoolReducer;
+import org.vibur.dbcp.pool.PoolOperations;
 
 import javax.sql.DataSource;
 import java.io.IOException;
@@ -45,7 +38,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 import static org.vibur.dbcp.cache.ClhmCacheProvider.buildStatementCache;
@@ -74,8 +66,6 @@ public class ViburDBCPDataSource extends ViburDBCPConfig
     public static final String DEFAULT_XML_CONFIG_FILE_NAME = "vibur-dbcp-config.xml";
 
     private PrintWriter logWriter = null;
-
-    private ThreadedPoolReducer poolReducer = null;
 
     private State state = State.NEW;
 
@@ -212,12 +202,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig
 
         validateConfig();
 
-        HolderValidatingPoolService<ConnState> pool = new ConcurrentHolderLinkedPool<ConnState>(
-            new ConnectionFactory(this, this),
-            getPoolInitialSize(), getPoolMaxSize(), isPoolFair(), isPoolEnableConnectionTracking());
-        startPoolReducer(pool);
-        setConnectionPool(pool);
-
+        setPoolOperations(new PoolOperations(this, this));
         initStatementCache();
     }
 
@@ -238,10 +223,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig
             setStatementCache(null);
         }
 
-        if (poolReducer != null)
-            poolReducer.terminate();
-
-        getConnectionPool().terminate();
+        getPoolOperations().terminate();
     }
 
     private void validateConfig() {
@@ -279,22 +261,6 @@ public class ViburDBCPDataSource extends ViburDBCPConfig
         }
     }
 
-    private void startPoolReducer(final HolderValidatingPoolService<ConnState> pool) {
-        if (getReducerTimeIntervalInSeconds() > 0) {
-            poolReducer = new SamplingPoolReducer(pool,
-                getReducerTimeIntervalInSeconds(), TimeUnit.SECONDS, getReducerSamples()) {
-
-                protected void afterReduce(int reduction, int reduced, Throwable thrown) {
-                    if (thrown != null)
-                        logger.error("{} thrown while intending to reduce by {}", thrown, reduction);
-                    else
-                        logger.debug("Intended reduction {} actual {}", reduction, reduced);
-                }
-            };
-            poolReducer.start();
-        }
-    }
-
     private void initStatementCache() {
         int statementCacheMaxSize = getStatementCacheMaxSize();
         if (statementCacheMaxSize > CACHE_MAX_SIZE)
@@ -322,20 +288,11 @@ public class ViburDBCPDataSource extends ViburDBCPConfig
         long startTime = shouldLog ? System.currentTimeMillis() : 0L;
 
         try {
-            return doGetConnection(timeout);
+            return getPoolOperations().getConnection(timeout);
         } finally {
             if (shouldLog)
                 logGetConnection(timeout, startTime);
         }
-    }
-
-    private Connection doGetConnection(long timeout) throws SQLException {
-        Holder<ConnState> hConnection = timeout == 0 ?
-            getConnectionPool().take() : getConnectionPool().tryTake(timeout, TimeUnit.MILLISECONDS);
-        if (hConnection == null)
-            throw new SQLException("Couldn't obtain SQL connection.");
-        logger.trace("Getting {}", hConnection.value().connection());
-        return Proxy.newConnection(hConnection, this);
     }
 
     private void logGetConnection(long timeout, long startTime) {

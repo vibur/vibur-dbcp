@@ -18,8 +18,7 @@ package org.vibur.dbcp;
 
 import org.vibur.dbcp.cache.StatementKey;
 import org.vibur.dbcp.cache.ValueHolder;
-import org.vibur.dbcp.pool.ConnState;
-import org.vibur.objectpool.HolderValidatingPoolService;
+import org.vibur.dbcp.pool.PoolOperations;
 
 import javax.sql.DataSource;
 import java.sql.Statement;
@@ -96,7 +95,7 @@ public class ViburDBCPConfig {
     private int statementCacheMaxSize = 0;
     private ConcurrentMap<StatementKey, ValueHolder<Statement>> statementCache = null;
 
-    private HolderValidatingPoolService<ConnState> connectionPool;
+    private PoolOperations poolOperations;
 
     /** {@code getConnection} method calls taking longer than or equal to this time limit are logged at WARN level.
      * A value of {@code 0} will log all such calls. A {@code negative number} disables it. */
@@ -272,12 +271,12 @@ public class ViburDBCPConfig {
         this.statementCache = statementCache;
     }
 
-    public HolderValidatingPoolService<ConnState> getConnectionPool() {
-        return connectionPool;
+    public PoolOperations getPoolOperations() {
+        return poolOperations;
     }
 
-    public void setConnectionPool(HolderValidatingPoolService<ConnState> connectionPool) {
-        this.connectionPool = connectionPool;
+    public void setPoolOperations(PoolOperations poolOperations) {
+        this.poolOperations = poolOperations;
     }
 
     public long getLogConnectionLongerThanMs() {

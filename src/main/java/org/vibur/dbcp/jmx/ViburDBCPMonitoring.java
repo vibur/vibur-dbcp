@@ -86,11 +86,11 @@ public class ViburDBCPMonitoring implements ViburDBCPMonitoringMBean {
     }
 
     public int getPoolTaken() {
-        return viburDBCPConfig.getConnectionPool().taken();
+        return viburDBCPConfig.getPoolOperations().getPool().taken();
     }
 
     public int getPoolRemainingCreated() {
-        return viburDBCPConfig.getConnectionPool().remainingCreated();
+        return viburDBCPConfig.getPoolOperations().getPool().remainingCreated();
     }
 
     public boolean isPoolFair() {
@@ -193,7 +193,7 @@ public class ViburDBCPMonitoring implements ViburDBCPMonitoringMBean {
         if (!viburDBCPConfig.isPoolEnableConnectionTracking())
             return null;
 
-        List<Holder<ConnState>> holders = viburDBCPConfig.getConnectionPool().takenHolders();
+        List<Holder<ConnState>> holders = viburDBCPConfig.getPoolOperations().getPool().takenHolders();
         Collections.sort(holders, new Comparator<Holder<ConnState>>() { // sort newest on top
             public int compare(Holder<ConnState> h1, Holder<ConnState> h2) {
                 long diff = h2.getTime() - h1.getTime();

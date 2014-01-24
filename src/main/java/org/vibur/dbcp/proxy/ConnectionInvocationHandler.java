@@ -22,9 +22,9 @@ import org.vibur.dbcp.pool.ConnState;
 import org.vibur.dbcp.ViburDBCPConfig;
 import org.vibur.dbcp.cache.StatementKey;
 import org.vibur.dbcp.cache.ValueHolder;
+import org.vibur.dbcp.pool.PoolOperations;
 import org.vibur.dbcp.proxy.listener.ExceptionListenerImpl;
 import org.vibur.objectpool.Holder;
-import org.vibur.objectpool.HolderValidatingPoolService;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -41,7 +41,7 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
 
     private static final Logger logger = LoggerFactory.getLogger(ConnectionInvocationHandler.class);
 
-    private final HolderValidatingPoolService<ConnState> connectionPool;
+    private final PoolOperations poolOperations;
     private final Holder<ConnState> hConnection;
 
     private final ViburDBCPConfig config;
@@ -49,9 +49,7 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
 
     public ConnectionInvocationHandler(Holder<ConnState> hConnection, ViburDBCPConfig config) {
         super(hConnection.value().connection(), new ExceptionListenerImpl());
-        this.connectionPool = config.getConnectionPool();
-        if (this.connectionPool == null)
-            throw new NullPointerException();
+        this.poolOperations = config.getPoolOperations();
         this.hConnection = hConnection;
         this.config = config;
         this.statementCache = config.getStatementCache();
@@ -64,9 +62,9 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
         if (methodName == "isValid")
             return targetInvoke(method, args);
 
-        boolean isCloseMethod = methodName == "close";
-        if (isCloseMethod || methodName == "abort")
-            return processCloseOrAbort(isCloseMethod, method, args);
+        boolean aborted = methodName == "abort";
+        if (aborted || methodName == "close")
+            return processCloseOrAbort(aborted, method, args);
         if (methodName == "isClosed")
             return isClosed();
 
@@ -82,13 +80,13 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
         if (methodName == "prepareStatement") { // *6
             ValueHolder<PreparedStatement> statementHolder =
                 (ValueHolder<PreparedStatement>) getStatementHolder(method, args);
-            return Proxy.newPreparedStatement(statementHolder, config.getStatementCache(), proxy, config,
+            return Proxy.newPreparedStatement(statementHolder, statementCache, proxy, config,
                 getExceptionListener());
         }
         if (methodName == "prepareCall") { // *3
             ValueHolder<CallableStatement> statementHolder =
                 (ValueHolder<CallableStatement>) getStatementHolder(method, args);
-            return Proxy.newCallableStatement(statementHolder, config.getStatementCache(), proxy, config,
+            return Proxy.newCallableStatement(statementHolder, statementCache, proxy, config,
                 getExceptionListener());
         }
         if (methodName == "getMetaData") { // *1
@@ -129,14 +127,13 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
         return new ValueHolder<Statement>(statement, null);
     }
 
-    private Object processCloseOrAbort(boolean isCloseMethod, Method method, Object[] args) throws Throwable {
+    private Object processCloseOrAbort(boolean aborted, Method method, Object[] args) throws Throwable {
         if (getAndSetClosed())
             return null;
         try {
-            return isCloseMethod ? null : targetInvoke(method, args); // close() is not passed, abort() is passed
+            return aborted ? targetInvoke(method, args) : null; // close() is not passed, abort() is passed
         } finally {
-            boolean valid = isCloseMethod && getExceptionListener().getExceptions().isEmpty();
-            connectionPool.restore(hConnection, valid);
+            poolOperations.restore(hConnection, aborted, getExceptionListener().getExceptions());
         }
     }
 }

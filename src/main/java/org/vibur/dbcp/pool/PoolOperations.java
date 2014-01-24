@@ -29,6 +29,7 @@ import org.vibur.objectpool.util.ThreadedPoolReducer;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -76,5 +77,19 @@ public class PoolOperations {
             throw new SQLException("Couldn't obtain SQL connection.");
         logger.trace("Getting {}", hConnection.value().connection());
         return Proxy.newConnection(hConnection, config);
+    }
+
+    public boolean restore(Holder<ConnState> hConnection, boolean aborted, List<Throwable> errors) {
+        boolean valid = !aborted && errors.isEmpty();
+        return pool.restore(hConnection, valid);
+    }
+
+    public void terminate() {
+        poolReducer.terminate();
+        pool.terminate();
+    }
+
+    public HolderValidatingPoolService<ConnState> getPool() {
+        return pool;
     }
 }

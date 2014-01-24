@@ -39,7 +39,13 @@ public class ConnState {
         this.lastTimeUsedInMillis = lastTimeUsedInMillis;
     }
 
-    public Connection connection() { return connection; }
+    public Connection connection() {
+        return connection;
+    }
+
+    public int version() {
+        return version;
+    }
 
     public long getLastTimeUsedInMillis() {
         return lastTimeUsedInMillis;
