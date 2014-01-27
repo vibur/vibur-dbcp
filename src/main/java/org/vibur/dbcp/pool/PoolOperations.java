@@ -29,15 +29,26 @@ import org.vibur.objectpool.util.ThreadedPoolReducer;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /**
+ * The facade object via which most of the connection pool's and connection factory's functionality is accessed.
+ * Exposes an interface via which a JDBC connection proxy can be got and restored, and via which the connection
+ * pool can be terminated.
+ *
  * @author Simeon Malchev
  */
 public class PoolOperations {
 
     private static final Logger logger = LoggerFactory.getLogger(ConnectionFactory.class);
+
+    // see http://stackoverflow.com/a/14412929/1682918
+    private static final Set<String> criticalSQLStates = new HashSet<String>() {{
+        add("08001"); add("08007"); add("08S01"); add("57P01");
+    }};
 
     private final ViburDBCPConfig config;
     private final ConnectionFactory connectionFactory;
@@ -80,8 +91,27 @@ public class PoolOperations {
     }
 
     public boolean restore(Holder<ConnState> hConnection, boolean aborted, List<Throwable> errors) {
-        boolean valid = !aborted && errors.isEmpty();
-        return pool.restore(hConnection, valid);
+        int connVersion = hConnection.value().version();
+        boolean valid = !aborted && connVersion == connectionFactory.getVersion() && errors.isEmpty();
+        boolean restored = pool.restore(hConnection, valid);
+        String criticalSQLError;
+        if (restored && (criticalSQLError = hasCriticalSQLError(errors)) != null
+            && connectionFactory.compareAndSetVersion(connVersion, connVersion + 1)) {
+            int destroyed = pool.drainCreated(); // destroys all connections in the pool
+            logger.error("Critical SQL error {}, destroyed {} connections, current connection version is {}.",
+                criticalSQLError, destroyed, connectionFactory.getVersion());
+        }
+        return restored;
+    }
+
+    private String hasCriticalSQLError(List<Throwable> errors) {
+        for (Throwable error : errors)
+            if (error instanceof SQLException) {
+                String sqlState = ((SQLException) error).getSQLState();
+                if (criticalSQLStates.contains(sqlState))
+                    return sqlState;
+            }
+        return null;
     }
 
     public void terminate() {

@@ -43,7 +43,7 @@ public class ConnectionFactory implements PoolObjectFactory<ConnState>, Versione
 
     private final ViburDBCPConfig config;
     private final DestroyListener destroyListener;
-    private final AtomicInteger version = new AtomicInteger(0);
+    private final AtomicInteger version = new AtomicInteger(1);
 
     public ConnectionFactory(ViburDBCPConfig config, DestroyListener destroyListener) {
         if (config == null || destroyListener == null)
