@@ -29,26 +29,27 @@ import org.vibur.objectpool.util.ThreadedPoolReducer;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /**
- * The facade object via which most of the connection pool's and connection factory's functionality is accessed.
- * Exposes an interface via which a JDBC connection proxy can be got and restored, and via which the connection
- * pool can be terminated.
+ * The facade class via which most of the connection pool's and connection factory's functionalities
+ * are accessed. Exposes an interface which allows us to:
+ *    1. Get and restore a JDBC connection proxy from the pool.
+ *    2. Terminate the pool when it is no longer needed.
  *
  * @author Simeon Malchev
  */
 public class PoolOperations {
 
-    private static final Logger logger = LoggerFactory.getLogger(ConnectionFactory.class);
+    private static final Logger logger = LoggerFactory.getLogger(PoolOperations.class);
 
     // see http://stackoverflow.com/a/14412929/1682918
-    private static final Set<String> criticalSQLStates = new HashSet<String>() {{
-        add("08001"); add("08007"); add("08S01"); add("57P01");
-    }};
+    private static final Set<String> criticalSQLStates
+        = new HashSet<String>(Arrays.asList("08001", "08007", "08S01", "57P01"));
 
     private final ViburDBCPConfig config;
     private final ConnectionFactory connectionFactory;
