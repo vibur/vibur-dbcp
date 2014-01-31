@@ -54,7 +54,6 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
         Connection connection = null;
         try {
             connection = ds.getConnection();
-
             executeAndVerifySimpleSelectStatement(connection);
         } finally {
             if (connection != null) connection.close();
@@ -68,7 +67,6 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
         Connection connection = null;
         try {
             connection = ds.getConnection();
-
             executeAndVerifySimpleSelectStatement(connection);
         } finally {
             if (connection != null) connection.close();
@@ -103,7 +101,6 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
         Connection connection = null;
         try {
             connection = ds.getConnection();
-
             executeAndVerifySimplePreparedSelectStatement(connection);
         } finally {
             if (connection != null) connection.close();
@@ -117,7 +114,6 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
         Connection connection = null;
         try {
             connection = ds.getConnection();
-
             executeAndVerifySimplePreparedSelectStatement(connection);
         } finally {
             if (connection != null) connection.close();

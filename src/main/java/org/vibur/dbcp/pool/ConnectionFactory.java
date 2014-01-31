@@ -128,6 +128,9 @@ public class ConnectionFactory implements PoolObjectFactory<ConnState>, Versione
 
     /** {@inheritDoc} */
     public boolean readyToTake(ConnState connState) {
+        if (connState.version() != getVersion())
+            return false;
+
         int idleLimit = config.getConnectionIdleLimitInSeconds();
         if (idleLimit >= 0) {
             int idle = (int) (System.currentTimeMillis() - connState.getLastTimeUsedInMillis()) / 1000;
