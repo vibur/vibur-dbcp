@@ -109,6 +109,8 @@ Vibur DBCP uses an in-memory HyperSQL database for unit/integration testing purp
 
 ==== Hibernate 3.x/4.x dependencies: ====
 
+To enable Hibernate 3.x or 4.x integration for Vibur DBCP, add one of the following two Maven dependencies to your project:
+
 <table border="0" width="870"><tr>
 <td valign="top" align="left">
 {{{
