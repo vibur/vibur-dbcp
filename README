@@ -16,9 +16,9 @@
 
 <font size="3" color="#660099"><b>Vibur DBCP</b></font> <g:plusone size="small"></g:plusone> 
 
-<table border="0" width="840"><tr>
-<td width="59%" valign="top" align="left">
-The latest version from maven central is [#Maven_Dependency_and_How_to_Build: 0.8.3]. 
+<table border="0" width="870"><tr>
+<td width="56%" valign="top" align="left">
+The latest version from maven central is [#Maven_Dependency_and_How_to_Build: 1.0.0]. 
 Here is a link to the [https://code.google.com/p/vibur-dbcp/source/browse/trunk/CHANGELOG changelog].
 
 Vibur DBCP is a concurrent, [#Some_Code_Metrics_and_Performance_Results fast] and fully-featured JDBC connection pool based on Java [https://www.google.com/search?num=10&q=Java+dynamic+proxies dynamic proxies]. It supports a fairness parameter, statement caching, SQL queries logging, among other features.
@@ -26,19 +26,19 @@ Vibur DBCP is a concurrent, [#Some_Code_Metrics_and_Performance_Results fast] an
 What makes it different from most of its competitors are its [#Some_Code_Metrics_and_Performance_Results concise] and easy to maintain
 source code, and its modular design which includes a separate and dedicated [https://code.google.com/p/vibur-object-pool/ object pool]. A comparison of the features and characteristics of Vibur DBCP with those of Apache Commons DBCP and C3P0 can be found [http://www.coderanch.com/t/623874/ba/Vibur-DBCP-Released#2858629 here].
 
-One of the main benefits of being implemented with dynamic proxies is that Vibur DBCP source code does not have to implement (depend on) every single method of the concrete JDBC API spec. For example, the 6 main JDBC interfaces for which Vibur DBCP provides proxies have a total of ~480 methods, however the invocations of only 36 of these methods are explicitly intercepted and handled.
+One of the main advantages of being implemented with dynamic proxies is that Vibur DBCP source code does not have to implement (depend on) every single method of the concrete JDBC API spec. For example, the 6 main JDBC interfaces for which Vibur DBCP provides proxies have a total of ~480 methods, however the invocations of only 36 of these methods are explicitly intercepted and handled, and all other methods are simply mapped to their default implementations.
 </td>
 
 <td width="4%"></td>
 
-<td width="37%" valign="top" align="left">
+<td width="40%" valign="top" align="left">
   # [#Main_features_and_characteristics: Main Features and Characteristics]
   # [#Some_Code_Metrics_and_Performance_Results Some Code Metrics and Performance Results]
   # [#Usage_Examples Usage Examples]
-    * [#Maven_Dependency_and_How_to_Build: Maven Dependency and How to Build]
-    * [#Hibernate_3.x_configuration_example: Hibernate Configuration]
-    * [#Spring_(with_Hibernate_3.x)_configuration_example: Spring (with Hibernate) Configuration]
-    * [#Programming_configuration_example: Programming Configuration]
+    * [#Maven_dependency_and_how_to_build: Maven Dependency and How to Build]
+    * [#Hibernate_3.x/4.x_dependencies: Hibernate 3.x/4.x Dependencies and Configuration]
+    * [#Spring_with_Hibernate_3.x/4.x_configuration_snippet: Spring with Hibernate 3.x/4.x Configuration]
+    * [#Programming_configuration_snippet: Programming Configuration]
   # [#Configuration_Options Configuration Options]
   # [#Development_Team Development Team]
   # [#Acknowledgements Acknowledgements]
@@ -53,7 +53,7 @@ One of the main benefits of being implemented with dynamic proxies is that Vibur
 
   * SQL queries logging and getConnection() calls logging if their execution time is longer than a given limit.
   * Caching support for JDBC Statements (Prepared and Callable).
-  * Hibernate 3.x integration support.
+  * Hibernate 3.x and Hibernate 4.x integration support.
 
 ==== Other features: ====
 
@@ -75,45 +75,68 @@ The below source code metrics are not accounting for the projects' testing direc
 and for the Apache License header which is at the top of each source file:
 
 || *Project* || *Source Files* || *Lines of Code* ||
-|| Vibur DBCP || 22 || 2072||
-|| Vibur Object Pool || 11 || 1122 ||
+|| Vibur DBCP || 23 || 2148||
+|| Vibur Object Pool || 11 || 1124 ||
 
 The below performance results were obtained via running this [https://code.google.com/p/vibur-dbcp/source/browse/trunk/src/test/java/org/vibur/dbcp/perf/ViburDBCPGetConnectionTestPerf.java test] with Java 1.7 on a machine with an Intel i7-3615QM 2.3 GHz processor. The test was run with settings of 500 threads, each thread attempting 100 take/restore operations from a pool with initial size 50 and max size 200. Each thread simulated work for 10 or 20 milliseconds via calling Thread.sleep(), and the pool fairness parameter was set as shown in the table. The execution time was calculated as the average of three consecutive runs.
 
 || *Pool Fairness* || *Simulated Work for* || *Execution Time* ||
-|| true || 10 ms || 3036 ms ||
-|| false || 10 ms || 4342 ms ||
-|| true || 20 ms || 5520 ms ||
-|| false || 20 ms || 6314 ms ||
+|| true || 10 ms || 3043 ms ||
+|| false || 10 ms || 3428 ms ||
+|| true || 20 ms || 5524 ms ||
+|| false || 20 ms || 6373 ms ||
 
 
 === Usage Examples ===
 
-==== Maven Dependency and How to Build: ====
+==== Maven dependency and how to build: ====
 
 {{{
 <dependency>
   <groupId>org.vibur</groupId>
   <artifactId>vibur-dbcp</artifactId>
-  <version>0.8.3</version>
+  <version>1.0.0</version>
 </dependency>
 }}}
 
 A read-only copy of the source code can be checked out via:
 
-  `svn checkout http://vibur-dbcp.googlecode.com/svn/tags/0.8.3 vibur-dbcp-0.8.3`
+  `svn checkout http://vibur-dbcp.googlecode.com/svn/tags/1.0.0 vibur-dbcp-1.0.0`
 
 Vibur DBCP uses an in-memory HyperSQL database for unit/integration testing purposes, and building the sources is simply a matter of executing:
 
   `mvn clean install`
-  
-==== Hibernate 3.x configuration example: ====
+
+==== Hibernate 3.x/4.x dependencies: ====
+
+<table border="0" width="870"><tr>
+<td valign="top" align="left">
+{{{
+<dependency>
+  <groupId>org.vibur</groupId>
+  <artifactId>vibur-dbcp-hibernate3</artifactId>
+  <version>1.0.0</version>
+</dependency>
+}}}
+</td>
+
+<td valign="top" align="left">
+{{{
+<dependency>
+  <groupId>org.vibur</groupId>
+  <artifactId>vibur-dbcp-hibernate4</artifactId>
+  <version>1.0.0</version>
+</dependency>
+}}}
+</td>
+</tr></table>
+
+==== Hibernate 3.x/4.x configuration snippet: ====
 
 {{{
 <hibernate-configuration>
     <session-factory>
         <!-- Database connection settings: -->
-        <property name="hibernate.connection.driver_class">org.hsqldb.jdbcDriver</property>
         <property name="hibernate.connection.url">jdbc:hsqldb:mem:sakila;shutdown=false</property>
         <property name="hibernate.connection.username">sa</property>
         <property name="hibernate.connection.password"></property>
@@ -141,12 +164,11 @@ Vibur DBCP uses an in-memory HyperSQL database for unit/integration testing purp
 </hibernate-configuration>
 }}}
 
-==== Spring (with Hibernate 3.x) configuration example: ====
+==== Spring with Hibernate 3.x/4.x configuration snippet: ====
 
 {{{
-   <!-- Vibur DBCP bean definition: -->
+   <!-- Vibur DBCP dataSource bean definition: -->
    <bean id="dataSource" class="org.vibur.dbcp.ViburDBCPDataSource" init-method="start" destroy-method="terminate">
-        <property name="driverClassName" value="org.hsqldb.jdbcDriver"/>
         <property name="jdbcUrl" value="jdbc:hsqldb:mem:sakila;shutdown=false"/>
         <property name="username" value="sa"/>
         <property name="password" value=""/>
@@ -163,16 +185,10 @@ Vibur DBCP uses an in-memory HyperSQL database for unit/integration testing purp
         <property name="statementCacheMaxSize" value="200"/>
     </bean>
 
-    <!-- Spring session factory (Hibernate 3) and transaction manager beans definitions: -->
-
-    <bean id="baseSessionFactory" class="org.springframework.orm.hibernate3.annotation.AnnotationSessionFactoryBean" 
-            abstract="true" >
+    <!-- For Hibernate4 set the sessionFactory class below to org.springframework.orm.hibernate4.LocalSessionFactoryBean -->
+    <bean id="sessionFactory" class="org.springframework.orm.hibernate3.LocalSessionFactoryBean">
         <property name="dataSource" ref="dataSource"/>
         <property name="packagesToScan" value="the.project.packages"/>
-    </bean>
-
-    <bean id="sessionFactory" class="org.springframework.orm.hibernate3.annotation.AnnotationSessionFactoryBean" 
-            parent="baseSessionFactory">
         <property name="hibernateProperties">
             <props>
                 <prop key="hibernate.dialect">org.hibernate.dialect.HSQLDialect</prop>
@@ -182,19 +198,18 @@ Vibur DBCP uses an in-memory HyperSQL database for unit/integration testing purp
         </property>
     </bean>
 
-    <tx:annotation-driven transaction-manager="transactionManager"/>
+    <!-- For Hibernate4 set the transactionManager class below to org.springframework.orm.hibernate4.HibernateTransactionManager -->
     <bean id="transactionManager" class="org.springframework.orm.hibernate3.HibernateTransactionManager">
         <property name="sessionFactory" ref="sessionFactory"/>
     </bean>
 }}}
 
-==== Programming configuration example: ====
+==== Programming configuration snippet: ====
 
 {{{
     public ViburDBCPDataSource createDataSourceWithStatementsCache() {
         ViburDBCPDataSource ds = new ViburDBCPDataSource();
 
-        ds.setDriverClassName("org.hsqldb.jdbcDriver");
         ds.setJdbcUrl("jdbc:hsqldb:mem:sakila;shutdown=false");
         ds.setUsername("sa");
         ds.setPassword("");
@@ -211,12 +226,11 @@ Vibur DBCP uses an in-memory HyperSQL database for unit/integration testing purp
         ds.setStatementCacheMaxSize(200);
 
         ds.start();
-
         return ds;
     }
 }}}
 
-==== Log4j configuration example: ====
+==== Log4j configuration snippet: ====
 
 {{{
     <logger name="org.vibur.dbcp" additivity="false">
@@ -231,7 +245,7 @@ Vibur DBCP uses an in-memory HyperSQL database for unit/integration testing purp
 
 ==== Basic database connection settings: ====
 || *Attribute* || *Description* || *Default value* ||
-|| `driverClassName` || Database driver class name. || Supplied by user ||
+|| `externalDataSource` || If specified, this `externalDataSource` will be used to obtain the raw connections for the pool instead of `DriverManager.getConnection()`.  || null ||
 || `jdbcUrl` || Database JDBC connection string. || Supplied by user ||
 || `username` || User name to use. || Supplied by user ||
 || `password` || Password to use. || Supplied by user ||
@@ -275,7 +289,7 @@ Vibur DBCP uses an in-memory HyperSQL database for unit/integration testing purp
 
 ==== Pool size reduction settings (advanced): ====
 || *Attribute* || *Description* || *Default value* ||
-|| `reducerTimeIntervalInSeconds` || The time period after which the `poolReducer` will try to (possibly) reduce the number of created but unused JDBC connections in this pool. || `60` ||
+|| `reducerTimeIntervalInSeconds` || The time period after which the `poolReducer` will try to (possibly) reduce the number of created but unused JDBC connections in this pool. `0` disables it. || `60` ||
 || `reducerSamples` || How many times the `poolReducer` will wake up during the given `reducerTimeIntervalInSeconds` period in order to sample various statistics from the pool. || `20` ||
 
 

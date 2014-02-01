@@ -1,4 +1,3 @@
 * Some more javadoc and unit tests.
 
-* Obtaining connection from DataSource,
-  may be calculate and log some statistics.
+* May be calculate and log some statistics about the connections use.

@@ -31,15 +31,15 @@ import java.util.concurrent.ConcurrentMap;
  */
 public class ViburDBCPConfig {
 
-    /** If specified, this {@code externalDataSource} wil be used to obtain the initial pool connections
-     * instead of {@code DriverManager.getConnection()}. */
-    private DataSource externalDataSource;
     /** Database JDBC Connection string. */
     private String jdbcUrl;
     /** User name to use. */
     private String username;
     /** Password to use. */
     private String password;
+    /** If specified, this {@code externalDataSource} will be used to obtain the raw connections for the pool
+     * instead of {@code DriverManager.getConnection()}. */
+    private DataSource externalDataSource = null;
 
 
     /** If the connection has stayed in the pool for at least {@code connectionIdleLimitInSeconds},
@@ -135,14 +135,6 @@ public class ViburDBCPConfig {
 
     //////////////////////// Getters & Setters ////////////////////////
 
-    public DataSource getExternalDataSource() {
-        return externalDataSource;
-    }
-
-    public void setExternalDataSource(DataSource externalDataSource) {
-        this.externalDataSource = externalDataSource;
-    }
-
     public String getJdbcUrl() {
         return jdbcUrl;
     }
@@ -165,6 +157,14 @@ public class ViburDBCPConfig {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public DataSource getExternalDataSource() {
+        return externalDataSource;
+    }
+
+    public void setExternalDataSource(DataSource externalDataSource) {
+        this.externalDataSource = externalDataSource;
     }
 
     public int getConnectionIdleLimitInSeconds() {
