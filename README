@@ -49,11 +49,11 @@ One of the main advantages of being implemented with dynamic proxies is that Vib
 
   * Built using standard Java concurrency utilities and dynamic proxies. Does not use any synchronized blocks/methods during normal pool operations.
   * Supports fairness parameter, which when set to true, guarantees that the threads invoking the pool's `take` methods will be selected to obtain a connection from it in FIFO order, and no thread will be starved out from accessing the pool's underlying resources.
-  * Vibur DBCP requires Java 1.6+ and the following external dependencies: its dedicated [https://code.google.com/p/vibur-object-pool/ object pool], slf4j/log4j, and ConcurrentLinkedHashMap. The CLHM dependency can be excluded if the JDBC Statement caching is not needed.
+  * Vibur DBCP requires Java 1.6+ and only the following external dependencies: its dedicated [https://code.google.com/p/vibur-object-pool/ object pool], slf4j/log4j, and ConcurrentLinkedHashMap. The CLHM dependency can be excluded if the JDBC Statement caching is not needed.
 
   * SQL queries logging and getConnection() calls logging if their execution time is longer than a given limit.
   * Caching support for JDBC Statements (Prepared and Callable).
-  * Hibernate 3.x and Hibernate 4.x integration support.
+  * Hibernate 3.x and 4.x integration support.
 
 ==== Other features: ====
 
@@ -247,7 +247,7 @@ To enable Hibernate 3.x or 4.x integration for Vibur DBCP, add one of the follow
 
 ==== Basic database connection settings: ====
 || *Attribute* || *Description* || *Default value* ||
-|| `externalDataSource` || If specified, this `externalDataSource` will be used to obtain the raw connections for the pool instead of `DriverManager.getConnection()`.  || null ||
+|| `externalDataSource` || If specified, this `externalDataSource` will be used to obtain the raw connections for the pool instead of calling `DriverManager.getConnection()`.  || null ||
 || `jdbcUrl` || Database JDBC connection string. || Supplied by user ||
 || `username` || User name to use. || Supplied by user ||
 || `password` || Password to use. || Supplied by user ||

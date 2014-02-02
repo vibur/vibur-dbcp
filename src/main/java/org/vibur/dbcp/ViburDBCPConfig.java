@@ -38,7 +38,7 @@ public class ViburDBCPConfig {
     /** Password to use. */
     private String password;
     /** If specified, this {@code externalDataSource} will be used to obtain the raw connections for the pool
-     * instead of {@code DriverManager.getConnection()}. */
+     * instead of calling {@code DriverManager.getConnection()}. */
     private DataSource externalDataSource = null;
 
 
