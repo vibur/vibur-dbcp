@@ -1,4 +1,4 @@
-Version 1.0.0 (XX/02/2014)
+Version 1.0.0 (02/02/2014)
 ==========================
 * Implemented a pool drain (destroying all connections) after a critical SQL server error.
 * Allowed for creation of the initial connections in the pool from an existing/external DataSource.
