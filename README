@@ -18,7 +18,7 @@
 
 <table border="0" width="870"><tr>
 <td width="56%" valign="top" align="left">
-The latest version from maven central is [#Maven_Dependency_and_How_to_Build: 1.0.0]. 
+The latest version from maven central is [#Maven_dependency_and_how_to_build: 1.0.0].
 Here is a link to the [https://code.google.com/p/vibur-dbcp/source/browse/trunk/CHANGELOG changelog].
 
 Vibur DBCP is a concurrent, [#Some_Code_Metrics_and_Performance_Results fast] and fully-featured JDBC connection pool based on Java [https://www.google.com/search?num=10&q=Java+dynamic+proxies dynamic proxies]. It supports a fairness parameter, statement caching, SQL queries logging, among other features.
