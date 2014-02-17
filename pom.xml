@@ -43,9 +43,9 @@
     <!--</parent>-->
 
     <scm>
-        <connection>scm:svn:http://vibur-dbcp.googlecode.com/svn/trunk/</connection>
-        <developerConnection>scm:svn:https://vibur-dbcp.googlecode.com/svn/trunk/</developerConnection>
-        <url>http://vibur-dbcp.googlecode.com/svn/trunk/</url>
+        <connection>scm:git:https://code.google.com/p/vibur-dbcp/</connection>
+        <developerConnection>scm:git:https://code.google.com/p/vibur-dbcp/</developerConnection>
+        <url>http://code.google.com/p/vibur-dbcp/source/browse</url>
     </scm>
 
     <developers>
