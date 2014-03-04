@@ -41,9 +41,14 @@ public class ViburDBCPGetConnectionTestPerf {
 
     public static void main(String[] args) throws InterruptedException {
 
-        // Creates a DataSource with INITIAL_SIZE and MAX_SIZE, and starts THREADS_COUNT threads where each thread
-        // calls ITERATIONS times getConnection() and then after TIMEOUT_MS close() method on an object from the
-        // DataSource. Each getConnection() call has TIMEOUT in ms and the number of errors calls is recorded.
+        // Creates a DataSource with an INITIAL_SIZE and a MAX_SIZE, and starts THREADS_COUNT threads
+        // where each thread executes ITERATIONS times the following code:
+        //
+        //     Connection connection = ds.getConnection();
+        //     doWork(DO_WORK_FOR_MS);
+        //     connection.close();
+        //
+        // Each getConnection() call has a TIMEOUT_MS and the number of unsuccessful calls is recorded.
         // Measures and reports the total time taken by the test in ms.
 
         ViburDBCPDataSource ds = createDataSource();
