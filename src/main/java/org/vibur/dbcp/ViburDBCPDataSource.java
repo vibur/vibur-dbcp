@@ -227,9 +227,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig
     }
 
     private void validateConfig() {
-        if (getExternalDataSource() == null) {
-            if (getJdbcUrl() == null) throw new IllegalArgumentException();
-        }
+        if (getExternalDataSource() == null && getJdbcUrl() == null) throw new IllegalArgumentException();
         if (getAcquireRetryDelayInMs() < 0) throw new IllegalArgumentException();
         if (getAcquireRetryAttempts() < 0) throw new IllegalArgumentException();
         if (getConnectionTimeoutInMs() < 0) throw new IllegalArgumentException();
