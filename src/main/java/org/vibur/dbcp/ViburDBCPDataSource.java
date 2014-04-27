@@ -347,7 +347,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig
         for (Iterator<Map.Entry<StatementKey, ValueHolder<Statement>>> i = statementCache.entrySet().iterator();
              i.hasNext(); ) {
             Map.Entry<StatementKey, ValueHolder<Statement>> entry = i.next();
-            if (entry.getKey().getProxy().equals(connection)) {
+            if (entry.getKey().getConnection().equals(connection)) {
                 closeStatement(entry.getValue().value());
                 i.remove();
             }

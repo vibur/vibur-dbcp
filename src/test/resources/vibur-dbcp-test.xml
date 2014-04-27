@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
 <properties>
+    <entry key="driverClassName">org.hsqldb.jdbcDriver</entry>
     <entry key="jdbcUrl">jdbc:hsqldb:mem:sakila;shutdown=false</entry>
     <entry key="username">sa</entry>
     <entry key="password"></entry>

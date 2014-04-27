@@ -52,6 +52,7 @@ public class ConnectionFactory implements PoolObjectFactory<ConnState>, Versione
         this.destroyListener = destroyListener;
 
         initLoginTimeout(config);
+        initJdbcDriver(config);
     }
 
     private void initLoginTimeout(ViburDBCPConfig config) {
@@ -63,6 +64,19 @@ public class ConnectionFactory implements PoolObjectFactory<ConnState>, Versione
                 config.getExternalDataSource().setLoginTimeout(loginTimeout);
             } catch (SQLException e) {
                 logger.error("Couldn't set the login timeout to " + config.getExternalDataSource(), e);
+            }
+    }
+
+    private void initJdbcDriver(ViburDBCPConfig config) {
+        if (config.getDriverClassName() != null)
+            try {
+                Class.forName(config.getDriverClassName()).newInstance();
+            } catch (ClassNotFoundException e) {
+                throw new ViburDBCPException(e);
+            } catch (InstantiationException e) {
+                throw new ViburDBCPException(e);
+            } catch (IllegalAccessException e) {
+                throw new ViburDBCPException(e);
             }
     }
 

@@ -32,20 +32,20 @@ import java.util.Arrays;
  */
 public class StatementKey {
 
-    private final Connection proxy;
+    private final Connection connection;
     private final Method method;
     private final Object[] args;
 
-    public StatementKey(Connection proxy, Method method, Object[] args) {
-        if (proxy == null || method == null)
+    public StatementKey(Connection connection, Method method, Object[] args) {
+        if (connection == null || method == null)
             throw new NullPointerException();
-        this.proxy = proxy;
+        this.connection = connection;
         this.method = method;
         this.args = args;
     }
 
-    public Connection getProxy() {
-        return proxy;
+    public Connection getConnection() {
+        return connection;
     }
 
     public Method getMethod() {
@@ -61,13 +61,13 @@ public class StatementKey {
         if (o == null || getClass() != o.getClass()) return false;
 
         StatementKey that = (StatementKey) o;
-        return proxy.equals(that.proxy)
+        return connection.equals(that.connection)
             && method.equals(that.method)
             && Arrays.equals(args, that.args);
     }
 
     public int hashCode() {
-        int result = proxy.hashCode();
+        int result = connection.hashCode();
         result = 31 * result + method.hashCode();
         result = 31 * result + Arrays.hashCode(args);
         return result;
