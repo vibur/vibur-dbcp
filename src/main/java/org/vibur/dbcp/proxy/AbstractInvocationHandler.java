@@ -24,7 +24,7 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.sql.SQLException;
-import java.sql.SQLTransientConnectionException;
+import java.sql.SQLTransientException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -91,7 +91,7 @@ public abstract class AbstractInvocationHandler<T> implements InvocationHandler 
             return method.invoke(target, args);  // the real method call on the real underlying (proxied) object
         } catch (InvocationTargetException e) {
             Throwable cause = e.getCause();
-            if (!(cause instanceof SQLTransientConnectionException)) // transient exceptions are not remembered
+            if (!(cause instanceof SQLTransientException)) // transient exceptions are not remembered
                 exceptionListener.addException(cause);
             throw cause;
         }
