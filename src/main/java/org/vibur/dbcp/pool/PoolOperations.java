@@ -47,11 +47,9 @@ public class PoolOperations {
 
     private static final Logger logger = LoggerFactory.getLogger(PoolOperations.class);
 
-    // see http://stackoverflow.com/a/14412929/1682918
-    private static final Set<String> criticalSQLStates
-        = new HashSet<String>(Arrays.asList("08001", "08007", "08S01", "57P01"));
-
     private final ViburDBCPConfig config;
+    private final Set<String> criticalSQLStates;
+
     private final ConnectionFactory connectionFactory;
     private final HolderValidatingPoolService<ConnState> pool;
     private final ThreadedPoolReducer poolReducer;
@@ -59,7 +57,10 @@ public class PoolOperations {
     public PoolOperations(ViburDBCPConfig config, DestroyListener destroyListener) {
         if (config == null || destroyListener == null)
             throw new NullPointerException();
+
         this.config = config;
+        this.criticalSQLStates = new HashSet<String>(Arrays.asList(
+            config.getCriticalSQLStates().replaceAll("\\s","").split(",")));
 
         this.connectionFactory = new ConnectionFactory(config, destroyListener);
         this.pool = new ConcurrentHolderLinkedPool<ConnState>(connectionFactory,
@@ -95,24 +96,33 @@ public class PoolOperations {
         int connVersion = hConnection.value().version();
         boolean valid = !aborted && connVersion == connectionFactory.getVersion() && errors.isEmpty();
         boolean restored = pool.restore(hConnection, valid);
-        String criticalSQLError;
-        if (restored && (criticalSQLError = hasCriticalSQLError(errors)) != null
+        SQLException sqlException;
+        if (restored && (sqlException = hasCriticalSQLException(errors)) != null
             && connectionFactory.compareAndSetVersion(connVersion, connVersion + 1)) {
             int destroyed = pool.drainCreated(); // destroys all connections in the pool
-            logger.error("Critical SQL error {}, destroyed {} connections, current connection version is {}.",
-                criticalSQLError, destroyed, connectionFactory.getVersion());
+            logger.error(String.format(
+                "Critical SQLState %s occurred, destroyed %d connections, current connection version is %d.",
+                sqlException.getSQLState(), destroyed, connectionFactory.getVersion()), sqlException);
         }
         return restored;
     }
 
-    private String hasCriticalSQLError(List<Throwable> errors) {
+    private SQLException hasCriticalSQLException(List<Throwable> errors) {
         for (Throwable error : errors)
             if (error instanceof SQLException) {
-                String sqlState = ((SQLException) error).getSQLState();
-                if (criticalSQLStates.contains(sqlState))
-                    return sqlState;
+                SQLException sqlException = (SQLException) error;
+                if (isCriticalSQLException(sqlException))
+                    return sqlException;
             }
         return null;
+    }
+
+    private boolean isCriticalSQLException(SQLException sqlException) {
+        if (sqlException == null)
+            return false;
+        if (criticalSQLStates.contains(sqlException.getSQLState()))
+            return true;
+        return isCriticalSQLException(sqlException.getNextException());
     }
 
     public void terminate() {

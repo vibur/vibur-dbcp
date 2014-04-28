@@ -31,10 +31,12 @@ import java.util.concurrent.ConcurrentMap;
  */
 public class ViburDBCPConfig {
 
-    /** Database driver class name. This is <b>an optional</b> parameter. If specified, a call to
-     * {@code Class.forName(driverClassName).newInstance()} will be issued during the Vibur DBCP initialisation.
+    /** Database driver class name. This is <b>an optional</b> parameter if the driver is JDBC 4 complaint. If specified,
+     * a call to {@code Class.forName(driverClassName).newInstance()} will be issued during the Vibur DBCP initialisation.
      * This is needed when Vibur DBCP is used in an OSGi container and may also be helpful if Vibur DBCP is used in an
-     * Apache Tomcat web application which has its JDBC driver JAR file packaged in the app WEB-INF/lib directory. */
+     * Apache Tomcat web application which has its JDBC driver JAR file packaged in the app WEB-INF/lib directory.
+     * If this property is not specified, then Vibur DBCP will depend on the JavaSE Service Provider mechanism to find
+     * the driver. */
     private String driverClassName;
     /** Database JDBC Connection string. */
     private String jdbcUrl;
@@ -42,14 +44,14 @@ public class ViburDBCPConfig {
     private String username;
     /** Password to use. */
     private String password;
-    /** If specified, this {@code externalDataSource} will be used to obtain the raw connections for the pool
-     * instead of calling {@code DriverManager.getConnection()}. */
+    /** If specified, this {@code externalDataSource} will be used as an alternative way to obtain the raw
+     * connections for the pool instead of calling {@code DriverManager.getConnection()}. */
     private DataSource externalDataSource = null;
 
 
     /** If the connection has stayed in the pool for at least {@code connectionIdleLimitInSeconds},
      * it will be validated before being given to the application using the {@code testConnectionQuery}.
-     * If set to zero, will validate the connection always when it is taken from the pool.
+     * If set to {@code 0}, will validate the connection always when it is taken from the pool.
      * If set to a negative number, will never validate the taken from the pool connection. */
     private int connectionIdleLimitInSeconds = 60;
 
@@ -66,7 +68,9 @@ public class ViburDBCPConfig {
     private int poolInitialSize = 10;
     /** The pool max size, i.e. the maximum number of JDBC Connections allocated in this pool. */
     private int poolMaxSize = 100;
-    /** The pool's fairness setting with regards to waiting threads. */
+    /** If `true`, guarantees that the threads invoking the pool's {@code take} methods will be selected to obtain a
+     * connection from it in FIFO order, and no thread will be starved out from accessing the pool's underlying
+     * resources. */
     private boolean poolFair = true;
     /** If {@code true}, the pool will keep information for the current stack trace of every taken connection. */
     private boolean poolEnableConnectionTracking = false;
@@ -100,6 +104,10 @@ public class ViburDBCPConfig {
     private int statementCacheMaxSize = 0;
     private ConcurrentMap<StatementKey, ValueHolder<Statement>> statementCache = null;
 
+    /** The list of critical SQL states, see http://stackoverflow.com/a/14412929/1682918. If an SQL exception
+     * which has any of these SQL states is thrown then all connections in the pool will be considered invalid
+     * and will be closed. */
+    private String criticalSQLStates = "08001,08006,08007,08S01,57P01,57P02,57P03,JZ0C0,JZ0C1";
     private PoolOperations poolOperations;
 
     /** {@code getConnection} method calls taking longer than or equal to this time limit are logged at WARN level.
@@ -111,10 +119,10 @@ public class ViburDBCPConfig {
     /** JDBC Statement {@code execute...} calls taking longer than or equal to this time limit are logged at
      * WARN level. A value of {@code 0} will log all such calls. A {@code negative number} disables it.
      *
-     * <p><b>Note</b> that while a JDBC Statement {@code execute...} call duration is roughly equivalent to
+     * <p><b>Notice that</b> while a JDBC Statement {@code execute...} call duration is roughly equivalent to
      * the execution time of the underlying SQL query, the overall call duration may also include some Java GC
-     * time, JDBC driver specific execution time, and threads context switching time (the last particularly
-     * in the case of a heavily multithreaded application). */
+     * time, JDBC driver specific execution time, and threads context switching time (the last could be significant
+     * if the application has a very large thread count). */
     private long logQueryExecutionLongerThanMs = 3000;
     /** Will apply only if {@link #logQueryExecutionLongerThanMs} is enabled, and if set to {@code true},
      * will log at WARN level the current JDBC Statement {@code execute...} call stack trace plus the
@@ -282,6 +290,14 @@ public class ViburDBCPConfig {
 
     public void setStatementCache(ConcurrentMap<StatementKey, ValueHolder<Statement>> statementCache) {
         this.statementCache = statementCache;
+    }
+
+    public String getCriticalSQLStates() {
+        return criticalSQLStates;
+    }
+
+    public void setCriticalSQLStates(String criticalSQLStates) {
+        this.criticalSQLStates = criticalSQLStates;
     }
 
     public PoolOperations getPoolOperations() {
