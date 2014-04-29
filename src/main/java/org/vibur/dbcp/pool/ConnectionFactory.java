@@ -204,7 +204,7 @@ public class ConnectionFactory implements PoolObjectFactory<ConnState>, Versione
         }
     }
 
-    public void closeStatements(Connection connection) {
+    private void closeStatements(Connection connection) {
         ConcurrentMap<MethodDefinition, MethodResult<Statement>> statementCache = config.getStatementCache();
         if (statementCache == null)
             return;
