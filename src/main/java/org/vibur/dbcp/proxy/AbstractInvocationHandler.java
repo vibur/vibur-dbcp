@@ -34,6 +34,8 @@ public abstract class AbstractInvocationHandler<T> implements InvocationHandler 
 
     private static final Logger logger = LoggerFactory.getLogger(AbstractInvocationHandler.class);
 
+    private static final Object NO_CUSTOM_RESULT = new Object();
+
     /** The real object which we're dynamically proxy-ing.
      *  For example, the underlying JDBC Connection, the underlying JDBC Statement, etc. */
     private final T target;
@@ -53,6 +55,11 @@ public abstract class AbstractInvocationHandler<T> implements InvocationHandler 
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         if (logger.isTraceEnabled())
             logger.trace("Calling {} with args {} on {}", method, args, target);
+
+        Object customResult = customInvoke((T) proxy, method, args);
+        if (customResult != NO_CUSTOM_RESULT)
+            return customResult;
+
         String methodName = method.getName();
 
         if (methodName == "equals")
@@ -67,7 +74,8 @@ public abstract class AbstractInvocationHandler<T> implements InvocationHandler 
         if (methodName == "isWrapperFor")
             return isWrapperFor((Class<?>) args[0]);
 
-       return customInvoke((T) proxy, method, args);
+        // by default we just pass the call to the proxied object method
+        return targetInvoke(method, args);
     }
 
     @SuppressWarnings("unchecked")
@@ -82,8 +90,7 @@ public abstract class AbstractInvocationHandler<T> implements InvocationHandler 
     }
 
     protected Object customInvoke(T proxy, Method method, Object[] args) throws Throwable {
-        // by default we just pass the call to the proxied object method
-        return targetInvoke(method, args);
+        return NO_CUSTOM_RESULT;
     }
 
     protected Object targetInvoke(Method method, Object[] args) throws Throwable {
