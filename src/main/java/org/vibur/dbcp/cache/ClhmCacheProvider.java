@@ -33,14 +33,14 @@ public class ClhmCacheProvider {
 
     private ClhmCacheProvider() { }
 
-    public static ConcurrentMap<StatementKey, ValueHolder<Statement>> buildStatementCache(int statementCacheMaxSize) {
-        EvictionListener<StatementKey, ValueHolder<Statement>> listener =
-            new EvictionListener<StatementKey, ValueHolder<Statement>>() {
-                public void onEviction(StatementKey key, ValueHolder<Statement> value) {
+    public static ConcurrentMap<MethodDefinition, MethodResult<Statement>> buildStatementCache(int statementCacheMaxSize) {
+        EvictionListener<MethodDefinition, MethodResult<Statement>> listener =
+            new EvictionListener<MethodDefinition, MethodResult<Statement>>() {
+                public void onEviction(MethodDefinition key, MethodResult<Statement> value) {
                     closeStatement(value.value());
                 }
             };
-        return new ConcurrentLinkedHashMap.Builder<StatementKey, ValueHolder<Statement>>()
+        return new ConcurrentLinkedHashMap.Builder<MethodDefinition, MethodResult<Statement>>()
             .initialCapacity(statementCacheMaxSize)
             .maximumWeightedCapacity(statementCacheMaxSize)
             .listener(listener)

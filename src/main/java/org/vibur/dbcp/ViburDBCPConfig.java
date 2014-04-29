@@ -16,8 +16,8 @@
 
 package org.vibur.dbcp;
 
-import org.vibur.dbcp.cache.StatementKey;
-import org.vibur.dbcp.cache.ValueHolder;
+import org.vibur.dbcp.cache.MethodDefinition;
+import org.vibur.dbcp.cache.MethodResult;
 import org.vibur.dbcp.pool.PoolOperations;
 
 import javax.sql.DataSource;
@@ -102,11 +102,11 @@ public class ViburDBCPConfig {
      * If the statement's cache is not enabled, the client application may safely exclude the dependency
      * on ConcurrentLinkedCacheMap from its pom.xml file. */
     private int statementCacheMaxSize = 0;
-    private ConcurrentMap<StatementKey, ValueHolder<Statement>> statementCache = null;
+    private ConcurrentMap<MethodDefinition, MethodResult<Statement>> statementCache = null;
 
-    /** The list of critical SQL states, see http://stackoverflow.com/a/14412929/1682918. If an SQL exception
-     * which has any of these SQL states is thrown then all connections in the pool will be considered invalid
-     * and will be closed. */
+    /** The list of critical SQL states as a comma separated values, see http://stackoverflow.com/a/14412929/1682918 .
+     * If an SQL exception which has any of these SQL states is thrown then all connections in the pool will be
+     * considered invalid and will be closed. */
     private String criticalSQLStates = "08001,08006,08007,08S01,57P01,57P02,57P03,JZ0C0,JZ0C1";
     private PoolOperations poolOperations;
 
@@ -284,11 +284,11 @@ public class ViburDBCPConfig {
         this.statementCacheMaxSize = statementCacheMaxSize;
     }
 
-    public ConcurrentMap<StatementKey, ValueHolder<Statement>> getStatementCache() {
+    public ConcurrentMap<MethodDefinition, MethodResult<Statement>> getStatementCache() {
         return statementCache;
     }
 
-    public void setStatementCache(ConcurrentMap<StatementKey, ValueHolder<Statement>> statementCache) {
+    public void setStatementCache(ConcurrentMap<MethodDefinition, MethodResult<Statement>> statementCache) {
         this.statementCache = statementCache;
     }
 

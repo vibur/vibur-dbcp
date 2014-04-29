@@ -20,7 +20,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.ViburDBCPConfig;
 import org.vibur.dbcp.ViburDBCPException;
-import org.vibur.dbcp.listener.DestroyListener;
+import org.vibur.dbcp.cache.MethodDefinition;
+import org.vibur.dbcp.cache.MethodResult;
 import org.vibur.objectpool.PoolObjectFactory;
 
 import javax.sql.DataSource;
@@ -28,8 +29,13 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static org.vibur.dbcp.util.StatementUtils.closeStatement;
 
 /**
  * The object factory which controls the lifecycle of the underlying JDBC Connections: creates them,
@@ -42,14 +48,12 @@ public class ConnectionFactory implements PoolObjectFactory<ConnState>, Versione
     private static final Logger logger = LoggerFactory.getLogger(ConnectionFactory.class);
 
     private final ViburDBCPConfig config;
-    private final DestroyListener destroyListener;
     private final AtomicInteger version = new AtomicInteger(1);
 
-    public ConnectionFactory(ViburDBCPConfig config, DestroyListener destroyListener) {
-        if (config == null || destroyListener == null)
+    public ConnectionFactory(ViburDBCPConfig config) {
+        if (config == null)
             throw new NullPointerException();
         this.config = config;
-        this.destroyListener = destroyListener;
 
         initLoginTimeout(config);
         initJdbcDriver(config);
@@ -193,10 +197,25 @@ public class ConnectionFactory implements PoolObjectFactory<ConnState>, Versione
         Connection connection = connState.connection();
         logger.trace("Destroying {}", connection);
         try {
-            destroyListener.onDestroy(connection);
+            closeStatements(connection);
             connection.close();
         } catch (SQLException e) {
             logger.debug("Couldn't close " + connection, e);
+        }
+    }
+
+    public void closeStatements(Connection connection) {
+        ConcurrentMap<MethodDefinition, MethodResult<Statement>> statementCache = config.getStatementCache();
+        if (statementCache == null)
+            return;
+
+        for (Iterator<Map.Entry<MethodDefinition, MethodResult<Statement>>> i = statementCache.entrySet().iterator();
+             i.hasNext(); ) {
+            Map.Entry<MethodDefinition, MethodResult<Statement>> entry = i.next();
+            if (entry.getKey().getConnection().equals(connection)) {
+                closeStatement(entry.getValue().value());
+                i.remove();
+            }
         }
     }
 

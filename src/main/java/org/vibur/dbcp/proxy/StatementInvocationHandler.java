@@ -19,8 +19,8 @@ package org.vibur.dbcp.proxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.ViburDBCPConfig;
-import org.vibur.dbcp.cache.StatementKey;
-import org.vibur.dbcp.cache.ValueHolder;
+import org.vibur.dbcp.cache.MethodDefinition;
+import org.vibur.dbcp.cache.MethodResult;
 import org.vibur.dbcp.proxy.listener.ExceptionListener;
 
 import java.lang.reflect.Method;
@@ -41,19 +41,19 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
 
     private static final Logger logger = LoggerFactory.getLogger(StatementInvocationHandler.class);
 
-    private final ValueHolder<? extends Statement> statementHolder;
+    private final MethodResult<? extends Statement> statementResult;
     private final ViburDBCPConfig config;
 
-    private final ConcurrentMap<StatementKey, ValueHolder<Statement>> statementCache;
+    private final ConcurrentMap<MethodDefinition, MethodResult<Statement>> statementCache;
 
-    public StatementInvocationHandler(ValueHolder<? extends Statement> statementHolder,
-                                      ConcurrentMap<StatementKey, ValueHolder<Statement>> statementCache,
+    public StatementInvocationHandler(MethodResult<? extends Statement> statementResult,
+                                      ConcurrentMap<MethodDefinition, MethodResult<Statement>> statementCache,
                                       Connection connectionProxy, ViburDBCPConfig config,
                                       ExceptionListener exceptionListener) {
-        super(statementHolder.value(), connectionProxy, "getConnection", exceptionListener);
+        super(statementResult.value(), connectionProxy, "getConnection", exceptionListener);
         if (config == null)
             throw new NullPointerException();
-        this.statementHolder = statementHolder;
+        this.statementResult = statementResult;
         this.statementCache = statementCache;
         this.config = config;
     }
@@ -84,8 +84,8 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
     private Object processClose(Method method, Object[] args) throws Throwable {
         if (getAndSetClosed())
             return null;
-        if (statementCache != null && statementHolder.inUse() != null) { // this statementHolder is in the cache
-            statementHolder.inUse().set(false); // we just mark it as available
+        if (statementCache != null && statementResult.inUse() != null) { // this statementResult is in the cache
+            statementResult.inUse().set(false); // we just mark it as available
             return null; // and we don't pass the call to the underlying close method
         } else
             return targetInvoke(method, args);
@@ -94,9 +94,9 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
     private Object processCancel(Method method, Object[] args) throws Throwable {
         if (statementCache != null) {
             Statement target = getTarget();
-            for (Iterator<ValueHolder<Statement>> i = statementCache.values().iterator(); i.hasNext(); ) {
-                ValueHolder<Statement> valueHolder = i.next();
-                if (valueHolder.value().equals(target)) {
+            for (Iterator<MethodResult<Statement>> i = statementCache.values().iterator(); i.hasNext(); ) {
+                MethodResult<Statement> methodResult = i.next();
+                if (methodResult.value().equals(target)) {
                     i.remove();
                     break;
                 }

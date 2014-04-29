@@ -19,6 +19,8 @@ package org.vibur.dbcp.proxy.listener;
 import java.util.List;
 
 /**
+ * JDBC proxy objects exceptions listener - operations definitions.
+ *
  * @author Simeon Malchev
  */
 public interface ExceptionListener {

@@ -23,6 +23,8 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
+ * JDBC proxy objects exceptions listener - operations implementation.
+ *
  * @author Simeon Malchev
  */
 public class ExceptionListenerImpl implements ExceptionListener {

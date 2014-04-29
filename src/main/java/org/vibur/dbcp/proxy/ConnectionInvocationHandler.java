@@ -18,10 +18,10 @@ package org.vibur.dbcp.proxy;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.vibur.dbcp.pool.ConnState;
 import org.vibur.dbcp.ViburDBCPConfig;
-import org.vibur.dbcp.cache.StatementKey;
-import org.vibur.dbcp.cache.ValueHolder;
+import org.vibur.dbcp.cache.MethodDefinition;
+import org.vibur.dbcp.cache.MethodResult;
+import org.vibur.dbcp.pool.ConnState;
 import org.vibur.dbcp.pool.PoolOperations;
 import org.vibur.dbcp.proxy.listener.ExceptionListenerImpl;
 import org.vibur.objectpool.Holder;
@@ -45,7 +45,7 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
     private final Holder<ConnState> hConnection;
 
     private final ViburDBCPConfig config;
-    private final ConcurrentMap<StatementKey, ValueHolder<Statement>> statementCache;
+    private final ConcurrentMap<MethodDefinition, MethodResult<Statement>> statementCache;
 
     public ConnectionInvocationHandler(Holder<ConnState> hConnection, ViburDBCPConfig config) {
         super(hConnection.value().connection(), new ExceptionListenerImpl());
@@ -73,20 +73,20 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
         // Methods which results have to be proxied so that when getConnection() is called
         // on their results the return value to be current JDBC Connection proxy.
         if (methodName == "createStatement") { // *3
-            ValueHolder<Statement> statementHolder =
-                (ValueHolder<Statement>) getUncachedStatementHolder(method, args);
-            return Proxy.newStatement(statementHolder, null, proxy, config, getExceptionListener());
+            MethodResult<Statement> statementResult =
+                (MethodResult<Statement>) getUncachedStatementResult(method, args);
+            return Proxy.newStatement(statementResult, null, proxy, config, getExceptionListener());
         }
         if (methodName == "prepareStatement") { // *6
-            ValueHolder<PreparedStatement> statementHolder =
-                (ValueHolder<PreparedStatement>) getStatementHolder(method, args);
-            return Proxy.newPreparedStatement(statementHolder, statementCache, proxy, config,
+            MethodResult<PreparedStatement> statementResult =
+                (MethodResult<PreparedStatement>) getStatementResult(method, args);
+            return Proxy.newPreparedStatement(statementResult, statementCache, proxy, config,
                 getExceptionListener());
         }
         if (methodName == "prepareCall") { // *3
-            ValueHolder<CallableStatement> statementHolder =
-                (ValueHolder<CallableStatement>) getStatementHolder(method, args);
-            return Proxy.newCallableStatement(statementHolder, statementCache, proxy, config,
+            MethodResult<CallableStatement> statementResult =
+                (MethodResult<CallableStatement>) getStatementResult(method, args);
+            return Proxy.newCallableStatement(statementResult, statementCache, proxy, config,
                 getExceptionListener());
         }
         if (methodName == "getMetaData") { // *1
@@ -97,34 +97,34 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
         return super.customInvoke(proxy, method, args);
     }
 
-    private ValueHolder<? extends Statement> getStatementHolder(Method method, Object[] args) throws Throwable {
+    private MethodResult<? extends Statement> getStatementResult(Method method, Object[] args) throws Throwable {
         if (statementCache != null) {
             Connection target = getTarget();
-            StatementKey key = new StatementKey(target, method, args);
-            ValueHolder<Statement> statementHolder = statementCache.get(key);
-            if (statementHolder == null || statementHolder.inUse().getAndSet(true)) {
+            MethodDefinition key = new MethodDefinition(target, method, args);
+            MethodResult<Statement> statementResult = statementCache.get(key);
+            if (statementResult == null || statementResult.inUse().getAndSet(true)) {
                 Statement statement = (Statement) targetInvoke(method, args);
-                if (statementHolder == null) { // there was no entry for the key, so we'll try to put a new one
-                    statementHolder = new ValueHolder<Statement>(statement, new AtomicBoolean(true));
-                    if (statementCache.putIfAbsent(key, statementHolder) != null)
+                if (statementResult == null) { // there was no entry for the key, so we'll try to put a new one
+                    statementResult = new MethodResult<Statement>(statement, new AtomicBoolean(true));
+                    if (statementCache.putIfAbsent(key, statementResult) != null)
                         // because another thread succeeded to put the entry before us
-                        statementHolder = new ValueHolder<Statement>(statement, null);
+                        statementResult = new MethodResult<Statement>(statement, null);
                 }
-                return statementHolder;
-            } else { // the statementHolder is valid and was not inUse
+                return statementResult;
+            } else { // the statementResult is valid and was not inUse
                 if (logger.isTraceEnabled())
                     logger.trace("Using cached statement for connection {}, method {}, args {}",
                         target, method, Arrays.toString(args));
-                return statementHolder;
+                return statementResult;
             }
         } else {
-            return getUncachedStatementHolder(method, args);
+            return getUncachedStatementResult(method, args);
         }
     }
 
-    private ValueHolder<? extends Statement> getUncachedStatementHolder(Method method, Object[] args) throws Throwable {
+    private MethodResult<? extends Statement> getUncachedStatementResult(Method method, Object[] args) throws Throwable {
         Statement statement = (Statement) targetInvoke(method, args);
-        return new ValueHolder<Statement>(statement, null);
+        return new MethodResult<Statement>(statement, null);
     }
 
     private Object processCloseOrAbort(boolean aborted, Method method, Object[] args) throws Throwable {

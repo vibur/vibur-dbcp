@@ -21,7 +21,7 @@ import java.sql.Connection;
 import java.util.Arrays;
 
 /**
- * Describes the "parameters" via which a Statement has been created. These are the
+ * Describes the "parameters" via which a Method has been invoked. These are the
  * Connection object, the Method object which has been called on this Connection, and
  * the Method's arguments.
 
@@ -30,13 +30,13 @@ import java.util.Arrays;
  *
  * @author Simeon Malchev
  */
-public class StatementKey {
+public class MethodDefinition {
 
     private final Connection connection;
     private final Method method;
     private final Object[] args;
 
-    public StatementKey(Connection connection, Method method, Object[] args) {
+    public MethodDefinition(Connection connection, Method method, Object[] args) {
         if (connection == null || method == null)
             throw new NullPointerException();
         this.connection = connection;
@@ -60,7 +60,7 @@ public class StatementKey {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        StatementKey that = (StatementKey) o;
+        MethodDefinition that = (MethodDefinition) o;
         return connection.equals(that.connection)
             && method.equals(that.method)
             && Arrays.equals(args, that.args);

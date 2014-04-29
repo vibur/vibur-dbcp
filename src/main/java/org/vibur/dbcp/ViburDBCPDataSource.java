@@ -17,10 +17,9 @@
 package org.vibur.dbcp;
 
 import org.slf4j.LoggerFactory;
-import org.vibur.dbcp.cache.StatementKey;
-import org.vibur.dbcp.cache.ValueHolder;
+import org.vibur.dbcp.cache.MethodDefinition;
+import org.vibur.dbcp.cache.MethodResult;
 import org.vibur.dbcp.jmx.ViburDBCPMonitoring;
-import org.vibur.dbcp.listener.DestroyListener;
 import org.vibur.dbcp.pool.PoolOperations;
 
 import javax.sql.DataSource;
@@ -35,7 +34,6 @@ import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
 import java.sql.Statement;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentMap;
 import java.util.logging.Logger;
@@ -55,8 +53,7 @@ import static org.vibur.dbcp.util.ViburUtils.getStackTraceAsString;
  *
  * @author Simeon Malchev
  */
-public class ViburDBCPDataSource extends ViburDBCPConfig
-    implements DataSource, DataSourceLifecycle, DestroyListener {
+public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, DataSourceLifecycle {
 
     private static final org.slf4j.Logger logger = LoggerFactory.getLogger(ViburDBCPDataSource.class);
 
@@ -202,7 +199,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig
 
         validateConfig();
 
-        setPoolOperations(new PoolOperations(this, this));
+        setPoolOperations(new PoolOperations(this));
         initStatementCache();
     }
 
@@ -213,11 +210,11 @@ public class ViburDBCPDataSource extends ViburDBCPConfig
         state = State.TERMINATED;
         if (oldState == State.NEW) return;
 
-        ConcurrentMap<StatementKey, ValueHolder<Statement>> statementCache = getStatementCache();
+        ConcurrentMap<MethodDefinition, MethodResult<Statement>> statementCache = getStatementCache();
         if (statementCache != null) {
-            for (Iterator<ValueHolder<Statement>> i = statementCache.values().iterator(); i.hasNext(); ) {
-                ValueHolder<Statement> valueHolder = i.next();
-                closeStatement(valueHolder.value());
+            for (Iterator<MethodResult<Statement>> i = statementCache.values().iterator(); i.hasNext(); ) {
+                MethodResult<Statement> methodResult = i.next();
+                closeStatement(methodResult.value());
                 i.remove();
             }
             setStatementCache(null);
@@ -337,21 +334,6 @@ public class ViburDBCPDataSource extends ViburDBCPConfig
     /** {@inheritDoc} */
     public boolean isWrapperFor(Class<?> iface) {
         return false;
-    }
-
-    public void onDestroy(Connection connection) {
-        ConcurrentMap<StatementKey, ValueHolder<Statement>> statementCache = getStatementCache();
-        if (statementCache == null)
-            return;
-
-        for (Iterator<Map.Entry<StatementKey, ValueHolder<Statement>>> i = statementCache.entrySet().iterator();
-             i.hasNext(); ) {
-            Map.Entry<StatementKey, ValueHolder<Statement>> entry = i.next();
-            if (entry.getKey().getConnection().equals(connection)) {
-                closeStatement(entry.getValue().value());
-                i.remove();
-            }
-        }
     }
 
     /** {@inheritDoc} */

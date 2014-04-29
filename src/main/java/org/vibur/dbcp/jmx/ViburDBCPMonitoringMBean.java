@@ -17,12 +17,20 @@
 package org.vibur.dbcp.jmx;
 
 /**
+ * Defines the Vibur DBCP JMX operations.
+ *
  * @author Simeon Malchev
  */
 public interface ViburDBCPMonitoringMBean {
 
+    //////////// Database connectivity ////////////
+
     String getJdbcUrl();
 
+    String getDriverClassName();
+
+
+    //////////// JDBC connection testing ////////////
 
     int getConnectionIdleLimitInSeconds();
 
@@ -32,6 +40,8 @@ public interface ViburDBCPMonitoringMBean {
 
     void setTestConnectionQuery(String testConnectionQuery);
 
+
+    //////////// Pool parameters and PoolReducer parameters ////////////
 
     int getPoolInitialSize();
 
@@ -50,6 +60,8 @@ public interface ViburDBCPMonitoringMBean {
     float getReducerSamples();
 
 
+    //////////// JDBC Connection acquiring timeouts and retries ////////////
+
     long getConnectionTimeoutInMs();
 
     void setConnectionTimeoutInMs(long connectionTimeoutInMs);
@@ -63,8 +75,12 @@ public interface ViburDBCPMonitoringMBean {
     void setAcquireRetryAttempts(int acquireRetryAttempts);
 
 
+    //////////// JDBC Statement caching ////////////
+
     int getStatementCacheMaxSize();
 
+
+    //////////// JDBC Connection acquiring logging and SQL query execution logging ////////////
 
     long getLogConnectionLongerThanMs();
 
@@ -83,6 +99,8 @@ public interface ViburDBCPMonitoringMBean {
     void setLogStackTraceForLongQueryExecution(boolean logStackTraceForLongQueryExecution);
 
 
+    //////////// JDBC Connection default states ////////////
+
     boolean isResetDefaultsAfterUse();
 
     Boolean getDefaultAutoCommit();
@@ -93,6 +111,8 @@ public interface ViburDBCPMonitoringMBean {
 
     String getDefaultCatalog();
 
+
+    //////////// Taken JDBC Connections information ////////////
 
     String showTakenConnections();
 }

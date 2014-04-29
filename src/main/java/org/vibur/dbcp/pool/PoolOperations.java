@@ -19,7 +19,6 @@ package org.vibur.dbcp.pool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.ViburDBCPConfig;
-import org.vibur.dbcp.listener.DestroyListener;
 import org.vibur.dbcp.proxy.Proxy;
 import org.vibur.objectpool.ConcurrentHolderLinkedPool;
 import org.vibur.objectpool.Holder;
@@ -54,15 +53,15 @@ public class PoolOperations {
     private final HolderValidatingPoolService<ConnState> pool;
     private final ThreadedPoolReducer poolReducer;
 
-    public PoolOperations(ViburDBCPConfig config, DestroyListener destroyListener) {
-        if (config == null || destroyListener == null)
+    public PoolOperations(ViburDBCPConfig config) {
+        if (config == null)
             throw new NullPointerException();
 
         this.config = config;
         this.criticalSQLStates = new HashSet<String>(Arrays.asList(
             config.getCriticalSQLStates().replaceAll("\\s","").split(",")));
 
-        this.connectionFactory = new ConnectionFactory(config, destroyListener);
+        this.connectionFactory = new ConnectionFactory(config);
         this.pool = new ConcurrentHolderLinkedPool<ConnState>(connectionFactory,
             config.getPoolInitialSize(), config.getPoolMaxSize(), config.isPoolFair(),
             config.isPoolEnableConnectionTracking());

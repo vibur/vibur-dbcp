@@ -16,9 +16,9 @@
 
 package org.vibur.dbcp.jmx;
 
-import org.vibur.dbcp.pool.ConnState;
 import org.vibur.dbcp.ViburDBCPConfig;
 import org.vibur.dbcp.ViburDBCPException;
+import org.vibur.dbcp.pool.ConnState;
 import org.vibur.objectpool.Holder;
 
 import javax.management.JMException;
@@ -59,6 +59,10 @@ public class ViburDBCPMonitoring implements ViburDBCPMonitoringMBean {
 
     public String getJdbcUrl() {
         return viburDBCPConfig.getJdbcUrl();
+    }
+
+    public String getDriverClassName() {
+        return viburDBCPConfig.getDriverClassName();
     }
 
     public int getConnectionIdleLimitInSeconds() {
