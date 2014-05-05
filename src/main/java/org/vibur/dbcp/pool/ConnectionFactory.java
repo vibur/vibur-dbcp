@@ -41,6 +41,10 @@ import static org.vibur.dbcp.util.StatementUtils.closeStatement;
  * The object factory which controls the lifecycle of the underlying JDBC Connections: creates them,
  * validates them if needed, and destroys them. Used by {@link org.vibur.dbcp.ViburDBCPDataSource}.
  *
+ * <p>This {@code ConnectionFactory} is a {@code VersionedObject} which creates versioned JDBC Connection
+ * wrappers {@code ConnState(s)}. The version of each {@code ConnState} created by the factory is the same
+ * as the version of the factory at the moment of the object creation.
+ *
  * @author Simeon Malchev
  */
 public class ConnectionFactory implements PoolObjectFactory<ConnState>, VersionedObject {

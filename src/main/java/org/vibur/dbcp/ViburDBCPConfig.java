@@ -130,7 +130,7 @@ public class ViburDBCPConfig {
     /** JDBC Statement {@code execute...} calls taking longer than or equal to this time limit are logged at
      * WARN level. A value of {@code 0} will log all such calls. A {@code negative number} disables it.
      *
-     * <p><b>Notice that</b> while a JDBC Statement {@code execute...} call duration is roughly equivalent to
+     * <p><b>Note that</b> while a JDBC Statement {@code execute...} call duration is roughly equivalent to
      * the execution time of the underlying SQL query, the overall call duration may also include some Java GC
      * time, JDBC driver specific execution time, and threads context switching time (the last could be significant
      * if the application has a very large thread count). */
