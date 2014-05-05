@@ -48,8 +48,7 @@ public class ViburDBCPMonitoring implements ViburDBCPMonitoringMBean {
     private void initJMX() throws ViburDBCPException {
         try {
             MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
-            ObjectName name = new ObjectName("org.vibur.dbcp:type=ViburDBCP-"
-                + Integer.toHexString(viburDBCPConfig.hashCode()));
+            ObjectName name = new ObjectName("org.vibur.dbcp:type=ViburDBCP-" + viburDBCPConfig.getPoolName());
             if (!mbs.isRegistered(name))
                 mbs.registerMBean(this, name);
         } catch (JMException e) {

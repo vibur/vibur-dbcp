@@ -22,7 +22,9 @@ import org.vibur.dbcp.pool.PoolOperations;
 
 import javax.sql.DataSource;
 import java.sql.Statement;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Specifies all {@link ViburDBCPDataSource} configuration options.
@@ -37,7 +39,7 @@ public class ViburDBCPConfig {
      * Apache Tomcat web application which has its JDBC driver JAR file packaged in the app WEB-INF/lib directory.
      * If this property is not specified, then Vibur DBCP will depend on the JavaSE Service Provider mechanism to find
      * the driver. */
-    private String driverClassName;
+    private String driverClassName = null;
     /** Database JDBC Connection string. */
     private String jdbcUrl;
     /** User name to use. */
@@ -75,6 +77,14 @@ public class ViburDBCPConfig {
     /** If {@code true}, the pool will keep information for the current stack trace of every taken connection. */
     private boolean poolEnableConnectionTracking = false;
 
+    private static final AtomicInteger poolId = new AtomicInteger(1);
+    private static final ConcurrentMap<String, Boolean> poolNames = new ConcurrentHashMap<String, Boolean>();
+    /** The pool name, mostly useful for JMX and similar. */
+    private String poolName = Integer.toString(poolId.getAndIncrement());
+
+    /** Enables or disables the pool JMX exposure. */
+    private boolean poolEnableJMX = true;
+
 
     /** For more details on the next 2 parameters see {@link org.vibur.objectpool.util.PoolReducer}
      *  and {@link org.vibur.objectpool.util.SamplingPoolReducer}.
@@ -109,6 +119,7 @@ public class ViburDBCPConfig {
      * considered invalid and will be closed. */
     private String criticalSQLStates = "08001,08006,08007,08S01,57P01,57P02,57P03,JZ0C0,JZ0C1";
     private PoolOperations poolOperations;
+
 
     /** {@code getConnection} method calls taking longer than or equal to this time limit are logged at WARN level.
      * A value of {@code 0} will log all such calls. A {@code negative number} disables it. */
@@ -234,6 +245,23 @@ public class ViburDBCPConfig {
 
     public void setPoolEnableConnectionTracking(boolean poolEnableConnectionTracking) {
         this.poolEnableConnectionTracking = poolEnableConnectionTracking;
+    }
+
+    public String getPoolName() {
+        return poolName;
+    }
+
+    public void setPoolName(String poolName) {
+        if (poolNames.putIfAbsent(poolName, Boolean.TRUE) == null)
+            this.poolName = poolName;
+    }
+
+    public boolean isPoolEnableJMX() {
+        return poolEnableJMX;
+    }
+
+    public void setPoolEnableJMX(boolean poolEnableJMX) {
+        this.poolEnableJMX = poolEnableJMX;
     }
 
     public long getReducerTimeIntervalInSeconds() {
