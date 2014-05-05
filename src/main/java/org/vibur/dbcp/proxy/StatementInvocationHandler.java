@@ -58,7 +58,7 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
         this.config = config;
     }
 
-    protected Object customInvoke(Statement proxy, Method method, Object[] args) throws Throwable {
+    protected Object doInvoke(Statement proxy, Method method, Object[] args) throws Throwable {
         String methodName = method.getName();
 
         if (methodName == "close")
@@ -78,7 +78,7 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
         if (methodName == "getResultSet" || methodName == "getGeneratedKeys") // *2
             return newProxiedResultSet(proxy, method, args);
 
-        return super.customInvoke(proxy, method, args);
+        return super.doInvoke(proxy, method, args);
     }
 
     private Object processClose(Method method, Object[] args) throws Throwable {

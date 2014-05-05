@@ -39,7 +39,7 @@ public abstract class AbstractDataSourceTest {
     private static String password;
 
     @BeforeClass
-    public static void deployDatabaseSchemaAndData() throws IOException, SqlToolError {
+    public static void deployDatabaseSchemaAndData() throws IOException, SqlToolError, ViburDBCPException {
         Properties properties = loadProperties();
         jdbcUrl = properties.getProperty("jdbcUrl");
         username = properties.getProperty("username");
@@ -57,7 +57,7 @@ public abstract class AbstractDataSourceTest {
         }
     }
 
-    protected ViburDBCPDataSource createDataSourceNoStatementsCache() throws IOException {
+    protected ViburDBCPDataSource createDataSourceNoStatementsCache() throws IOException, ViburDBCPException {
         dataSource = new ViburDBCPDataSource();
 
         dataSource.setJdbcUrl(jdbcUrl);
@@ -75,7 +75,7 @@ public abstract class AbstractDataSourceTest {
         return dataSource;
     }
 
-    protected ViburDBCPDataSource createDataSourceFromExternalDataSource() throws IOException {
+    protected ViburDBCPDataSource createDataSourceFromExternalDataSource() throws IOException, ViburDBCPException {
         dataSource = new ViburDBCPDataSource();
 
         dataSource.setExternalDataSource(new SimpleDataSource(jdbcUrl));
@@ -93,7 +93,7 @@ public abstract class AbstractDataSourceTest {
         return dataSource;
     }
 
-    protected ViburDBCPDataSource createDataSourceWithStatementsCache() throws IOException {
+    protected ViburDBCPDataSource createDataSourceWithStatementsCache() throws IOException, ViburDBCPException {
         dataSource = new ViburDBCPDataSource();
 
         dataSource.setJdbcUrl(jdbcUrl);

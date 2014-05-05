@@ -50,7 +50,7 @@ public class ConnectionFactory implements PoolObjectFactory<ConnState>, Versione
     private final ViburDBCPConfig config;
     private final AtomicInteger version = new AtomicInteger(1);
 
-    public ConnectionFactory(ViburDBCPConfig config) {
+    public ConnectionFactory(ViburDBCPConfig config) throws ViburDBCPException {
         if (config == null)
             throw new NullPointerException();
         this.config = config;
@@ -71,7 +71,7 @@ public class ConnectionFactory implements PoolObjectFactory<ConnState>, Versione
             }
     }
 
-    private void initJdbcDriver(ViburDBCPConfig config) {
+    private void initJdbcDriver(ViburDBCPConfig config) throws ViburDBCPException {
         if (config.getDriverClassName() != null)
             try {
                 Class.forName(config.getDriverClassName()).newInstance();

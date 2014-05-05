@@ -72,12 +72,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
      *
      * @throws ViburDBCPException if cannot configure successfully
      */
-    public ViburDBCPDataSource() throws ViburDBCPException {
-        initJMX();
-    }
-
-    protected void initJMX() throws ViburDBCPException {
-        new ViburDBCPMonitoring(this);
+    public ViburDBCPDataSource() {
     }
 
     /**
@@ -191,8 +186,12 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
         field.set(this, value);
     }
 
-    /** {@inheritDoc} */
-    public synchronized void start() {
+    /**
+     * {@inheritDoc}
+
+     * @throws ViburDBCPException if cannot start this DataSource successfully
+     */
+    public synchronized void start() throws ViburDBCPException {
         if (state != State.NEW)
             throw new IllegalStateException();
         state = State.WORKING;
@@ -201,6 +200,8 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
 
         setPoolOperations(new PoolOperations(this));
         initStatementCache();
+
+        initJMX();
     }
 
     /** {@inheritDoc} */
@@ -262,6 +263,10 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
             statementCacheMaxSize = CACHE_MAX_SIZE;
         if (statementCacheMaxSize > 0)
             setStatementCache(buildStatementCache(statementCacheMaxSize));
+    }
+
+    private void initJMX() throws ViburDBCPException {
+        new ViburDBCPMonitoring(this);
     }
 
     /** {@inheritDoc} */

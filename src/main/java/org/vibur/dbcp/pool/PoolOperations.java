@@ -19,6 +19,7 @@ package org.vibur.dbcp.pool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.ViburDBCPConfig;
+import org.vibur.dbcp.ViburDBCPException;
 import org.vibur.dbcp.proxy.Proxy;
 import org.vibur.objectpool.ConcurrentHolderLinkedPool;
 import org.vibur.objectpool.Holder;
@@ -53,7 +54,7 @@ public class PoolOperations {
     private final HolderValidatingPoolService<ConnState> pool;
     private final ThreadedPoolReducer poolReducer;
 
-    public PoolOperations(ViburDBCPConfig config) {
+    public PoolOperations(ViburDBCPConfig config) throws ViburDBCPException {
         if (config == null)
             throw new NullPointerException();
 
@@ -95,6 +96,7 @@ public class PoolOperations {
         int connVersion = hConnection.value().version();
         boolean valid = !aborted && connVersion == connectionFactory.getVersion() && errors.isEmpty();
         boolean restored = pool.restore(hConnection, valid);
+
         SQLException sqlException;
         if (restored && (sqlException = hasCriticalSQLException(errors)) != null
             && connectionFactory.compareAndSetVersion(connVersion, connVersion + 1)) {

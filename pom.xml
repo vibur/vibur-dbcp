@@ -175,6 +175,8 @@
                         </Export-Package>
                         <Import-Package>
                             javax.sql,
+                            javax.naming,
+                            javax.naming.spi,
                             javax.management,
                             org.slf4j;version="[${version;===;${slf4j.version}},${version;+;${slf4j.version}})",
                             com.googlecode.concurrentlinkedhashmap;version="[${version;===;${concurrentlinkedhashmap-lru.version}},${version;+;${concurrentlinkedhashmap-lru.version}})";resolution:=optional,

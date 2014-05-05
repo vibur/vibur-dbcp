@@ -40,12 +40,12 @@ public class ViburDBCPMonitoring implements ViburDBCPMonitoringMBean {
 
     private final ViburDBCPConfig viburDBCPConfig;
 
-    public ViburDBCPMonitoring(ViburDBCPConfig viburDBCPConfig) {
+    public ViburDBCPMonitoring(ViburDBCPConfig viburDBCPConfig) throws ViburDBCPException {
         this.viburDBCPConfig = viburDBCPConfig;
         initJMX();
     }
 
-    protected void initJMX() throws ViburDBCPException {
+    private void initJMX() throws ViburDBCPException {
         try {
             MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
             ObjectName name = new ObjectName("org.vibur.dbcp:type=ViburDBCP-"

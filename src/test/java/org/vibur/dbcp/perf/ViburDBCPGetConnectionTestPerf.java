@@ -17,6 +17,7 @@
 package org.vibur.dbcp.perf;
 
 import org.vibur.dbcp.ViburDBCPDataSource;
+import org.vibur.dbcp.ViburDBCPException;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -39,7 +40,7 @@ public class ViburDBCPGetConnectionTestPerf {
     private static final int THREADS_COUNT = 500;
     private static final long DO_WORK_FOR_MS = 10;
 
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args) throws InterruptedException, ViburDBCPException {
 
         // Creates a DataSource with an INITIAL_SIZE and a MAX_SIZE, and starts THREADS_COUNT threads
         // where each thread executes ITERATIONS times the following code:

@@ -18,6 +18,7 @@ package org.vibur.dbcp.proxy;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.vibur.dbcp.ViburDBCPException;
 import org.vibur.dbcp.proxy.listener.ExceptionListener;
 
 import java.lang.reflect.InvocationHandler;
@@ -25,16 +26,15 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.sql.SQLException;
 import java.sql.SQLTransientException;
+import java.sql.Wrapper;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
 * @author Simeon Malchev
 */
-public abstract class AbstractInvocationHandler<T> implements InvocationHandler {
+public abstract class AbstractInvocationHandler<T> implements InvocationHandler, Wrapper {
 
     private static final Logger logger = LoggerFactory.getLogger(AbstractInvocationHandler.class);
-
-    private static final Object NO_CUSTOM_RESULT = new Object();
 
     /** The real object which we're dynamically proxy-ing.
      *  For example, the underlying JDBC Connection, the underlying JDBC Statement, etc. */
@@ -56,10 +56,18 @@ public abstract class AbstractInvocationHandler<T> implements InvocationHandler 
         if (logger.isTraceEnabled())
             logger.trace("Calling {} with args {} on {}", method, args, target);
 
-        Object customResult = customInvoke((T) proxy, method, args);
-        if (customResult != NO_CUSTOM_RESULT)
-            return customResult;
+        try {
+            return doInvoke((T) proxy, method, args);
+        } catch (ViburDBCPException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof SQLException)
+                throw cause; // throw the original SQLException which have caused the ViburDBCPException
+            throw e;
+        }
+    }
 
+    @SuppressWarnings("unchecked")
+    protected Object doInvoke(T proxy, Method method, Object[] args) throws Throwable {
         String methodName = method.getName();
 
         if (methodName == "equals")
@@ -74,23 +82,8 @@ public abstract class AbstractInvocationHandler<T> implements InvocationHandler 
         if (methodName == "isWrapperFor")
             return isWrapperFor((Class<?>) args[0]);
 
-        // by default we just pass the call to the proxied object method
+        // by default we just pass the call to the original method of the proxied object
         return targetInvoke(method, args);
-    }
-
-    @SuppressWarnings("unchecked")
-    private <T> T unwrap(Class<T> iface) throws SQLException {
-        if (isWrapperFor(iface))
-            return (T) target;
-        throw new SQLException("not a wrapper for " + iface);
-    }
-
-    private boolean isWrapperFor(Class<?> iface) {
-        return iface.isInstance(target);
-    }
-
-    protected Object customInvoke(T proxy, Method method, Object[] args) throws Throwable {
-        return NO_CUSTOM_RESULT;
     }
 
     protected Object targetInvoke(Method method, Object[] args) throws Throwable {
@@ -102,6 +95,19 @@ public abstract class AbstractInvocationHandler<T> implements InvocationHandler 
                 exceptionListener.addException(cause);
             throw cause;
         }
+    }
+
+    /** @inheritDoc */
+    @SuppressWarnings("unchecked")
+    public <T> T unwrap(Class<T> iface) throws SQLException {
+        if (isWrapperFor(iface))
+            return (T) target;
+        throw new SQLException("not a wrapper for " + iface);
+    }
+
+    /** @inheritDoc */
+    public boolean isWrapperFor(Class<?> iface) {
+        return iface.isInstance(target);
     }
 
     protected boolean isClosed() {

@@ -56,7 +56,7 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
     }
 
     @SuppressWarnings("unchecked")
-    protected Object customInvoke(Connection proxy, Method method, Object[] args) throws Throwable {
+    protected Object doInvoke(Connection proxy, Method method, Object[] args) throws Throwable {
         String methodName = method.getName();
 
         if (methodName == "isValid")
@@ -94,7 +94,7 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
             return Proxy.newDatabaseMetaData(metaData, proxy, getExceptionListener());
         }
 
-        return super.customInvoke(proxy, method, args);
+        return super.doInvoke(proxy, method, args);
     }
 
     private MethodResult<? extends Statement> getStatementResult(Method method, Object[] args) throws Throwable {
