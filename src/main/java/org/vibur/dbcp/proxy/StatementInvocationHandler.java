@@ -68,8 +68,6 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
 
         ensureNotClosed(); // all other Statement interface methods cannot work if the JDBC Statement is closed
 
-        if (methodName == "cancel")
-            return processCancel(method, args);
         if (methodName.startsWith("execute")) // this intercepts all "execute..." JDBC Statements methods
             return processExecute(proxy, method, args);
 
@@ -77,6 +75,9 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
         // on their results the return value to be current JDBC Statement proxy.
         if (methodName == "getResultSet" || methodName == "getGeneratedKeys") // *2
             return newProxiedResultSet(proxy, method, args);
+
+        if (methodName == "cancel")
+            return processCancel(method, args);
 
         return super.doInvoke(proxy, method, args);
     }
