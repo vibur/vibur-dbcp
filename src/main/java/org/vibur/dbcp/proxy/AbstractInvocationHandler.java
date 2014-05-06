@@ -126,7 +126,7 @@ public abstract class AbstractInvocationHandler<T> implements InvocationHandler,
     }
 
     protected void ensureNotClosed() throws SQLException {
-        if (logicallyClosed.get())
+        if (isClosed())
             throw new SQLException(target.getClass().getName() + " is closed.");
     }
 

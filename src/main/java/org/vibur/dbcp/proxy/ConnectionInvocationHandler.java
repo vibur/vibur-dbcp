@@ -59,14 +59,14 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
     protected Object doInvoke(Connection proxy, Method method, Object[] args) throws Throwable {
         String methodName = method.getName();
 
-        if (methodName == "isValid")
-            return targetInvoke(method, args);
-
         boolean aborted = methodName == "abort";
         if (aborted || methodName == "close")
             return processCloseOrAbort(aborted, method, args);
         if (methodName == "isClosed")
             return isClosed();
+
+        if (methodName == "isValid")
+            return isClosed() ? false : targetInvoke(method, args);
 
         ensureNotClosed(); // all other Connection interface methods cannot work if the JDBC Connection is closed
 

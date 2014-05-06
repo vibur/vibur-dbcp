@@ -62,7 +62,10 @@ public class ViburDBCPConfig {
 
     /** Used to test the validity of a JDBC Connection. If the {@code connectionIdleLimitInSeconds} is set to
      * a non-negative number, the {@code testConnectionQuery} should be set to a valid SQL query, for example
-     * {@code SELECT 1}, or to {@code isValid} in which case the {@code Connection.isValid()} method will be used. */
+     * {@code SELECT 1}, or to {@code isValid} in which case the {@code Connection.isValid()} method will be used.
+     *
+     * <p>Similarly to the spec for {@link java.sql.Connection#isValid(int)}, if a custom {@code testConnectionQuery}
+     * is specified, it will be executed in the context of the current transaction. */
     private String testConnectionQuery = IS_VALID_QUERY;
 
 
