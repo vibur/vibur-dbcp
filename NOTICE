@@ -1,0 +1,9 @@
+Vibur DBCP
+A concurrent and dynamic JDBC connection pool.
+Copyright 2013-2014 Simeon Malchev
+
+Other copyrights also apply to some parts of this work.  Please
+see the CONTRIBUTORS file and individual file headers for details.
+
+This product bundles parts of Sakila Sample Database, which is available
+under a "New BSD" license.  For details, see src/test/resources/.
