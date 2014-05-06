@@ -73,7 +73,7 @@ public class PoolOperations {
 
                 protected void afterReduce(int reduction, int reduced, Throwable thrown) {
                     if (thrown != null)
-                        logger.error("{} thrown while intending to reduce by {}", thrown, reduction);
+                        logger.error(String.format("While trying to reduce the pool by %d elements", reduction), thrown);
                     else
                         logger.debug("Intended reduction {} actual {}", reduction, reduced);
                 }
@@ -105,7 +105,7 @@ public class PoolOperations {
                 "Critical SQLState %s occurred, destroyed %d connections, current connection version is %d.",
                 sqlException.getSQLState(), destroyed, connectionFactory.getVersion()), sqlException);
         }
-        return restored;
+        return valid && restored;
     }
 
     private SQLException hasCriticalSQLException(List<Throwable> errors) {

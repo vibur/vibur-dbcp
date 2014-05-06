@@ -128,7 +128,7 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
     private void logQuery(Object[] args, long startTime) {
         long timeTaken = System.currentTimeMillis() - startTime;
         if (timeTaken >= config.getLogQueryExecutionLongerThanMs()) {
-            StringBuilder log = new StringBuilder(String.format("SQL query \"%s\" execution took %dms",
+            StringBuilder log = new StringBuilder(String.format("SQL query %s execution took %d ms",
                 toSQLString(getTarget(), args), timeTaken));
             if (config.isLogStackTraceForLongQueryExecution())
                 log.append(NEW_LINE).append(getStackTraceAsString(new Throwable().getStackTrace()));

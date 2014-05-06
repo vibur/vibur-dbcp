@@ -299,7 +299,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
     private void logGetConnection(long timeout, long startTime) {
         long timeTaken = System.currentTimeMillis() - startTime;
         if (timeTaken >= getLogConnectionLongerThanMs()) {
-            StringBuilder log = new StringBuilder(String.format("Call to \"getConnection(%d)\" took %dms",
+            StringBuilder log = new StringBuilder(String.format("Call to getConnection(%d) took %d ms",
                 timeout, timeTaken));
             if (isLogStackTraceForLongConnection())
                 log.append(NEW_LINE).append(getStackTraceAsString(new Throwable().getStackTrace()));

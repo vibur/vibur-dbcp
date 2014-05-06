@@ -27,6 +27,7 @@ import java.lang.reflect.Method;
 import java.sql.SQLException;
 import java.sql.SQLTransientException;
 import java.sql.Wrapper;
+import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -62,6 +63,8 @@ public abstract class AbstractInvocationHandler<T> implements InvocationHandler,
             Throwable cause = e.getCause();
             if (cause instanceof SQLException)
                 throw cause; // throw the original SQLException which have caused the ViburDBCPException
+            logger.error(String.format("The invocation of %s with args %s on %s threw",
+                    method, Arrays.toString(args), target), e);
             throw e;
         }
     }
@@ -91,9 +94,13 @@ public abstract class AbstractInvocationHandler<T> implements InvocationHandler,
             return method.invoke(target, args);  // the real method call on the real underlying (proxied) object
         } catch (InvocationTargetException e) {
             Throwable cause = e.getCause();
-            if (!(cause instanceof SQLTransientException)) // transient exceptions are not remembered
+            if (cause == null)
+                cause = e;
+            if (!(cause instanceof SQLTransientException)) // SQL transient exceptions are not remembered
                 exceptionListener.addException(cause);
-            throw cause;
+            if (cause instanceof SQLException || cause instanceof RuntimeException)
+                throw cause;
+            throw new ViburDBCPException(cause);
         }
     }
 
