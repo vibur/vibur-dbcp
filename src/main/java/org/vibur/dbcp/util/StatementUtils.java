@@ -36,7 +36,7 @@ public class StatementUtils {
         try {
             statement.close();
         } catch (SQLException e) {
-            logger.debug("Couldn't close cached statement " + statement);
+            logger.debug("Couldn't close {}", statement);
         }
     }
 

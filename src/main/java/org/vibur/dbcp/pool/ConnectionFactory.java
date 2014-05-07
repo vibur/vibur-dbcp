@@ -184,14 +184,11 @@ public class ConnectionFactory implements PoolObjectFactory<ConnState>, Versione
             statement = connection.createStatement();
             statement.setQueryTimeout(ViburDBCPConfig.TEST_CONNECTION_TIMEOUT);
             statement.execute(testConnectionQuery);
-            statement.close();
             return true;
         } catch (SQLException e) {
             logger.debug("Couldn't validate " + connection, e);
-            try {
-                if (statement != null) statement.close();
-            } catch (SQLException ignore) {
-            }
+            if (statement != null)
+                closeStatement(statement);
             return false;
         }
     }
@@ -200,8 +197,8 @@ public class ConnectionFactory implements PoolObjectFactory<ConnState>, Versione
     public void destroy(ConnState connState) {
         Connection connection = connState.connection();
         logger.trace("Destroying {}", connection);
+        closeStatements(connection);
         try {
-            closeStatements(connection);
             connection.close();
         } catch (SQLException e) {
             logger.debug("Couldn't close " + connection, e);
