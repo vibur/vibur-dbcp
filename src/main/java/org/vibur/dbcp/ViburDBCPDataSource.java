@@ -266,7 +266,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
     }
 
     private void initJMX() throws ViburDBCPException {
-        if (isPoolEnableJMX())
+        if (isEnableJMX())
             new ViburDBCPMonitoring(this);
     }
 

@@ -80,13 +80,14 @@ public class ViburDBCPConfig {
     /** If {@code true}, the pool will keep information for the current stack trace of every taken connection. */
     private boolean poolEnableConnectionTracking = false;
 
-    private static final AtomicInteger poolId = new AtomicInteger(1);
-    private static final ConcurrentMap<String, Boolean> poolNames = new ConcurrentHashMap<String, Boolean>();
-    /** The pool name, mostly useful for JMX and similar. */
-    private String poolName = Integer.toString(poolId.getAndIncrement());
 
-    /** Enables or disables the pool JMX exposure. */
-    private boolean poolEnableJMX = true;
+    private static final AtomicInteger id = new AtomicInteger(1);
+    private static final ConcurrentMap<String, Boolean> names = new ConcurrentHashMap<String, Boolean>();
+    /** The DataSource name, mostly useful for JMX identification and similar. */
+    private String name = Integer.toString(id.getAndIncrement());
+
+    /** Enables or disables the DataSource JMX exposure. */
+    private boolean enableJMX = true;
 
 
     /** For more details on the next 2 parameters see {@link org.vibur.objectpool.util.PoolReducer}
@@ -250,21 +251,21 @@ public class ViburDBCPConfig {
         this.poolEnableConnectionTracking = poolEnableConnectionTracking;
     }
 
-    public String getPoolName() {
-        return poolName;
+    public String getName() {
+        return name;
     }
 
-    public void setPoolName(String poolName) {
-        if (poolNames.putIfAbsent(poolName, Boolean.TRUE) == null)
-            this.poolName = poolName;
+    public void setName(String name) {
+        if (names.putIfAbsent(name, Boolean.TRUE) == null)
+            this.name = name;
     }
 
-    public boolean isPoolEnableJMX() {
-        return poolEnableJMX;
+    public boolean isEnableJMX() {
+        return enableJMX;
     }
 
-    public void setPoolEnableJMX(boolean poolEnableJMX) {
-        this.poolEnableJMX = poolEnableJMX;
+    public void setEnableJMX(boolean enableJMX) {
+        this.enableJMX = enableJMX;
     }
 
     public long getReducerTimeIntervalInSeconds() {
