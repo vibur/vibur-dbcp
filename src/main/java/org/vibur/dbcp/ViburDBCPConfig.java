@@ -30,6 +30,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Specifies all {@link ViburDBCPDataSource} configuration options.
  *
  * @author Simeon Malchev
+ * @author Daniel Caldeweyher
  */
 public class ViburDBCPConfig {
 
@@ -90,20 +91,27 @@ public class ViburDBCPConfig {
     private boolean enableJMX = true;
 
 
-    /** For more details on the next 2 parameters see {@link org.vibur.objectpool.util.PoolReducer}
-     *  and {@link org.vibur.objectpool.util.SamplingPoolReducer}.
+    /** For more details on the next 2 parameters see {@link org.vibur.objectpool.util.SamplingPoolReducer}.
      */
     /** The time period after which the {@code poolReducer} will try to possibly reduce the number of created
      * but unused JDBC Connections in this pool. {@code 0} disables it. */
-    private long reducerTimeIntervalInSeconds = 60;
+    private int reducerTimeIntervalInSeconds = 60;
     /** How many times the {@code poolReducer} will wake up during the given
      * {@code reducerTimeIntervalInSeconds} period in order to sample various information from this pool. */
     private int reducerSamples = 20;
 
 
-    /** Time to wait before a call to getConnection() times out and returns an error.
-     * {@code 0} means forever. */
+    /** Time to wait before a call to {@code getConnection()} times out and returns an error, in the case when
+     * there is an available and valid connection in the pool. {@code 0} means forever.
+     *
+     * <p> If there is not an available and valid connection in the pool, the total maximum time which the
+     * call to {@code getConnection()} may take before it times out and returns an error is given by the formula: <br>
+     * maxTimeoutInMs = connectionTimeoutInMs
+     *     + (acquireRetryAttempts + 1) * loginTimeoutInSeconds * 1000 + acquireRetryAttempts * acquireRetryDelayInMs */
     private long connectionTimeoutInMs = 30000;
+    /** Login timeout which is to be set to the call to {@code DriverManager.setLoginTimeout()}
+     * or {@code getExternalDataSource().setLoginTimeout()} during the initialization process of the DataSource. */
+    private int loginTimeoutInSeconds = 10;
     /** After attempting to acquire a JDBC Connection and failing with an {@code SQLException},
      * wait for this long time before attempting to acquire a new JDBC Connection again. */
     private long acquireRetryDelayInMs = 1000;
@@ -268,11 +276,11 @@ public class ViburDBCPConfig {
         this.enableJMX = enableJMX;
     }
 
-    public long getReducerTimeIntervalInSeconds() {
+    public int getReducerTimeIntervalInSeconds() {
         return reducerTimeIntervalInSeconds;
     }
 
-    public void setReducerTimeIntervalInSeconds(long reducerTimeIntervalInSeconds) {
+    public void setReducerTimeIntervalInSeconds(int reducerTimeIntervalInSeconds) {
         this.reducerTimeIntervalInSeconds = reducerTimeIntervalInSeconds;
     }
 
@@ -290,6 +298,14 @@ public class ViburDBCPConfig {
 
     public void setConnectionTimeoutInMs(long connectionTimeoutInMs) {
         this.connectionTimeoutInMs = connectionTimeoutInMs;
+    }
+
+    public int getLoginTimeoutInSeconds() {
+        return loginTimeoutInSeconds;
+    }
+
+    public void setLoginTimeoutInSeconds(int loginTimeoutInSeconds) {
+        this.loginTimeoutInSeconds = loginTimeoutInSeconds;
     }
 
     public long getAcquireRetryDelayInMs() {

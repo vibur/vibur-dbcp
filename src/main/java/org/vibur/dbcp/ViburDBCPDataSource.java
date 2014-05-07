@@ -319,12 +319,12 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
 
     /** {@inheritDoc} */
     public void setLoginTimeout(int seconds) throws SQLException {
-        setConnectionTimeoutInMs(seconds * 1000);
+        setLoginTimeoutInSeconds(seconds);
     }
 
     /** {@inheritDoc} */
     public int getLoginTimeout() throws SQLException {
-        return (int) getConnectionTimeoutInMs() / 1000;
+        return getLoginTimeoutInSeconds();
     }
 
     /** {@inheritDoc} */

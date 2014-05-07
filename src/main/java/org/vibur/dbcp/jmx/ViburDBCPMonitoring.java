@@ -104,11 +104,11 @@ public class ViburDBCPMonitoring implements ViburDBCPMonitoringMBean {
         return viburDBCPConfig.isPoolEnableConnectionTracking();
     }
 
-    public long getReducerTimeIntervalInSeconds() {
+    public int getReducerTimeIntervalInSeconds() {
         return viburDBCPConfig.getReducerTimeIntervalInSeconds();
     }
 
-    public float getReducerSamples() {
+    public int getReducerSamples() {
         return viburDBCPConfig.getReducerSamples();
     }
 
@@ -118,6 +118,14 @@ public class ViburDBCPMonitoring implements ViburDBCPMonitoringMBean {
 
     public void setConnectionTimeoutInMs(long connectionTimeoutInMs) {
         viburDBCPConfig.setConnectionTimeoutInMs(connectionTimeoutInMs);
+    }
+
+    public int getLoginTimeoutInSeconds() {
+        return viburDBCPConfig.getLoginTimeoutInSeconds();
+    }
+
+    public void setLoginTimeoutInSeconds(int loginTimeoutInSeconds) {
+        viburDBCPConfig.setLoginTimeoutInSeconds(loginTimeoutInSeconds);
     }
 
     public long getAcquireRetryDelayInMs() {

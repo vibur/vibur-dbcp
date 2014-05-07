@@ -63,15 +63,15 @@ public class ConnectionFactory implements PoolObjectFactory<ConnState>, Versione
         initJdbcDriver(config);
     }
 
-    private void initLoginTimeout(ViburDBCPConfig config) {
-        int loginTimeout = (int) config.getConnectionTimeoutInMs() / 1000;
+    private void initLoginTimeout(ViburDBCPConfig config) throws ViburDBCPException {
+        int loginTimeout = config.getLoginTimeoutInSeconds();
         if (config.getExternalDataSource() == null)
             DriverManager.setLoginTimeout(loginTimeout);
         else
             try {
                 config.getExternalDataSource().setLoginTimeout(loginTimeout);
             } catch (SQLException e) {
-                logger.error("Couldn't set the login timeout to " + config.getExternalDataSource(), e);
+                throw new ViburDBCPException(e);
             }
     }
 
@@ -118,15 +118,15 @@ public class ConnectionFactory implements PoolObjectFactory<ConnState>, Versione
     private Connection doCreate() throws SQLException {
         Connection connection;
         DataSource externalDataSource = config.getExternalDataSource();
+        String userName = config.getUsername();
         if (externalDataSource == null) {
-            if (config.getUsername() != null)
-                connection = DriverManager.getConnection(config.getJdbcUrl(),
-                    config.getUsername(), config.getPassword());
+            if (userName != null)
+                connection = DriverManager.getConnection(config.getJdbcUrl(), userName, config.getPassword());
             else
                 connection = DriverManager.getConnection(config.getJdbcUrl());
         } else {
-            if (config.getUsername() != null)
-                connection = externalDataSource.getConnection(config.getUsername(), config.getPassword());
+            if (userName != null)
+                connection = externalDataSource.getConnection(userName, config.getPassword());
             else
                 connection = externalDataSource.getConnection();
         }

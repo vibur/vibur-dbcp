@@ -55,16 +55,20 @@ public interface ViburDBCPMonitoringMBean {
 
     boolean isPoolEnableConnectionTracking();
 
-    long getReducerTimeIntervalInSeconds();
+    int getReducerTimeIntervalInSeconds();
 
-    float getReducerSamples();
+    int getReducerSamples();
 
 
-    //////////// JDBC Connection acquiring timeouts and retries ////////////
+    //////////// JDBC Connection acquiring timeout and retries, and Driver/DataSource login timeout ////////////
 
     long getConnectionTimeoutInMs();
 
     void setConnectionTimeoutInMs(long connectionTimeoutInMs);
+
+    int getLoginTimeoutInSeconds();
+
+    void setLoginTimeoutInSeconds(int loginTimeoutInSeconds);
 
     long getAcquireRetryDelayInMs();
 

@@ -6,8 +6,9 @@ Version 1.1.0 (##/05/2014)
   running Vibur DBCP into an OSGi container, and may also be helpful if Vibur DBCP is used in an
   Apache Tomcat web application.
 * Vibur DBCP JNDI ObjectFactory implemented.
-* name and enableJMX configuration properties added.
-* criticalSQLStates configuration property added (advanced).
+* name (of the DataSource) and enableJMX config properties added.
+* loginTimeout property added (used for DriverManager/ExternalDataSource configuration)
+* criticalSQLStates config property added (advanced).
 * Various other product enhancements and bug fixes.
 
 Version 1.0.0 (02/02/2014)
