@@ -98,7 +98,7 @@ public abstract class AbstractInvocationHandler<T> implements InvocationHandler,
                 cause = e;
             if (!(cause instanceof SQLTransientException)) // SQL transient exceptions are not remembered
                 exceptionListener.addException(cause);
-            if (cause instanceof SQLException || cause instanceof RuntimeException)
+            if (cause instanceof SQLException || cause instanceof RuntimeException || cause instanceof Error)
                 throw cause;
             throw new ViburDBCPException(cause);
         }
