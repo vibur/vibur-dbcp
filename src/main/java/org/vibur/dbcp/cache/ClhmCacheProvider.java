@@ -22,7 +22,7 @@ import com.googlecode.concurrentlinkedhashmap.EvictionListener;
 import java.sql.Statement;
 import java.util.concurrent.ConcurrentMap;
 
-import static org.vibur.dbcp.util.StatementUtils.closeStatement;
+import static org.vibur.dbcp.util.SqlUtils.closeStatement;
 
 /**
  * ConcurrentLinkedHashMap cache provider. Currently, this is the only cache provider implemented.

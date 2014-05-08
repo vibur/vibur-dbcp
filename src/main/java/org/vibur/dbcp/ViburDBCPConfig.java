@@ -1,4 +1,5 @@
 /**
+ * Copyright 2014 Daniel Caldeweyher
  * Copyright 2013 Simeon Malchev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,6 +17,8 @@
 
 package org.vibur.dbcp;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.cache.MethodDefinition;
 import org.vibur.dbcp.cache.MethodResult;
 import org.vibur.dbcp.pool.PoolOperations;
@@ -29,10 +32,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * Specifies all {@link ViburDBCPDataSource} configuration options.
  *
- * @author Simeon Malchev
  * @author Daniel Caldeweyher
+ * @author Simeon Malchev
  */
 public class ViburDBCPConfig {
+
+    private static final Logger logger = LoggerFactory.getLogger(ViburDBCPConfig.class);
 
     /** Database driver class name. This is <b>an optional</b> parameter if the driver is JDBC 4 complaint. If specified,
      * a call to {@code Class.forName(driverClassName).newInstance()} will be issued during the Vibur DBCP initialisation.
@@ -58,7 +63,7 @@ public class ViburDBCPConfig {
      * If set to a negative number, will never validate the taken from the pool connection. */
     private int connectionIdleLimitInSeconds = 60;
 
-    public static final int TEST_CONNECTION_TIMEOUT = 5;
+    public static final int QUERY_TIMEOUT = 5; // in seconds
     public static final String IS_VALID_QUERY = "isValid";
 
     /** Used to test the validity of a JDBC Connection. If the {@code connectionIdleLimitInSeconds} is set to
@@ -68,6 +73,13 @@ public class ViburDBCPConfig {
      * <p>Similarly to the spec for {@link java.sql.Connection#isValid(int)}, if a custom {@code testConnectionQuery}
      * is specified, it will be executed in the context of the current transaction. */
     private String testConnectionQuery = IS_VALID_QUERY;
+
+    /** An SQL query which will be run only once when a JDBC Connection is first created. This property should be
+     * set to a valid SQL query, to {@code null} which means no query, or to {@code isValid} which means that the
+     * {@code Connection.isValid()} method will be used. An use case in which this property can be useful is when the
+     * application is connecting to the database via some middleware, for example connecting to PostgreSQL server
+     * via PgBouncer. */
+    private String initSQL = null;
 
 
     /** The pool initial size, i.e. the initial number of JDBC Connections allocated in this pool. */
@@ -82,10 +94,12 @@ public class ViburDBCPConfig {
     private boolean poolEnableConnectionTracking = false;
 
 
-    private static final AtomicInteger id = new AtomicInteger(1);
+    private static final AtomicInteger idGenerator = new AtomicInteger(1);
     private static final ConcurrentMap<String, Boolean> names = new ConcurrentHashMap<String, Boolean>();
-    /** The DataSource name, mostly useful for JMX identification and similar. */
-    private String name = Integer.toString(id.getAndIncrement());
+    /** The DataSource name, mostly useful for JMX identification and similar. This {@code name} must be unique
+     * among all names for all configured DataSources. The default name is an auto generated integer id. If the
+     * configured {@code name} is not unique then the default auto generated id will be used instead. */
+    private String name = Integer.toString(idGenerator.getAndIncrement());
 
     /** Enables or disables the DataSource JMX exposure. */
     private boolean enableJMX = true;
@@ -227,6 +241,14 @@ public class ViburDBCPConfig {
         this.testConnectionQuery = testConnectionQuery;
     }
 
+    public String getInitSQL() {
+        return initSQL;
+    }
+
+    public void setInitSQL(String initSQL) {
+        this.initSQL = initSQL;
+    }
+
     public int getPoolInitialSize() {
         return poolInitialSize;
     }
@@ -266,6 +288,8 @@ public class ViburDBCPConfig {
     public void setName(String name) {
         if (names.putIfAbsent(name, Boolean.TRUE) == null)
             this.name = name;
+        else
+            logger.warn("DataSource name {} is not unique, using {} instead", name, this.name);
     }
 
     public boolean isEnableJMX() {

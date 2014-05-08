@@ -80,6 +80,14 @@ public class ViburDBCPMonitoring implements ViburDBCPMonitoringMBean {
         viburDBCPConfig.setTestConnectionQuery(testConnectionQuery);
     }
 
+    public String getInitSQL() {
+        return viburDBCPConfig.getInitSQL();
+    }
+
+    public void setInitSQL(String initSQL) {
+        viburDBCPConfig.setInitSQL(initSQL);
+    }
+
     public int getPoolInitialSize() {
         return viburDBCPConfig.getPoolInitialSize();
     }

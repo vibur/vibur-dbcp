@@ -40,6 +40,10 @@ public interface ViburDBCPMonitoringMBean {
 
     void setTestConnectionQuery(String testConnectionQuery);
 
+    String getInitSQL();
+
+    void setInitSQL(String initSQL);
+
 
     //////////// Pool parameters and PoolReducer parameters ////////////
 

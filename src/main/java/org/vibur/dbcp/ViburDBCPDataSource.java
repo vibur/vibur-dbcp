@@ -17,6 +17,7 @@
 package org.vibur.dbcp;
 
 import org.slf4j.LoggerFactory;
+import org.vibur.dbcp.cache.ClhmCacheProvider;
 import org.vibur.dbcp.cache.MethodDefinition;
 import org.vibur.dbcp.cache.MethodResult;
 import org.vibur.dbcp.jmx.ViburDBCPMonitoring;
@@ -38,8 +39,7 @@ import java.util.Properties;
 import java.util.concurrent.ConcurrentMap;
 import java.util.logging.Logger;
 
-import static org.vibur.dbcp.cache.ClhmCacheProvider.buildStatementCache;
-import static org.vibur.dbcp.util.StatementUtils.closeStatement;
+import static org.vibur.dbcp.util.SqlUtils.closeStatement;
 import static org.vibur.dbcp.util.ViburUtils.NEW_LINE;
 import static org.vibur.dbcp.util.ViburUtils.getStackTraceAsString;
 
@@ -229,6 +229,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
         if (getAcquireRetryDelayInMs() < 0) throw new IllegalArgumentException();
         if (getAcquireRetryAttempts() < 0) throw new IllegalArgumentException();
         if (getConnectionTimeoutInMs() < 0) throw new IllegalArgumentException();
+        if (getLoginTimeoutInSeconds() < 0) throw new IllegalArgumentException();
         if (getStatementCacheMaxSize() < 0) throw new IllegalArgumentException();
         if (getReducerTimeIntervalInSeconds() < 0) throw new IllegalArgumentException();
         if (getReducerSamples() <= 0) throw new IllegalArgumentException();
@@ -262,7 +263,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
         if (statementCacheMaxSize > CACHE_MAX_SIZE)
             statementCacheMaxSize = CACHE_MAX_SIZE;
         if (statementCacheMaxSize > 0)
-            setStatementCache(buildStatementCache(statementCacheMaxSize));
+            setStatementCache(ClhmCacheProvider.buildStatementCache(statementCacheMaxSize));
     }
 
     private void initJMX() throws ViburDBCPException {

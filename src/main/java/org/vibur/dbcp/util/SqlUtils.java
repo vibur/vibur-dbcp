@@ -18,6 +18,7 @@ package org.vibur.dbcp.util;
 
 import org.slf4j.LoggerFactory;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -26,17 +27,25 @@ import java.util.Arrays;
 /**
  * @author Simeon Malchev
  */
-public class StatementUtils {
+public class SqlUtils {
 
-    private static final org.slf4j.Logger logger = LoggerFactory.getLogger(StatementUtils.class);
+    private static final org.slf4j.Logger logger = LoggerFactory.getLogger(SqlUtils.class);
 
-    private StatementUtils() { }
+    private SqlUtils() { }
 
     public static void closeStatement(Statement statement) {
         try {
             statement.close();
         } catch (SQLException e) {
             logger.debug("Couldn't close {}", statement);
+        }
+    }
+
+    public static void closeConnection(Connection connection) {
+        try {
+            connection.close();
+        } catch (SQLException e) {
+            logger.debug("Couldn't close {}", connection);
         }
     }
 

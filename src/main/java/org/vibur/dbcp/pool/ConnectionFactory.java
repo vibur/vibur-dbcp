@@ -1,4 +1,5 @@
 /**
+ * Copyright 2014 Daniel Caldeweyher
  * Copyright 2013 Simeon Malchev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,7 +36,8 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.vibur.dbcp.util.StatementUtils.closeStatement;
+import static org.vibur.dbcp.util.SqlUtils.closeConnection;
+import static org.vibur.dbcp.util.SqlUtils.closeStatement;
 
 /**
  * The object factory which controls the lifecycle of the underlying JDBC Connections: creates them,
@@ -45,6 +47,7 @@ import static org.vibur.dbcp.util.StatementUtils.closeStatement;
  * wrappers {@code ConnState(s)}. The version of each {@code ConnState} created by the factory is the same
  * as the version of the factory at the moment of the object creation.
  *
+ * @author Daniel Caldeweyher
  * @author Simeon Malchev
  */
 public class ConnectionFactory implements PoolObjectFactory<ConnState>, VersionedObject {
@@ -130,6 +133,12 @@ public class ConnectionFactory implements PoolObjectFactory<ConnState>, Versione
             else
                 connection = externalDataSource.getConnection();
         }
+
+        String initSQL = config.getInitSQL();
+        if (initSQL != null && !executeQuery(connection, initSQL)) {
+            closeConnection(connection);
+            throw new SQLException("Connection initialization failed");
+        }
         return connection;
     }
 
@@ -156,7 +165,7 @@ public class ConnectionFactory implements PoolObjectFactory<ConnState>, Versione
         int idleLimit = config.getConnectionIdleLimitInSeconds();
         if (idleLimit >= 0) {
             int idle = (int) (System.currentTimeMillis() - connState.getLastTimeUsedInMillis()) / 1000;
-            if (idle >= idleLimit && !executeTestStatement(connState.connection()))
+            if (idle >= idleLimit && !executeQuery(connState.connection(), config.getTestConnectionQuery()))
                 return false;
         }
         return true;
@@ -174,22 +183,22 @@ public class ConnectionFactory implements PoolObjectFactory<ConnState>, Versione
         return true;
     }
 
-    private boolean executeTestStatement(Connection connection) {
+    private boolean executeQuery(Connection connection, String query) {
         Statement statement = null;
         try {
-            String testConnectionQuery = config.getTestConnectionQuery();
-            if (testConnectionQuery.equals(ViburDBCPConfig.IS_VALID_QUERY))
-                return connection.isValid(ViburDBCPConfig.TEST_CONNECTION_TIMEOUT);
+            if (query.equals(ViburDBCPConfig.IS_VALID_QUERY))
+                return connection.isValid(ViburDBCPConfig.QUERY_TIMEOUT);
 
             statement = connection.createStatement();
-            statement.setQueryTimeout(ViburDBCPConfig.TEST_CONNECTION_TIMEOUT);
-            statement.execute(testConnectionQuery);
+            statement.setQueryTimeout(ViburDBCPConfig.QUERY_TIMEOUT);
+            statement.execute(query);
             return true;
         } catch (SQLException e) {
-            logger.debug("Couldn't validate " + connection, e);
+            logger.debug("Couldn't initialize or validate " + connection, e);
+            return false;
+        } finally {
             if (statement != null)
                 closeStatement(statement);
-            return false;
         }
     }
 
@@ -198,11 +207,7 @@ public class ConnectionFactory implements PoolObjectFactory<ConnState>, Versione
         Connection connection = connState.connection();
         logger.trace("Destroying {}", connection);
         closeStatements(connection);
-        try {
-            connection.close();
-        } catch (SQLException e) {
-            logger.debug("Couldn't close " + connection, e);
-        }
+        closeConnection(connection);
     }
 
     private void closeStatements(Connection connection) {

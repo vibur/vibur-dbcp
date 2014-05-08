@@ -30,7 +30,7 @@ import java.sql.Statement;
 import java.util.Iterator;
 import java.util.concurrent.ConcurrentMap;
 
-import static org.vibur.dbcp.util.StatementUtils.toSQLString;
+import static org.vibur.dbcp.util.SqlUtils.toSQLString;
 import static org.vibur.dbcp.util.ViburUtils.NEW_LINE;
 import static org.vibur.dbcp.util.ViburUtils.getStackTraceAsString;
 
