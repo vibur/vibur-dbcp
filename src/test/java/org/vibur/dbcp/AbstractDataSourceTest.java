@@ -23,6 +23,7 @@ import org.vibur.dbcp.util.HsqldbUtils;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.Properties;
 
 /**
@@ -39,7 +40,7 @@ public abstract class AbstractDataSourceTest {
     private static String password;
 
     @BeforeClass
-    public static void deployDatabaseSchemaAndData() throws IOException, SqlToolError, ViburDBCPException {
+    public static void deployDatabaseSchemaAndData() throws IOException, SqlToolError, SQLException {
         Properties properties = loadProperties();
         jdbcUrl = properties.getProperty("jdbcUrl");
         username = properties.getProperty("username");

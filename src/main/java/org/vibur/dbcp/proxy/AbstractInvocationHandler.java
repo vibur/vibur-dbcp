@@ -65,7 +65,7 @@ public abstract class AbstractInvocationHandler<T> implements InvocationHandler,
                 throw cause; // throw the original SQLException which have caused the ViburDBCPException
             logger.error(String.format("The invocation of %s with args %s on %s threw",
                     method, Arrays.toString(args), target), e);
-            throw e;
+            throw e; // should never happen
         }
     }
 
@@ -100,7 +100,7 @@ public abstract class AbstractInvocationHandler<T> implements InvocationHandler,
                 exceptionListener.addException(cause);
             if (cause instanceof SQLException || cause instanceof RuntimeException || cause instanceof Error)
                 throw cause;
-            throw new ViburDBCPException(cause);
+            throw new ViburDBCPException(cause); // should never happen
         }
     }
 

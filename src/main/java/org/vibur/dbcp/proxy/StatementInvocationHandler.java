@@ -19,8 +19,8 @@ package org.vibur.dbcp.proxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.ViburDBCPConfig;
-import org.vibur.dbcp.cache.MethodDefinition;
-import org.vibur.dbcp.cache.MethodResult;
+import org.vibur.dbcp.cache.MethodDef;
+import org.vibur.dbcp.cache.ReturnVal;
 import org.vibur.dbcp.proxy.listener.ExceptionListener;
 
 import java.lang.reflect.Method;
@@ -41,13 +41,13 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
 
     private static final Logger logger = LoggerFactory.getLogger(StatementInvocationHandler.class);
 
-    private final MethodResult<? extends Statement> statementResult;
+    private final ReturnVal<? extends Statement> statementResult;
     private final ViburDBCPConfig config;
 
-    private final ConcurrentMap<MethodDefinition, MethodResult<Statement>> statementCache;
+    private final ConcurrentMap<MethodDef<Connection>, ReturnVal<Statement>> statementCache;
 
-    public StatementInvocationHandler(MethodResult<? extends Statement> statementResult,
-                                      ConcurrentMap<MethodDefinition, MethodResult<Statement>> statementCache,
+    public StatementInvocationHandler(ReturnVal<? extends Statement> statementResult,
+                                      ConcurrentMap<MethodDef<Connection>, ReturnVal<Statement>> statementCache,
                                       Connection connectionProxy, ViburDBCPConfig config,
                                       ExceptionListener exceptionListener) {
         super(statementResult.value(), connectionProxy, "getConnection", exceptionListener);
@@ -72,7 +72,7 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
             return processExecute(proxy, method, args);
 
         // Methods which results have to be proxied so that when getStatement() is called
-        // on their results the return value to be current JDBC Statement proxy.
+        // on their results the return value to be the current JDBC Statement proxy.
         if (methodName == "getResultSet" || methodName == "getGeneratedKeys") // *2
             return newProxiedResultSet(proxy, method, args);
 
@@ -95,9 +95,9 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
     private Object processCancel(Method method, Object[] args) throws Throwable {
         if (statementCache != null) {
             Statement target = getTarget();
-            for (Iterator<MethodResult<Statement>> i = statementCache.values().iterator(); i.hasNext(); ) {
-                MethodResult<Statement> methodResult = i.next();
-                if (methodResult.value().equals(target)) {
+            for (Iterator<ReturnVal<Statement>> i = statementCache.values().iterator(); i.hasNext(); ) {
+                ReturnVal<Statement> returnVal = i.next();
+                if (returnVal.value().equals(target)) {
                     i.remove();
                     break;
                 }
@@ -115,7 +115,7 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
 
         try {
             // executeQuery result has to be proxied so that when getStatement() is called
-            // on its result the return value to be current JDBC Statement proxy.
+            // on its result the return value to be the current JDBC Statement proxy.
             if (method.getName() == "executeQuery") // *1
                 return newProxiedResultSet(proxy, method, args);
             else

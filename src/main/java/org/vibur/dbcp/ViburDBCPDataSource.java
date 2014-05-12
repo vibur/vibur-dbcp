@@ -17,9 +17,9 @@
 package org.vibur.dbcp;
 
 import org.slf4j.LoggerFactory;
-import org.vibur.dbcp.cache.ClhmCacheProvider;
-import org.vibur.dbcp.cache.MethodDefinition;
-import org.vibur.dbcp.cache.MethodResult;
+import org.vibur.dbcp.cache.MethodDef;
+import org.vibur.dbcp.cache.ReturnVal;
+import org.vibur.dbcp.cache.StatementCacheProvider;
 import org.vibur.dbcp.jmx.ViburDBCPMonitoring;
 import org.vibur.dbcp.pool.PoolOperations;
 
@@ -69,8 +69,6 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
     /**
      * Default constructor for programmatic configuration via the {@code ViburDBCPConfig}
      * setter methods.
-     *
-     * @throws ViburDBCPException if cannot configure successfully
      */
     public ViburDBCPDataSource() {
     }
@@ -128,7 +126,6 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
 
     private void configureFromURL(URL config) throws ViburDBCPException {
         InputStream inputStream = null;
-        IOException ioe = null;
         try {
             URLConnection uConn = config.openConnection();
             uConn.setUseCaches(false);
@@ -140,16 +137,13 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
                 properties.load(inputStream);
             configureFromProperties(properties);
         } catch (IOException e) {
-            ioe = e;
             throw new ViburDBCPException(config.toString(), e);
         } finally {
             if (inputStream != null)
                 try {
                     inputStream.close();
-                } catch (IOException e) {
-                    if (ioe != null)
-                        logger.error("IOException while configuring from URL " + config, ioe);
-                    throw new ViburDBCPException(config.toString(), e);
+                } catch (IOException ignored) {
+                    logger.warn("Couldn't close configuration URL " + config, ignored);
                 }
         }
     }
@@ -171,7 +165,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
                     else if (type == String.class)
                         set(field, val);
                     else
-                        logger.error("Unexpected field {} found in ViburDBCPConfig", field.getName());
+                        throw new ViburDBCPException("Unexpected field found in ViburDBCPConfig: " + field.getName());
                 }
             } catch (NumberFormatException e) {
                 throw new ViburDBCPException(field.getName(), e);
@@ -211,11 +205,11 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
         state = State.TERMINATED;
         if (oldState == State.NEW) return;
 
-        ConcurrentMap<MethodDefinition, MethodResult<Statement>> statementCache = getStatementCache();
+        ConcurrentMap<MethodDef<Connection>, ReturnVal<Statement>> statementCache = getStatementCache();
         if (statementCache != null) {
-            for (Iterator<MethodResult<Statement>> i = statementCache.values().iterator(); i.hasNext(); ) {
-                MethodResult<Statement> methodResult = i.next();
-                closeStatement(methodResult.value());
+            for (Iterator<ReturnVal<Statement>> i = statementCache.values().iterator(); i.hasNext(); ) {
+                ReturnVal<Statement> returnVal = i.next();
+                closeStatement(returnVal.value());
                 i.remove();
             }
             setStatementCache(null);
@@ -263,7 +257,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
         if (statementCacheMaxSize > CACHE_MAX_SIZE)
             statementCacheMaxSize = CACHE_MAX_SIZE;
         if (statementCacheMaxSize > 0)
-            setStatementCache(ClhmCacheProvider.buildStatementCache(statementCacheMaxSize));
+            setStatementCache(new StatementCacheProvider(statementCacheMaxSize).build());
     }
 
     private void initJMX() throws ViburDBCPException {

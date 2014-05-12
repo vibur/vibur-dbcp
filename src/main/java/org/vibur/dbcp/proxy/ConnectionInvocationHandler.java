@@ -19,8 +19,8 @@ package org.vibur.dbcp.proxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.ViburDBCPConfig;
-import org.vibur.dbcp.cache.MethodDefinition;
-import org.vibur.dbcp.cache.MethodResult;
+import org.vibur.dbcp.cache.MethodDef;
+import org.vibur.dbcp.cache.ReturnVal;
 import org.vibur.dbcp.pool.ConnState;
 import org.vibur.dbcp.pool.PoolOperations;
 import org.vibur.dbcp.proxy.listener.ExceptionListenerImpl;
@@ -45,7 +45,7 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
     private final Holder<ConnState> hConnection;
 
     private final ViburDBCPConfig config;
-    private final ConcurrentMap<MethodDefinition, MethodResult<Statement>> statementCache;
+    private final ConcurrentMap<MethodDef<Connection>, ReturnVal<Statement>> statementCache;
 
     public ConnectionInvocationHandler(Holder<ConnState> hConnection, ViburDBCPConfig config) {
         super(hConnection.value().connection(), new ExceptionListenerImpl());
@@ -71,21 +71,21 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
         ensureNotClosed(); // all other Connection interface methods cannot work if the JDBC Connection is closed
 
         // Methods which results have to be proxied so that when getConnection() is called
-        // on their results the return value to be current JDBC Connection proxy.
+        // on their results the return value to be the current JDBC Connection proxy.
         if (methodName == "createStatement") { // *3
-            MethodResult<Statement> statementResult =
-                (MethodResult<Statement>) getUncachedStatementResult(method, args);
+            ReturnVal<Statement> statementResult =
+                (ReturnVal<Statement>) uncachedStatementInvoke(method, args);
             return Proxy.newStatement(statementResult, null, proxy, config, getExceptionListener());
         }
         if (methodName == "prepareStatement") { // *6
-            MethodResult<PreparedStatement> statementResult =
-                (MethodResult<PreparedStatement>) getStatementResult(method, args);
+            ReturnVal<PreparedStatement> statementResult =
+                (ReturnVal<PreparedStatement>) cachedStatementInvoke(method, args);
             return Proxy.newPreparedStatement(statementResult, statementCache, proxy, config,
                 getExceptionListener());
         }
         if (methodName == "prepareCall") { // *3
-            MethodResult<CallableStatement> statementResult =
-                (MethodResult<CallableStatement>) getStatementResult(method, args);
+            ReturnVal<CallableStatement> statementResult =
+                (ReturnVal<CallableStatement>) cachedStatementInvoke(method, args);
             return Proxy.newCallableStatement(statementResult, statementCache, proxy, config,
                 getExceptionListener());
         }
@@ -97,18 +97,18 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
         return super.doInvoke(proxy, method, args);
     }
 
-    private MethodResult<? extends Statement> getStatementResult(Method method, Object[] args) throws Throwable {
+    private ReturnVal<? extends Statement> cachedStatementInvoke(Method method, Object[] args) throws Throwable {
         if (statementCache != null) {
             Connection target = getTarget();
-            MethodDefinition key = new MethodDefinition(target, method, args);
-            MethodResult<Statement> statementResult = statementCache.get(key);
+            MethodDef<Connection> key = new MethodDef<Connection>(target, method, args);
+            ReturnVal<Statement> statementResult = statementCache.get(key);
             if (statementResult == null || statementResult.inUse().getAndSet(true)) {
                 Statement statement = (Statement) targetInvoke(method, args);
                 if (statementResult == null) { // there was no entry for the key, so we'll try to put a new one
-                    statementResult = new MethodResult<Statement>(statement, new AtomicBoolean(true));
+                    statementResult = new ReturnVal<Statement>(statement, new AtomicBoolean(true));
                     if (statementCache.putIfAbsent(key, statementResult) != null)
                         // because another thread succeeded to put the entry before us
-                        statementResult = new MethodResult<Statement>(statement, null);
+                        statementResult = new ReturnVal<Statement>(statement, null);
                 }
                 return statementResult;
             } else { // the statementResult is valid and was not inUse
@@ -118,13 +118,13 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
                 return statementResult;
             }
         } else {
-            return getUncachedStatementResult(method, args);
+            return uncachedStatementInvoke(method, args);
         }
     }
 
-    private MethodResult<? extends Statement> getUncachedStatementResult(Method method, Object[] args) throws Throwable {
+    private ReturnVal<? extends Statement> uncachedStatementInvoke(Method method, Object[] args) throws Throwable {
         Statement statement = (Statement) targetInvoke(method, args);
-        return new MethodResult<Statement>(statement, null);
+        return new ReturnVal<Statement>(statement, null);
     }
 
     private Object processCloseOrAbort(boolean aborted, Method method, Object[] args) throws Throwable {

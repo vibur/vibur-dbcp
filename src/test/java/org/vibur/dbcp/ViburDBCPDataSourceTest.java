@@ -22,8 +22,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InOrder;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.vibur.dbcp.cache.MethodDefinition;
-import org.vibur.dbcp.cache.MethodResult;
+import org.vibur.dbcp.cache.MethodDef;
+import org.vibur.dbcp.cache.ReturnVal;
 
 import javax.sql.DataSource;
 import java.io.IOException;
@@ -46,7 +46,7 @@ import static org.mockito.Mockito.*;
 public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
 
     @Captor
-    private ArgumentCaptor<MethodDefinition> key1, key2;
+    private ArgumentCaptor<MethodDef> key1, key2;
 
     @Test
     public void testSimpleSelectStatementNoStatementsCache() throws SQLException, IOException {
@@ -80,7 +80,7 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
         ViburDBCPDataSource ds = createDataSourceWithStatementsCache();
         Connection connection = null;
         try {
-            ConcurrentMap<MethodDefinition, MethodResult<Statement>> mockedStatementCache =
+            ConcurrentMap<MethodDef<Connection>, ReturnVal<Statement>> mockedStatementCache =
                 mock(ConcurrentMap.class, delegatesTo(ds.getStatementCache()));
             ds.setStatementCache(mockedStatementCache);
 
@@ -127,7 +127,7 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
         ViburDBCPDataSource ds = createDataSourceWithStatementsCache();
         Connection connection = null;
         try {
-            ConcurrentMap<MethodDefinition, MethodResult<Statement>> mockedStatementCache =
+            ConcurrentMap<MethodDef<Connection>, ReturnVal<Statement>> mockedStatementCache =
                 mock(ConcurrentMap.class, delegatesTo(ds.getStatementCache()));
             ds.setStatementCache(mockedStatementCache);
 
@@ -137,13 +137,13 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
 
             InOrder inOrder = inOrder(mockedStatementCache);
             inOrder.verify(mockedStatementCache).get(key1.capture());
-            inOrder.verify(mockedStatementCache).putIfAbsent(same(key1.getValue()), any(MethodResult.class));
+            inOrder.verify(mockedStatementCache).putIfAbsent(same(key1.getValue()), any(ReturnVal.class));
             inOrder.verify(mockedStatementCache).get(key2.capture());
 
             assertEquals(key1.getValue(), key2.getValue());
             assertEquals("prepareStatement", key1.getValue().getMethod().getName());
-            MethodResult<Statement> methodResult = mockedStatementCache.get(key1.getValue());
-            assertFalse(methodResult.inUse().get());
+            ReturnVal<Statement> returnVal = mockedStatementCache.get(key1.getValue());
+            assertFalse(returnVal.inUse().get());
         } finally {
             if (connection != null) connection.close();
         }

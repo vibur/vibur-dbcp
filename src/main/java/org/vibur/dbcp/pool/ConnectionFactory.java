@@ -21,8 +21,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.ViburDBCPConfig;
 import org.vibur.dbcp.ViburDBCPException;
-import org.vibur.dbcp.cache.MethodDefinition;
-import org.vibur.dbcp.cache.MethodResult;
+import org.vibur.dbcp.cache.MethodDef;
+import org.vibur.dbcp.cache.ReturnVal;
 import org.vibur.objectpool.PoolObjectFactory;
 
 import javax.sql.DataSource;
@@ -57,6 +57,12 @@ public class ConnectionFactory implements PoolObjectFactory<ConnState>, Versione
     private final ViburDBCPConfig config;
     private final AtomicInteger version = new AtomicInteger(1);
 
+    /**
+     * Instantiates this object factory.
+     *
+     * @param config the ViburDBCPConfig from which will initialize
+     * @throws ViburDBCPException if cannot successfully initialize/configure the underlying SQL system
+     */
     public ConnectionFactory(ViburDBCPConfig config) throws ViburDBCPException {
         if (config == null)
             throw new NullPointerException();
@@ -113,7 +119,6 @@ public class ConnectionFactory implements PoolObjectFactory<ConnState>, Versione
             }
         }
 
-        setDefaultValues(connection);
         logger.trace("Created {}", connection);
         return new ConnState(connection, getVersion(), System.currentTimeMillis());
     }
@@ -134,26 +139,50 @@ public class ConnectionFactory implements PoolObjectFactory<ConnState>, Versione
                 connection = externalDataSource.getConnection();
         }
 
-        String initSQL = config.getInitSQL();
-        if (initSQL != null && !executeQuery(connection, initSQL)) {
+        try {
+            ensureConnectionInitialized(connection);
+            setDefaultValues(connection);
+        } catch (SQLException e) {
             closeConnection(connection);
-            throw new SQLException("Connection initialization failed");
+            throw e;
         }
         return connection;
     }
 
-    private void setDefaultValues(Connection connection) throws ViburDBCPException {
+    private void ensureConnectionInitialized(Connection connection) throws SQLException {
+        String initSQL = config.getInitSQL();
+        if (initSQL != null && !validateConnection(connection, initSQL))
+            throw new SQLException("Couldn't validate " + connection);
+    }
+
+    private void setDefaultValues(Connection connection) throws SQLException {
+        if (config.getDefaultAutoCommit() != null)
+            connection.setAutoCommit(config.getDefaultAutoCommit());
+        if (config.getDefaultReadOnly() != null)
+            connection.setReadOnly(config.getDefaultReadOnly());
+        if (config.getDefaultTransactionIsolationValue() != null)
+            connection.setTransactionIsolation(config.getDefaultTransactionIsolationValue());
+        if (config.getDefaultCatalog() != null)
+            connection.setCatalog(config.getDefaultCatalog());
+    }
+
+    private boolean validateConnection(Connection connection, String query) throws SQLException {
+        if (query.equals(ViburDBCPConfig.IS_VALID_QUERY))
+            return connection.isValid(ViburDBCPConfig.QUERY_TIMEOUT);
+        else
+            return executeQuery(connection, query);
+    }
+
+    private boolean executeQuery(Connection connection, String query) throws SQLException {
+        Statement statement = null;
         try {
-            if (config.getDefaultAutoCommit() != null)
-                connection.setAutoCommit(config.getDefaultAutoCommit());
-            if (config.getDefaultReadOnly() != null)
-                connection.setReadOnly(config.getDefaultReadOnly());
-            if (config.getDefaultTransactionIsolationValue() != null)
-                connection.setTransactionIsolation(config.getDefaultTransactionIsolationValue());
-            if (config.getDefaultCatalog() != null)
-                connection.setCatalog(config.getDefaultCatalog());
-        } catch (SQLException e) {
-            throw new ViburDBCPException(e);
+            statement = connection.createStatement();
+            statement.setQueryTimeout(ViburDBCPConfig.QUERY_TIMEOUT);
+            statement.execute(query);
+            return true;
+        } finally {
+            if (statement != null)
+                closeStatement(statement);
         }
     }
 
@@ -162,43 +191,30 @@ public class ConnectionFactory implements PoolObjectFactory<ConnState>, Versione
         if (connState.version() != getVersion())
             return false;
 
-        int idleLimit = config.getConnectionIdleLimitInSeconds();
-        if (idleLimit >= 0) {
-            int idle = (int) (System.currentTimeMillis() - connState.getLastTimeUsedInMillis()) / 1000;
-            if (idle >= idleLimit && !executeQuery(connState.connection(), config.getTestConnectionQuery()))
-                return false;
-        }
-        return true;
-    }
-
-    /**
-     * {@inheritDoc}
-     *
-     * @throws ViburDBCPException if cannot restore the default values for the underlying JDBC Connection.
-     */
-    public boolean readyToRestore(ConnState connState) throws ViburDBCPException {
-        if (config.isResetDefaultsAfterUse())
-            setDefaultValues(connState.connection());
-        connState.setLastTimeUsedInMillis(System.currentTimeMillis());
-        return true;
-    }
-
-    private boolean executeQuery(Connection connection, String query) {
-        Statement statement = null;
         try {
-            if (query.equals(ViburDBCPConfig.IS_VALID_QUERY))
-                return connection.isValid(ViburDBCPConfig.QUERY_TIMEOUT);
-
-            statement = connection.createStatement();
-            statement.setQueryTimeout(ViburDBCPConfig.QUERY_TIMEOUT);
-            statement.execute(query);
+            int idleLimit = config.getConnectionIdleLimitInSeconds();
+            if (idleLimit >= 0) {
+                int idle = (int) (System.currentTimeMillis() - connState.getLastTimeUsedInMillis()) / 1000;
+                if (idle >= idleLimit && !validateConnection(connState.connection(), config.getTestConnectionQuery()))
+                    return false;
+            }
             return true;
-        } catch (SQLException e) {
-            logger.debug("Couldn't initialize or validate " + connection, e);
+        } catch (SQLException ignored) {
+            logger.debug("Couldn't validate " + connState.connection(), ignored);
             return false;
-        } finally {
-            if (statement != null)
-                closeStatement(statement);
+        }
+    }
+
+    /** {@inheritDoc} */
+    public boolean readyToRestore(ConnState connState) {
+        try {
+            if (config.isResetDefaultsAfterUse())
+                setDefaultValues(connState.connection());
+            connState.setLastTimeUsedInMillis(System.currentTimeMillis());
+            return true;
+        } catch (SQLException ignored) {
+            logger.debug("Couldn't set the default values for " + connState.connection(), ignored);
+            return false;
         }
     }
 
@@ -211,14 +227,14 @@ public class ConnectionFactory implements PoolObjectFactory<ConnState>, Versione
     }
 
     private void closeStatements(Connection connection) {
-        ConcurrentMap<MethodDefinition, MethodResult<Statement>> statementCache = config.getStatementCache();
+        ConcurrentMap<MethodDef<Connection>, ReturnVal<Statement>> statementCache = config.getStatementCache();
         if (statementCache == null)
             return;
 
-        for (Iterator<Map.Entry<MethodDefinition, MethodResult<Statement>>> i = statementCache.entrySet().iterator();
-             i.hasNext(); ) {
-            Map.Entry<MethodDefinition, MethodResult<Statement>> entry = i.next();
-            if (entry.getKey().getConnection().equals(connection)) {
+        for (Iterator<Map.Entry<MethodDef<Connection>, ReturnVal<Statement>>> i =
+                     statementCache.entrySet().iterator(); i.hasNext(); ) {
+            Map.Entry<MethodDef<Connection>, ReturnVal<Statement>> entry = i.next();
+            if (entry.getKey().getTarget().equals(connection)) {
                 closeStatement(entry.getValue().value());
                 i.remove();
             }

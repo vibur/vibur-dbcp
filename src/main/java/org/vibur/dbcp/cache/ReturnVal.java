@@ -19,19 +19,21 @@ package org.vibur.dbcp.cache;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * A thin wrapper class which allows us to augment the result of a Method invocation with an additional "state"
- * information representing whether this result object is currently in use or not.
+ * A thin wrapper class which allows us to augment the returned value of a Method invocation with some additional
+ * "state" information, in this case describing whether the returned object is currently in use or not.
  *
- * <p>Used as a value for Statements caching in a {@link java.util.concurrent.ConcurrentMap}
+ * <p>Used as a cached {@code value} in a {@link java.util.concurrent.ConcurrentMap}
  * cache implementation.
+ *
+ * @see StatementCacheProvider
  *
  * @author Simeon Malchev
  */
-public class MethodResult<V> {
+public class ReturnVal<V> {
     private final V value;
     private final AtomicBoolean inUse;
 
-    public MethodResult(V value, AtomicBoolean inUse) {
+    public ReturnVal(V value, AtomicBoolean inUse) {
         if (value == null)
             throw new NullPointerException();
         this.value = value;

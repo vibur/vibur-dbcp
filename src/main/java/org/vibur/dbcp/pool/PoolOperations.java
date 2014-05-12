@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.ViburDBCPConfig;
 import org.vibur.dbcp.ViburDBCPException;
 import org.vibur.dbcp.proxy.Proxy;
+import org.vibur.objectpool.BasePoolService;
 import org.vibur.objectpool.ConcurrentHolderLinkedPool;
 import org.vibur.objectpool.Holder;
 import org.vibur.objectpool.HolderValidatingPoolService;
@@ -54,6 +55,13 @@ public class PoolOperations {
     private final HolderValidatingPoolService<ConnState> pool;
     private final ThreadedPoolReducer poolReducer;
 
+    /**
+     * Instantiates this PoolOperations facade.
+     *
+     * @param config the ViburDBCPConfig from which will initialize
+     * @throws ViburDBCPException if cannot successfully initialize/configure the underlying SQL system
+     *          or if cannot create the underlying SQL connections
+     */
     public PoolOperations(ViburDBCPConfig config) throws ViburDBCPException {
         if (config == null)
             throw new NullPointerException();
@@ -68,27 +76,45 @@ public class PoolOperations {
             config.isPoolEnableConnectionTracking());
 
         if (config.getReducerTimeIntervalInSeconds() > 0) {
-            this.poolReducer = new SamplingPoolReducer(pool,
-                config.getReducerTimeIntervalInSeconds(), TimeUnit.SECONDS, config.getReducerSamples()) {
-
-                protected void afterReduce(int reduction, int reduced, Throwable thrown) {
-                    if (thrown != null)
-                        logger.error(String.format("While trying to reduce the pool by %d elements", reduction), thrown);
-                    else
-                        logger.debug("Intended reduction {} actual {}", reduction, reduced);
-                }
-            };
+            this.poolReducer = new PoolReducer(pool,
+                config.getReducerTimeIntervalInSeconds(), TimeUnit.SECONDS, config.getReducerSamples());
             this.poolReducer.start();
         } else
             this.poolReducer = null;
     }
 
+    private static class PoolReducer extends SamplingPoolReducer {
+        private PoolReducer(BasePoolService poolService, long timeInterval, TimeUnit unit, int samples) {
+            super(poolService, timeInterval, unit, samples);
+        }
+
+        protected void afterReduce(int reduction, int reduced, Throwable thrown) {
+            if (thrown != null) {
+                logger.error(String.format("While trying to reduce the pool by %d elements", reduction), thrown);
+            } else
+                logger.debug("Intended reduction {} actual {}", reduction, reduced);
+            super.afterReduce(reduction, reduced, thrown);
+        }
+    }
+
     public Connection getConnection(long timeout) throws SQLException {
+        try {
+            return doGetConnection(timeout);
+        } catch (ViburDBCPException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof SQLException)
+                throw (SQLException) cause;
+            throw e;
+        }
+    }
+
+    private Connection doGetConnection(long timeout) throws SQLException, ViburDBCPException {
         Holder<ConnState> hConnection = timeout == 0 ?
             pool.take() : pool.tryTake(timeout, TimeUnit.MILLISECONDS);
         if (hConnection == null)
             throw new SQLException("Couldn't obtain SQL connection.");
-        logger.trace("Getting {}", hConnection.value().connection());
+        if (logger.isTraceEnabled())
+            logger.trace("Getting {}", hConnection.value().connection());
         return Proxy.newConnection(hConnection, config);
     }
 
@@ -100,6 +126,7 @@ public class PoolOperations {
         SQLException sqlException;
         if (restored && (sqlException = hasCriticalSQLException(errors)) != null
             && connectionFactory.compareAndSetVersion(connVersion, connVersion + 1)) {
+
             int destroyed = pool.drainCreated(); // destroys all connections in the pool
             logger.error(String.format(
                 "Critical SQLState %s occurred, destroyed %d connections, current connection version is %d.",

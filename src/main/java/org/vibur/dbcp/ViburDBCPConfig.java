@@ -19,11 +19,12 @@ package org.vibur.dbcp;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.vibur.dbcp.cache.MethodDefinition;
-import org.vibur.dbcp.cache.MethodResult;
+import org.vibur.dbcp.cache.MethodDef;
+import org.vibur.dbcp.cache.ReturnVal;
 import org.vibur.dbcp.pool.PoolOperations;
 
 import javax.sql.DataSource;
+import java.sql.Connection;
 import java.sql.Statement;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -77,7 +78,7 @@ public class ViburDBCPConfig {
     /** An SQL query which will be run only once when a JDBC Connection is first created. This property should be
      * set to a valid SQL query, to {@code null} which means no query, or to {@code isValid} which means that the
      * {@code Connection.isValid()} method will be used. An use case in which this property can be useful is when the
-     * application is connecting to the database via some middleware, for example connecting to PostgreSQL server
+     * application is connecting to the database via some middleware, for example, connecting to PostgreSQL server(s)
      * via PgBouncer. */
     private String initSQL = null;
 
@@ -119,9 +120,10 @@ public class ViburDBCPConfig {
      * there is an available and valid connection in the pool. {@code 0} means forever.
      *
      * <p> If there is not an available and valid connection in the pool, the total maximum time which the
-     * call to {@code getConnection()} may take before it times out and returns an error is given by the formula: <br>
+     * call to {@code getConnection()} may take before it times out and returns an error can be calculated as: <br>
      * maxTimeoutInMs = connectionTimeoutInMs
-     *     + (acquireRetryAttempts + 1) * loginTimeoutInSeconds * 1000 + acquireRetryAttempts * acquireRetryDelayInMs */
+     *     + (acquireRetryAttempts + 1) * loginTimeoutInSeconds * 1000
+     *     + acquireRetryAttempts * acquireRetryDelayInMs */
     private long connectionTimeoutInMs = 30000;
     /** Login timeout which is to be set to the call to {@code DriverManager.setLoginTimeout()}
      * or {@code getExternalDataSource().setLoginTimeout()} during the initialization process of the DataSource. */
@@ -138,7 +140,7 @@ public class ViburDBCPConfig {
      * If the statement's cache is not enabled, the client application may safely exclude the dependency
      * on ConcurrentLinkedCacheMap from its pom.xml file. */
     private int statementCacheMaxSize = 0;
-    private ConcurrentMap<MethodDefinition, MethodResult<Statement>> statementCache = null;
+    private ConcurrentMap<MethodDef<Connection>, ReturnVal<Statement>> statementCache = null;
 
     /** The list of critical SQL states as a comma separated values, see http://stackoverflow.com/a/14412929/1682918 .
      * If an SQL exception which has any of these SQL states is thrown then all connections in the pool will be
@@ -356,11 +358,11 @@ public class ViburDBCPConfig {
         this.statementCacheMaxSize = statementCacheMaxSize;
     }
 
-    public ConcurrentMap<MethodDefinition, MethodResult<Statement>> getStatementCache() {
+    public ConcurrentMap<MethodDef<Connection>, ReturnVal<Statement>> getStatementCache() {
         return statementCache;
     }
 
-    public void setStatementCache(ConcurrentMap<MethodDefinition, MethodResult<Statement>> statementCache) {
+    public void setStatementCache(ConcurrentMap<MethodDef<Connection>, ReturnVal<Statement>> statementCache) {
         this.statementCache = statementCache;
     }
 

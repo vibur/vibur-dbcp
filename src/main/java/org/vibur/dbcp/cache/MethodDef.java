@@ -17,35 +17,36 @@
 package org.vibur.dbcp.cache;
 
 import java.lang.reflect.Method;
-import java.sql.Connection;
 import java.util.Arrays;
 
 /**
- * Describes the "parameters" via which a Method has been invoked. These are the
+ * Describes the "parameters" via which a Connection interface Method has been invoked. These are the
  * Connection object, the Method object which has been called on this Connection, and
  * the Method's arguments.
 
- * <p>Used as a key for Statements caching in a {@link java.util.concurrent.ConcurrentMap}
+ * <p>Used as a caching {@code key} in a {@link java.util.concurrent.ConcurrentMap}
  * cache implementation.
+ *
+ * @see StatementCacheProvider
  *
  * @author Simeon Malchev
  */
-public class MethodDefinition {
+public class MethodDef<T> {
 
-    private final Connection connection;
+    private final T target;
     private final Method method;
     private final Object[] args;
 
-    public MethodDefinition(Connection connection, Method method, Object[] args) {
-        if (connection == null || method == null)
+    public MethodDef(T target, Method method, Object[] args) {
+        if (target == null || method == null)
             throw new NullPointerException();
-        this.connection = connection;
+        this.target = target;
         this.method = method;
         this.args = args;
     }
 
-    public Connection getConnection() {
-        return connection;
+    public T getTarget() {
+        return target;
     }
 
     public Method getMethod() {
@@ -60,14 +61,14 @@ public class MethodDefinition {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        MethodDefinition that = (MethodDefinition) o;
-        return connection.equals(that.connection)
+        MethodDef that = (MethodDef) o;
+        return target.equals(that.target)
             && method.equals(that.method)
             && Arrays.equals(args, that.args);
     }
 
     public int hashCode() {
-        int result = connection.hashCode();
+        int result = target.hashCode();
         result = 31 * result + method.hashCode();
         result = 31 * result + Arrays.hashCode(args);
         return result;
