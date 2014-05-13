@@ -119,6 +119,13 @@ public class ConnectionFactory implements PoolObjectFactory<ConnState>, Versione
             }
         }
 
+        try {
+            ensureConnectionInitialized(connection);
+            setDefaultValues(connection);
+        } catch (SQLException e) {
+            closeConnection(connection);
+            throw new ViburDBCPException(e);
+        }
         logger.trace("Created {}", connection);
         return new ConnState(connection, getVersion(), System.currentTimeMillis());
     }
@@ -137,14 +144,6 @@ public class ConnectionFactory implements PoolObjectFactory<ConnState>, Versione
                 connection = externalDataSource.getConnection(userName, config.getPassword());
             else
                 connection = externalDataSource.getConnection();
-        }
-
-        try {
-            ensureConnectionInitialized(connection);
-            setDefaultValues(connection);
-        } catch (SQLException e) {
-            closeConnection(connection);
-            throw e;
         }
         return connection;
     }

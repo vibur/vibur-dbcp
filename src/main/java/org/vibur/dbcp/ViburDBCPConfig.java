@@ -116,7 +116,7 @@ public class ViburDBCPConfig {
     private int reducerSamples = 20;
 
 
-    /** Time to wait before a call to {@code getConnection()} times out and returns an error, in the case when
+    /** Time to wait before a call to {@code getConnection()} times out and returns an error, for the case when
      * there is an available and valid connection in the pool. {@code 0} means forever.
      *
      * <p> If there is not an available and valid connection in the pool, the total maximum time which the
