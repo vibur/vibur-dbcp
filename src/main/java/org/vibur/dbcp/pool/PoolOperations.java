@@ -91,9 +91,10 @@ public class PoolOperations {
         protected void afterReduce(int reduction, int reduced, Throwable thrown) {
             if (thrown != null) {
                 logger.error(String.format("While trying to reduce the pool by %d elements", reduction), thrown);
+                if (!(thrown instanceof ViburDBCPException))
+                    terminate();
             } else
                 logger.debug("Intended reduction {} actual {}", reduction, reduced);
-            super.afterReduce(reduction, reduced, thrown);
         }
     }
 

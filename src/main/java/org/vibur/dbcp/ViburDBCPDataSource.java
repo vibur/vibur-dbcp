@@ -235,20 +235,19 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
 
         if (getDefaultTransactionIsolation() != null) {
             String defaultTransactionIsolation = getDefaultTransactionIsolation().toUpperCase();
-            if (defaultTransactionIsolation.equals("NONE")) {
+            if (defaultTransactionIsolation.equals("NONE"))
                 setDefaultTransactionIsolationValue(Connection.TRANSACTION_NONE);
-            } else if (defaultTransactionIsolation.equals("READ_COMMITTED")) {
+            else if (defaultTransactionIsolation.equals("READ_COMMITTED"))
                 setDefaultTransactionIsolationValue(Connection.TRANSACTION_READ_COMMITTED);
-            } else if (defaultTransactionIsolation.equals("REPEATABLE_READ")) {
+            else if (defaultTransactionIsolation.equals("REPEATABLE_READ"))
                 setDefaultTransactionIsolationValue(Connection.TRANSACTION_REPEATABLE_READ);
-            } else if (defaultTransactionIsolation.equals("READ_UNCOMMITTED")) {
+            else if (defaultTransactionIsolation.equals("READ_UNCOMMITTED"))
                 setDefaultTransactionIsolationValue(Connection.TRANSACTION_READ_UNCOMMITTED);
-            } else if (defaultTransactionIsolation.equals("SERIALIZABLE")) {
+            else if (defaultTransactionIsolation.equals("SERIALIZABLE"))
                 setDefaultTransactionIsolationValue(Connection.TRANSACTION_SERIALIZABLE);
-            } else {
+            else
                 logger.warn("Unknown defaultTransactionIsolation {}. Will use the driver's default.",
                     getDefaultTransactionIsolation());
-            }
         }
     }
 
