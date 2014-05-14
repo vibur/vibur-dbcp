@@ -1,17 +1,18 @@
 Version 1.1.0 (##/05/2014)
 ==========================
-* Vibur DBCP is now available and distributed as an OSGi bundle.
-* Added Hibernate 4.3+ integration (into a separate project).
+* Vibur DBCP is now built and distributed as an OSGi bundle (which in the case, is a valid JAR file, too).
+* Added Hibernate 4.3+ integration (into a separate project). Please see
+  https://code.google.com/p/vibur-dbcp-hibernate4/ for more details.
 * driverClassName config property was reestablished as an optional config property. It is needed when
-  running Vibur DBCP into an OSGi container, and may also be helpful if Vibur DBCP is used in an
+  Vibur DBCP is used in an OSGi container, and may also be helpful when Vibur DBCP is used in an
   Apache Tomcat web application.
 * Vibur DBCP JNDI ObjectFactory implemented.
 * name (of the DataSource) and enableJMX config properties added.
-* loginTimeout config property added (used for DriverManager or external DataSource configuration).
+* loginTimeout config property added (used for the DriverManager or external DataSource configuration).
 * initSQL config property added (an SQL query which will be executed only once when a JDBC Connection
   is first created).
 * criticalSQLStates config property added (advanced).
-* Various other small enhancements and bug fixes.
+* Various other small improvements and bug fixes.
 
 Version 1.0.0 (02/02/2014)
 ==========================
