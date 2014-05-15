@@ -128,12 +128,10 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
     }
 
     private Object processCloseOrAbort(boolean aborted, Method method, Object[] args) throws Throwable {
-        if (getAndSetClosed())
-            return null;
-        try {
-            return aborted ? targetInvoke(method, args) : null; // close() is not passed, abort() is passed
-        } finally {
+        if (aborted)
+            targetInvoke(method, args); // executes the abort() call, which in turn may throw an exception
+        if (!getAndSetClosed())
             poolOperations.restore(hConnection, aborted, getExceptionListener().getExceptions());
-        }
+        return null;
     }
 }

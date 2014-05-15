@@ -105,7 +105,7 @@ public class PoolOperations {
             Throwable cause = e.getCause();
             if (cause instanceof SQLException)
                 throw (SQLException) cause;
-            throw e;
+            throw e; // not expected to happen
         }
     }
 
