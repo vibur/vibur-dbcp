@@ -22,12 +22,12 @@ import com.googlecode.concurrentlinkedhashmap.EvictionListener;
 import java.util.concurrent.ConcurrentMap;
 
 /**
- * An abstract concurrent cache provider mapping {@code MethodDef<T>} to {@code ReturnVal<V>},
- * based on ConcurrentLinkedHashMap.
+ * An abstract concurrent cache provider for method invocations, i.e.
+ * mapping {@code MethodDef<T>} to {@code ReturnVal<V>}, based on ConcurrentLinkedHashMap.
  *
  * @author Simeon Malchev
  */
-public abstract class AbstractCacheProvider<T, V> {
+public abstract class AbstractInvocationCacheProvider<T, V> {
 
     private final int maxSize;
 
@@ -36,7 +36,7 @@ public abstract class AbstractCacheProvider<T, V> {
      *
      * @param maxSize the maximum number of elements in the cache
      */
-    public AbstractCacheProvider(int maxSize) {
+    public AbstractInvocationCacheProvider(int maxSize) {
         if (maxSize <= 0) throw new IllegalArgumentException();
         this.maxSize = maxSize;
     }

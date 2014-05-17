@@ -19,7 +19,7 @@ package org.vibur.dbcp;
 import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.cache.MethodDef;
 import org.vibur.dbcp.cache.ReturnVal;
-import org.vibur.dbcp.cache.StatementCacheProvider;
+import org.vibur.dbcp.cache.StatementInvocationCacheProvider;
 import org.vibur.dbcp.jmx.ViburDBCPMonitoring;
 import org.vibur.dbcp.pool.PoolOperations;
 
@@ -256,7 +256,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
         if (statementCacheMaxSize > CACHE_MAX_SIZE)
             statementCacheMaxSize = CACHE_MAX_SIZE;
         if (statementCacheMaxSize > 0)
-            setStatementCache(new StatementCacheProvider(statementCacheMaxSize).build());
+            setStatementCache(new StatementInvocationCacheProvider(statementCacheMaxSize).build());
     }
 
     private void initJMX() throws ViburDBCPException {

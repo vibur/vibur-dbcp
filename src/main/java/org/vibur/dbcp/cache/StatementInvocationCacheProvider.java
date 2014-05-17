@@ -24,14 +24,14 @@ import java.sql.Statement;
 import static org.vibur.dbcp.util.SqlUtils.closeStatement;
 
 /**
- * A JDBC Statement concurrent cache provider which maps {@code MethodDef<Connection>} to {@code ReturnVal<Statement>},
- * based on ConcurrentLinkedHashMap.
+ * A concurrent cache provider for JDBC Statement method invocations which maps
+ * {@code MethodDef<Connection>} to {@code ReturnVal<Statement>}, based on ConcurrentLinkedHashMap.
  *
  * @author Simeon Malchev
  */
-public class StatementCacheProvider extends AbstractCacheProvider<Connection, Statement> {
+public class StatementInvocationCacheProvider extends AbstractInvocationCacheProvider<Connection, Statement> {
 
-    public StatementCacheProvider(int maxSize) {
+    public StatementInvocationCacheProvider(int maxSize) {
         super(maxSize);
     }
 

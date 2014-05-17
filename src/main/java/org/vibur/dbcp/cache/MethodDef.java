@@ -24,10 +24,10 @@ import java.util.Arrays;
  * Connection object, the Method object which has been called on this Connection, and
  * the Method's arguments.
 
- * <p>Used as a caching {@code key} in a {@link java.util.concurrent.ConcurrentMap}
+ * <p>Used as a caching {@code key} for method invocations in a {@link java.util.concurrent.ConcurrentMap}
  * cache implementation.
  *
- * @see StatementCacheProvider
+ * @see StatementInvocationCacheProvider
  *
  * @author Simeon Malchev
  */

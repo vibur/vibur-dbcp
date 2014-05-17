@@ -22,10 +22,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * A thin wrapper class which allows us to augment the returned value of a Method invocation with some additional
  * "state" information, in this case describing whether the returned object is currently in use or not.
  *
- * <p>Used as a cached {@code value} in a {@link java.util.concurrent.ConcurrentMap}
+ * <p>Used as a cached {@code value} for method invocations in a {@link java.util.concurrent.ConcurrentMap}
  * cache implementation.
  *
- * @see StatementCacheProvider
+ * @see StatementInvocationCacheProvider
  *
  * @author Simeon Malchev
  */
