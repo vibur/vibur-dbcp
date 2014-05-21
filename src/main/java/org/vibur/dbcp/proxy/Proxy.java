@@ -19,9 +19,8 @@ package org.vibur.dbcp.proxy;
 import org.vibur.dbcp.ViburDBCPConfig;
 import org.vibur.dbcp.cache.MethodDef;
 import org.vibur.dbcp.cache.ReturnVal;
-import org.vibur.dbcp.pool.ConnState;
+import org.vibur.dbcp.pool.ConnHolder;
 import org.vibur.dbcp.proxy.listener.ExceptionListener;
-import org.vibur.objectpool.Holder;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
@@ -36,7 +35,7 @@ public class Proxy {
 
     private Proxy() { }
 
-    public static Connection newConnection(Holder<ConnState> hConnection, ViburDBCPConfig config) {
+    public static Connection newConnection(ConnHolder hConnection, ViburDBCPConfig config) {
         InvocationHandler handler = new ConnectionInvocationHandler(hConnection, config);
         return (Connection) newProxy(connectionCtor, handler);
     }

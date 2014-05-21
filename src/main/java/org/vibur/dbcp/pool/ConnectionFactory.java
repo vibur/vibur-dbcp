@@ -35,6 +35,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static org.vibur.dbcp.util.SqlUtils.closeConnection;
 import static org.vibur.dbcp.util.SqlUtils.closeStatement;
@@ -44,18 +45,20 @@ import static org.vibur.dbcp.util.SqlUtils.closeStatement;
  * validates them if needed, and destroys them. Used by {@link org.vibur.dbcp.ViburDBCPDataSource}.
  *
  * <p>This {@code ConnectionFactory} is a {@code VersionedObject} which creates versioned JDBC Connection
- * wrappers {@code ConnState(s)}. The version of each {@code ConnState} created by the factory is the same
- * as the version of the factory at the moment of the object creation.
+ * wrappers {@code ConnHolder(s)}. The getVersion of each {@code ConnHolder} created by the factory is the same
+ * as the getVersion of the factory at the moment of the object creation.
  *
  * @author Daniel Caldeweyher
  * @author Simeon Malchev
  */
-public class ConnectionFactory implements PoolObjectFactory<ConnState>, VersionedObject {
+public class ConnectionFactory implements PoolObjectFactory<ConnHolder>, VersionedObject {
 
     private static final Logger logger = LoggerFactory.getLogger(ConnectionFactory.class);
 
     private final ViburDBCPConfig config;
     private final AtomicInteger version = new AtomicInteger(1);
+
+    private final AtomicLong idGenerator = new AtomicLong(1);
 
     /**
      * Instantiates this object factory.
@@ -102,7 +105,7 @@ public class ConnectionFactory implements PoolObjectFactory<ConnState>, Versione
      *
      * @throws org.vibur.dbcp.ViburDBCPException if cannot create the underlying JDBC Connection.
      */
-    public ConnState create() throws ViburDBCPException {
+    public ConnHolder create() throws ViburDBCPException {
         int attempt = 0;
         Connection connection = null;
         while (connection == null) {
@@ -127,7 +130,7 @@ public class ConnectionFactory implements PoolObjectFactory<ConnState>, Versione
             throw new ViburDBCPException(e);
         }
         logger.trace("Created {}", connection);
-        return new ConnState(connection, getVersion(), System.currentTimeMillis());
+        return new ConnHolder(idGenerator.getAndIncrement(), connection, getVersion(), System.currentTimeMillis());
     }
 
     private Connection doCreate() throws SQLException {
@@ -186,40 +189,40 @@ public class ConnectionFactory implements PoolObjectFactory<ConnState>, Versione
     }
 
     /** {@inheritDoc} */
-    public boolean readyToTake(ConnState connState) {
-        if (connState.version() != getVersion())
+    public boolean readyToTake(ConnHolder connHolder) {
+        if (connHolder.getVersion() != getVersion())
             return false;
 
         try {
             int idleLimit = config.getConnectionIdleLimitInSeconds();
             if (idleLimit >= 0) {
-                int idle = (int) (System.currentTimeMillis() - connState.getLastTimeUsedInMillis()) / 1000;
-                if (idle >= idleLimit && !validateConnection(connState.connection(), config.getTestConnectionQuery()))
+                int idle = (int) (System.currentTimeMillis() - connHolder.getLastTimeUsed()) / 1000;
+                if (idle >= idleLimit && !validateConnection(connHolder.value(), config.getTestConnectionQuery()))
                     return false;
             }
             return true;
         } catch (SQLException ignored) {
-            logger.debug("Couldn't validate " + connState.connection(), ignored);
+            logger.debug("Couldn't validate " + connHolder.value(), ignored);
             return false;
         }
     }
 
     /** {@inheritDoc} */
-    public boolean readyToRestore(ConnState connState) {
+    public boolean readyToRestore(ConnHolder connHolder) {
         try {
             if (config.isResetDefaultsAfterUse())
-                setDefaultValues(connState.connection());
-            connState.setLastTimeUsedInMillis(System.currentTimeMillis());
+                setDefaultValues(connHolder.value());
+            connHolder.setLastTimeUsed(System.currentTimeMillis());
             return true;
         } catch (SQLException ignored) {
-            logger.debug("Couldn't set the default values for " + connState.connection(), ignored);
+            logger.debug("Couldn't set the default values for " + connHolder.value(), ignored);
             return false;
         }
     }
 
     /** {@inheritDoc} */
-    public void destroy(ConnState connState) {
-        Connection connection = connState.connection();
+    public void destroy(ConnHolder connHolder) {
+        Connection connection = connHolder.value();
         logger.trace("Destroying {}", connection);
         closeStatements(connection);
         closeConnection(connection);

@@ -21,10 +21,9 @@ import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.ViburDBCPConfig;
 import org.vibur.dbcp.cache.MethodDef;
 import org.vibur.dbcp.cache.ReturnVal;
-import org.vibur.dbcp.pool.ConnState;
+import org.vibur.dbcp.pool.ConnHolder;
 import org.vibur.dbcp.pool.PoolOperations;
 import org.vibur.dbcp.proxy.listener.ExceptionListenerImpl;
-import org.vibur.objectpool.Holder;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -42,13 +41,13 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
     private static final Logger logger = LoggerFactory.getLogger(ConnectionInvocationHandler.class);
 
     private final PoolOperations poolOperations;
-    private final Holder<ConnState> hConnection;
+    private final ConnHolder hConnection;
 
     private final ViburDBCPConfig config;
     private final ConcurrentMap<MethodDef<Connection>, ReturnVal<Statement>> statementCache;
 
-    public ConnectionInvocationHandler(Holder<ConnState> hConnection, ViburDBCPConfig config) {
-        super(hConnection.value().connection(), new ExceptionListenerImpl());
+    public ConnectionInvocationHandler(ConnHolder hConnection, ViburDBCPConfig config) {
+        super(hConnection.value(), new ExceptionListenerImpl());
         this.poolOperations = config.getPoolOperations();
         this.hConnection = hConnection;
         this.config = config;

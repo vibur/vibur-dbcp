@@ -18,8 +18,8 @@ package org.vibur.dbcp.jmx;
 
 import org.vibur.dbcp.ViburDBCPConfig;
 import org.vibur.dbcp.ViburDBCPException;
-import org.vibur.dbcp.pool.ConnState;
-import org.vibur.objectpool.Holder;
+import org.vibur.dbcp.pool.ConnHolder;
+//import org.vibur.objectpool.Holder;
 
 import javax.management.JMException;
 import javax.management.MBeanServer;
@@ -212,21 +212,22 @@ public class ViburDBCPMonitoring implements ViburDBCPMonitoringMBean {
         if (!viburDBCPConfig.isPoolEnableConnectionTracking())
             return null;
 
-        List<Holder<ConnState>> holders = viburDBCPConfig.getPoolOperations().getPool().takenHolders();
-        Collections.sort(holders, new Comparator<Holder<ConnState>>() { // sort newest on top
-            public int compare(Holder<ConnState> h1, Holder<ConnState> h2) {
-                long diff = h2.getTime() - h1.getTime();
-                return diff < 0 ? -1 : diff > 0 ? 1 : 0;
-            }
-        });
-
-        StringBuilder builder = new StringBuilder(4096);
-        for (Holder<ConnState> holder : holders) {
-            builder.append(holder.value().connection())
-                .append(", taken at: ").append(new Date(holder.getTime()))
-                .append(", millis = ").append(holder.getTime()).append(NEW_LINE)
-                .append(getStackTraceAsString(holder.getStackTrace())).append(NEW_LINE);
-        }
-        return builder.toString();
+//        List<ConnHolder>> holders = viburDBCPConfig.getPoolOperations().getPool().takenHolders();
+//        Collections.sort(holders, new Comparator<Holder<ConnHolder>>() { // sort newest on top
+//            public int compare(Holder<ConnHolder> h1, Holder<ConnHolder> h2) {
+//                long diff = h2.getTime() - h1.getTime();
+//                return diff < 0 ? -1 : diff > 0 ? 1 : 0;
+//            }
+//        });
+//
+//        StringBuilder builder = new StringBuilder(4096);
+//        for (Holder<ConnHolder> holder : holders) {
+//            builder.append(holder.value().connection())
+//                .append(", taken at: ").append(new Date(holder.getTime()))
+//                .append(", millis = ").append(holder.getTime()).append(NEW_LINE)
+//                .append(getStackTraceAsString(holder.getStackTrace())).append(NEW_LINE);
+//        }
+//        return builder.toString();
+        return null; // todo...
     }
 }

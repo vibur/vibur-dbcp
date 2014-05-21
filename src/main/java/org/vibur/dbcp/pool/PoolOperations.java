@@ -21,12 +21,11 @@ import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.ViburDBCPConfig;
 import org.vibur.dbcp.ViburDBCPException;
 import org.vibur.dbcp.proxy.Proxy;
-import org.vibur.objectpool.BasePoolService;
-import org.vibur.objectpool.ConcurrentHolderLinkedPool;
-import org.vibur.objectpool.Holder;
-import org.vibur.objectpool.HolderValidatingPoolService;
-import org.vibur.objectpool.util.SamplingPoolReducer;
-import org.vibur.objectpool.util.ThreadedPoolReducer;
+import org.vibur.objectpool.ConcurrentLinkedPool;
+import org.vibur.objectpool.PoolService;
+import org.vibur.objectpool.reducer.SamplingPoolReducer;
+import org.vibur.objectpool.reducer.ThreadedPoolReducer;
+import org.vibur.objectpool.validator.ConcurrentMapHolderValidator;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -44,7 +43,7 @@ import java.util.concurrent.TimeUnit;
  *
  * @author Simeon Malchev
  */
-public class PoolOperations {
+public class  PoolOperations {
 
     private static final Logger logger = LoggerFactory.getLogger(PoolOperations.class);
 
@@ -52,7 +51,7 @@ public class PoolOperations {
     private final Set<String> criticalSQLStates;
 
     private final ConnectionFactory connectionFactory;
-    private final HolderValidatingPoolService<ConnState> pool;
+    private final PoolService<ConnHolder> pool;
     private final ThreadedPoolReducer poolReducer;
 
     /**
@@ -71,9 +70,9 @@ public class PoolOperations {
             config.getCriticalSQLStates().replaceAll("\\s","").split(",")));
 
         this.connectionFactory = new ConnectionFactory(config);
-        this.pool = new ConcurrentHolderLinkedPool<ConnState>(connectionFactory,
+        this.pool = new ConcurrentLinkedPool<ConnHolder>(connectionFactory,
             config.getPoolInitialSize(), config.getPoolMaxSize(), config.isPoolFair(),
-            config.isPoolEnableConnectionTracking());
+            config.isPoolEnableConnectionTracking() ? new ConcurrentMapHolderValidator<ConnHolder>() : null);
 
         if (config.getReducerTimeIntervalInSeconds() > 0) {
             this.poolReducer = new PoolReducer(pool,
@@ -84,7 +83,7 @@ public class PoolOperations {
     }
 
     private static class PoolReducer extends SamplingPoolReducer {
-        private PoolReducer(BasePoolService poolService, long timeInterval, TimeUnit unit, int samples) {
+        private PoolReducer(PoolService poolService, long timeInterval, TimeUnit unit, int samples) {
             super(poolService, timeInterval, unit, samples);
         }
 
@@ -110,17 +109,17 @@ public class PoolOperations {
     }
 
     private Connection doGetConnection(long timeout) throws SQLException, ViburDBCPException {
-        Holder<ConnState> hConnection = timeout == 0 ?
+        ConnHolder hConnection = timeout == 0 ?
             pool.take() : pool.tryTake(timeout, TimeUnit.MILLISECONDS);
         if (hConnection == null)
             throw new SQLException("Couldn't obtain SQL connection.");
         if (logger.isTraceEnabled())
-            logger.trace("Getting {}", hConnection.value().connection());
+            logger.trace("Getting {}", hConnection.value());
         return Proxy.newConnection(hConnection, config);
     }
 
-    public boolean restore(Holder<ConnState> hConnection, boolean aborted, List<Throwable> errors) {
-        int connVersion = hConnection.value().version();
+    public boolean restore(ConnHolder hConnection, boolean aborted, List<Throwable> errors) {
+        int connVersion = hConnection.getVersion();
         boolean valid = !aborted && connVersion == connectionFactory.getVersion() && errors.isEmpty();
         boolean restored = pool.restore(hConnection, valid);
 
@@ -130,7 +129,7 @@ public class PoolOperations {
 
             int destroyed = pool.drainCreated(); // destroys all connections in the pool
             logger.error(String.format(
-                "Critical SQLState %s occurred, destroyed %d connections, current connection version is %d.",
+                "Critical SQLState %s occurred, destroyed %d connections, current connection getVersion is %d.",
                 sqlException.getSQLState(), destroyed, connectionFactory.getVersion()), sqlException);
         }
         return valid && restored;
@@ -159,7 +158,7 @@ public class PoolOperations {
         pool.terminate();
     }
 
-    public HolderValidatingPoolService<ConnState> getPool() {
+    public PoolService<ConnHolder> getPool() {
         return pool;
     }
 }

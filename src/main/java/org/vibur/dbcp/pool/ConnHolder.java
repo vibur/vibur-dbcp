@@ -16,42 +16,50 @@
 
 package org.vibur.dbcp.pool;
 
+import org.vibur.objectpool.util.IdBasedHolder;
+
 import java.sql.Connection;
 
 /**
  * Represents the state object which we hold in the object pool. It is just a thin wrapper class
  * which allows us to augment the Connection object with useful additional "state" information
- * like the {@code lastTimeUsedInMillis} and similar.
+ * like the {@code lastTimeUsed} and similar.
  *
  * @author Simeon Malchev
  */
-public class ConnState {
+public class ConnHolder extends IdBasedHolder<Connection> {
 
-    private final Connection connection;
     private final int version;
-    private long lastTimeUsedInMillis;
+    private final StackTraceElement[] stackTrace;
 
-    public ConnState(Connection connection, int version, long lastTimeUsedInMillis) {
-        if (connection == null)
-            throw new NullPointerException();
-        this.connection = connection;
+    private long lastTimeUsed;
+    private final long createdTime;
+
+    public ConnHolder(long id, Connection connection, int version, long currentTime) {
+        super(id, connection);
         this.version = version;
-        this.lastTimeUsedInMillis = lastTimeUsedInMillis;
+        this.lastTimeUsed = currentTime;
+        this.createdTime = currentTime;
+        this.stackTrace = new Throwable().getStackTrace(); // todo...
     }
 
-    public Connection connection() {
-        return connection;
-    }
-
-    public int version() {
+    public int getVersion() {
         return version;
     }
 
-    public long getLastTimeUsedInMillis() {
-        return lastTimeUsedInMillis;
+    public long getLastTimeUsed() {
+        return lastTimeUsed;
     }
 
-    public void setLastTimeUsedInMillis(long lastTimeUsedInMillis) {
-        this.lastTimeUsedInMillis = lastTimeUsedInMillis;
+    public void setLastTimeUsed(long lastTimeUsed) {
+        this.lastTimeUsed = lastTimeUsed;
+    }
+
+    public StackTraceElement[] getStackTrace() {
+        return stackTrace;
+    }
+
+    public long getCreatedTime() {
+        return createdTime;
     }
 }
