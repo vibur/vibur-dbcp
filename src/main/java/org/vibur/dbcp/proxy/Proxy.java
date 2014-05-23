@@ -35,8 +35,8 @@ public class Proxy {
 
     private Proxy() { }
 
-    public static Connection newConnection(ConnHolder hConnection, ViburDBCPConfig config) {
-        InvocationHandler handler = new ConnectionInvocationHandler(hConnection, config);
+    public static Connection newConnection(ConnHolder conn, ViburDBCPConfig config) {
+        InvocationHandler handler = new ConnectionInvocationHandler(conn, config);
         return (Connection) newProxy(connectionCtor, handler);
     }
 

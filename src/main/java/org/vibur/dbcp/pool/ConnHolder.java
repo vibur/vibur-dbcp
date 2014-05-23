@@ -16,50 +16,59 @@
 
 package org.vibur.dbcp.pool;
 
-import org.vibur.objectpool.util.IdBasedHolder;
-
 import java.sql.Connection;
 
 /**
- * Represents the state object which we hold in the object pool. It is just a thin wrapper class
- * which allows us to augment the Connection object with useful additional "state" information
- * like the {@code lastTimeUsed} and similar.
+ * The "stateful" object which we hold in the object pool. This is just a thin wrapper
+ * which allows us to augment the Connection object with useful "state" information
+ * like the Connection last {@code takenTime}, {@code restoredTime} and similar.
  *
  * @author Simeon Malchev
  */
-public class ConnHolder extends IdBasedHolder<Connection> {
+public class ConnHolder {
 
+    private final Connection value;
     private final int version;
-    private final StackTraceElement[] stackTrace;
 
-    private long lastTimeUsed;
-    private final long createdTime;
+    private long takenTime = -1L;
+    private long restoredTime;
+    private StackTraceElement[] stackTrace = null;
 
-    public ConnHolder(long id, Connection connection, int version, long currentTime) {
-        super(id, connection);
+    public ConnHolder(Connection value, int version, long currentTime) {
+        this.value = value;
         this.version = version;
-        this.lastTimeUsed = currentTime;
-        this.createdTime = currentTime;
-        this.stackTrace = new Throwable().getStackTrace(); // todo...
+        this.restoredTime = currentTime;
     }
 
-    public int getVersion() {
+    public Connection value() {
+        return value;
+    }
+
+    public int version() {
         return version;
     }
 
-    public long getLastTimeUsed() {
-        return lastTimeUsed;
+    public long getTakenTime() {
+        return takenTime;
     }
 
-    public void setLastTimeUsed(long lastTimeUsed) {
-        this.lastTimeUsed = lastTimeUsed;
+    public void setTakenTime(long takenTime) {
+        this.takenTime = takenTime;
+    }
+
+    public long getRestoredTime() {
+        return restoredTime;
+    }
+
+    public void setRestoredTime(long restoredTime) {
+        this.restoredTime = restoredTime;
     }
 
     public StackTraceElement[] getStackTrace() {
         return stackTrace;
     }
 
-    public long getCreatedTime() {
-        return createdTime;
+    public void setStackTrace(StackTraceElement[] stackTrace) {
+        this.stackTrace = stackTrace;
     }
 }

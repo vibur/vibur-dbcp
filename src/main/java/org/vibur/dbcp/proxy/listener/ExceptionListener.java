@@ -25,7 +25,7 @@ import java.util.List;
  */
 public interface ExceptionListener {
 
-    void addException(Throwable throwable);
+    void onException(Throwable throwable);
 
     List<Throwable> getExceptions();
 }

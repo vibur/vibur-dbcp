@@ -41,15 +41,15 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
     private static final Logger logger = LoggerFactory.getLogger(ConnectionInvocationHandler.class);
 
     private final PoolOperations poolOperations;
-    private final ConnHolder hConnection;
+    private final ConnHolder conn;
 
     private final ViburDBCPConfig config;
     private final ConcurrentMap<MethodDef<Connection>, ReturnVal<Statement>> statementCache;
 
-    public ConnectionInvocationHandler(ConnHolder hConnection, ViburDBCPConfig config) {
-        super(hConnection.value(), new ExceptionListenerImpl());
+    public ConnectionInvocationHandler(ConnHolder conn, ViburDBCPConfig config) {
+        super(conn.value(), new ExceptionListenerImpl());
         this.poolOperations = config.getPoolOperations();
-        this.hConnection = hConnection;
+        this.conn = conn;
         this.config = config;
         this.statementCache = config.getStatementCache();
     }
@@ -130,7 +130,7 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
         if (aborted)
             targetInvoke(method, args); // executes the abort() call, which in turn may throw an exception
         if (!getAndSetClosed())
-            poolOperations.restore(hConnection, aborted, getExceptionListener().getExceptions());
+            poolOperations.restore(conn, aborted, getExceptionListener().getExceptions());
         return null;
     }
 }

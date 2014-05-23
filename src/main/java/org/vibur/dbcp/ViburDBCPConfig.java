@@ -33,8 +33,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * Specifies all {@link ViburDBCPDataSource} configuration options.
  *
- * @author Daniel Caldeweyher
  * @author Simeon Malchev
+ * @author Daniel Caldeweyher
  */
 public class ViburDBCPConfig {
 

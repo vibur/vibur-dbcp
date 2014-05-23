@@ -18,32 +18,25 @@ package org.vibur.dbcp.pool;
 
 /**
  * Defines the operations for a generic {@code versioned} object, which is a stateful object
- * that has a getVersion associated with its state.
+ * that has a version associated with its state.
  *
  * @author Simeon Malchev
  */
 public interface VersionedObject {
 
     /**
-     * Gets the current getVersion value.
+     * Gets the current version value.
      *
-     * @return the current getVersion value
+     * @return the current version value
      */
-    public int getVersion();
+    public int version();
 
     /**
-     * Sets to the given getVersion value.
-     *
-     * @param newValue the new getVersion value
-     */
-    public void setVersion(int newValue);
-
-    /**
-     * Atomically sets the getVersion value to the given updated value
+     * Atomically sets the version value to the given updated value
      * if the current value {@code ==} the expected value.
      *
-     * @param expect the expected getVersion value
-     * @param update the new getVersion value
+     * @param expect the expected version value
+     * @param update the new version value
      * @return true if successful. False return indicates that
      * the actual value was not equal to the expected value.
      */

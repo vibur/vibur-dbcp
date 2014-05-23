@@ -23,9 +23,9 @@ import org.vibur.dbcp.ViburDBCPException;
 import org.vibur.dbcp.proxy.Proxy;
 import org.vibur.objectpool.ConcurrentLinkedPool;
 import org.vibur.objectpool.PoolService;
+import org.vibur.objectpool.listener.ListenerImpl;
 import org.vibur.objectpool.reducer.SamplingPoolReducer;
 import org.vibur.objectpool.reducer.ThreadedPoolReducer;
-import org.vibur.objectpool.validator.ConcurrentMapHolderValidator;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -72,7 +72,8 @@ public class  PoolOperations {
         this.connectionFactory = new ConnectionFactory(config);
         this.pool = new ConcurrentLinkedPool<ConnHolder>(connectionFactory,
             config.getPoolInitialSize(), config.getPoolMaxSize(), config.isPoolFair(),
-            config.isPoolEnableConnectionTracking() ? new ConcurrentMapHolderValidator<ConnHolder>() : null);
+            config.isPoolEnableConnectionTracking() ?
+                new ListenerImpl<ConnHolder>(config.getPoolInitialSize()) : null);
 
         if (config.getReducerTimeIntervalInSeconds() > 0) {
             this.poolReducer = new PoolReducer(pool,
@@ -109,19 +110,19 @@ public class  PoolOperations {
     }
 
     private Connection doGetConnection(long timeout) throws SQLException, ViburDBCPException {
-        ConnHolder hConnection = timeout == 0 ?
+        ConnHolder conn = timeout == 0 ?
             pool.take() : pool.tryTake(timeout, TimeUnit.MILLISECONDS);
-        if (hConnection == null)
+        if (conn == null)
             throw new SQLException("Couldn't obtain SQL connection.");
         if (logger.isTraceEnabled())
-            logger.trace("Getting {}", hConnection.value());
-        return Proxy.newConnection(hConnection, config);
+            logger.trace("Getting {}", conn.value());
+        return Proxy.newConnection(conn, config);
     }
 
-    public boolean restore(ConnHolder hConnection, boolean aborted, List<Throwable> errors) {
-        int connVersion = hConnection.getVersion();
-        boolean valid = !aborted && connVersion == connectionFactory.getVersion() && errors.isEmpty();
-        boolean restored = pool.restore(hConnection, valid);
+    public boolean restore(ConnHolder conn, boolean aborted, List<Throwable> errors) {
+        int connVersion = conn.version();
+        boolean valid = !aborted && connVersion == connectionFactory.version() && errors.isEmpty();
+        boolean restored = pool.restore(conn, valid);
 
         SQLException sqlException;
         if (restored && (sqlException = hasCriticalSQLException(errors)) != null
@@ -129,8 +130,8 @@ public class  PoolOperations {
 
             int destroyed = pool.drainCreated(); // destroys all connections in the pool
             logger.error(String.format(
-                "Critical SQLState %s occurred, destroyed %d connections, current connection getVersion is %d.",
-                sqlException.getSQLState(), destroyed, connectionFactory.getVersion()), sqlException);
+                "Critical SQLState %s occurred, destroyed %d connections, current connection version is %d.",
+                sqlException.getSQLState(), destroyed, connectionFactory.version()), sqlException);
         }
         return valid && restored;
     }

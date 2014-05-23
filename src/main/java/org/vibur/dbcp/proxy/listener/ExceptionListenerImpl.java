@@ -31,7 +31,7 @@ public class ExceptionListenerImpl implements ExceptionListener {
 
     private final Queue<Throwable> exceptions = new ConcurrentLinkedQueue<Throwable>();
 
-    public void addException(Throwable throwable) {
+    public void onException(Throwable throwable) {
         exceptions.offer(throwable);
     }
 
