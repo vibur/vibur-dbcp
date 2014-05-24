@@ -122,10 +122,10 @@ public class  PoolOperations {
     public boolean restore(ConnHolder conn, boolean aborted, List<Throwable> errors) {
         int connVersion = conn.version();
         boolean valid = !aborted && connVersion == connectionFactory.version() && errors.isEmpty();
-        boolean restored = pool.restore(conn, valid);
+        pool.restore(conn, valid);
 
         SQLException sqlException;
-        if (restored && (sqlException = hasCriticalSQLException(errors)) != null
+        if ((sqlException = hasCriticalSQLException(errors)) != null
             && connectionFactory.compareAndSetVersion(connVersion, connVersion + 1)) {
 
             int destroyed = pool.drainCreated(); // destroys all connections in the pool
@@ -133,7 +133,7 @@ public class  PoolOperations {
                 "Critical SQLState %s occurred, destroyed %d connections, current connection version is %d.",
                 sqlException.getSQLState(), destroyed, connectionFactory.version()), sqlException);
         }
-        return valid && restored;
+        return valid;
     }
 
     private SQLException hasCriticalSQLException(List<Throwable> errors) {
