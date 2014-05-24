@@ -74,7 +74,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
     }
 
     /**
-     * Initialisation via properties file name. Must be either standard properties file
+     * Initialization via properties file name. Must be either standard properties file
      * or XML file which is complaint with "http://java.sun.com/dtd/properties.dtd".
      *
      * <p>{@code configFileName} can be {@code null} in which case the default resource
@@ -114,7 +114,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
     }
 
     /**
-     * Initialisation via the given properties.
+     * Initialization via the given properties.
      *
      * @param properties the given properties
      * @throws ViburDBCPException if cannot configure successfully

@@ -41,7 +41,7 @@ public class ViburDBCPConfig {
     private static final Logger logger = LoggerFactory.getLogger(ViburDBCPConfig.class);
 
     /** Database driver class name. This is <b>an optional</b> parameter if the driver is JDBC 4 complaint. If specified,
-     * a call to {@code Class.forName(driverClassName).newInstance()} will be issued during the Vibur DBCP initialisation.
+     * a call to {@code Class.forName(driverClassName).newInstance()} will be issued during the Vibur DBCP initialization.
      * This is needed when Vibur DBCP is used in an OSGi container and may also be helpful if Vibur DBCP is used in an
      * Apache Tomcat web application which has its JDBC driver JAR file packaged in the app WEB-INF/lib directory.
      * If this property is not specified, then Vibur DBCP will depend on the JavaSE Service Provider mechanism to find
