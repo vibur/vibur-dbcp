@@ -17,6 +17,7 @@
 package org.vibur.dbcp.cache;
 
 import com.googlecode.concurrentlinkedhashmap.EvictionListener;
+import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.Statement;
@@ -33,6 +34,8 @@ import static org.vibur.dbcp.util.SqlUtils.closeStatement;
  */
 public class StatementInvocationCacheProvider extends AbstractInvocationCacheProvider<Connection, Statement> {
 
+    private static final org.slf4j.Logger logger = LoggerFactory.getLogger(StatementInvocationCacheProvider.class);
+
     public StatementInvocationCacheProvider(int maxSize) {
         super(maxSize);
     }
@@ -42,6 +45,8 @@ public class StatementInvocationCacheProvider extends AbstractInvocationCachePro
             public void onEviction(MethodDef<Connection> key, ReturnVal<Statement> value) {
                 if (value.state().getAndSet(EVICTED) == AVAILABLE)
                     closeStatement(value.value());
+                if (logger.isTraceEnabled())
+                    logger.trace("Evicted {}", value.value());
             }
         };
     }

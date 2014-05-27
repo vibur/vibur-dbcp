@@ -104,10 +104,10 @@ public class ConnectionFactory implements PoolObjectFactory<ConnHolder>, Version
      */
     public ConnHolder create() throws ViburDBCPException {
         int attempt = 0;
-        Connection connection = null;
-        while (connection == null) {
+        Connection rawConnection = null;
+        while (rawConnection == null) {
             try {
-                connection = doCreate();
+                rawConnection = doCreate();
             } catch (SQLException e) {
                 logger.debug("Couldn't create a java.sql.Connection, attempt " + attempt, e);
                 if (attempt++ >= config.getAcquireRetryAttempts())
@@ -120,14 +120,14 @@ public class ConnectionFactory implements PoolObjectFactory<ConnHolder>, Version
         }
 
         try {
-            ensureConnectionInitialized(connection);
-            setDefaultValues(connection);
+            ensureConnectionInitialized(rawConnection);
+            setDefaultValues(rawConnection);
         } catch (SQLException e) {
-            closeConnection(connection);
+            closeConnection(rawConnection);
             throw new ViburDBCPException(e);
         }
-        logger.trace("Created {}", connection);
-        return new ConnHolder(connection, version(), System.currentTimeMillis());
+        logger.trace("Created {}", rawConnection);
+        return new ConnHolder(rawConnection, version(), System.currentTimeMillis());
     }
 
     private Connection doCreate() throws SQLException {

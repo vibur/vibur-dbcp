@@ -461,4 +461,41 @@ public class ViburDBCPConfig {
     public void setDefaultTransactionIsolationValue(Integer defaultTransactionIsolationValue) {
         this.defaultTransactionIsolationValue = defaultTransactionIsolationValue;
     }
+
+    public String toString() {
+        return getClass().getSimpleName() + "{" +
+            "driverClassName='" + driverClassName + '\'' +
+            ", jdbcUrl='" + jdbcUrl + '\'' +
+            ", username='" + username + '\'' +
+            ", password='" + password + '\'' +
+            ", externalDataSource=" + externalDataSource +
+            ", connectionIdleLimitInSeconds=" + connectionIdleLimitInSeconds +
+            ", testConnectionQuery='" + testConnectionQuery + '\'' +
+            ", initSQL='" + initSQL + '\'' +
+            ", poolInitialSize=" + poolInitialSize +
+            ", poolMaxSize=" + poolMaxSize +
+            ", poolFair=" + poolFair +
+            ", poolEnableConnectionTracking=" + poolEnableConnectionTracking +
+            ", name='" + name + '\'' +
+            ", enableJMX=" + enableJMX +
+            ", reducerTimeIntervalInSeconds=" + reducerTimeIntervalInSeconds +
+            ", reducerSamples=" + reducerSamples +
+            ", connectionTimeoutInMs=" + connectionTimeoutInMs +
+            ", loginTimeoutInSeconds=" + loginTimeoutInSeconds +
+            ", acquireRetryDelayInMs=" + acquireRetryDelayInMs +
+            ", acquireRetryAttempts=" + acquireRetryAttempts +
+            ", statementCacheMaxSize=" + statementCacheMaxSize +
+            ", criticalSQLStates='" + criticalSQLStates + '\'' +
+            ", logConnectionLongerThanMs=" + logConnectionLongerThanMs +
+            ", logStackTraceForLongConnection=" + logStackTraceForLongConnection +
+            ", logQueryExecutionLongerThanMs=" + logQueryExecutionLongerThanMs +
+            ", logStackTraceForLongQueryExecution=" + logStackTraceForLongQueryExecution +
+            ", resetDefaultsAfterUse=" + resetDefaultsAfterUse +
+            ", defaultAutoCommit=" + defaultAutoCommit +
+            ", defaultReadOnly=" + defaultReadOnly +
+            ", defaultTransactionIsolation='" + defaultTransactionIsolation + '\'' +
+            ", defaultCatalog='" + defaultCatalog + '\'' +
+            ", defaultTransactionIsolationValue=" + defaultTransactionIsolationValue +
+            '}';
+    }
 }

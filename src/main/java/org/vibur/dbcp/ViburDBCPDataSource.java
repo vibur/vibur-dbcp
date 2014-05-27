@@ -57,7 +57,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
 
     private static final org.slf4j.Logger logger = LoggerFactory.getLogger(ViburDBCPDataSource.class);
 
-    private static final int CACHE_MAX_SIZE = 1000;
+    private static final int CACHE_MAX_SIZE = 2000;
 
     public static final String DEFAULT_PROPERTIES_CONFIG_FILE_NAME = "vibur-dbcp-config.properties";
     public static final String DEFAULT_XML_CONFIG_FILE_NAME = "vibur-dbcp-config.xml";
@@ -196,6 +196,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
         initStatementCache();
 
         initJMX();
+        logger.debug("Started {}", this);
     }
 
     /** {@inheritDoc} */
@@ -216,6 +217,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
         }
 
         getPoolOperations().terminate();
+        logger.debug("Terminated {}", this);
     }
 
     private void validateConfig() {
@@ -293,7 +295,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
     private void logGetConnection(long timeout, long startTime) {
         long timeTaken = System.currentTimeMillis() - startTime;
         if (timeTaken >= getLogConnectionLongerThanMs()) {
-            StringBuilder log = new StringBuilder(String.format("Call to getConnection(%d) took %d ms",
+            StringBuilder log = new StringBuilder(String.format("Call to getConnection(%d) took %d ms.",
                 timeout, timeTaken));
             if (isLogStackTraceForLongConnection())
                 log.append(NEW_LINE).append(getStackTraceAsString(new Throwable().getStackTrace()));

@@ -44,19 +44,19 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
 
     private static final Logger logger = LoggerFactory.getLogger(StatementInvocationHandler.class);
 
-    private final ReturnVal<? extends Statement> statementResult;
+    private final ReturnVal<? extends Statement> statement;
     private final ViburDBCPConfig config;
 
     private final ConcurrentMap<MethodDef<Connection>, ReturnVal<Statement>> statementCache;
 
-    public StatementInvocationHandler(ReturnVal<? extends Statement> statementResult,
+    public StatementInvocationHandler(ReturnVal<? extends Statement> statement,
                                       ConcurrentMap<MethodDef<Connection>, ReturnVal<Statement>> statementCache,
                                       Connection connectionProxy, ViburDBCPConfig config,
                                       ExceptionListener exceptionListener) {
-        super(statementResult.value(), connectionProxy, "getConnection", exceptionListener);
+        super(statement.value(), connectionProxy, "getConnection", exceptionListener);
         if (config == null)
             throw new NullPointerException();
-        this.statementResult = statementResult;
+        this.statement = statement;
         this.statementCache = statementCache;
         this.config = config;
     }
@@ -88,9 +88,9 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
     private Object processClose(Method method, Object[] args) throws Throwable {
         if (getAndSetClosed())
             return null;
-        if (statementCache != null && statementResult.state() != null) { // this statementResult is in the cache
-            if (statementResult.state().getAndSet(AVAILABLE) == EVICTED) // we just mark it as available
-                closeStatement(statementResult.value()); // and close it if it was already evicted
+        if (statementCache != null && statement.state() != null) { // this statement is in the cache
+            if (statement.state().getAndSet(AVAILABLE) == EVICTED) // we just mark it as available
+                closeStatement(statement.value()); // and close it if it was already evicted
             return null; // otherwise, don't pass the call to the underlying close method
         } else
             return targetInvoke(method, args);
@@ -133,7 +133,7 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
     private void logQuery(Object[] args, long startTime) {
         long timeTaken = System.currentTimeMillis() - startTime;
         if (timeTaken >= config.getLogQueryExecutionLongerThanMs()) {
-            StringBuilder log = new StringBuilder(String.format("SQL query %s execution took %d ms",
+            StringBuilder log = new StringBuilder(String.format("SQL query -- %s -- execution took %d ms.",
                 toSQLString(getTarget(), args), timeTaken));
             if (config.isLogStackTraceForLongQueryExecution())
                 log.append(NEW_LINE).append(getStackTraceAsString(new Throwable().getStackTrace()));
@@ -142,7 +142,7 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
     }
 
     private ResultSet newProxiedResultSet(Statement proxy, Method method, Object[] args) throws Throwable {
-        ResultSet resultSet = (ResultSet) targetInvoke(method, args);
-        return Proxy.newResultSet(resultSet, proxy, getExceptionListener());
+        ResultSet rawResultSet = (ResultSet) targetInvoke(method, args);
+        return Proxy.newResultSet(rawResultSet, proxy, getExceptionListener());
     }
 }

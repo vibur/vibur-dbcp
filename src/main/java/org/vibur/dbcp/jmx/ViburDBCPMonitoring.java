@@ -209,7 +209,7 @@ public class ViburDBCPMonitoring implements ViburDBCPMonitoringMBean {
 
     public String showTakenConnections() {
         if (!viburDBCPConfig.isPoolEnableConnectionTracking())
-            return null;
+            return "poolEnableConnectionTracking is disabled.";
 
         List<ConnHolder> connHolders = viburDBCPConfig.getPoolOperations().getPool().listener().getTaken();
         Collections.sort(connHolders, new Comparator<ConnHolder>() { // sort newest on top

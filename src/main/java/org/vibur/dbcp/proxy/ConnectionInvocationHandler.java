@@ -75,58 +75,55 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
         // Methods which results have to be proxied so that when getConnection() is called
         // on their results the return value to be the current JDBC Connection proxy.
         if (methodName == "createStatement") { // *3
-            ReturnVal<Statement> statementResult =
-                (ReturnVal<Statement>) uncachedStatementInvoke(method, args);
-            return Proxy.newStatement(statementResult, null, proxy, config, getExceptionListener());
+            ReturnVal<Statement> statement = (ReturnVal<Statement>) uncachedGetStatement(method, args);
+            return Proxy.newStatement(statement, null, proxy, config, getExceptionListener());
         }
         if (methodName == "prepareStatement") { // *6
-            ReturnVal<PreparedStatement> statementResult =
-                (ReturnVal<PreparedStatement>) cachedStatementInvoke(method, args);
-            return Proxy.newPreparedStatement(statementResult, statementCache, proxy, config,
-                getExceptionListener());
+            ReturnVal<PreparedStatement> statement =
+                (ReturnVal<PreparedStatement>) cachedGetStatement(method, args);
+            return Proxy.newPreparedStatement(statement, statementCache, proxy, config, getExceptionListener());
         }
         if (methodName == "prepareCall") { // *3
-            ReturnVal<CallableStatement> statementResult =
-                (ReturnVal<CallableStatement>) cachedStatementInvoke(method, args);
-            return Proxy.newCallableStatement(statementResult, statementCache, proxy, config,
-                getExceptionListener());
+            ReturnVal<CallableStatement> statement =
+                (ReturnVal<CallableStatement>) cachedGetStatement(method, args);
+            return Proxy.newCallableStatement(statement, statementCache, proxy, config, getExceptionListener());
         }
         if (methodName == "getMetaData") { // *1
-            DatabaseMetaData metaData = (DatabaseMetaData) targetInvoke(method, args);
-            return Proxy.newDatabaseMetaData(metaData, proxy, getExceptionListener());
+            DatabaseMetaData rawDatabaseMetaData = (DatabaseMetaData) targetInvoke(method, args);
+            return Proxy.newDatabaseMetaData(rawDatabaseMetaData, proxy, getExceptionListener());
         }
 
         return super.doInvoke(proxy, method, args);
     }
 
-    private ReturnVal<? extends Statement> cachedStatementInvoke(Method method, Object[] args) throws Throwable {
+    private ReturnVal<? extends Statement> cachedGetStatement(Method method, Object[] args) throws Throwable {
         if (statementCache != null) {
             Connection target = getTarget();
             MethodDef<Connection> key = new MethodDef<Connection>(target, method, args);
-            ReturnVal<Statement> statementResult = statementCache.get(key);
-            if (statementResult == null || statementResult.state().getAndSet(IN_USE) != AVAILABLE) {
-                Statement statement = (Statement) targetInvoke(method, args);
-                if (statementResult == null) { // there was no entry for the key, so we'll try to put a new one
-                    statementResult = new ReturnVal<Statement>(statement, new AtomicInteger(IN_USE));
-                    if (statementCache.putIfAbsent(key, statementResult) != null)
+            ReturnVal<Statement> statement = statementCache.get(key);
+            if (statement == null || statement.state().getAndSet(IN_USE) != AVAILABLE) {
+                Statement rawStatement = (Statement) targetInvoke(method, args);
+                if (statement == null) { // there was no entry for the key, so we'll try to put a new one
+                    statement = new ReturnVal<Statement>(rawStatement, new AtomicInteger(IN_USE));
+                    if (statementCache.putIfAbsent(key, statement) != null)
                         // because another thread succeeded to put the entry before us
-                        statementResult = new ReturnVal<Statement>(statement, null);
+                        statement = new ReturnVal<Statement>(rawStatement, null);
                 }
-                return statementResult;
-            } else { // the statementResult is valid and was available
+                return statement;
+            } else { // the statement is valid and was available
                 if (logger.isTraceEnabled())
                     logger.trace("Using cached statement for connection {}, method {}, args {}",
                         target, method, Arrays.toString(args));
-                return statementResult;
+                return statement;
             }
         } else {
-            return uncachedStatementInvoke(method, args);
+            return uncachedGetStatement(method, args);
         }
     }
 
-    private ReturnVal<? extends Statement> uncachedStatementInvoke(Method method, Object[] args) throws Throwable {
-        Statement statement = (Statement) targetInvoke(method, args);
-        return new ReturnVal<Statement>(statement, null);
+    private ReturnVal<? extends Statement> uncachedGetStatement(Method method, Object[] args) throws Throwable {
+        Statement rawStatement = (Statement) targetInvoke(method, args);
+        return new ReturnVal<Statement>(rawStatement, null);
     }
 
     private Object processCloseOrAbort(boolean aborted, Method method, Object[] args) throws Throwable {
