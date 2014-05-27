@@ -30,7 +30,10 @@ import java.lang.reflect.Method;
 import java.sql.*;
 import java.util.Arrays;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static org.vibur.dbcp.cache.ReturnVal.AVAILABLE;
+import static org.vibur.dbcp.cache.ReturnVal.IN_USE;
 
 /**
  * @author Simeon Malchev
@@ -101,16 +104,16 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
             Connection target = getTarget();
             MethodDef<Connection> key = new MethodDef<Connection>(target, method, args);
             ReturnVal<Statement> statementResult = statementCache.get(key);
-            if (statementResult == null || statementResult.inUse().getAndSet(true)) {
+            if (statementResult == null || statementResult.state().getAndSet(IN_USE) != AVAILABLE) {
                 Statement statement = (Statement) targetInvoke(method, args);
                 if (statementResult == null) { // there was no entry for the key, so we'll try to put a new one
-                    statementResult = new ReturnVal<Statement>(statement, new AtomicBoolean(true));
+                    statementResult = new ReturnVal<Statement>(statement, new AtomicInteger(IN_USE));
                     if (statementCache.putIfAbsent(key, statementResult) != null)
                         // because another thread succeeded to put the entry before us
                         statementResult = new ReturnVal<Statement>(statement, null);
                 }
                 return statementResult;
-            } else { // the statementResult is valid and was not inUse
+            } else { // the statementResult is valid and was available
                 if (logger.isTraceEnabled())
                     logger.trace("Using cached statement for connection {}, method {}, args {}",
                         target, method, Arrays.toString(args));

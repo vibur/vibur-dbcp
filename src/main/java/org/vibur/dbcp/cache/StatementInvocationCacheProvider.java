@@ -21,6 +21,8 @@ import com.googlecode.concurrentlinkedhashmap.EvictionListener;
 import java.sql.Connection;
 import java.sql.Statement;
 
+import static org.vibur.dbcp.cache.ReturnVal.AVAILABLE;
+import static org.vibur.dbcp.cache.ReturnVal.EVICTED;
 import static org.vibur.dbcp.util.SqlUtils.closeStatement;
 
 /**
@@ -38,7 +40,8 @@ public class StatementInvocationCacheProvider extends AbstractInvocationCachePro
     protected EvictionListener<MethodDef<Connection>, ReturnVal<Statement>> getListener() {
         return new EvictionListener<MethodDef<Connection>, ReturnVal<Statement>>() {
             public void onEviction(MethodDef<Connection> key, ReturnVal<Statement> value) {
-                closeStatement(value.value());
+                if (value.state().getAndSet(EVICTED) == AVAILABLE)
+                    closeStatement(value.value());
             }
         };
     }

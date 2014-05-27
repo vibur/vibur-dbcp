@@ -33,9 +33,11 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.AdditionalAnswers.delegatesTo;
 import static org.mockito.Mockito.*;
+import static org.vibur.dbcp.cache.ReturnVal.AVAILABLE;
 
 /**
  * Simple JDBC integration test.
@@ -143,7 +145,7 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
             assertEquals(key1.getValue(), key2.getValue());
             assertEquals("prepareStatement", key1.getValue().getMethod().getName());
             ReturnVal<Statement> returnVal = mockedStatementCache.get(key1.getValue());
-            assertFalse(returnVal.inUse().get());
+            assertTrue(returnVal.state().get() == AVAILABLE);
         } finally {
             if (connection != null) connection.close();
         }

@@ -16,7 +16,7 @@
 
 package org.vibur.dbcp.cache;
 
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * A thin wrapper class which allows us to augment the returned value of a Method invocation with some additional
@@ -30,21 +30,26 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @author Simeon Malchev
  */
 public class ReturnVal<V> {
-    private final V value;
-    private final AtomicBoolean inUse;
 
-    public ReturnVal(V value, AtomicBoolean inUse) {
+    public static final int AVAILABLE = 0;
+    public static final int IN_USE = 1;
+    public static final int EVICTED = 2;
+
+    private final V value;
+    private final AtomicInteger state;
+
+    public ReturnVal(V value, AtomicInteger state) {
         if (value == null)
             throw new NullPointerException();
         this.value = value;
-        this.inUse = inUse;
+        this.state = state;
     }
 
     public V value() {
         return value;
     }
 
-    public AtomicBoolean inUse() {
-        return inUse;
+    public AtomicInteger state() {
+        return state;
     }
 }

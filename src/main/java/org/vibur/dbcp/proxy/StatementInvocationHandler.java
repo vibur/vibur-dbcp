@@ -30,6 +30,9 @@ import java.sql.Statement;
 import java.util.Iterator;
 import java.util.concurrent.ConcurrentMap;
 
+import static org.vibur.dbcp.cache.ReturnVal.AVAILABLE;
+import static org.vibur.dbcp.cache.ReturnVal.EVICTED;
+import static org.vibur.dbcp.util.SqlUtils.closeStatement;
 import static org.vibur.dbcp.util.SqlUtils.toSQLString;
 import static org.vibur.dbcp.util.ViburUtils.NEW_LINE;
 import static org.vibur.dbcp.util.ViburUtils.getStackTraceAsString;
@@ -85,9 +88,10 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
     private Object processClose(Method method, Object[] args) throws Throwable {
         if (getAndSetClosed())
             return null;
-        if (statementCache != null && statementResult.inUse() != null) { // this statementResult is in the cache
-            statementResult.inUse().set(false); // we just mark it as available
-            return null; // and we don't pass the call to the underlying close method
+        if (statementCache != null && statementResult.state() != null) { // this statementResult is in the cache
+            if (statementResult.state().getAndSet(AVAILABLE) == EVICTED) // we just mark it as available
+                closeStatement(statementResult.value()); // and close it if it was already evicted
+            return null; // otherwise, don't pass the call to the underlying close method
         } else
             return targetInvoke(method, args);
     }
