@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.vibur.dbcp;
+package org.vibur.dbcp.util;
 
 import javax.sql.DataSource;
 import java.io.PrintWriter;

@@ -20,6 +20,7 @@ import org.hsqldb.cmdline.SqlToolError;
 import org.junit.After;
 import org.junit.BeforeClass;
 import org.vibur.dbcp.util.HsqldbUtils;
+import org.vibur.dbcp.util.SimpleDataSource;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -105,7 +106,7 @@ public abstract class AbstractDataSourceTest {
         dataSource.setConnectionIdleLimitInSeconds(120);
 
         dataSource.setLogQueryExecutionLongerThanMs(1);
-        dataSource.setStatementCacheMaxSize(10);
+        dataSource.setStatementCacheMaxSize(1);
 
         dataSource.start();
 
