@@ -45,8 +45,7 @@ public class StatementInvocationCacheProvider extends AbstractInvocationCachePro
             public void onEviction(MethodDef<Connection> key, ReturnVal<Statement> value) {
                 if (value.state().getAndSet(EVICTED) == AVAILABLE)
                     closeStatement(value.value());
-                if (logger.isTraceEnabled())
-                    logger.trace("Evicted {}", value.value());
+                logger.trace("Evicted {}", value.value());
             }
         };
     }

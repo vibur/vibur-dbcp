@@ -85,7 +85,7 @@ public abstract class AbstractInvocationHandler<T> implements InvocationHandler,
         if (methodName == "isWrapperFor")
             return isWrapperFor((Class<?>) args[0]);
 
-        // by default we just pass the call to the original method of the proxied object
+        // by default just pass the call to the original method of the proxied object
         return targetInvoke(method, args);
     }
 

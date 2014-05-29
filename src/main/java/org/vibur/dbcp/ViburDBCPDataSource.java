@@ -57,7 +57,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
 
     private static final org.slf4j.Logger logger = LoggerFactory.getLogger(ViburDBCPDataSource.class);
 
-    private static final int CACHE_MAX_SIZE = 2000;
+    private static final int CACHE_MAX_SIZE = 1000;
 
     public static final String DEFAULT_PROPERTIES_CONFIG_FILE_NAME = "vibur-dbcp-config.properties";
     public static final String DEFAULT_XML_CONFIG_FILE_NAME = "vibur-dbcp-config.xml";

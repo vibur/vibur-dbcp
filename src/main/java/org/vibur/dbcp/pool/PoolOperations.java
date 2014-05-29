@@ -114,8 +114,7 @@ public class  PoolOperations {
             pool.take() : pool.tryTake(timeout, TimeUnit.MILLISECONDS);
         if (conn == null)
             throw new SQLException("Couldn't obtain SQL connection.");
-        if (logger.isTraceEnabled())
-            logger.trace("Getting {}", conn.value());
+        logger.trace("Getting {}", conn.value());
         return Proxy.newConnection(conn, config);
     }
 

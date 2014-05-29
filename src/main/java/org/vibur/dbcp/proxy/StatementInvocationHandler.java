@@ -88,8 +88,8 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
     private Object processClose(Method method, Object[] args) throws Throwable {
         if (getAndSetClosed())
             return null;
-        if (statementCache != null && statement.state() != null) { // this statement is in the cache
-            if (statement.state().getAndSet(AVAILABLE) == EVICTED) // we just mark it as available
+        if (statementCache != null && statement.state() != null) { // if this statement is in the cache
+            if (statement.state().getAndSet(AVAILABLE) == EVICTED) // just mark it as available
                 closeStatement(statement.value()); // and close it if it was already evicted
             return null; // otherwise, don't pass the call to the underlying close method
         } else
