@@ -33,15 +33,15 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 
+import static org.junit.Assert.*;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.AdditionalAnswers.delegatesTo;
 import static org.mockito.Mockito.*;
 import static org.vibur.dbcp.cache.ReturnVal.AVAILABLE;
+import static org.vibur.dbcp.cache.ReturnVal.EVICTED;
 
 /**
- * Simple JDBC integration test.
+ * JDBC integration tests.
  *
  * @author Simeon Malchev
  */
@@ -50,6 +50,8 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
 
     @Captor
     private ArgumentCaptor<MethodDef<Connection>> key1, key2;
+    @Captor
+    private ArgumentCaptor<ReturnVal<Statement>> val1, val2;
 
     @Test
     public void testSelectStatementNoStatementsCache() throws SQLException, IOException {
@@ -57,7 +59,7 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
         Connection connection = null;
         try {
             connection = ds.getConnection();
-            executeAndVerifySelectStatement(connection, "CHRISTIAN", "GABLE", "AKROYD", "NEESON");
+            executeAndVerifySelectStatement(connection);
         } finally {
             if (connection != null) connection.close();
         }
@@ -70,7 +72,7 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
         Connection connection = null;
         try {
             connection = ds.getConnection();
-            executeAndVerifySelectStatement(connection, "CHRISTIAN", "GABLE", "AKROYD", "NEESON");
+            executeAndVerifySelectStatement(connection);
         } finally {
             if (connection != null) connection.close();
         }
@@ -88,8 +90,8 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
             ds.setStatementCache(mockedStatementCache);
 
             connection = ds.getConnection();
-            executeAndVerifySelectStatement(connection, "CHRISTIAN", "GABLE", "AKROYD", "NEESON");
-            executeAndVerifySelectStatement(connection, "CHRISTIAN", "GABLE", "AKROYD", "NEESON");
+            executeAndVerifySelectStatement(connection);
+            executeAndVerifySelectStatement(connection);
 
             verifyZeroInteractions(mockedStatementCache);
         } finally {
@@ -104,7 +106,7 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
         Connection connection = null;
         try {
             connection = ds.getConnection();
-            executeAndVerifyPreparedSelectStatement(connection, "CHRISTIAN", "GABLE", "AKROYD", "NEESON");
+            executeAndVerifyPreparedSelectStatement(connection);
         } finally {
             if (connection != null) connection.close();
         }
@@ -117,7 +119,7 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
         Connection connection = null;
         try {
             connection = ds.getConnection();
-            executeAndVerifyPreparedSelectStatement(connection, "CHRISTIAN", "GABLE", "AKROYD", "NEESON");
+            executeAndVerifyPreparedSelectStatement(connection);
         } finally {
             if (connection != null) connection.close();
         }
@@ -126,7 +128,7 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void testOnePreparedSelectStatementWithStatementsCache() throws SQLException, IOException {
+    public void testPreparedSelectStatementWithStatementsCache() throws SQLException, IOException {
         ViburDBCPDataSource ds = createDataSourceWithStatementsCache();
         Connection connection = null;
         try {
@@ -135,18 +137,19 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
             ds.setStatementCache(mockedStatementCache);
 
             connection = ds.getConnection();
-            executeAndVerifyPreparedSelectStatement(connection, "CHRISTIAN", "GABLE", "AKROYD", "NEESON");
-            executeAndVerifyPreparedSelectStatement(connection, "CHRISTIAN", "GABLE", "AKROYD", "NEESON");
+            executeAndVerifyPreparedSelectStatement(connection);
+            executeAndVerifyPreparedSelectStatement(connection);
 
             InOrder inOrder = inOrder(mockedStatementCache);
             inOrder.verify(mockedStatementCache).get(key1.capture());
-            inOrder.verify(mockedStatementCache).putIfAbsent(same(key1.getValue()), any(ReturnVal.class));
+            inOrder.verify(mockedStatementCache).putIfAbsent(same(key1.getValue()), val1.capture());
             inOrder.verify(mockedStatementCache).get(key2.capture());
 
+            assertEquals(1, mockedStatementCache.size());
+            assertTrue(mockedStatementCache.containsKey(key1.getValue()));
             assertEquals(key1.getValue(), key2.getValue());
             assertEquals("prepareStatement", key1.getValue().getMethod().getName());
-            ReturnVal<Statement> returnVal = mockedStatementCache.get(key1.getValue());
-            assertTrue(returnVal.state().get() == AVAILABLE);
+            assertTrue(val1.getValue().state().get() == AVAILABLE);
         } finally {
             if (connection != null) connection.close();
         }
@@ -155,7 +158,7 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void testTwoPreparedSelectStatementWithStatementsCache() throws SQLException, IOException {
+    public void testTwoPreparedSelectStatementsWithStatementsCache() throws SQLException, IOException {
         ViburDBCPDataSource ds = createDataSourceWithStatementsCache();
         Connection connection = null;
         try {
@@ -164,37 +167,46 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
             ds.setStatementCache(mockedStatementCache);
 
             connection = ds.getConnection();
-            executeAndVerifyPreparedSelectStatement(connection, "CHRISTIAN", "GABLE", "AKROYD", "NEESON");
-            executeAndVerifyPreparedSelectStatement(connection, "SISSY", "SOBIESKI");
+            executeAndVerifyPreparedSelectStatement(connection);
+            executeAndVerifyPreparedSelectStatementByLastName(connection);
 
             InOrder inOrder = inOrder(mockedStatementCache);
             inOrder.verify(mockedStatementCache).get(key1.capture());
-            inOrder.verify(mockedStatementCache).putIfAbsent(same(key1.getValue()), any(ReturnVal.class));
+            inOrder.verify(mockedStatementCache).putIfAbsent(same(key1.getValue()), val1.capture());
             inOrder.verify(mockedStatementCache).get(key2.capture());
-            inOrder.verify(mockedStatementCache).putIfAbsent(same(key2.getValue()), any(ReturnVal.class));
+            inOrder.verify(mockedStatementCache).putIfAbsent(same(key2.getValue()), val2.capture());
 
+            // key1 will be evicted from the StatementCache because its capacity set to 1.
+
+            assertEquals(1, mockedStatementCache.size());
+            assertTrue(mockedStatementCache.containsKey(key2.getValue()));
             assertNotEquals(key1.getValue(), key2.getValue());
             assertEquals("prepareStatement", key1.getValue().getMethod().getName());
             assertEquals("prepareStatement", key2.getValue().getMethod().getName());
-            ReturnVal<Statement> returnVal = mockedStatementCache.get(key1.getValue());
-            assertTrue(returnVal.state().get() == AVAILABLE);
+            assertTrue(val1.getValue().state().get() == EVICTED);
+            assertTrue(val2.getValue().state().get() == AVAILABLE);
         } finally {
             if (connection != null) connection.close();
         }
         assertTrue(connection.isClosed());
     }
 
-    private void executeAndVerifySelectStatement(
-        Connection connection, String firstName, String... lastNames) throws SQLException {
-
+    private void executeAndVerifySelectStatement(Connection connection) throws SQLException {
         Statement statement = null;
         ResultSet resultSet = null;
         try {
             connection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
             statement = connection.createStatement();
-            resultSet = statement.executeQuery("select * from actor where first_name = '" + firstName + "'");
+            resultSet = statement.executeQuery("select * from actor where first_name = 'CHRISTIAN'");
 
-            verifyResultSet(resultSet, lastNames);
+            Set<String> expectedLastNames = new HashSet<String>(Arrays.asList("GABLE", "AKROYD", "NEESON"));
+            int count = 0;
+            while (resultSet.next()) {
+                ++count;
+                String lastName = resultSet.getString("last_name");
+                assertTrue(expectedLastNames.remove(lastName));
+            }
+            assertEquals(3, count);
         } finally {
             if (resultSet != null) resultSet.close();
             if (statement != null) statement.close();
@@ -202,18 +214,23 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
         assertTrue(statement.isClosed());
     }
 
-    private void executeAndVerifyPreparedSelectStatement(
-        Connection connection, String firstName, String... lastNames) throws SQLException {
-
+    private void executeAndVerifyPreparedSelectStatement(Connection connection) throws SQLException {
         PreparedStatement pStatement = null;
         ResultSet resultSet = null;
         try {
             connection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
             pStatement = connection.prepareStatement("select * from actor where first_name = ?");
-            pStatement.setString(1, firstName);
+            pStatement.setString(1, "CHRISTIAN");
             resultSet = pStatement.executeQuery();
 
-            verifyResultSet(resultSet, lastNames);
+            Set<String> lastNames = new HashSet<String>(Arrays.asList("GABLE", "AKROYD", "NEESON"));
+            int count = 0;
+            while (resultSet.next()) {
+                ++count;
+                String lastName = resultSet.getString("last_name");
+                assertTrue(lastNames.remove(lastName));
+            }
+            assertEquals(3, count);
         } finally {
             if (resultSet != null) resultSet.close();
             if (pStatement != null) pStatement.close();
@@ -221,14 +238,27 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
         assertTrue(pStatement.isClosed());
     }
 
-    private void verifyResultSet(ResultSet resultSet, String... lastNames) throws SQLException {
-        Set<String> expectedLastNames = new HashSet<String>(Arrays.asList(lastNames));
-        int count = 0;
-        while (resultSet.next()) {
-            ++count;
-            String lastName = resultSet.getString("last_name");
-            assertTrue(expectedLastNames.remove(lastName));
+    private void executeAndVerifyPreparedSelectStatementByLastName(Connection connection) throws SQLException {
+        PreparedStatement pStatement = null;
+        ResultSet resultSet = null;
+        try {
+            connection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
+            pStatement = connection.prepareStatement("select * from actor where last_name = ?");
+            pStatement.setString(1, "CROWE");
+            resultSet = pStatement.executeQuery();
+
+            Set<String> firstNames = new HashSet<String>(Arrays.asList("SIDNEY"));
+            int count = 0;
+            while (resultSet.next()) {
+                ++count;
+                String firstName = resultSet.getString("first_name");
+                assertTrue(firstNames.remove(firstName));
+            }
+            assertEquals(1, count);
+        } finally {
+            if (resultSet != null) resultSet.close();
+            if (pStatement != null) pStatement.close();
         }
-        assertEquals(lastNames.length, count);
+        assertTrue(pStatement.isClosed());
     }
 }
