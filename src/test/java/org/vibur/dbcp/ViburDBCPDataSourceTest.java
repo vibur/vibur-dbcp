@@ -177,7 +177,6 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
             inOrder.verify(mockedStatementCache).putIfAbsent(same(key2.getValue()), val2.capture());
 
             // key1 will be evicted from the StatementCache because its capacity set to 1.
-
             assertEquals(1, mockedStatementCache.size());
             assertTrue(mockedStatementCache.containsKey(key2.getValue()));
             assertNotEquals(key1.getValue(), key2.getValue());
