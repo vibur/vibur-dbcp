@@ -34,7 +34,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 
 import static org.junit.Assert.*;
-import static org.junit.Assert.assertEquals;
 import static org.mockito.AdditionalAnswers.delegatesTo;
 import static org.mockito.Mockito.*;
 import static org.vibur.dbcp.cache.ReturnVal.AVAILABLE;
