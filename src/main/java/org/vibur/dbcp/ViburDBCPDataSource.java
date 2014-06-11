@@ -210,8 +210,8 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
         if (statementCache != null) {
             for (Iterator<ReturnVal<Statement>> i = statementCache.values().iterator(); i.hasNext(); ) {
                 ReturnVal<Statement> returnVal = i.next();
-                closeStatement(returnVal.value());
                 i.remove();
+                closeStatement(returnVal.value());
             }
             setStatementCache(null);
         }

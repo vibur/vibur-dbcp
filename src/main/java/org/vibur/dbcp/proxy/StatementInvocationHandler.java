@@ -31,7 +31,7 @@ import java.util.Iterator;
 import java.util.concurrent.ConcurrentMap;
 
 import static org.vibur.dbcp.cache.ReturnVal.AVAILABLE;
-import static org.vibur.dbcp.cache.ReturnVal.EVICTED;
+import static org.vibur.dbcp.cache.ReturnVal.IN_USE;
 import static org.vibur.dbcp.util.SqlUtils.closeStatement;
 import static org.vibur.dbcp.util.SqlUtils.toSQLString;
 import static org.vibur.dbcp.util.ViburUtils.NEW_LINE;
@@ -65,7 +65,7 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
         String methodName = method.getName();
 
         if (methodName == "close")
-            return processClose(method, args);
+            return processClose();
         if (methodName == "isClosed")
             return isClosed();
 
@@ -85,15 +85,15 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
         return super.doInvoke(proxy, method, args);
     }
 
-    private Object processClose(Method method, Object[] args) throws Throwable {
+    private Object processClose() {
         if (getAndSetClosed())
             return null;
         if (statementCache != null && statement.state() != null) { // if this statement is in the cache
-            if (statement.state().getAndSet(AVAILABLE) == EVICTED) // just mark it as available
+            if (!statement.state().compareAndSet(IN_USE, AVAILABLE)) // just mark it as available if it was in_use
                 closeStatement(statement.value()); // and close it if it was already evicted
-            return null; // otherwise, don't pass the call to the underlying close method
         } else
-            return targetInvoke(method, args);
+            closeStatement(statement.value());
+        return null;
     }
 
     private Object processCancel(Method method, Object[] args) throws Throwable {

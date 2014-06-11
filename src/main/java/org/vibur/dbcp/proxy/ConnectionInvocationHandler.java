@@ -75,17 +75,17 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
         // Methods which results have to be proxied so that when getConnection() is called
         // on their results the return value to be the current JDBC Connection proxy.
         if (methodName == "createStatement") { // *3
-            ReturnVal<Statement> statement = (ReturnVal<Statement>) uncachedGetStatement(method, args);
+            ReturnVal<Statement> statement = (ReturnVal<Statement>) getUncachedStatement(method, args);
             return Proxy.newStatement(statement, null, proxy, config, getExceptionListener());
         }
         if (methodName == "prepareStatement") { // *6
             ReturnVal<PreparedStatement> statement =
-                (ReturnVal<PreparedStatement>) cachedGetStatement(method, args);
+                (ReturnVal<PreparedStatement>) getCachedStatement(method, args);
             return Proxy.newPreparedStatement(statement, statementCache, proxy, config, getExceptionListener());
         }
         if (methodName == "prepareCall") { // *3
             ReturnVal<CallableStatement> statement =
-                (ReturnVal<CallableStatement>) cachedGetStatement(method, args);
+                (ReturnVal<CallableStatement>) getCachedStatement(method, args);
             return Proxy.newCallableStatement(statement, statementCache, proxy, config, getExceptionListener());
         }
         if (methodName == "getMetaData") { // *1
@@ -96,12 +96,12 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
         return super.doInvoke(proxy, method, args);
     }
 
-    private ReturnVal<? extends Statement> cachedGetStatement(Method method, Object[] args) throws Throwable {
+    private ReturnVal<? extends Statement> getCachedStatement(Method method, Object[] args) throws Throwable {
         if (statementCache != null) {
             Connection target = getTarget();
             MethodDef<Connection> key = new MethodDef<Connection>(target, method, args);
             ReturnVal<Statement> statement = statementCache.get(key);
-            if (statement == null || statement.state().getAndSet(IN_USE) != AVAILABLE) {
+            if (statement == null || !statement.state().compareAndSet(AVAILABLE, IN_USE)) {
                 Statement rawStatement = (Statement) targetInvoke(method, args);
                 if (statement == null) { // there was no entry for the key, so we'll try to put a new one
                     statement = new ReturnVal<Statement>(rawStatement, new AtomicInteger(IN_USE));
@@ -110,18 +110,18 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
                         statement = new ReturnVal<Statement>(rawStatement, null);
                 }
                 return statement;
-            } else { // the statement is valid and was available
+            } else { // the statement was in the cache and was available
                 if (logger.isTraceEnabled())
                     logger.trace("Using cached statement for connection {}, method {}, args {}",
                         target, method, Arrays.toString(args));
                 return statement;
             }
         } else {
-            return uncachedGetStatement(method, args);
+            return getUncachedStatement(method, args);
         }
     }
 
-    private ReturnVal<? extends Statement> uncachedGetStatement(Method method, Object[] args) throws Throwable {
+    private ReturnVal<? extends Statement> getUncachedStatement(Method method, Object[] args) throws Throwable {
         Statement rawStatement = (Statement) targetInvoke(method, args);
         return new ReturnVal<Statement>(rawStatement, null);
     }

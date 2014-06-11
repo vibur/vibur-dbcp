@@ -239,8 +239,8 @@ public class ConnectionFactory implements PoolObjectFactory<ConnHolder>, Version
                      statementCache.entrySet().iterator(); i.hasNext(); ) {
             Map.Entry<MethodDef<Connection>, ReturnVal<Statement>> entry = i.next();
             if (entry.getKey().getTarget().equals(connection)) {
-                closeStatement(entry.getValue().value());
                 i.remove();
+                closeStatement(entry.getValue().value());
             }
         }
     }

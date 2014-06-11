@@ -83,7 +83,7 @@ public class  PoolOperations {
             this.poolReducer = null;
     }
 
-    private static class PoolReducer extends SamplingPoolReducer {
+    private class PoolReducer extends SamplingPoolReducer {
         private PoolReducer(PoolService poolService, long timeInterval, TimeUnit unit, int samples) {
             super(poolService, timeInterval, unit, samples);
         }
@@ -94,7 +94,8 @@ public class  PoolOperations {
                 if (!(thrown instanceof ViburDBCPException))
                     terminate();
             } else
-                logger.debug("Intended reduction {} actual {}", reduction, reduced);
+                logger.debug("Intended reduction {} actual {}, currently taken {} and remainingCreated {}",
+                        reduction, reduced, pool.taken(), pool.remainingCreated());
         }
     }
 
