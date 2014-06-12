@@ -20,17 +20,20 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * A thin wrapper class which allows us to augment the returned value of a Method invocation with some additional
- * "state" information, in this case describing whether the returned object is currently in use or not.
- *
- * <p>Used as a cached {@code value} for method invocations in a {@link java.util.concurrent.ConcurrentMap}
- * cache implementation.
+ * "state" information. The instances of this class are used as a cached {@code value} for method invocations
+ * in a {@link java.util.concurrent.ConcurrentMap} cache implementation, and their "state" is describing whether
+ * the object is currently available, in use or evicted.
  *
  * @see StatementInvocationCacheProvider
+ * @see MethodDef
  *
  * @author Simeon Malchev
  */
 public class ReturnVal<V> {
 
+    /**
+     * The 3 different states in which a {@code ReturnVal} object can be while being used as a cached value:
+     */
     public static final int AVAILABLE = 0;
     public static final int IN_USE = 1;
     public static final int EVICTED = 2;

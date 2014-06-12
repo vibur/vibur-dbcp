@@ -96,6 +96,15 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
         return super.doInvoke(proxy, method, args);
     }
 
+    /**
+     * Returns <i>a possible</i> cached Statement object for the proxied Connection object and the invoked on it
+     * Method with args.
+     *
+     * @param method the invoked method
+     * @param args the invoked method arguments
+     * @return a Statement object wrapped in a ReturnVal holder
+     * @throws Throwable if the invoked underlying create/prepare Statement method throws an exception
+     */
     private ReturnVal<? extends Statement> getCachedStatement(Method method, Object[] args) throws Throwable {
         if (statementCache != null) {
             Connection target = getTarget();
