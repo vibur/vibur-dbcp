@@ -28,6 +28,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @see MethodDef
  *
  * @author Simeon Malchev
+ * @param <V> the type of the value object held in this ReturnVal
  */
 public class ReturnVal<V> {
 

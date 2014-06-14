@@ -20,10 +20,8 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 
 /**
- * Describes the "parameters" via which a Connection interface Method has been invoked. These are the
- * Connection object, the Method object which has been called on this Connection, and
- * the Method's arguments.
-
+ * Describes a {@code method} with {@code args} which has been invoked on a {@code target} object of type T.
+ *
  * <p>Used as a caching {@code key} for method invocations in a {@link java.util.concurrent.ConcurrentMap}
  * cache implementation.
  *
@@ -31,6 +29,7 @@ import java.util.Arrays;
  * @see ReturnVal
  *
  * @author Simeon Malchev
+ * @param <T> the type of the object on which the method is invoked
  */
 public class MethodDef<T> {
 

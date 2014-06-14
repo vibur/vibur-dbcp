@@ -35,6 +35,7 @@ import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
 import java.sql.Statement;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentMap;
 import java.util.logging.Logger;
@@ -196,7 +197,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
         initStatementCache();
 
         initJMX();
-        logger.debug("Started {}", this);
+        logger.info("Started {}", this);
     }
 
     /** {@inheritDoc} */
@@ -206,18 +207,10 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
         state = State.TERMINATED;
         if (oldState == State.NEW) return;
 
-        ConcurrentMap<MethodDef<Connection>, ReturnVal<Statement>> statementCache = getStatementCache();
-        if (statementCache != null) {
-            for (Iterator<ReturnVal<Statement>> i = statementCache.values().iterator(); i.hasNext(); ) {
-                ReturnVal<Statement> returnVal = i.next();
-                i.remove();
-                closeStatement(returnVal.value());
-            }
-            setStatementCache(null);
-        }
-
+        terminateStatementCache();
         getPoolOperations().terminate();
-        logger.debug("Terminated {}", this);
+
+        logger.info("Terminated {}", this);
     }
 
     private void validateConfig() {
@@ -259,6 +252,20 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
             statementCacheMaxSize = CACHE_MAX_SIZE;
         if (statementCacheMaxSize > 0)
             setStatementCache(new StatementInvocationCacheProvider(statementCacheMaxSize).build());
+    }
+
+    private void terminateStatementCache() {
+        ConcurrentMap<MethodDef<Connection>, ReturnVal<Statement>> statementCache = getStatementCache();
+        if (statementCache != null) {
+            for (Iterator<Map.Entry<MethodDef<Connection>, ReturnVal<Statement>>> i =
+                         statementCache.entrySet().iterator(); i.hasNext(); ) {
+                Map.Entry<MethodDef<Connection>, ReturnVal<Statement>> entry = i.next();
+                ReturnVal<Statement> value = entry.getValue();
+                statementCache.remove(entry.getKey(), value);
+                closeStatement(value.value());
+            }
+            setStatementCache(null);
+        }
     }
 
     private void initJMX() throws ViburDBCPException {

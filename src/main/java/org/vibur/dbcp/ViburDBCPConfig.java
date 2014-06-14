@@ -62,7 +62,7 @@ public class ViburDBCPConfig {
      * it will be validated before being given to the application using the {@code testConnectionQuery}.
      * If set to {@code 0}, will validate the connection always when it is taken from the pool.
      * If set to a negative number, will never validate the taken from the pool connection. */
-    private int connectionIdleLimitInSeconds = 60;
+    private int connectionIdleLimitInSeconds = 15;
 
     public static final int QUERY_TIMEOUT = 5; // in seconds
     public static final String IS_VALID_QUERY = "isValid";

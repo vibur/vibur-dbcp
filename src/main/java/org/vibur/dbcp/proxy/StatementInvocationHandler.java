@@ -28,6 +28,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 
 import static org.vibur.dbcp.cache.ReturnVal.AVAILABLE;
@@ -99,10 +100,12 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
     private Object processCancel(Method method, Object[] args) throws Throwable {
         if (statementCache != null) {
             Statement target = getTarget();
-            for (Iterator<ReturnVal<Statement>> i = statementCache.values().iterator(); i.hasNext(); ) {
-                ReturnVal<Statement> returnVal = i.next();
-                if (returnVal.value().equals(target)) {
-                    i.remove();
+            for (Iterator<Map.Entry<MethodDef<Connection>, ReturnVal<Statement>>> i =
+                         statementCache.entrySet().iterator(); i.hasNext(); ) {
+                Map.Entry<MethodDef<Connection>, ReturnVal<Statement>> entry = i.next();
+                ReturnVal<Statement> value = entry.getValue();
+                if (value.value().equals(target)) {
+                    statementCache.remove(entry.getKey(), value);
                     break;
                 }
             }
