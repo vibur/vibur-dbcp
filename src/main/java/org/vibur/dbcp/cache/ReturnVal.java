@@ -19,10 +19,10 @@ package org.vibur.dbcp.cache;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * A thin wrapper class which allows us to augment the returned value of a Method invocation with some additional
- * "state" information. The instances of this class are used as a cached {@code value} for method invocations
- * in a {@link java.util.concurrent.ConcurrentMap} cache implementation, and their "state" is describing whether
- * the object is currently available, in use or evicted.
+ * A thin wrapper class which allows us to augment the returned {@code value} of a method invocation with some
+ * additional "state" information. The instances of this class are used as a cached {@code value} for method
+ * invocations in a {@link java.util.concurrent.ConcurrentMap} cache implementation, and their "state" is describing
+ * whether the object is currently available, in use or evicted.
  *
  * @see StatementInvocationCacheProvider
  * @see MethodDef

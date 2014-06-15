@@ -1,3 +1,7 @@
+Version 1.1.1 (15/06/2014)
+==========================
+* Improvements and fixes in the JDBC Statements caching model.
+
 Version 1.1.0 (02/06/2014)
 ==========================
 * Vibur DBCP is now built and distributed as a valid R4 OSGi bundle.
