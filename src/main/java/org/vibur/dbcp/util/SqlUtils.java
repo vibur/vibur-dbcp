@@ -23,15 +23,16 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author Simeon Malchev
  */
-public class SqlUtils {
+public final class SqlUtils {
 
     private static final org.slf4j.Logger logger = LoggerFactory.getLogger(SqlUtils.class);
 
-    private SqlUtils() { }
+    private SqlUtils() {}
 
     public static void closeStatement(Statement statement) {
         try {
@@ -49,10 +50,11 @@ public class SqlUtils {
         }
     }
 
-    public static String toSQLString(Statement statementProxy, Object[] args) {
-        if (statementProxy instanceof PreparedStatement)
-            return statementProxy.toString();
-
-        return Arrays.toString(args); // when a simple JDBC Statement
+    public static String toSQLString(Statement statement, Object[] args, List<Object[]> executeParams) {
+        StringBuilder result = new StringBuilder("-- ").append(statement instanceof PreparedStatement ?
+                statement.toString() : Arrays.toString(args)); // the latter is for simple JDBC Statements
+        if (!executeParams.isEmpty())
+            result.append("\n-- Parameters:\n-- ").append(Arrays.deepToString(executeParams.toArray()));
+        return result.toString();
     }
 }

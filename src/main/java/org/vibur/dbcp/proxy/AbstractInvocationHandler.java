@@ -96,7 +96,9 @@ public abstract class AbstractInvocationHandler<T> implements InvocationHandler,
             Throwable cause = e.getCause();
             if (cause == null)
                 cause = e;
-            if (!(cause instanceof SQLTransientException)) // SQL transient exceptions are not remembered
+            logger.warn(String.format("The invocation of %s with args %s on %s threw",
+                    method, Arrays.toString(args), target), e);
+            if (!(cause instanceof SQLTransientException)) // SQL transient exceptions are not of interest
                 exceptionListener.onException(cause);
             if (cause instanceof SQLException || cause instanceof RuntimeException || cause instanceof Error)
                 throw cause;

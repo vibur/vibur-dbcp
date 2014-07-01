@@ -23,11 +23,11 @@ import java.util.concurrent.ConcurrentMap;
 
 /**
  * An abstract concurrent cache provider for method invocations, i.e.
- * mapping {@code MethodDef<T>} to {@code ReturnVal<V>}, based on ConcurrentLinkedHashMap.
+ * mapping {@code ConnMethodDef} to {@code ReturnVal<V>}, based on ConcurrentLinkedHashMap.
  *
  * @author Simeon Malchev
  */
-public abstract class AbstractInvocationCacheProvider<T, V> {
+public abstract class AbstractInvocationCacheProvider<V> {
 
     private final int maxSize;
 
@@ -46,13 +46,13 @@ public abstract class AbstractInvocationCacheProvider<T, V> {
      *
      * @return the concurrent cache map
      */
-    public ConcurrentMap<MethodDef<T>, ReturnVal<V>> build() {
-        return new ConcurrentLinkedHashMap.Builder<MethodDef<T>, ReturnVal<V>>()
+    public ConcurrentMap<ConnMethodDef, ReturnVal<V>> build() {
+        return new ConcurrentLinkedHashMap.Builder<ConnMethodDef, ReturnVal<V>>()
                 .initialCapacity(maxSize)
                 .maximumWeightedCapacity(maxSize)
                 .listener(getListener())
                 .build();
     }
 
-    protected abstract EvictionListener<MethodDef<T>, ReturnVal<V>> getListener();
+    protected abstract EvictionListener<ConnMethodDef, ReturnVal<V>> getListener();
 }

@@ -19,7 +19,7 @@ package org.vibur.dbcp.proxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.ViburDBCPConfig;
-import org.vibur.dbcp.cache.MethodDef;
+import org.vibur.dbcp.cache.ConnMethodDef;
 import org.vibur.dbcp.cache.ReturnVal;
 import org.vibur.dbcp.proxy.listener.ExceptionListener;
 
@@ -28,6 +28,8 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 
@@ -48,10 +50,13 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
     private final ReturnVal<? extends Statement> statement;
     private final ViburDBCPConfig config;
 
-    private final ConcurrentMap<MethodDef<Connection>, ReturnVal<Statement>> statementCache;
+    private final boolean shouldLog;
+    private final List<Object[]> executeParams;
+
+    private final ConcurrentMap<ConnMethodDef, ReturnVal<Statement>> statementCache;
 
     public StatementInvocationHandler(ReturnVal<? extends Statement> statement,
-                                      ConcurrentMap<MethodDef<Connection>, ReturnVal<Statement>> statementCache,
+                                      ConcurrentMap<ConnMethodDef, ReturnVal<Statement>> statementCache,
                                       Connection connectionProxy, ViburDBCPConfig config,
                                       ExceptionListener exceptionListener) {
         super(statement.value(), connectionProxy, "getConnection", exceptionListener);
@@ -60,6 +65,8 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
         this.statement = statement;
         this.statementCache = statementCache;
         this.config = config;
+        this.shouldLog = config.getLogQueryExecutionLongerThanMs() >= 0;
+        this.executeParams = this.shouldLog ? new LinkedList<Object[]>() : null;
     }
 
     protected Object doInvoke(Statement proxy, Method method, Object[] args) throws Throwable {
@@ -72,6 +79,8 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
 
         ensureNotClosed(); // all other Statement interface methods cannot work if the JDBC Statement is closed
 
+        if (methodName.startsWith("set")) // this intercepts all "set..." JDBC Statements methods
+            return processSet(method, args);
         if (methodName.startsWith("execute")) // this intercepts all "execute..." JDBC Statements methods
             return processExecute(proxy, method, args);
 
@@ -100,9 +109,9 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
     private Object processCancel(Method method, Object[] args) throws Throwable {
         if (statementCache != null) {
             Statement target = getTarget();
-            for (Iterator<Map.Entry<MethodDef<Connection>, ReturnVal<Statement>>> i =
+            for (Iterator<Map.Entry<ConnMethodDef, ReturnVal<Statement>>> i =
                          statementCache.entrySet().iterator(); i.hasNext(); ) {
-                Map.Entry<MethodDef<Connection>, ReturnVal<Statement>> entry = i.next();
+                Map.Entry<ConnMethodDef, ReturnVal<Statement>> entry = i.next();
                 ReturnVal<Statement> value = entry.getValue();
                 if (value.value().equals(target)) {
                     statementCache.remove(entry.getKey(), value);
@@ -113,11 +122,16 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
         return targetInvoke(method, args);
     }
 
+    private Object processSet(Method method, Object[] args) throws Throwable {
+        if (shouldLog && args != null && args.length >= 2)
+            executeParams.add(args);
+        return targetInvoke(method, args); // the real "set..." call
+    }
+
     /**
      * Mainly exists to provide Statement.execute... methods timing logging.
      */
     private Object processExecute(Statement proxy, Method method, Object[] args) throws Throwable {
-        boolean shouldLog = config.getLogQueryExecutionLongerThanMs() >= 0;
         long startTime = shouldLog ? System.currentTimeMillis() : 0L;
 
         try {
@@ -133,19 +147,19 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
         }
     }
 
+    private ResultSet newProxiedResultSet(Statement proxy, Method method, Object[] args) throws Throwable {
+        ResultSet rawResultSet = (ResultSet) targetInvoke(method, args);
+        return Proxy.newResultSet(rawResultSet, proxy, getExceptionListener());
+    }
+
     private void logQuery(Object[] args, long startTime) {
         long timeTaken = System.currentTimeMillis() - startTime;
         if (timeTaken >= config.getLogQueryExecutionLongerThanMs()) {
-            StringBuilder log = new StringBuilder(String.format("SQL query -- %s -- execution took %d ms.",
-                toSQLString(getTarget(), args), timeTaken));
+            StringBuilder log = new StringBuilder(String.format("SQL query execution took %d ms:\n%s",
+                    timeTaken, toSQLString(getTarget(), args, executeParams)));
             if (config.isLogStackTraceForLongQueryExecution())
                 log.append(NEW_LINE).append(getStackTraceAsString(new Throwable().getStackTrace()));
             logger.warn(log.toString());
         }
-    }
-
-    private ResultSet newProxiedResultSet(Statement proxy, Method method, Object[] args) throws Throwable {
-        ResultSet rawResultSet = (ResultSet) targetInvoke(method, args);
-        return Proxy.newResultSet(rawResultSet, proxy, getExceptionListener());
     }
 }

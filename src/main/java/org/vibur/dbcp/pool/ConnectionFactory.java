@@ -21,7 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.ViburDBCPConfig;
 import org.vibur.dbcp.ViburDBCPException;
-import org.vibur.dbcp.cache.MethodDef;
+import org.vibur.dbcp.cache.ConnMethodDef;
 import org.vibur.dbcp.cache.ReturnVal;
 import org.vibur.objectpool.PoolObjectFactory;
 
@@ -231,14 +231,14 @@ public class ConnectionFactory implements PoolObjectFactory<ConnHolder>, Version
     }
 
     private void closeStatements(Connection connection) {
-        ConcurrentMap<MethodDef<Connection>, ReturnVal<Statement>> statementCache = config.getStatementCache();
+        ConcurrentMap<ConnMethodDef, ReturnVal<Statement>> statementCache = config.getStatementCache();
         if (statementCache == null)
             return;
 
-        for (Iterator<Map.Entry<MethodDef<Connection>, ReturnVal<Statement>>> i =
+        for (Iterator<Map.Entry<ConnMethodDef, ReturnVal<Statement>>> i =
                      statementCache.entrySet().iterator(); i.hasNext(); ) {
-            Map.Entry<MethodDef<Connection>, ReturnVal<Statement>> entry = i.next();
-            MethodDef<Connection> key = entry.getKey();
+            Map.Entry<ConnMethodDef, ReturnVal<Statement>> entry = i.next();
+            ConnMethodDef key = entry.getKey();
             ReturnVal<Statement> value = entry.getValue();
             if (key.getTarget().equals(connection) && statementCache.remove(key, value))
                 closeStatement(value.value());

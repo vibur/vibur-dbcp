@@ -19,7 +19,6 @@ package org.vibur.dbcp.cache;
 import com.googlecode.concurrentlinkedhashmap.EvictionListener;
 import org.slf4j.LoggerFactory;
 
-import java.sql.Connection;
 import java.sql.Statement;
 
 import static org.vibur.dbcp.cache.ReturnVal.AVAILABLE;
@@ -28,11 +27,11 @@ import static org.vibur.dbcp.util.SqlUtils.closeStatement;
 
 /**
  * A concurrent cache provider for JDBC Statement method invocations which maps
- * {@code MethodDef<Connection>} to {@code ReturnVal<Statement>}, based on ConcurrentLinkedHashMap.
+ * {@code ConnMethodDef} to {@code ReturnVal<Statement>}, based on ConcurrentLinkedHashMap.
  *
  * @author Simeon Malchev
  */
-public class StatementInvocationCacheProvider extends AbstractInvocationCacheProvider<Connection, Statement> {
+public class StatementInvocationCacheProvider extends AbstractInvocationCacheProvider<Statement> {
 
     private static final org.slf4j.Logger logger = LoggerFactory.getLogger(StatementInvocationCacheProvider.class);
 
@@ -40,9 +39,9 @@ public class StatementInvocationCacheProvider extends AbstractInvocationCachePro
         super(maxSize);
     }
 
-    protected EvictionListener<MethodDef<Connection>, ReturnVal<Statement>> getListener() {
-        return new EvictionListener<MethodDef<Connection>, ReturnVal<Statement>>() {
-            public void onEviction(MethodDef<Connection> key, ReturnVal<Statement> value) {
+    protected EvictionListener<ConnMethodDef, ReturnVal<Statement>> getListener() {
+        return new EvictionListener<ConnMethodDef, ReturnVal<Statement>>() {
+            public void onEviction(ConnMethodDef key, ReturnVal<Statement> value) {
                 if (value.state().getAndSet(EVICTED) == AVAILABLE)
                     closeStatement(value.value());
                 logger.trace("Evicted {}", value.value());

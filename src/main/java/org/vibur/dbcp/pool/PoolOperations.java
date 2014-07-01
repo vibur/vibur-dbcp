@@ -106,6 +106,7 @@ public class  PoolOperations {
             Throwable cause = e.getCause();
             if (cause instanceof SQLException)
                 throw (SQLException) cause;
+            logger.error("Unexpected cause", e);
             throw e; // not expected to happen
         }
     }

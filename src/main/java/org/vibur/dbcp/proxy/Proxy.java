@@ -17,7 +17,7 @@
 package org.vibur.dbcp.proxy;
 
 import org.vibur.dbcp.ViburDBCPConfig;
-import org.vibur.dbcp.cache.MethodDef;
+import org.vibur.dbcp.cache.ConnMethodDef;
 import org.vibur.dbcp.cache.ReturnVal;
 import org.vibur.dbcp.pool.ConnHolder;
 import org.vibur.dbcp.proxy.listener.ExceptionListener;
@@ -31,9 +31,9 @@ import java.util.concurrent.ConcurrentMap;
 /**
  * @author Simeon Malchev
  */
-public class Proxy {
+public final class Proxy {
 
-    private Proxy() { }
+    private Proxy() {}
 
     public static Connection newConnection(ConnHolder conn, ViburDBCPConfig config) {
         InvocationHandler handler = new ConnectionInvocationHandler(conn, config);
@@ -41,7 +41,7 @@ public class Proxy {
     }
 
     public static Statement newStatement(ReturnVal<Statement> statement,
-                                         ConcurrentMap<MethodDef<Connection>, ReturnVal<Statement>> statementCache,
+                                         ConcurrentMap<ConnMethodDef, ReturnVal<Statement>> statementCache,
                                          Connection connectionProxy, ViburDBCPConfig config,
                                          ExceptionListener exceptionListener) {
         InvocationHandler handler = new StatementInvocationHandler(
@@ -50,7 +50,7 @@ public class Proxy {
     }
 
     public static PreparedStatement newPreparedStatement(ReturnVal<PreparedStatement> pStatement,
-                                                         ConcurrentMap<MethodDef<Connection>, ReturnVal<Statement>> statementCache,
+                                                         ConcurrentMap<ConnMethodDef, ReturnVal<Statement>> statementCache,
                                                          Connection connectionProxy, ViburDBCPConfig config,
                                                          ExceptionListener exceptionListener) {
         InvocationHandler handler = new StatementInvocationHandler(
@@ -59,7 +59,7 @@ public class Proxy {
     }
 
     public static CallableStatement newCallableStatement(ReturnVal<CallableStatement> cStatement,
-                                                         ConcurrentMap<MethodDef<Connection>, ReturnVal<Statement>> statementCache,
+                                                         ConcurrentMap<ConnMethodDef, ReturnVal<Statement>> statementCache,
                                                          Connection connectionProxy, ViburDBCPConfig config,
                                                          ExceptionListener exceptionListener) {
         InvocationHandler handler = new StatementInvocationHandler(

@@ -19,9 +19,11 @@ package org.vibur.dbcp.util;
 /**
  * @author Simeon Malchev
  */
-public class ViburUtils {
+public final class ViburUtils {
 
     public static final String NEW_LINE = System.getProperty("line.separator");
+
+    private ViburUtils() {}
 
     public static String getStackTraceAsString(StackTraceElement[] stackTrace) {
         int i;

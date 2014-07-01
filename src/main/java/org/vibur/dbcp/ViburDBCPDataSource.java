@@ -17,7 +17,7 @@
 package org.vibur.dbcp;
 
 import org.slf4j.LoggerFactory;
-import org.vibur.dbcp.cache.MethodDef;
+import org.vibur.dbcp.cache.ConnMethodDef;
 import org.vibur.dbcp.cache.ReturnVal;
 import org.vibur.dbcp.cache.StatementInvocationCacheProvider;
 import org.vibur.dbcp.jmx.ViburDBCPMonitoring;
@@ -255,11 +255,11 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
     }
 
     private void terminateStatementCache() {
-        ConcurrentMap<MethodDef<Connection>, ReturnVal<Statement>> statementCache = getStatementCache();
+        ConcurrentMap<ConnMethodDef, ReturnVal<Statement>> statementCache = getStatementCache();
         if (statementCache != null) {
-            for (Iterator<Map.Entry<MethodDef<Connection>, ReturnVal<Statement>>> i =
+            for (Iterator<Map.Entry<ConnMethodDef, ReturnVal<Statement>>> i =
                          statementCache.entrySet().iterator(); i.hasNext(); ) {
-                Map.Entry<MethodDef<Connection>, ReturnVal<Statement>> entry = i.next();
+                Map.Entry<ConnMethodDef, ReturnVal<Statement>> entry = i.next();
                 ReturnVal<Statement> value = entry.getValue();
                 statementCache.remove(entry.getKey(), value);
                 closeStatement(value.value());

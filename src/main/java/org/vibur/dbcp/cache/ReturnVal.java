@@ -25,7 +25,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * whether the object is currently available, in use or evicted.
  *
  * @see StatementInvocationCacheProvider
- * @see MethodDef
+ * @see ConnMethodDef
  *
  * @author Simeon Malchev
  * @param <V> the type of the value object held in this ReturnVal

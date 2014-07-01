@@ -22,7 +22,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InOrder;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.vibur.dbcp.cache.MethodDef;
+import org.vibur.dbcp.cache.ConnMethodDef;
 import org.vibur.dbcp.cache.ReturnVal;
 
 import javax.sql.DataSource;
@@ -48,7 +48,7 @@ import static org.vibur.dbcp.cache.ReturnVal.EVICTED;
 public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
 
     @Captor
-    private ArgumentCaptor<MethodDef<Connection>> key1, key2;
+    private ArgumentCaptor<ConnMethodDef> key1, key2;
     @Captor
     private ArgumentCaptor<ReturnVal<Statement>> val1, val2;
 
@@ -84,7 +84,7 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
         ViburDBCPDataSource ds = createDataSourceWithStatementsCache();
         Connection connection = null;
         try {
-            ConcurrentMap<MethodDef<Connection>, ReturnVal<Statement>> mockedStatementCache =
+            ConcurrentMap<ConnMethodDef, ReturnVal<Statement>> mockedStatementCache =
                 mock(ConcurrentMap.class, delegatesTo(ds.getStatementCache()));
             ds.setStatementCache(mockedStatementCache);
 
@@ -131,7 +131,7 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
         ViburDBCPDataSource ds = createDataSourceWithStatementsCache();
         Connection connection = null;
         try {
-            ConcurrentMap<MethodDef<Connection>, ReturnVal<Statement>> mockedStatementCache =
+            ConcurrentMap<ConnMethodDef, ReturnVal<Statement>> mockedStatementCache =
                 mock(ConcurrentMap.class, delegatesTo(ds.getStatementCache()));
             ds.setStatementCache(mockedStatementCache);
 
@@ -161,7 +161,7 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
         ViburDBCPDataSource ds = createDataSourceWithStatementsCache();
         Connection connection = null;
         try {
-            ConcurrentMap<MethodDef<Connection>, ReturnVal<Statement>> mockedStatementCache =
+            ConcurrentMap<ConnMethodDef, ReturnVal<Statement>> mockedStatementCache =
                 mock(ConcurrentMap.class, delegatesTo(ds.getStatementCache()));
             ds.setStatementCache(mockedStatementCache);
 

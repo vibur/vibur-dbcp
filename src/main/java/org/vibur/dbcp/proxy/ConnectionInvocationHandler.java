@@ -19,7 +19,7 @@ package org.vibur.dbcp.proxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.ViburDBCPConfig;
-import org.vibur.dbcp.cache.MethodDef;
+import org.vibur.dbcp.cache.ConnMethodDef;
 import org.vibur.dbcp.cache.ReturnVal;
 import org.vibur.dbcp.pool.ConnHolder;
 import org.vibur.dbcp.pool.PoolOperations;
@@ -47,7 +47,7 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
     private final ConnHolder conn;
 
     private final ViburDBCPConfig config;
-    private final ConcurrentMap<MethodDef<Connection>, ReturnVal<Statement>> statementCache;
+    private final ConcurrentMap<ConnMethodDef, ReturnVal<Statement>> statementCache;
 
     public ConnectionInvocationHandler(ConnHolder conn, ViburDBCPConfig config) {
         super(conn.value(), new ExceptionListenerImpl());
@@ -108,17 +108,16 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
     private ReturnVal<? extends Statement> getCachedStatement(Method method, Object[] args) throws Throwable {
         if (statementCache != null) {
             Connection target = getTarget();
-            MethodDef<Connection> key = new MethodDef<Connection>(target, method, args);
+            ConnMethodDef key = new ConnMethodDef(target, method, args);
             ReturnVal<Statement> statement = statementCache.get(key);
             if (statement == null || !statement.state().compareAndSet(AVAILABLE, IN_USE)) {
                 Statement rawStatement = (Statement) targetInvoke(method, args);
                 if (statement == null) { // there was no entry for the key, so we'll try to put a new one
                     statement = new ReturnVal<Statement>(rawStatement, new AtomicInteger(IN_USE));
-                    if (statementCache.putIfAbsent(key, statement) != null)
-                        // because another thread succeeded to put the entry before us
-                        statement = new ReturnVal<Statement>(rawStatement, null);
+                    if (statementCache.putIfAbsent(key, statement) == null)
+                        return statement; // the new entry was successfully put in the cache
                 }
-                return statement;
+                return new ReturnVal<Statement>(rawStatement, null);
             } else { // the statement was in the cache and was available
                 if (logger.isTraceEnabled())
                     logger.trace("Using cached statement for connection {}, method {}, args {}",
