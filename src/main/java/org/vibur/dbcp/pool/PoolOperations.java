@@ -90,7 +90,8 @@ public class  PoolOperations {
 
         protected void afterReduce(int reduction, int reduced, Throwable thrown) {
             if (thrown != null) {
-                logger.error(String.format("While trying to reduce the pool by %d elements", reduction), thrown);
+                logger.error(String.format("While trying to reduce pool %s by %d elements",
+                        config.getName(), reduction), thrown);
                 if (!(thrown instanceof ViburDBCPException))
                     terminate();
             } else
@@ -135,8 +136,8 @@ public class  PoolOperations {
 
             int destroyed = pool.drainCreated(); // destroys all connections in the pool
             logger.error(String.format(
-                "Critical SQLState %s occurred, destroyed %d connections, current connection version is %d.",
-                sqlException.getSQLState(), destroyed, connectionFactory.version()), sqlException);
+                "Critical SQLState %s occurred, destroyed %d connections from pool %s, current connection version is %d.",
+                sqlException.getSQLState(), destroyed, config.getName(), connectionFactory.version()), sqlException);
         }
         return valid;
     }
