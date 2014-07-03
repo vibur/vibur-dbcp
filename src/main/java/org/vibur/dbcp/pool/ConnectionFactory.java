@@ -240,7 +240,7 @@ public class ConnectionFactory implements PoolObjectFactory<ConnHolder>, Version
             Map.Entry<ConnMethodDef, ReturnVal<Statement>> entry = i.next();
             ConnMethodDef key = entry.getKey();
             ReturnVal<Statement> value = entry.getValue();
-            if (key.getTarget().equals(connection) && statementCache.remove(key, value))
+            if (key.getTarget() == connection && statementCache.remove(key, value))
                 closeStatement(value.value());
         }
     }

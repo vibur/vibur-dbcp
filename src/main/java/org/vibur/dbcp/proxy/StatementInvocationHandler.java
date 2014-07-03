@@ -123,8 +123,12 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
     }
 
     private Object processSet(Method method, Object[] args) throws Throwable {
-        if (shouldLog && args != null && args.length >= 2)
-            executeParams.add(args);
+        if (shouldLog && args != null && args.length >= 2) {
+            Object[] params = new Object[args.length + 1];
+            params[0] = method.getName();
+            System.arraycopy(args, 0, params, 1, args.length);
+            executeParams.add(params);
+        }
         return targetInvoke(method, args); // the real "set..." call
     }
 

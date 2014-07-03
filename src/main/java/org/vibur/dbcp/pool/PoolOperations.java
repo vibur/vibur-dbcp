@@ -94,8 +94,12 @@ public class  PoolOperations {
                 if (!(thrown instanceof ViburDBCPException))
                     terminate();
             } else
-                logger.debug("Intended reduction {} actual {}, currently taken {} and remainingCreated {}",
-                        reduction, reduced, pool.taken(), pool.remainingCreated());
+                logger.debug("Pool {}, intended reduction {} actual {}, currently taken {} and remainingCreated {}",
+                        config.getName(), reduction, reduced, pool.taken(), pool.remainingCreated());
+        }
+
+        public String toString() {
+            return getClass().getSimpleName() + " for pool " + config.getName();
         }
     }
 
