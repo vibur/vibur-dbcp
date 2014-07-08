@@ -111,7 +111,7 @@ public class  PoolOperations {
             Throwable cause = e.getCause();
             if (cause instanceof SQLException)
                 throw (SQLException) cause;
-            logger.error("Unexpected cause", e);
+            logger.error("Unexpected exception cause", e);
             throw e; // not expected to happen
         }
     }
@@ -120,7 +120,7 @@ public class  PoolOperations {
         ConnHolder conn = timeout == 0 ?
             pool.take() : pool.tryTake(timeout, TimeUnit.MILLISECONDS);
         if (conn == null)
-            throw new SQLException("Couldn't obtain SQL connection.");
+            throw new SQLException("Couldn't obtain SQL connection from pool " + config.getName());
         logger.trace("Getting {}", conn.value());
         return Proxy.newConnection(conn, config);
     }

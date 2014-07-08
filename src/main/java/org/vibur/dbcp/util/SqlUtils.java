@@ -39,6 +39,8 @@ public final class SqlUtils {
             statement.close();
         } catch (SQLException e) {
             logger.debug("Couldn't close {}", statement);
+        } catch (RuntimeException e) {
+            logger.debug("Unexpected exception thrown by the JDBC driver", e);
         }
     }
 
@@ -47,6 +49,8 @@ public final class SqlUtils {
             connection.close();
         } catch (SQLException e) {
             logger.debug("Couldn't close {}", connection);
+        } catch (RuntimeException e) {
+            logger.debug("Unexpected exception thrown by the JDBC driver", e);
         }
     }
 
