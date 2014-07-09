@@ -150,28 +150,30 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
     }
 
     private void configureFromProperties(Properties properties) throws ViburDBCPException {
-        for (Field field : ViburDBCPConfig.class.getDeclaredFields()) {
+        for (Map.Entry<Object, Object> entry : properties.entrySet()) {
+            String key = (String) entry.getKey();
+            String val = (String) entry.getValue();
             try {
-                String val = properties.getProperty(field.getName());
-                if (val != null) {
-                    Class<?> type = field.getType();
-                    if (type == int.class || type == Integer.class)
-                        set(field, Integer.parseInt(val));
-                    else if (type == long.class || type == Long.class)
-                        set(field, Long.parseLong(val));
-                    else if (type == float.class || type == Float.class)
-                        set(field, Float.parseFloat(val));
-                    else if (type == boolean.class || type == Boolean.class)
-                        set(field, Boolean.parseBoolean(val));
-                    else if (type == String.class)
-                        set(field, val);
-                    else
-                        throw new ViburDBCPException("Unexpected field found in ViburDBCPConfig: " + field.getName());
-                }
+                Field field = ViburDBCPConfig.class.getDeclaredField(key);
+                Class<?> type = field.getType();
+                if (type == int.class || type == Integer.class)
+                    set(field, Integer.parseInt(val));
+                else if (type == long.class || type == Long.class)
+                    set(field, Long.parseLong(val));
+                else if (type == float.class || type == Float.class)
+                    set(field, Float.parseFloat(val));
+                else if (type == boolean.class || type == Boolean.class)
+                    set(field, Boolean.parseBoolean(val));
+                else if (type == String.class)
+                    set(field, val);
+                else
+                    throw new ViburDBCPException("Unexpected configuration property: " + key);
+            } catch (NoSuchFieldException e) {
+                throw new ViburDBCPException("Unexpected configuration property: " + key);
             } catch (NumberFormatException e) {
-                throw new ViburDBCPException(field.getName(), e);
+                throw new ViburDBCPException("Wrong value for configuration property: " + key, e);
             } catch (IllegalAccessException e) {
-                throw new ViburDBCPException(field.getName(), e);
+                throw new ViburDBCPException(key, e);
             }
         }
     }
