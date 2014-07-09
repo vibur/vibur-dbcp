@@ -1,3 +1,9 @@
+Version 1.2.0 (09/07/2014)
+==========================
+* Reporting of slow SQL queries now includes the concrete queries parameters.
+* Additional work and improvements on JDBC statements caching.
+* Various improvements in logging and exceptions handling.
+
 Version 1.1.1 (15/06/2014)
 ==========================
 * Improvements and fixes in the JDBC Statements caching model.
