@@ -30,7 +30,6 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
@@ -235,9 +234,7 @@ public class ConnectionFactory implements PoolObjectFactory<ConnHolder>, Version
         if (statementCache == null)
             return;
 
-        for (Iterator<Map.Entry<ConnMethodDef, ReturnVal<Statement>>> i =
-                     statementCache.entrySet().iterator(); i.hasNext(); ) {
-            Map.Entry<ConnMethodDef, ReturnVal<Statement>> entry = i.next();
+        for (Map.Entry<ConnMethodDef, ReturnVal<Statement>> entry : statementCache.entrySet()) {
             ConnMethodDef key = entry.getKey();
             ReturnVal<Statement> value = entry.getValue();
             if (key.getTarget() == connection && statementCache.remove(key, value))

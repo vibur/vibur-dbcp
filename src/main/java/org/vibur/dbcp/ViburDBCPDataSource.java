@@ -34,7 +34,6 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
 import java.sql.Statement;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentMap;
@@ -259,9 +258,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
     private void terminateStatementCache() {
         ConcurrentMap<ConnMethodDef, ReturnVal<Statement>> statementCache = getStatementCache();
         if (statementCache != null) {
-            for (Iterator<Map.Entry<ConnMethodDef, ReturnVal<Statement>>> i =
-                         statementCache.entrySet().iterator(); i.hasNext(); ) {
-                Map.Entry<ConnMethodDef, ReturnVal<Statement>> entry = i.next();
+            for (Map.Entry<ConnMethodDef, ReturnVal<Statement>> entry : statementCache.entrySet()) {
                 ReturnVal<Statement> value = entry.getValue();
                 statementCache.remove(entry.getKey(), value);
                 closeStatement(value.value());

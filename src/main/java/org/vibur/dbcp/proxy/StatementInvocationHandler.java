@@ -27,7 +27,6 @@ import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -109,11 +108,9 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
     private Object processCancel(Method method, Object[] args) throws Throwable {
         if (statementCache != null) {
             Statement target = getTarget();
-            for (Iterator<Map.Entry<ConnMethodDef, ReturnVal<Statement>>> i =
-                         statementCache.entrySet().iterator(); i.hasNext(); ) {
-                Map.Entry<ConnMethodDef, ReturnVal<Statement>> entry = i.next();
+            for (Map.Entry<ConnMethodDef, ReturnVal<Statement>> entry : statementCache.entrySet()) {
                 ReturnVal<Statement> value = entry.getValue();
-                if (value.value().equals(target)) {
+                if (value.value() == target) { // comparing with == as these JDBC Statements are cached objects
                     statementCache.remove(entry.getKey(), value);
                     break;
                 }
