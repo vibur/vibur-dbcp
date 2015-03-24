@@ -5,6 +5,8 @@ and Hibernate integration, among other features.
 The project [home page](http://www.vibur.org/) contains a full list of its features, including various configuration
 examples with Hibernate and Spring, all configuration options, and more.
 
+Vibur DBCP is built on top of [Vibur Object Pool](https://github.com/vibur/vibur-object-pool) - a general-purpose concurrent Java object pool.
+
 The project maven coordinates are:
 
 ```
