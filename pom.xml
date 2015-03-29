@@ -24,8 +24,11 @@
     <packaging>bundle</packaging>
 
     <name>Vibur Database Connections Pool</name>
-    <description>A concurrent JDBC connection pool based on Java dynamic proxies.</description>
-    <url>https://code.google.com/p/vibur-dbcp</url>
+    <description>
+        Concurrent, fast, and fully-featured JDBC connection pool, which provides a non-starvation guarantee for application
+        threads, slow SQL queries detection and logging, and Hibernate integration, among other features.
+    </description>
+    <url>http://www.vibur.org</url>
     <inceptionYear>2013</inceptionYear>
 
     <licenses>
@@ -43,9 +46,9 @@
     <!--</parent>-->
 
     <scm>
-        <connection>scm:git:https://code.google.com/p/vibur-dbcp/</connection>
-        <developerConnection>scm:git:https://code.google.com/p/vibur-dbcp/</developerConnection>
-        <url>http://code.google.com/p/vibur-dbcp/source/browse</url>
+        <connection>scm:git:https://github.com/vibur/vibur-dbcp.git/</connection>
+        <developerConnection>scm:git:https://github.com/vibur/vibur-dbcp.git/</developerConnection>
+        <url>https://github.com/vibur/vibur-dbcp/tree/master/</url>
       <tag>HEAD</tag>
   </scm>
 
@@ -69,8 +72,8 @@
     </organization>
 
     <issueManagement>
-        <system>code.google.com</system>
-        <url>http://code.google.com/p/vibur-dbcp/issues</url>
+        <system>https://github.com</system>
+        <url>https://github.com/vibur/vibur-dbcp/issues</url>
     </issueManagement>
 
     <properties>
