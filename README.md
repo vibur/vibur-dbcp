@@ -17,3 +17,4 @@ The project maven coordinates are:
 </dependency>   
 ```
 
+[Originally released](https://raw.githubusercontent.com/vibur/vibur-dbcp/master/CHANGELOG) in July 2013 on code.google.com, the project was migrated to GitHub in March 2015.
