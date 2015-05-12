@@ -21,7 +21,9 @@ import org.vibur.dbcp.cache.ConnMethodDef;
 import org.vibur.dbcp.cache.ReturnVal;
 import org.vibur.dbcp.cache.StatementInvocationCacheProvider;
 import org.vibur.dbcp.jmx.ViburDBCPMonitoring;
+import org.vibur.dbcp.pool.ConnHolder;
 import org.vibur.dbcp.pool.PoolOperations;
+import org.vibur.objectpool.PoolService;
 
 import javax.sql.DataSource;
 import java.io.IOException;
@@ -301,8 +303,9 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
     private void logGetConnection(long timeout, long startTime) {
         long timeTaken = System.currentTimeMillis() - startTime;
         if (timeTaken >= getLogConnectionLongerThanMs()) {
-            StringBuilder log = new StringBuilder(String.format("Call to getConnection(%d) took %d ms.",
-                timeout, timeTaken));
+            PoolService<ConnHolder> pool = getPoolOperations().getPool();
+            StringBuilder log = new StringBuilder(String.format("Call to getConnection(%d) from pool %s (%d/%d) took %d ms.",
+                timeout, getName(), pool.taken(), pool.remainingCreated(), timeTaken));
             if (isLogStackTraceForLongConnection())
                 log.append(NEW_LINE).append(getStackTraceAsString(new Throwable().getStackTrace()));
             logger.warn(log.toString());

@@ -84,6 +84,8 @@ public class  PoolOperations {
     }
 
     private class PoolReducer extends SamplingPoolReducer {
+        private final Logger logger = LoggerFactory.getLogger(PoolReducer.class);
+
         private PoolReducer(PoolService poolService, long timeInterval, TimeUnit unit, int samples) {
             super(poolService, timeInterval, unit, samples);
         }
@@ -95,8 +97,8 @@ public class  PoolOperations {
                 if (!(thrown instanceof ViburDBCPException))
                     terminate();
             } else
-                logger.debug("Pool {}, intended reduction {} actual {}, currently taken {} and remainingCreated {}",
-                        config.getName(), reduction, reduced, pool.taken(), pool.remainingCreated());
+                logger.debug("Pool {} ({}/{}), intended reduction {} actual {}.",
+                        config.getName(), pool.taken(), pool.remainingCreated(), reduction, reduced);
         }
 
         public String toString() {
@@ -161,7 +163,8 @@ public class  PoolOperations {
     }
 
     public void terminate() {
-        poolReducer.terminate();
+        if (poolReducer != null)
+            poolReducer.terminate();
         pool.terminate();
     }
 

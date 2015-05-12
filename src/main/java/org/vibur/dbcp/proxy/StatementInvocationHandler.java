@@ -21,8 +21,11 @@ import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.ViburDBCPConfig;
 import org.vibur.dbcp.cache.ConnMethodDef;
 import org.vibur.dbcp.cache.ReturnVal;
+import org.vibur.dbcp.pool.ConnHolder;
 import org.vibur.dbcp.proxy.listener.ExceptionListener;
+import org.vibur.objectpool.PoolService;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -148,6 +151,17 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
         }
     }
 
+    protected void logTargetInvoke(Method method, Object[] args, InvocationTargetException e) {
+        if (method.getName().startsWith("execute")) {
+            PoolService<ConnHolder> pool = config.getPoolOperations().getPool();
+            StringBuilder log = new StringBuilder(String.format("SQL query execution from pool %s (%d/%d) threw:\n%s",
+                    config.getName(), pool.taken(), pool.remainingCreated(),
+                    toSQLString(getTarget(), args, executeParams)));
+            logger.warn(log.toString(), e);
+        } else
+            super.logTargetInvoke(method, args, e);
+    }
+
     private ResultSet newProxiedResultSet(Statement proxy, Method method, Object[] args) throws Throwable {
         ResultSet rawResultSet = (ResultSet) targetInvoke(method, args);
         return Proxy.newResultSet(rawResultSet, proxy, getExceptionListener());
@@ -156,7 +170,9 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
     private void logQuery(Object[] args, long startTime) {
         long timeTaken = System.currentTimeMillis() - startTime;
         if (timeTaken >= config.getLogQueryExecutionLongerThanMs()) {
-            StringBuilder log = new StringBuilder(String.format("SQL query execution took %d ms:\n%s",
+            PoolService<ConnHolder> pool = config.getPoolOperations().getPool();
+            StringBuilder log = new StringBuilder(String.format("SQL query execution from pool %s (%d/%d) took %d ms:\n%s",
+                    config.getName(), pool.taken(), pool.remainingCreated(),
                     timeTaken, toSQLString(getTarget(), args, executeParams)));
             if (config.isLogStackTraceForLongQueryExecution())
                 log.append(NEW_LINE).append(getStackTraceAsString(new Throwable().getStackTrace()));

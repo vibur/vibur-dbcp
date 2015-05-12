@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.sql.*;
 
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -48,32 +49,32 @@ public class WrapperTest extends AbstractDataSourceTest {
 
             assertTrue(metaData.isWrapperFor(DatabaseMetaData.class));
             DatabaseMetaData md = metaData.unwrap(DatabaseMetaData.class);
-            assertTrue(md instanceof DatabaseMetaData);
+            assertNotNull(md);
             assertNotEquals(md, metaData);
 
             assertTrue(cStatement.isWrapperFor(CallableStatement.class));
             CallableStatement cs = cStatement.unwrap(CallableStatement.class);
-            assertTrue(cs instanceof CallableStatement);
+            assertNotNull(cs);
             assertNotEquals(cs, cStatement);
 
             assertTrue(pStatement.isWrapperFor(PreparedStatement.class));
             PreparedStatement ps = pStatement.unwrap(PreparedStatement.class);
-            assertTrue(ps instanceof PreparedStatement);
+            assertNotNull(ps);
             assertNotEquals(ps, pStatement);
 
             assertTrue(statement.isWrapperFor(Statement.class));
             Statement s = statement.unwrap(Statement.class);
-            assertTrue(s instanceof Statement);
+            assertNotNull(s);
             assertNotEquals(s, statement);
 
             assertTrue(resultSet.isWrapperFor(ResultSet.class));
             ResultSet r = resultSet.unwrap(ResultSet.class);
-            assertTrue(r instanceof ResultSet);
+            assertNotNull(r);
             assertNotEquals(r, resultSet);
 
             assertTrue(connection.isWrapperFor(Connection.class));
             Connection c = connection.unwrap(Connection.class);
-            assertTrue(c instanceof Connection);
+            assertNotNull(c);
             assertNotEquals(c, connection);
         } finally {
             if (resultSet != null) resultSet.close();

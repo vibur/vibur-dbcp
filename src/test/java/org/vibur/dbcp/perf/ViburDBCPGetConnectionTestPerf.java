@@ -42,7 +42,7 @@ public class ViburDBCPGetConnectionTestPerf {
 
     public static void main(String[] args) throws InterruptedException, ViburDBCPException {
 
-        // Creates a DataSource with an INITIAL_SIZE and a MAX_SIZE, and starts THREADS_COUNT threads
+        // Creates a DataSource with an INITIAL_SIZE and a MAX_SIZE, and starts a THREADS_COUNT threads
         // where each thread executes ITERATIONS times the following code:
         //
         //     Connection connection = ds.getConnection();
