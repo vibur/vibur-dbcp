@@ -20,7 +20,7 @@
 
     <groupId>org.vibur</groupId>
     <artifactId>vibur-dbcp</artifactId>
-    <version>1.2.1-SNAPSHOT</version>
+    <version>3.0-SNAPSHOT</version>
     <packaging>bundle</packaging>
 
     <name>Vibur Database Connections Pool</name>
@@ -81,9 +81,9 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <java.version>1.6</java.version>
-        <vibur-object-pool.version>2.0.0</vibur-object-pool.version>
+        <vibur-object-pool.version>3.0</vibur-object-pool.version>
         <slf4j.version>1.7.2</slf4j.version>
-        <concurrentlinkedhashmap-lru.version>1.4</concurrentlinkedhashmap-lru.version>
+        <concurrentlinkedhashmap-lru.version>1.4.2</concurrentlinkedhashmap-lru.version>
 
         <junit.version>4.11</junit.version>
         <mockito-all.version>1.9.5</mockito-all.version>
@@ -102,7 +102,7 @@
         <dependency>
             <groupId>org.vibur</groupId>
             <artifactId>vibur-object-pool</artifactId>
-            <version>${vibur-object-pool.version}</version>
+            <version>3.0-SNAPSHOT</version> <!-- todo... -->
         </dependency>
 
         <dependency>
