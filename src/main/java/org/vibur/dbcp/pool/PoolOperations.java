@@ -23,7 +23,7 @@ import org.vibur.dbcp.ViburDBCPException;
 import org.vibur.dbcp.proxy.Proxy;
 import org.vibur.objectpool.ConcurrentLinkedPool;
 import org.vibur.objectpool.PoolService;
-import org.vibur.objectpool.listener.ListenerImpl;
+import org.vibur.objectpool.listener.TakenListener;
 import org.vibur.objectpool.reducer.SamplingPoolReducer;
 import org.vibur.objectpool.reducer.ThreadedPoolReducer;
 
@@ -73,7 +73,7 @@ public class  PoolOperations {
         this.pool = new ConcurrentLinkedPool<ConnHolder>(connectionFactory,
             config.getPoolInitialSize(), config.getPoolMaxSize(), config.isPoolFair(),
             config.isPoolEnableConnectionTracking() ?
-                new ListenerImpl<ConnHolder>(config.getPoolInitialSize()) : null);
+                new TakenListener<ConnHolder>(config.getPoolInitialSize()) : null);
 
         if (config.getReducerTimeIntervalInSeconds() > 0) {
             this.poolReducer = new PoolReducer(pool,

@@ -21,8 +21,6 @@ package org.vibur.dbcp.util;
  */
 public final class ViburUtils {
 
-    public static final String NEW_LINE = System.getProperty("line.separator");
-
     private ViburUtils() {}
 
     public static String getStackTraceAsString(StackTraceElement[] stackTrace) {
@@ -34,7 +32,7 @@ public final class ViburUtils {
 
         StringBuilder builder = new StringBuilder(4096);
         for ( ; i < stackTrace.length; i++)
-            builder.append("  at ").append(stackTrace[i]).append(NEW_LINE);
+            builder.append("  at ").append(stackTrace[i]).append('\n');
         return builder.toString();
     }
 }

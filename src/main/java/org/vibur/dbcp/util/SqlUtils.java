@@ -40,7 +40,17 @@ public final class SqlUtils {
         } catch (SQLException e) {
             logger.debug("Couldn't close {}", statement);
         } catch (RuntimeException e) {
-            logger.debug("Unexpected exception thrown by the JDBC driver", e);
+            logger.error("Unexpected exception thrown by the JDBC driver", e);
+        }
+    }
+
+    public static void clearWarnings(Statement statement) {
+        try {
+            statement.clearWarnings();
+        } catch (SQLException e) {
+            logger.debug("Couldn't clearWarnings on {}", statement);
+        } catch (RuntimeException e) {
+            logger.error("Unexpected exception thrown by the JDBC driver", e);
         }
     }
 
@@ -50,7 +60,7 @@ public final class SqlUtils {
         } catch (SQLException e) {
             logger.debug("Couldn't close {}", connection);
         } catch (RuntimeException e) {
-            logger.debug("Unexpected exception thrown by the JDBC driver", e);
+            logger.error("Unexpected exception thrown by the JDBC driver", e);
         }
     }
 

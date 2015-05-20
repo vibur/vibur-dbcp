@@ -42,7 +42,6 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.logging.Logger;
 
 import static org.vibur.dbcp.util.SqlUtils.closeStatement;
-import static org.vibur.dbcp.util.ViburUtils.NEW_LINE;
 import static org.vibur.dbcp.util.ViburUtils.getStackTraceAsString;
 
 /**
@@ -227,6 +226,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
         if (getReducerSamples() <= 0) throw new IllegalArgumentException();
         if (getConnectionIdleLimitInSeconds() >= 0 && getTestConnectionQuery() == null)
             throw new IllegalArgumentException();
+        if (getValidateTimeoutInSeconds() < 0) throw new IllegalArgumentException();
 
         if (getPassword() == null) logger.warn("JDBC password is not specified.");
         if (getUsername() == null) logger.warn("JDBC username is not specified.");
@@ -307,7 +307,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
             StringBuilder log = new StringBuilder(String.format("Call to getConnection(%d) from pool %s (%d/%d) took %d ms.",
                 timeout, getName(), pool.taken(), pool.remainingCreated(), timeTaken));
             if (isLogStackTraceForLongConnection())
-                log.append(NEW_LINE).append(getStackTraceAsString(new Throwable().getStackTrace()));
+                log.append('\n').append(getStackTraceAsString(new Throwable().getStackTrace()));
             logger.warn(log.toString());
         }
     }

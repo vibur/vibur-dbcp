@@ -29,7 +29,6 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 
-import static org.vibur.dbcp.util.ViburUtils.NEW_LINE;
 import static org.vibur.dbcp.util.ViburUtils.getStackTraceAsString;
 
 /**
@@ -67,8 +66,16 @@ public class ViburDBCPMonitoring implements ViburDBCPMonitoringMBean {
         return viburDBCPConfig.getConnectionIdleLimitInSeconds();
     }
 
-    public void setConnectionIdleLimitInSeconds(int validateIfIdleForSeconds) {
-        viburDBCPConfig.setConnectionIdleLimitInSeconds(validateIfIdleForSeconds);
+    public void setConnectionIdleLimitInSeconds(int connectionIdleLimitInSeconds) {
+        viburDBCPConfig.setConnectionIdleLimitInSeconds(connectionIdleLimitInSeconds);
+    }
+
+    public int getValidateTimeoutInSeconds() {
+        return viburDBCPConfig.getValidateTimeoutInSeconds();
+    }
+
+    public void setValidateTimeoutInSeconds(int validateTimeoutInSeconds) {
+        viburDBCPConfig.setValidateTimeoutInSeconds(validateTimeoutInSeconds);
     }
 
     public String getTestConnectionQuery() {
@@ -207,6 +214,10 @@ public class ViburDBCPMonitoring implements ViburDBCPMonitoringMBean {
         return viburDBCPConfig.getDefaultCatalog();
     }
 
+    public boolean isClearSQLWarnings() {
+        return viburDBCPConfig.isClearSQLWarnings();
+    }
+
     public String showTakenConnections() {
         if (!viburDBCPConfig.isPoolEnableConnectionTracking())
             return "poolEnableConnectionTracking is disabled.";
@@ -223,8 +234,8 @@ public class ViburDBCPMonitoring implements ViburDBCPMonitoringMBean {
         for (ConnHolder connHolder : connHolders) {
             builder.append(connHolder.value())
                 .append(", taken at: ").append(new Date(connHolder.getTakenTime()))
-                .append(", millis = ").append(connHolder.getTakenTime()).append(NEW_LINE)
-                .append(getStackTraceAsString(connHolder.getStackTrace())).append(NEW_LINE);
+                .append(", millis = ").append(connHolder.getTakenTime()).append('\n')
+                .append(getStackTraceAsString(connHolder.getStackTrace())).append('\n');
         }
         return builder.toString();
     }

@@ -62,8 +62,11 @@ public class ViburDBCPConfig {
      * If set to {@code 0}, will validate the connection always when it is taken from the pool.
      * If set to a negative number, will never validate the taken from the pool connection. */
     private int connectionIdleLimitInSeconds = 15;
+    /** The timeout that will be passed to the call to {@code testConnectionQuery} when a taken
+     * from the pool JDBC Connection is validated before use, or when {@code initSQL} is executed (if specified).
+     * {@code 0} means no limit. */
+    private int validateTimeoutInSeconds = 3;
 
-    public static final int QUERY_TIMEOUT = 5; // in seconds
     public static final String IS_VALID_QUERY = "isValid";
 
     /** Used to test the validity of a JDBC Connection. If the {@code connectionIdleLimitInSeconds} is set to
@@ -71,7 +74,11 @@ public class ViburDBCPConfig {
      * {@code SELECT 1}, or to {@code isValid} in which case the {@code Connection.isValid()} method will be used.
      *
      * <p>Similarly to the spec for {@link java.sql.Connection#isValid(int)}, if a custom {@code testConnectionQuery}
-     * is specified, it will be executed in the context of the current transaction. */
+     * is specified, it will be executed in the context of the current transaction.
+     *
+     * <p> Note that if the driver is JDBC 4 compliant, using the default {@code isValid} value is
+     * <b>strongly preferred</b>, as the driver can often use some ad-hoc and very efficient mechanism via which
+     * to positively verify whether the given JDBC connection is still valid or not. */
     private String testConnectionQuery = IS_VALID_QUERY;
 
     /** An SQL query which will be run only once when a JDBC Connection is first created. This property should be
@@ -184,6 +191,12 @@ public class ViburDBCPConfig {
     private Integer defaultTransactionIsolationValue;
 
 
+    /** If set to {@code true}, will clear the SQL Warnings (if any) from the JDBC Connection before returning it to
+     * the pool. Similarly, if statement caching is enabled, will clear the SQL Warnings from the JDBC Prepared or
+     * Callable Statement before returning it to the statement cache. */
+    private boolean clearSQLWarnings = false;
+
+
     //////////////////////// Getters & Setters ////////////////////////
 
     public String getDriverClassName() {
@@ -232,6 +245,14 @@ public class ViburDBCPConfig {
 
     public void setConnectionIdleLimitInSeconds(int connectionIdleLimitInSeconds) {
         this.connectionIdleLimitInSeconds = connectionIdleLimitInSeconds;
+    }
+
+    public int getValidateTimeoutInSeconds() {
+        return validateTimeoutInSeconds;
+    }
+
+    public void setValidateTimeoutInSeconds(int validateTimeoutInSeconds) {
+        this.validateTimeoutInSeconds = validateTimeoutInSeconds;
     }
 
     public String getTestConnectionQuery() {
@@ -459,6 +480,14 @@ public class ViburDBCPConfig {
 
     public void setDefaultTransactionIsolationValue(Integer defaultTransactionIsolationValue) {
         this.defaultTransactionIsolationValue = defaultTransactionIsolationValue;
+    }
+
+    public boolean isClearSQLWarnings() {
+        return clearSQLWarnings;
+    }
+
+    public void setClearSQLWarnings(boolean clearSQLWarnings) {
+        this.clearSQLWarnings = clearSQLWarnings;
     }
 
     public String toString() {

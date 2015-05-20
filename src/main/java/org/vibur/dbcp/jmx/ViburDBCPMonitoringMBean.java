@@ -34,7 +34,11 @@ public interface ViburDBCPMonitoringMBean {
 
     int getConnectionIdleLimitInSeconds();
 
-    void setConnectionIdleLimitInSeconds(int validateIfIdleForSeconds);
+    void setConnectionIdleLimitInSeconds(int connectionIdleLimitInSeconds);
+
+    int getValidateTimeoutInSeconds();
+
+    void setValidateTimeoutInSeconds(int validateTimeoutInSeconds);
 
     String getTestConnectionQuery();
 
@@ -118,6 +122,8 @@ public interface ViburDBCPMonitoringMBean {
     String getDefaultTransactionIsolation();
 
     String getDefaultCatalog();
+
+    boolean isClearSQLWarnings();
 
 
     //////////// Taken JDBC Connections information ////////////

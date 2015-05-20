@@ -35,6 +35,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static org.vibur.dbcp.util.SqlUtils.clearWarnings;
 import static org.vibur.dbcp.util.SqlUtils.closeConnection;
 import static org.vibur.dbcp.util.SqlUtils.closeStatement;
 
@@ -166,7 +167,7 @@ public class ConnectionFactory implements PoolObjectFactory<ConnHolder>, Version
 
     private boolean validateConnection(Connection connection, String query) throws SQLException {
         if (query.equals(ViburDBCPConfig.IS_VALID_QUERY))
-            return connection.isValid(ViburDBCPConfig.QUERY_TIMEOUT);
+            return connection.isValid(config.getValidateTimeoutInSeconds());
         else
             return executeQuery(connection, query);
     }
@@ -175,7 +176,7 @@ public class ConnectionFactory implements PoolObjectFactory<ConnHolder>, Version
         Statement statement = null;
         try {
             statement = connection.createStatement();
-            statement.setQueryTimeout(ViburDBCPConfig.QUERY_TIMEOUT);
+            statement.setQueryTimeout(config.getValidateTimeoutInSeconds());
             statement.execute(query);
             return true;
         } finally {
@@ -210,23 +211,26 @@ public class ConnectionFactory implements PoolObjectFactory<ConnHolder>, Version
 
     /** {@inheritDoc} */
     public boolean readyToRestore(ConnHolder conn) {
+        Connection rawConnection = conn.value();
         try {
+            if (config.isClearSQLWarnings())
+                rawConnection.clearWarnings();
             if (config.isResetDefaultsAfterUse())
-                setDefaultValues(conn.value());
+                setDefaultValues(rawConnection);
             conn.setRestoredTime(System.currentTimeMillis());
             return true;
         } catch (SQLException ignored) {
-            logger.debug("Couldn't set the default values for " + conn.value(), ignored);
+            logger.debug("Couldn't reset " + rawConnection, ignored);
             return false;
         }
     }
 
     /** {@inheritDoc} */
     public void destroy(ConnHolder conn) {
-        Connection connection = conn.value();
-        logger.trace("Destroying {}", connection);
-        closeStatements(connection);
-        closeConnection(connection);
+        Connection rawConnection = conn.value();
+        logger.trace("Destroying {}", rawConnection);
+        closeStatements(rawConnection);
+        closeConnection(rawConnection);
     }
 
     private void closeStatements(Connection connection) {

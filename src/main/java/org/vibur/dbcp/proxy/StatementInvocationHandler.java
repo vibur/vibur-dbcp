@@ -37,9 +37,9 @@ import java.util.concurrent.ConcurrentMap;
 
 import static org.vibur.dbcp.cache.ReturnVal.AVAILABLE;
 import static org.vibur.dbcp.cache.ReturnVal.IN_USE;
+import static org.vibur.dbcp.util.SqlUtils.clearWarnings;
 import static org.vibur.dbcp.util.SqlUtils.closeStatement;
 import static org.vibur.dbcp.util.SqlUtils.toSQLString;
-import static org.vibur.dbcp.util.ViburUtils.NEW_LINE;
 import static org.vibur.dbcp.util.ViburUtils.getStackTraceAsString;
 
 /**
@@ -100,11 +100,15 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
     private Object processClose() {
         if (getAndSetClosed())
             return null;
+
+        Statement rawStatement = statement.value();
         if (statementCache != null && statement.state() != null) { // if this statement is in the cache
-            if (!statement.state().compareAndSet(IN_USE, AVAILABLE)) // just mark it as available if it was in_use
-                closeStatement(statement.value()); // and close it if it was already evicted
+            if (config.isClearSQLWarnings())
+                clearWarnings(rawStatement);
+            if (!statement.state().compareAndSet(IN_USE, AVAILABLE)) // just mark it as available if its state was in_use
+                closeStatement(rawStatement); // and close it if it was already evicted (while its state was in_use)
         } else
-            closeStatement(statement.value());
+            closeStatement(rawStatement);
         return null;
     }
 
@@ -151,17 +155,6 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
         }
     }
 
-    protected void logTargetInvoke(Method method, Object[] args, InvocationTargetException e) {
-        if (method.getName().startsWith("execute")) {
-            PoolService<ConnHolder> pool = config.getPoolOperations().getPool();
-            StringBuilder log = new StringBuilder(String.format("SQL query execution from pool %s (%d/%d) threw:\n%s",
-                    config.getName(), pool.taken(), pool.remainingCreated(),
-                    toSQLString(getTarget(), args, executeParams)));
-            logger.warn(log.toString(), e);
-        } else
-            super.logTargetInvoke(method, args, e);
-    }
-
     private ResultSet newProxiedResultSet(Statement proxy, Method method, Object[] args) throws Throwable {
         ResultSet rawResultSet = (ResultSet) targetInvoke(method, args);
         return Proxy.newResultSet(rawResultSet, proxy, getExceptionListener());
@@ -170,13 +163,25 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
     private void logQuery(Object[] args, long startTime) {
         long timeTaken = System.currentTimeMillis() - startTime;
         if (timeTaken >= config.getLogQueryExecutionLongerThanMs()) {
-            PoolService<ConnHolder> pool = config.getPoolOperations().getPool();
-            StringBuilder log = new StringBuilder(String.format("SQL query execution from pool %s (%d/%d) took %d ms:\n%s",
-                    config.getName(), pool.taken(), pool.remainingCreated(),
-                    timeTaken, toSQLString(getTarget(), args, executeParams)));
+            StringBuilder message = new StringBuilder(String.format("%s took %d ms:\n%s",
+                    getQueryPrefix(), timeTaken, toSQLString(getTarget(), args, executeParams)));
             if (config.isLogStackTraceForLongQueryExecution())
-                log.append(NEW_LINE).append(getStackTraceAsString(new Throwable().getStackTrace()));
-            logger.warn(log.toString());
+                message.append("\n").append(getStackTraceAsString(new Throwable().getStackTrace()));
+            logger.warn(message.toString());
         }
+    }
+
+    private String getQueryPrefix() {
+        PoolService<ConnHolder> pool = config.getPoolOperations().getPool();
+        return String.format("SQL query execution from pool %s (%d/%d)",
+                config.getName(), pool.taken(), pool.remainingCreated());
+    }
+
+    protected void logTargetInvoke(Method method, Object[] args, InvocationTargetException e) {
+        if (method.getName().startsWith("execute")) {
+            String message = String.format("%s:\n%s", getQueryPrefix(), toSQLString(getTarget(), args, executeParams));
+            logger.warn(message, e);
+        } else
+            super.logTargetInvoke(method, args, e);
     }
 }
