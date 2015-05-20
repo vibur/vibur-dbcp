@@ -67,7 +67,7 @@ public class  PoolOperations {
 
         this.config = config;
         this.criticalSQLStates = new HashSet<String>(Arrays.asList(
-            config.getCriticalSQLStates().replaceAll("\\s","").split(",")));
+            config.getCriticalSQLStates().replaceAll("\\s", "").split(",")));
 
         this.connectionFactory = new ConnectionFactory(config);
         this.pool = new ConcurrentLinkedPool<ConnHolder>(connectionFactory,
