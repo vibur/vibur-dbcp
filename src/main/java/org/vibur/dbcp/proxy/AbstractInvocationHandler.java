@@ -60,7 +60,7 @@ public abstract class AbstractInvocationHandler<T> implements InvocationHandler,
         try {
             return doInvoke((T) proxy, method, args);
         } catch (ViburDBCPException e) {
-            logger.error(String.format("The invocation of %s with args %s on %s threw",
+            logger.error(String.format("The invocation of %s with args %s on %s threw:",
                     method, Arrays.toString(args), target), e);
             Throwable cause = e.getCause();
             if (cause instanceof SQLException)
@@ -106,7 +106,7 @@ public abstract class AbstractInvocationHandler<T> implements InvocationHandler,
     }
 
     protected void logTargetInvoke(Method method, Object[] args, InvocationTargetException e) {
-        logger.warn(String.format("The invocation of %s with args %s on %s threw",
+        logger.warn(String.format("The invocation of %s with args %s on %s threw:",
                 method, Arrays.toString(args), target), e);
     }
 
