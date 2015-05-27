@@ -17,7 +17,7 @@
 package org.vibur.dbcp.proxy;
 
 import org.vibur.dbcp.ViburDBCPConfig;
-import org.vibur.dbcp.cache.ConnMethodDef;
+import org.vibur.dbcp.cache.ConnMethodKey;
 import org.vibur.dbcp.cache.ReturnVal;
 import org.vibur.dbcp.pool.ConnHolder;
 import org.vibur.dbcp.proxy.listener.ExceptionListener;
@@ -41,7 +41,7 @@ public final class Proxy {
     }
 
     public static Statement newStatement(ReturnVal<Statement> statement,
-                                         ConcurrentMap<ConnMethodDef, ReturnVal<Statement>> statementCache,
+                                         ConcurrentMap<ConnMethodKey, ReturnVal<Statement>> statementCache,
                                          Connection connectionProxy, ViburDBCPConfig config,
                                          ExceptionListener exceptionListener) {
         InvocationHandler handler = new StatementInvocationHandler(
@@ -50,7 +50,7 @@ public final class Proxy {
     }
 
     public static PreparedStatement newPreparedStatement(ReturnVal<PreparedStatement> pStatement,
-                                                         ConcurrentMap<ConnMethodDef, ReturnVal<Statement>> statementCache,
+                                                         ConcurrentMap<ConnMethodKey, ReturnVal<Statement>> statementCache,
                                                          Connection connectionProxy, ViburDBCPConfig config,
                                                          ExceptionListener exceptionListener) {
         InvocationHandler handler = new StatementInvocationHandler(
@@ -59,7 +59,7 @@ public final class Proxy {
     }
 
     public static CallableStatement newCallableStatement(ReturnVal<CallableStatement> cStatement,
-                                                         ConcurrentMap<ConnMethodDef, ReturnVal<Statement>> statementCache,
+                                                         ConcurrentMap<ConnMethodKey, ReturnVal<Statement>> statementCache,
                                                          Connection connectionProxy, ViburDBCPConfig config,
                                                          ExceptionListener exceptionListener) {
         InvocationHandler handler = new StatementInvocationHandler(

@@ -19,7 +19,7 @@ package org.vibur.dbcp.proxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.ViburDBCPConfig;
-import org.vibur.dbcp.cache.ConnMethodDef;
+import org.vibur.dbcp.cache.ConnMethodKey;
 import org.vibur.dbcp.cache.ReturnVal;
 import org.vibur.dbcp.pool.ConnHolder;
 import org.vibur.dbcp.proxy.listener.ExceptionListener;
@@ -55,10 +55,10 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
     private final boolean shouldLog;
     private final List<Object[]> executeParams;
 
-    private final ConcurrentMap<ConnMethodDef, ReturnVal<Statement>> statementCache;
+    private final ConcurrentMap<ConnMethodKey, ReturnVal<Statement>> statementCache;
 
     public StatementInvocationHandler(ReturnVal<? extends Statement> statement,
-                                      ConcurrentMap<ConnMethodDef, ReturnVal<Statement>> statementCache,
+                                      ConcurrentMap<ConnMethodKey, ReturnVal<Statement>> statementCache,
                                       Connection connectionProxy, ViburDBCPConfig config,
                                       ExceptionListener exceptionListener) {
         super(statement.value(), connectionProxy, "getConnection", exceptionListener);
@@ -115,7 +115,7 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
     private Object processCancel(Method method, Object[] args) throws Throwable {
         if (statementCache != null) {
             Statement target = getTarget();
-            for (Map.Entry<ConnMethodDef, ReturnVal<Statement>> entry : statementCache.entrySet()) {
+            for (Map.Entry<ConnMethodKey, ReturnVal<Statement>> entry : statementCache.entrySet()) {
                 ReturnVal<Statement> value = entry.getValue();
                 if (value.value() == target) { // comparing with == as these JDBC Statements are cached objects
                     statementCache.remove(entry.getKey(), value);

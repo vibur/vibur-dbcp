@@ -27,7 +27,7 @@ import static org.vibur.dbcp.util.SqlUtils.closeStatement;
 
 /**
  * A concurrent cache provider for JDBC Statement method invocations which maps
- * {@code ConnMethodDef} to {@code ReturnVal<Statement>}, based on ConcurrentLinkedHashMap.
+ * {@code ConnMethodKey} to {@code ReturnVal<Statement>}, based on ConcurrentLinkedHashMap.
  *
  * @author Simeon Malchev
  */
@@ -39,9 +39,9 @@ public class StatementInvocationCacheProvider extends AbstractInvocationCachePro
         super(maxSize);
     }
 
-    protected EvictionListener<ConnMethodDef, ReturnVal<Statement>> getListener() {
-        return new EvictionListener<ConnMethodDef, ReturnVal<Statement>>() {
-            public void onEviction(ConnMethodDef key, ReturnVal<Statement> value) {
+    protected EvictionListener<ConnMethodKey, ReturnVal<Statement>> getListener() {
+        return new EvictionListener<ConnMethodKey, ReturnVal<Statement>>() {
+            public void onEviction(ConnMethodKey key, ReturnVal<Statement> value) {
                 if (value.state().getAndSet(EVICTED) == AVAILABLE)
                     closeStatement(value.value());
                 logger.trace("Evicted {}", value.value());

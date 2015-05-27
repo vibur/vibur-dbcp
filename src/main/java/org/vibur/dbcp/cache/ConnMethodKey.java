@@ -31,13 +31,13 @@ import java.util.Arrays;
  *
  * @author Simeon Malchev
  */
-public class ConnMethodDef {
+public class ConnMethodKey {
 
     private final Connection target;
     private final Method method;
     private final Object[] args;
 
-    public ConnMethodDef(Connection target, Method method, Object[] args) {
+    public ConnMethodKey(Connection target, Method method, Object[] args) {
         if (target == null || method == null)
             throw new NullPointerException();
         this.target = target;
@@ -61,7 +61,7 @@ public class ConnMethodDef {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        ConnMethodDef that = (ConnMethodDef) o;
+        ConnMethodKey that = (ConnMethodKey) o;
         return target == that.target // comparing with == as the JDBC Connections are pooled objects
             && method.equals(that.method)
             && Arrays.equals(args, that.args);

@@ -19,7 +19,7 @@ package org.vibur.dbcp.proxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.ViburDBCPConfig;
-import org.vibur.dbcp.cache.ConnMethodDef;
+import org.vibur.dbcp.cache.ConnMethodKey;
 import org.vibur.dbcp.cache.ReturnVal;
 import org.vibur.dbcp.pool.ConnHolder;
 import org.vibur.dbcp.pool.PoolOperations;
@@ -47,7 +47,7 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
     private final ConnHolder conn;
 
     private final ViburDBCPConfig config;
-    private final ConcurrentMap<ConnMethodDef, ReturnVal<Statement>> statementCache;
+    private final ConcurrentMap<ConnMethodKey, ReturnVal<Statement>> statementCache;
 
     public ConnectionInvocationHandler(ConnHolder conn, ViburDBCPConfig config) {
         super(conn.value(), new ExceptionListenerImpl());
@@ -108,7 +108,7 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
     private ReturnVal<? extends Statement> getCachedStatement(Method method, Object[] args) throws Throwable {
         if (statementCache != null) {
             Connection target = getTarget();
-            ConnMethodDef key = new ConnMethodDef(target, method, args);
+            ConnMethodKey key = new ConnMethodKey(target, method, args);
             ReturnVal<Statement> statement = statementCache.get(key);
             if (statement == null || !statement.state().compareAndSet(AVAILABLE, IN_USE)) {
                 Statement rawStatement = (Statement) targetInvoke(method, args);
