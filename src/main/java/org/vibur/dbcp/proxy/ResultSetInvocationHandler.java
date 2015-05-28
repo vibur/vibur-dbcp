@@ -16,32 +16,68 @@
 
 package org.vibur.dbcp.proxy;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.vibur.dbcp.ViburDBCPConfig;
 import org.vibur.dbcp.proxy.listener.ExceptionListener;
 
 import java.lang.reflect.Method;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static org.vibur.dbcp.util.SqlUtils.getQueryPrefix;
+import static org.vibur.dbcp.util.SqlUtils.toSQLString;
+import static org.vibur.dbcp.util.ViburUtils.getStackTraceAsString;
 
 /**
  * @author Simeon Malchev
  */
 public class ResultSetInvocationHandler extends ChildObjectInvocationHandler<Statement, ResultSet> {
 
-    private final AtomicInteger resultSetSize;
+    private static final Logger logger = LoggerFactory.getLogger(ResultSetInvocationHandler.class);
+
+    private final Object[] executeMethodArgs;
+    private final List<Object[]> queryParams;
+    private final ViburDBCPConfig config;
+
+    private final AtomicInteger resultSetSize = new AtomicInteger(0);
 
     public ResultSetInvocationHandler(ResultSet rawResultSet, Statement statementProxy,
-                                      AtomicInteger resultSetSize, ExceptionListener exceptionListener) {
+                                      Object[] executeMethodArgs, List<Object[]> queryParams,
+                                      ViburDBCPConfig config, ExceptionListener exceptionListener) {
         super(rawResultSet, statementProxy, "getStatement", exceptionListener);
-        this.resultSetSize = resultSetSize;
+        this.executeMethodArgs = executeMethodArgs;
+        this.queryParams = queryParams;
+        this.config = config;
     }
 
     protected Object doInvoke(ResultSet proxy, Method method, Object[] args) throws Throwable {
         String methodName = method.getName();
 
+        if (methodName == "close")
+            return processClose(method, args);
+
+        ensureNotClosed();
+
         if (methodName == "next")
             resultSetSize.incrementAndGet();
 
         return super.doInvoke(proxy, method, args);
+    }
+
+    private Object processClose(Method method, Object[] args) throws Throwable {
+        logResultSetSize();
+        return targetInvoke(method, args);
+    }
+
+    private void logResultSetSize() {
+        StringBuilder message = new StringBuilder(4096).append(
+                String.format("%s retrieved a ResultSet with size %d:\n%s", getQueryPrefix(config),
+                        resultSetSize.get() - 1, toSQLString(getParentProxy(), executeMethodArgs, queryParams)));
+        if (Boolean.TRUE) // todo...
+            message.append("\n").append(getStackTraceAsString(new Throwable().getStackTrace()));
+        logger.warn(message.toString());
     }
 }

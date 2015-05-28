@@ -26,8 +26,8 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.sql.*;
+import java.util.List;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author Simeon Malchev
@@ -76,9 +76,10 @@ public final class Proxy {
     }
 
     public static ResultSet newResultSet(ResultSet rawResultSet, Statement statementProxy,
-                                         AtomicInteger resultSetSize, ExceptionListener exceptionListener) {
+                                         Object[] executeMethodArgs, List<Object[]> queryParams,
+                                         ViburDBCPConfig config, ExceptionListener exceptionListener) {
         InvocationHandler handler = new ResultSetInvocationHandler(
-                rawResultSet, statementProxy, resultSetSize, exceptionListener);
+                rawResultSet, statementProxy, executeMethodArgs, queryParams, config, exceptionListener);
         return (ResultSet) newProxy(resultSetCtor, handler);
     }
 

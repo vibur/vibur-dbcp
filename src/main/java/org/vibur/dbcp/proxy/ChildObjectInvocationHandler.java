@@ -24,8 +24,7 @@ import java.lang.reflect.Method;
 /**
  * @author Simeon Malchev
  */
-public class ChildObjectInvocationHandler<P, T> extends AbstractInvocationHandler<T>
-    implements InvocationHandler {
+public class ChildObjectInvocationHandler<P, T> extends AbstractInvocationHandler<T> implements InvocationHandler {
 
     private final P parentProxy;
     private final String getParentMethod;
@@ -40,11 +39,13 @@ public class ChildObjectInvocationHandler<P, T> extends AbstractInvocationHandle
     }
 
     protected Object doInvoke(T proxy, Method method, Object[] args) throws Throwable {
-        String methodName = method.getName();
-
-        if (methodName == getParentMethod)
+        if (method.getName() == getParentMethod)
             return parentProxy;
 
         return super.doInvoke(proxy, method, args);
+    }
+
+    public P getParentProxy() {
+        return parentProxy;
     }
 }

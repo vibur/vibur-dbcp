@@ -303,8 +303,9 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
         long timeTaken = System.currentTimeMillis() - startTime;
         if (timeTaken >= getLogConnectionLongerThanMs()) {
             PoolService<ConnHolder> pool = getPoolOperations().getPool();
-            StringBuilder log = new StringBuilder(String.format("Call to getConnection(%d) from pool %s (%d/%d) took %d ms.",
-                timeout, getName(), pool.taken(), pool.remainingCreated(), timeTaken));
+            StringBuilder log = new StringBuilder(4096)
+                    .append(String.format("Call to getConnection(%d) from pool %s (%d/%d) took %d ms.",
+                            timeout, getName(), pool.taken(), pool.remainingCreated(), timeTaken));
             if (isLogStackTraceForLongConnection())
                 log.append('\n').append(getStackTraceAsString(new Throwable().getStackTrace()));
             logger.warn(log.toString());

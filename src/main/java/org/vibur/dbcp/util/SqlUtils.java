@@ -17,6 +17,9 @@
 package org.vibur.dbcp.util;
 
 import org.slf4j.LoggerFactory;
+import org.vibur.dbcp.ViburDBCPConfig;
+import org.vibur.dbcp.pool.ConnHolder;
+import org.vibur.objectpool.PoolService;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -64,11 +67,18 @@ public final class SqlUtils {
         }
     }
 
+
     public static String toSQLString(Statement statement, Object[] args, List<Object[]> queryParams) {
-        StringBuilder result = new StringBuilder("-- ").append(statement instanceof PreparedStatement ?
+        StringBuilder result = new StringBuilder(4096).append("-- ").append(statement instanceof PreparedStatement ?
                 statement.toString() : Arrays.toString(args)); // the latter is for simple JDBC Statements
         if (!queryParams.isEmpty())
             result.append("\n-- Parameters:\n-- ").append(Arrays.deepToString(queryParams.toArray()));
         return result.toString();
+    }
+
+    public static String getQueryPrefix(ViburDBCPConfig config) {
+        PoolService<ConnHolder> pool = config.getPoolOperations().getPool();
+        return String.format("SQL query execution from pool %s (%d/%d)",
+                config.getName(), pool.taken(), pool.remainingCreated());
     }
 }

@@ -21,9 +21,7 @@ import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.ViburDBCPConfig;
 import org.vibur.dbcp.cache.ConnMethodKey;
 import org.vibur.dbcp.cache.StatementVal;
-import org.vibur.dbcp.pool.ConnHolder;
 import org.vibur.dbcp.proxy.listener.ExceptionListener;
-import org.vibur.objectpool.PoolService;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -34,7 +32,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.vibur.dbcp.cache.StatementVal.AVAILABLE;
 import static org.vibur.dbcp.cache.StatementVal.IN_USE;
@@ -54,8 +51,6 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
 
     private final boolean logSlowQuery;
     private final List<Object[]> queryParams;
-
-    private final AtomicInteger resultSetSize = new AtomicInteger(0);
 
     public StatementInvocationHandler(StatementVal statement,
                                       ConcurrentMap<ConnMethodKey, StatementVal> statementCache,
@@ -109,8 +104,6 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
                 closeStatement(rawStatement); // and close it if it was already evicted (while its state was in_use)
         } else
             closeStatement(rawStatement);
-
-        logResultSetSize();
         return null;
     }
 
@@ -153,41 +146,31 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
                 return targetInvoke(method, args); // the real "execute..." call
         } finally {
             if (logSlowQuery)
-                logQuery(args, startTime);
+                logQuery(proxy, args, startTime);
         }
     }
 
     private ResultSet newProxiedResultSet(Statement proxy, Method method, Object[] args) throws Throwable {
         ResultSet rawResultSet = (ResultSet) targetInvoke(method, args);
-        return Proxy.newResultSet(rawResultSet, proxy, resultSetSize, getExceptionListener());
+        return Proxy.newResultSet(rawResultSet, proxy, args, queryParams, config, getExceptionListener());
     }
 
 
-    private void logResultSetSize() {
-
-    }
-
-    private void logQuery(Object[] args, long startTime) {
+    private void logQuery(Statement proxy, Object[] args, long startTime) {
         long timeTaken = System.currentTimeMillis() - startTime;
         if (timeTaken >= config.getLogQueryExecutionLongerThanMs()) {
-            StringBuilder message = new StringBuilder(String.format("%s took %d ms:\n%s",
-                    getQueryPrefix(), timeTaken, toSQLString(getTarget(), args, queryParams)));
+            StringBuilder message = new StringBuilder(4096).append(String.format("%s took %d ms:\n%s",
+                    getQueryPrefix(config), timeTaken, toSQLString(proxy, args, queryParams)));
             if (config.isLogStackTraceForLongQueryExecution())
                 message.append("\n").append(getStackTraceAsString(new Throwable().getStackTrace()));
             logger.warn(message.toString());
         }
     }
 
-    private String getQueryPrefix() {
-        PoolService<ConnHolder> pool = config.getPoolOperations().getPool();
-        return String.format("SQL query execution from pool %s (%d/%d)",
-                config.getName(), pool.taken(), pool.remainingCreated());
-    }
-
     protected void logTargetInvoke(Method method, Object[] args, InvocationTargetException e) {
         if (method.getName().startsWith("execute")) {
             String message = String.format("%s:\n%s\n-- threw:",
-                    getQueryPrefix(), toSQLString(getTarget(), args, queryParams));
+                    getQueryPrefix(config), toSQLString(getTarget(), args, queryParams));
             logger.warn(message, e);
         } else
             super.logTargetInvoke(method, args, e);

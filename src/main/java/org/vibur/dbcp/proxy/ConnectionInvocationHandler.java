@@ -40,8 +40,7 @@ import static org.vibur.dbcp.cache.StatementVal.IN_USE;
 /**
  * @author Simeon Malchev
  */
-public class ConnectionInvocationHandler extends AbstractInvocationHandler<Connection>
-    implements InvocationHandler {
+public class ConnectionInvocationHandler extends AbstractInvocationHandler<Connection> implements InvocationHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(ConnectionInvocationHandler.class);
 
