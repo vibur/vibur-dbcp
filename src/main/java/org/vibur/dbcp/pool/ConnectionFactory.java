@@ -22,7 +22,7 @@ import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.ViburDBCPConfig;
 import org.vibur.dbcp.ViburDBCPException;
 import org.vibur.dbcp.cache.ConnMethodKey;
-import org.vibur.dbcp.cache.ReturnVal;
+import org.vibur.dbcp.cache.StatementVal;
 import org.vibur.objectpool.PoolObjectFactory;
 
 import javax.sql.DataSource;
@@ -233,13 +233,13 @@ public class ConnectionFactory implements PoolObjectFactory<ConnHolder>, Version
     }
 
     private void closeStatements(Connection connection) {
-        ConcurrentMap<ConnMethodKey, ReturnVal<Statement>> statementCache = config.getStatementCache();
+        ConcurrentMap<ConnMethodKey, StatementVal> statementCache = config.getStatementCache();
         if (statementCache == null)
             return;
 
-        for (Map.Entry<ConnMethodKey, ReturnVal<Statement>> entry : statementCache.entrySet()) {
+        for (Map.Entry<ConnMethodKey, StatementVal> entry : statementCache.entrySet()) {
             ConnMethodKey key = entry.getKey();
-            ReturnVal<Statement> value = entry.getValue();
+            StatementVal value = entry.getValue();
             if (key.getTarget() == connection && statementCache.remove(key, value))
                 closeStatement(value.value());
         }

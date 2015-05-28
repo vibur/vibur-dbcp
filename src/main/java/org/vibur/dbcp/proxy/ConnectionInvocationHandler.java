@@ -20,20 +20,22 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.ViburDBCPConfig;
 import org.vibur.dbcp.cache.ConnMethodKey;
-import org.vibur.dbcp.cache.ReturnVal;
+import org.vibur.dbcp.cache.StatementVal;
 import org.vibur.dbcp.pool.ConnHolder;
 import org.vibur.dbcp.pool.PoolOperations;
 import org.vibur.dbcp.proxy.listener.ExceptionListenerImpl;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.Statement;
 import java.util.Arrays;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.vibur.dbcp.cache.ReturnVal.AVAILABLE;
-import static org.vibur.dbcp.cache.ReturnVal.IN_USE;
+import static org.vibur.dbcp.cache.StatementVal.AVAILABLE;
+import static org.vibur.dbcp.cache.StatementVal.IN_USE;
 
 /**
  * @author Simeon Malchev
@@ -47,7 +49,7 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
     private final ConnHolder conn;
 
     private final ViburDBCPConfig config;
-    private final ConcurrentMap<ConnMethodKey, ReturnVal<Statement>> statementCache;
+    private final ConcurrentMap<ConnMethodKey, StatementVal> statementCache;
 
     public ConnectionInvocationHandler(ConnHolder conn, ViburDBCPConfig config) {
         super(conn.value(), new ExceptionListenerImpl());
@@ -75,17 +77,15 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
         // Methods which results have to be proxied so that when getConnection() is called
         // on their results the return value to be the current JDBC Connection proxy.
         if (methodName == "createStatement") { // *3
-            ReturnVal<Statement> statement = (ReturnVal<Statement>) getUncachedStatement(method, args);
+            StatementVal statement = getUncachedStatement(method, args);
             return Proxy.newStatement(statement, null, proxy, config, getExceptionListener());
         }
         if (methodName == "prepareStatement") { // *6
-            ReturnVal<PreparedStatement> statement =
-                (ReturnVal<PreparedStatement>) getCachedStatement(method, args);
+            StatementVal statement = getCachedStatement(method, args);
             return Proxy.newPreparedStatement(statement, statementCache, proxy, config, getExceptionListener());
         }
         if (methodName == "prepareCall") { // *3
-            ReturnVal<CallableStatement> statement =
-                (ReturnVal<CallableStatement>) getCachedStatement(method, args);
+            StatementVal statement = getCachedStatement(method, args);
             return Proxy.newCallableStatement(statement, statementCache, proxy, config, getExceptionListener());
         }
         if (methodName == "getMetaData") { // *1
@@ -97,41 +97,40 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
     }
 
     /**
-     * Returns <i>a possible</i> cached Statement object for the proxied Connection object and the invoked on it
-     * Method with args.
+     * Returns <i>a possible</i> cached StatementVal object for the given proxied Connection object and the
+     * invoked on it prepareXYZ Method with the given args.
      *
      * @param method the invoked method
      * @param args the invoked method arguments
-     * @return a Statement object wrapped in a ReturnVal holder
-     * @throws Throwable if the invoked underlying create/prepare Statement method throws an exception
+     * @return a Statement object wrapped in a StatementVal holder
+     * @throws Throwable if the invoked underlying prepareXYZ method throws an exception
      */
-    private ReturnVal<? extends Statement> getCachedStatement(Method method, Object[] args) throws Throwable {
+    private StatementVal getCachedStatement(Method method, Object[] args) throws Throwable {
         if (statementCache != null) {
             Connection target = getTarget();
             ConnMethodKey key = new ConnMethodKey(target, method, args);
-            ReturnVal<Statement> statement = statementCache.get(key);
+            StatementVal statement = statementCache.get(key);
             if (statement == null || !statement.state().compareAndSet(AVAILABLE, IN_USE)) {
                 Statement rawStatement = (Statement) targetInvoke(method, args);
                 if (statement == null) { // there was no entry for the key, so we'll try to put a new one
-                    statement = new ReturnVal<Statement>(rawStatement, new AtomicInteger(IN_USE));
+                    statement = new StatementVal(rawStatement, new AtomicInteger(IN_USE));
                     if (statementCache.putIfAbsent(key, statement) == null)
                         return statement; // the new entry was successfully put in the cache
                 }
-                return new ReturnVal<Statement>(rawStatement, null);
+                return new StatementVal(rawStatement, null);
             } else { // the statement was in the cache and was available
                 if (logger.isTraceEnabled())
                     logger.trace("Using cached statement for connection {}, method {}, args {}",
                         target, method, Arrays.toString(args));
                 return statement;
             }
-        } else {
+        } else
             return getUncachedStatement(method, args);
-        }
     }
 
-    private ReturnVal<? extends Statement> getUncachedStatement(Method method, Object[] args) throws Throwable {
+    private StatementVal getUncachedStatement(Method method, Object[] args) throws Throwable {
         Statement rawStatement = (Statement) targetInvoke(method, args);
-        return new ReturnVal<Statement>(rawStatement, null);
+        return new StatementVal(rawStatement, null);
     }
 
     private Object processCloseOrAbort(boolean aborted, Method method, Object[] args) throws Throwable {

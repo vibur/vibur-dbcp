@@ -18,7 +18,7 @@ package org.vibur.dbcp.proxy;
 
 import org.vibur.dbcp.ViburDBCPConfig;
 import org.vibur.dbcp.cache.ConnMethodKey;
-import org.vibur.dbcp.cache.ReturnVal;
+import org.vibur.dbcp.cache.StatementVal;
 import org.vibur.dbcp.pool.ConnHolder;
 import org.vibur.dbcp.proxy.listener.ExceptionListener;
 
@@ -27,6 +27,7 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.sql.*;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author Simeon Malchev
@@ -40,44 +41,44 @@ public final class Proxy {
         return (Connection) newProxy(connectionCtor, handler);
     }
 
-    public static Statement newStatement(ReturnVal<Statement> statement,
-                                         ConcurrentMap<ConnMethodKey, ReturnVal<Statement>> statementCache,
+    public static Statement newStatement(StatementVal statement,
+                                         ConcurrentMap<ConnMethodKey, StatementVal> statementCache,
                                          Connection connectionProxy, ViburDBCPConfig config,
                                          ExceptionListener exceptionListener) {
         InvocationHandler handler = new StatementInvocationHandler(
-            statement, statementCache,connectionProxy, config, exceptionListener);
+            statement, statementCache, connectionProxy, config, exceptionListener);
         return (Statement) newProxy(statementCtor, handler);
     }
 
-    public static PreparedStatement newPreparedStatement(ReturnVal<PreparedStatement> pStatement,
-                                                         ConcurrentMap<ConnMethodKey, ReturnVal<Statement>> statementCache,
+    public static PreparedStatement newPreparedStatement(StatementVal pStatement,
+                                                         ConcurrentMap<ConnMethodKey, StatementVal> statementCache,
                                                          Connection connectionProxy, ViburDBCPConfig config,
                                                          ExceptionListener exceptionListener) {
         InvocationHandler handler = new StatementInvocationHandler(
-            pStatement, statementCache,connectionProxy, config, exceptionListener);
+            pStatement, statementCache, connectionProxy, config, exceptionListener);
         return (PreparedStatement) newProxy(pStatementCtor, handler);
     }
 
-    public static CallableStatement newCallableStatement(ReturnVal<CallableStatement> cStatement,
-                                                         ConcurrentMap<ConnMethodKey, ReturnVal<Statement>> statementCache,
+    public static CallableStatement newCallableStatement(StatementVal cStatement,
+                                                         ConcurrentMap<ConnMethodKey, StatementVal> statementCache,
                                                          Connection connectionProxy, ViburDBCPConfig config,
                                                          ExceptionListener exceptionListener) {
         InvocationHandler handler = new StatementInvocationHandler(
-            cStatement, statementCache,connectionProxy, config, exceptionListener);
+            cStatement, statementCache, connectionProxy, config, exceptionListener);
         return (CallableStatement) newProxy(cStatementCtor, handler);
     }
 
-    public static DatabaseMetaData newDatabaseMetaData(DatabaseMetaData metaData, Connection connectionProxy,
+    public static DatabaseMetaData newDatabaseMetaData(DatabaseMetaData rawMetaData, Connection connectionProxy,
                                                        ExceptionListener exceptionListener) {
         InvocationHandler handler = new ChildObjectInvocationHandler<Connection, DatabaseMetaData>(
-            metaData, connectionProxy, "getConnection", exceptionListener);
+            rawMetaData, connectionProxy, "getConnection", exceptionListener);
         return (DatabaseMetaData) newProxy(metadataCtor, handler);
     }
 
-    public static ResultSet newResultSet(ResultSet resultSet, Statement statementProxy,
-                                         ExceptionListener exceptionListener) {
-        InvocationHandler handler = new ChildObjectInvocationHandler<Statement, ResultSet>(
-            resultSet, statementProxy, "getStatement", exceptionListener);
+    public static ResultSet newResultSet(ResultSet rawResultSet, Statement statementProxy,
+                                         AtomicInteger resultSetSize, ExceptionListener exceptionListener) {
+        InvocationHandler handler = new ResultSetInvocationHandler(
+                rawResultSet, statementProxy, resultSetSize, exceptionListener);
         return (ResultSet) newProxy(resultSetCtor, handler);
     }
 
@@ -85,13 +86,13 @@ public final class Proxy {
         try {
             return proxyCtor.newInstance(invocationHandler);
         } catch (IllegalArgumentException e) {
-            throw new InternalError(e.toString());
+            throw new Error(e);
         } catch (IllegalAccessException e) {
-            throw new InternalError(e.toString());
+            throw new Error(e);
         } catch (InstantiationException e) {
-            throw new InternalError(e.toString());
+            throw new Error(e);
         } catch (InvocationTargetException e) {
-            throw new InternalError(e.toString());
+            throw new Error(e);
         }
     }
 
@@ -119,7 +120,7 @@ public final class Proxy {
             resultSetCtor = java.lang.reflect.Proxy.getProxyClass(classLoader,
                 ResultSet.class).getConstructor(InvocationHandler.class);
         } catch (NoSuchMethodException e) {
-            throw new InternalError(e.toString());
+            throw new Error(e);
         }
     }
 }

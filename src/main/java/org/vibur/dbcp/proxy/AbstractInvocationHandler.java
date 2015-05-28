@@ -37,7 +37,7 @@ public abstract class AbstractInvocationHandler<T> implements InvocationHandler,
 
     private static final Logger logger = LoggerFactory.getLogger(AbstractInvocationHandler.class);
 
-    /** The real object which we're dynamically proxy-ing.
+    /** The real (raw) object which we're dynamically proxy-ing.
      *  For example, the underlying JDBC Connection, the underlying JDBC Statement, etc. */
     private final T target;
 

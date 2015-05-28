@@ -27,7 +27,7 @@ import java.util.Arrays;
  * cache implementation.
  *
  * @see StatementInvocationCacheProvider
- * @see ReturnVal
+ * @see StatementVal
  *
  * @author Simeon Malchev
  */

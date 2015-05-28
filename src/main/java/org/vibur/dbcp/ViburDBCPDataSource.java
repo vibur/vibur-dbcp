@@ -18,8 +18,8 @@ package org.vibur.dbcp;
 
 import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.cache.ConnMethodKey;
-import org.vibur.dbcp.cache.ReturnVal;
 import org.vibur.dbcp.cache.StatementInvocationCacheProvider;
+import org.vibur.dbcp.cache.StatementVal;
 import org.vibur.dbcp.jmx.ViburDBCPMonitoring;
 import org.vibur.dbcp.pool.ConnHolder;
 import org.vibur.dbcp.pool.PoolOperations;
@@ -35,7 +35,6 @@ import java.net.URLConnection;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
-import java.sql.Statement;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentMap;
@@ -258,10 +257,10 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
     }
 
     private void terminateStatementCache() {
-        ConcurrentMap<ConnMethodKey, ReturnVal<Statement>> statementCache = getStatementCache();
+        ConcurrentMap<ConnMethodKey, StatementVal> statementCache = getStatementCache();
         if (statementCache != null) {
-            for (Map.Entry<ConnMethodKey, ReturnVal<Statement>> entry : statementCache.entrySet()) {
-                ReturnVal<Statement> value = entry.getValue();
+            for (Map.Entry<ConnMethodKey, StatementVal> entry : statementCache.entrySet()) {
+                StatementVal value = entry.getValue();
                 statementCache.remove(entry.getKey(), value);
                 closeStatement(value.value());
             }
@@ -289,13 +288,13 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
      * Mainly exists to provide getConnection() method timing logging.
      */
     private Connection getConnection(long timeout) throws SQLException {
-        boolean shouldLog = getLogConnectionLongerThanMs() >= 0;
-        long startTime = shouldLog ? System.currentTimeMillis() : 0L;
+        boolean logSlowConn = getLogConnectionLongerThanMs() >= 0;
+        long startTime = logSlowConn ? System.currentTimeMillis() : 0L;
 
         try {
             return getPoolOperations().getConnection(timeout);
         } finally {
-            if (shouldLog)
+            if (logSlowConn)
                 logGetConnection(timeout, startTime);
         }
     }

@@ -20,7 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.ViburDBCPConfig;
 import org.vibur.dbcp.cache.ConnMethodKey;
-import org.vibur.dbcp.cache.ReturnVal;
+import org.vibur.dbcp.cache.StatementVal;
 import org.vibur.dbcp.pool.ConnHolder;
 import org.vibur.dbcp.proxy.listener.ExceptionListener;
 import org.vibur.objectpool.PoolService;
@@ -34,12 +34,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.vibur.dbcp.cache.ReturnVal.AVAILABLE;
-import static org.vibur.dbcp.cache.ReturnVal.IN_USE;
-import static org.vibur.dbcp.util.SqlUtils.clearWarnings;
-import static org.vibur.dbcp.util.SqlUtils.closeStatement;
-import static org.vibur.dbcp.util.SqlUtils.toSQLString;
+import static org.vibur.dbcp.cache.StatementVal.AVAILABLE;
+import static org.vibur.dbcp.cache.StatementVal.IN_USE;
+import static org.vibur.dbcp.util.SqlUtils.*;
 import static org.vibur.dbcp.util.ViburUtils.getStackTraceAsString;
 
 /**
@@ -49,16 +48,17 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
 
     private static final Logger logger = LoggerFactory.getLogger(StatementInvocationHandler.class);
 
-    private final ReturnVal<? extends Statement> statement;
+    private final StatementVal statement;
+    private final ConcurrentMap<ConnMethodKey, StatementVal> statementCache;
     private final ViburDBCPConfig config;
 
-    private final boolean shouldLog;
-    private final List<Object[]> executeParams;
+    private final boolean logSlowQuery;
+    private final List<Object[]> queryParams;
 
-    private final ConcurrentMap<ConnMethodKey, ReturnVal<Statement>> statementCache;
+    private final AtomicInteger resultSetSize = new AtomicInteger(0);
 
-    public StatementInvocationHandler(ReturnVal<? extends Statement> statement,
-                                      ConcurrentMap<ConnMethodKey, ReturnVal<Statement>> statementCache,
+    public StatementInvocationHandler(StatementVal statement,
+                                      ConcurrentMap<ConnMethodKey, StatementVal> statementCache,
                                       Connection connectionProxy, ViburDBCPConfig config,
                                       ExceptionListener exceptionListener) {
         super(statement.value(), connectionProxy, "getConnection", exceptionListener);
@@ -67,8 +67,8 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
         this.statement = statement;
         this.statementCache = statementCache;
         this.config = config;
-        this.shouldLog = config.getLogQueryExecutionLongerThanMs() >= 0;
-        this.executeParams = this.shouldLog ? new LinkedList<Object[]>() : null;
+        this.logSlowQuery = config.getLogQueryExecutionLongerThanMs() >= 0;
+        this.queryParams = logSlowQuery ? new LinkedList<Object[]>() : null;
     }
 
     protected Object doInvoke(Statement proxy, Method method, Object[] args) throws Throwable {
@@ -81,9 +81,9 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
 
         ensureNotClosed(); // all other Statement interface methods cannot work if the JDBC Statement is closed
 
-        if (methodName.startsWith("set")) // this intercepts all "set..." JDBC Statements methods
+        if (methodName.startsWith("set")) // this intercepts all "set..." JDBC Prepared/Callable Statement methods
             return processSet(method, args);
-        if (methodName.startsWith("execute")) // this intercepts all "execute..." JDBC Statements methods
+        if (methodName.startsWith("execute")) // this intercepts all "execute..." JDBC Statement methods
             return processExecute(proxy, method, args);
 
         // Methods which results have to be proxied so that when getStatement() is called
@@ -109,14 +109,16 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
                 closeStatement(rawStatement); // and close it if it was already evicted (while its state was in_use)
         } else
             closeStatement(rawStatement);
+
+        logResultSetSize();
         return null;
     }
 
     private Object processCancel(Method method, Object[] args) throws Throwable {
         if (statementCache != null) {
             Statement target = getTarget();
-            for (Map.Entry<ConnMethodKey, ReturnVal<Statement>> entry : statementCache.entrySet()) {
-                ReturnVal<Statement> value = entry.getValue();
+            for (Map.Entry<ConnMethodKey, StatementVal> entry : statementCache.entrySet()) {
+                StatementVal value = entry.getValue();
                 if (value.value() == target) { // comparing with == as these JDBC Statements are cached objects
                     statementCache.remove(entry.getKey(), value);
                     break;
@@ -127,11 +129,11 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
     }
 
     private Object processSet(Method method, Object[] args) throws Throwable {
-        if (shouldLog && args != null && args.length >= 2) {
+        if (logSlowQuery && args != null && args.length >= 2) {
             Object[] params = new Object[args.length + 1];
             params[0] = method.getName();
             System.arraycopy(args, 0, params, 1, args.length);
-            executeParams.add(params);
+            queryParams.add(params);
         }
         return targetInvoke(method, args); // the real "set..." call
     }
@@ -140,7 +142,7 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
      * Mainly exists to provide Statement.execute... methods timing logging.
      */
     private Object processExecute(Statement proxy, Method method, Object[] args) throws Throwable {
-        long startTime = shouldLog ? System.currentTimeMillis() : 0L;
+        long startTime = logSlowQuery ? System.currentTimeMillis() : 0L;
 
         try {
             // executeQuery result has to be proxied so that when getStatement() is called
@@ -150,21 +152,26 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
             else
                 return targetInvoke(method, args); // the real "execute..." call
         } finally {
-            if (shouldLog)
+            if (logSlowQuery)
                 logQuery(args, startTime);
         }
     }
 
     private ResultSet newProxiedResultSet(Statement proxy, Method method, Object[] args) throws Throwable {
         ResultSet rawResultSet = (ResultSet) targetInvoke(method, args);
-        return Proxy.newResultSet(rawResultSet, proxy, getExceptionListener());
+        return Proxy.newResultSet(rawResultSet, proxy, resultSetSize, getExceptionListener());
+    }
+
+
+    private void logResultSetSize() {
+
     }
 
     private void logQuery(Object[] args, long startTime) {
         long timeTaken = System.currentTimeMillis() - startTime;
         if (timeTaken >= config.getLogQueryExecutionLongerThanMs()) {
             StringBuilder message = new StringBuilder(String.format("%s took %d ms:\n%s",
-                    getQueryPrefix(), timeTaken, toSQLString(getTarget(), args, executeParams)));
+                    getQueryPrefix(), timeTaken, toSQLString(getTarget(), args, queryParams)));
             if (config.isLogStackTraceForLongQueryExecution())
                 message.append("\n").append(getStackTraceAsString(new Throwable().getStackTrace()));
             logger.warn(message.toString());
@@ -180,7 +187,7 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
     protected void logTargetInvoke(Method method, Object[] args, InvocationTargetException e) {
         if (method.getName().startsWith("execute")) {
             String message = String.format("%s:\n%s\n-- threw:",
-                    getQueryPrefix(), toSQLString(getTarget(), args, executeParams));
+                    getQueryPrefix(), toSQLString(getTarget(), args, queryParams));
             logger.warn(message, e);
         } else
             super.logTargetInvoke(method, args, e);

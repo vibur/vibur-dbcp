@@ -20,7 +20,7 @@ import java.sql.Connection;
 
 /**
  * The "stateful" object which is held in the object pool. This is just a thin wrapper
- * which allows us to augment the Connection object with useful "state" information
+ * which allows us to augment a raw JDBC {@code Connection} object with useful "state" information,
  * like the Connection last {@code takenTime}, {@code restoredTime} and similar.
  *
  * @author Simeon Malchev

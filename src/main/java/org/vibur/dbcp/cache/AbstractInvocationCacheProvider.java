@@ -23,7 +23,7 @@ import java.util.concurrent.ConcurrentMap;
 
 /**
  * An abstract concurrent cache provider for method invocations, i.e.
- * mapping {@code ConnMethodKey} to {@code ReturnVal<V>}, based on ConcurrentLinkedHashMap.
+ * mapping {@code ConnMethodKey} to {@code StatementVal<V>}, based on ConcurrentLinkedHashMap.
  *
  * @author Simeon Malchev
  */
@@ -46,13 +46,13 @@ public abstract class AbstractInvocationCacheProvider<V> {
      *
      * @return the concurrent cache map
      */
-    public ConcurrentMap<ConnMethodKey, ReturnVal<V>> build() {
-        return new ConcurrentLinkedHashMap.Builder<ConnMethodKey, ReturnVal<V>>()
+    public ConcurrentMap<ConnMethodKey, StatementVal> build() {
+        return new ConcurrentLinkedHashMap.Builder<ConnMethodKey, StatementVal>()
                 .initialCapacity(maxSize)
                 .maximumWeightedCapacity(maxSize)
                 .listener(getListener())
                 .build();
     }
 
-    protected abstract EvictionListener<ConnMethodKey, ReturnVal<V>> getListener();
+    protected abstract EvictionListener<ConnMethodKey, StatementVal> getListener();
 }

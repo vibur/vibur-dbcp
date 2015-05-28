@@ -21,13 +21,13 @@ import org.slf4j.LoggerFactory;
 
 import java.sql.Statement;
 
-import static org.vibur.dbcp.cache.ReturnVal.AVAILABLE;
-import static org.vibur.dbcp.cache.ReturnVal.EVICTED;
+import static org.vibur.dbcp.cache.StatementVal.AVAILABLE;
+import static org.vibur.dbcp.cache.StatementVal.EVICTED;
 import static org.vibur.dbcp.util.SqlUtils.closeStatement;
 
 /**
  * A concurrent cache provider for JDBC Statement method invocations which maps
- * {@code ConnMethodKey} to {@code ReturnVal<Statement>}, based on ConcurrentLinkedHashMap.
+ * {@code ConnMethodKey} to {@code StatementVal<Statement>}, based on ConcurrentLinkedHashMap.
  *
  * @author Simeon Malchev
  */
@@ -39,9 +39,9 @@ public class StatementInvocationCacheProvider extends AbstractInvocationCachePro
         super(maxSize);
     }
 
-    protected EvictionListener<ConnMethodKey, ReturnVal<Statement>> getListener() {
-        return new EvictionListener<ConnMethodKey, ReturnVal<Statement>>() {
-            public void onEviction(ConnMethodKey key, ReturnVal<Statement> value) {
+    protected EvictionListener<ConnMethodKey, StatementVal> getListener() {
+        return new EvictionListener<ConnMethodKey, StatementVal>() {
+            public void onEviction(ConnMethodKey key, StatementVal value) {
                 if (value.state().getAndSet(EVICTED) == AVAILABLE)
                     closeStatement(value.value());
                 logger.trace("Evicted {}", value.value());

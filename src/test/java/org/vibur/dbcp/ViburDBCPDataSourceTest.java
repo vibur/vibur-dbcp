@@ -23,7 +23,7 @@ import org.mockito.Captor;
 import org.mockito.InOrder;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.vibur.dbcp.cache.ConnMethodKey;
-import org.vibur.dbcp.cache.ReturnVal;
+import org.vibur.dbcp.cache.StatementVal;
 
 import javax.sql.DataSource;
 import java.io.IOException;
@@ -36,8 +36,8 @@ import java.util.concurrent.ConcurrentMap;
 import static org.junit.Assert.*;
 import static org.mockito.AdditionalAnswers.delegatesTo;
 import static org.mockito.Mockito.*;
-import static org.vibur.dbcp.cache.ReturnVal.AVAILABLE;
-import static org.vibur.dbcp.cache.ReturnVal.EVICTED;
+import static org.vibur.dbcp.cache.StatementVal.AVAILABLE;
+import static org.vibur.dbcp.cache.StatementVal.EVICTED;
 
 /**
  * JDBC integration tests.
@@ -50,7 +50,7 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
     @Captor
     private ArgumentCaptor<ConnMethodKey> key1, key2;
     @Captor
-    private ArgumentCaptor<ReturnVal<Statement>> val1, val2;
+    private ArgumentCaptor<StatementVal> val1, val2;
 
     @Test
     public void testSelectStatementNoStatementsCache() throws SQLException, IOException {
@@ -84,7 +84,7 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
         ViburDBCPDataSource ds = createDataSourceWithStatementsCache();
         Connection connection = null;
         try {
-            ConcurrentMap<ConnMethodKey, ReturnVal<Statement>> mockedStatementCache =
+            ConcurrentMap<ConnMethodKey, StatementVal> mockedStatementCache =
                 mock(ConcurrentMap.class, delegatesTo(ds.getStatementCache()));
             ds.setStatementCache(mockedStatementCache);
 
@@ -131,7 +131,7 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
         ViburDBCPDataSource ds = createDataSourceWithStatementsCache();
         Connection connection = null;
         try {
-            ConcurrentMap<ConnMethodKey, ReturnVal<Statement>> mockedStatementCache =
+            ConcurrentMap<ConnMethodKey, StatementVal> mockedStatementCache =
                 mock(ConcurrentMap.class, delegatesTo(ds.getStatementCache()));
             ds.setStatementCache(mockedStatementCache);
 
@@ -161,7 +161,7 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
         ViburDBCPDataSource ds = createDataSourceWithStatementsCache();
         Connection connection = null;
         try {
-            ConcurrentMap<ConnMethodKey, ReturnVal<Statement>> mockedStatementCache =
+            ConcurrentMap<ConnMethodKey, StatementVal> mockedStatementCache =
                 mock(ConcurrentMap.class, delegatesTo(ds.getStatementCache()));
             ds.setStatementCache(mockedStatementCache);
 

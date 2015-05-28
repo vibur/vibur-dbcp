@@ -22,9 +22,7 @@ import javax.sql.DataSource;
 import java.io.IOException;
 import java.sql.*;
 
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * @author Simeon Malchev

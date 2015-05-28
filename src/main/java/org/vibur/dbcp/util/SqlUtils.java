@@ -64,11 +64,11 @@ public final class SqlUtils {
         }
     }
 
-    public static String toSQLString(Statement statement, Object[] args, List<Object[]> executeParams) {
+    public static String toSQLString(Statement statement, Object[] args, List<Object[]> queryParams) {
         StringBuilder result = new StringBuilder("-- ").append(statement instanceof PreparedStatement ?
                 statement.toString() : Arrays.toString(args)); // the latter is for simple JDBC Statements
-        if (!executeParams.isEmpty())
-            result.append("\n-- Parameters:\n-- ").append(Arrays.deepToString(executeParams.toArray()));
+        if (!queryParams.isEmpty())
+            result.append("\n-- Parameters:\n-- ").append(Arrays.deepToString(queryParams.toArray()));
         return result.toString();
     }
 }
