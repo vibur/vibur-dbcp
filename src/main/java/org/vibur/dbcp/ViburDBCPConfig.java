@@ -173,8 +173,10 @@ public class ViburDBCPConfig {
      * will log at WARN level the current JDBC Statement {@code execute...} call stack trace. */
     private boolean logStackTraceForLongQueryExecution = false;
     /** The underlying SQL queries (including their concrete parameters) from a JDBC Statement {@code execute...}
-     * calls that generate {@code ResultSets} with length greater than or equal to this limit are logged at
-     * WARN level. A {@code negative number} disables it.
+     * calls that generate ResultSets with length greater than or equal to this limit are logged at
+     * WARN level. A {@code negative number} disables it. Retrieving of a large ResultSet may have negative effect
+     * on the application performance and may sometimes be an indication of a very subtle application bug, where
+     * the whole ResultSet is retrieved, but only the first few records of it are subsequently read and processed.
      *
      * <p> The logging is done at the moment when the application issues a call to the
      * {@code ResultSet.close()} method. Applications that rely on the implicit closure of the {@code ResultSet} when
@@ -182,7 +184,7 @@ public class ViburDBCPConfig {
      *
      * <p> The calculation of the {@code ResultSet} size is done based on the number of calls that the application
      * has issued to the {@code ResultSet.next()} method. In most of the cases this is a very accurate and
-     * non-intrusive method to calculate the {@code ResultSet} size, particularly in the case of a Hibernate
+     * non-intrusive method to calculate the ResultSet size, particularly in the case of a Hibernate
      * or Spring Framework JDBC application. However, this calculation mechanism may give inaccurate results
      * for some advanced application cases which navigate through the {@code ResultSet} with methods such as
      * {@code first()}, {@code last()}, or {@code afterLast()}. */
