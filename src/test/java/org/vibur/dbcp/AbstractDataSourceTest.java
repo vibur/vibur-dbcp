@@ -71,6 +71,7 @@ public abstract class AbstractDataSourceTest {
 
         dataSource.setLogQueryExecutionLongerThanMs(0);
         dataSource.setLogConnectionLongerThanMs(0);
+        dataSource.setLogLargeResultSet(2);
 
         dataSource.setValidateTimeoutInSeconds(1);
         dataSource.setClearSQLWarnings(true);

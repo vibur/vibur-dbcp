@@ -73,10 +73,14 @@ public class ResultSetInvocationHandler extends ChildObjectInvocationHandler<Sta
     }
 
     private void logResultSetSize() {
+        int size = resultSetSize.get() - 1;
+        if (config.getLogLargeResultSet() < 0 || size < 0 || config.getLogLargeResultSet() > size)
+            return;
+
         StringBuilder message = new StringBuilder(4096).append(
                 String.format("%s retrieved a ResultSet with size %d:\n%s", getQueryPrefix(config),
-                        resultSetSize.get() - 1, toSQLString(getParentProxy(), executeMethodArgs, queryParams)));
-        if (Boolean.TRUE) // todo...
+                        size, toSQLString(getParentProxy(), executeMethodArgs, queryParams)));
+        if (config.isLogStackTraceForLargeResultSet())
             message.append("\n").append(getStackTraceAsString(new Throwable().getStackTrace()));
         logger.warn(message.toString());
     }

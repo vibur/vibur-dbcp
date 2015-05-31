@@ -110,6 +110,13 @@ public interface ViburDBCPMonitoringMBean {
 
     void setLogStackTraceForLongQueryExecution(boolean logStackTraceForLongQueryExecution);
 
+    long getLogLargeResultSet();
+
+    void setLogLargeResultSet(long logLargeResultSet);
+
+    boolean isLogStackTraceForLargeResultSet();
+
+    void setLogStackTraceForLargeResultSet(boolean logStackTraceForLargeResultSet);
 
     //////////// JDBC Connection default states ////////////
 

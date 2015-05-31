@@ -194,6 +194,22 @@ public class ViburDBCPMonitoring implements ViburDBCPMonitoringMBean {
         viburDBCPConfig.setLogStackTraceForLongQueryExecution(logStackTraceForLongQueryExecution);
     }
 
+    public long getLogLargeResultSet() {
+        return viburDBCPConfig.getLogLargeResultSet();
+    }
+
+    public void setLogLargeResultSet(long logLargeResultSet) {
+        viburDBCPConfig.setLogLargeResultSet(logLargeResultSet);
+    }
+
+    public boolean isLogStackTraceForLargeResultSet() {
+        return viburDBCPConfig.isLogStackTraceForLargeResultSet();
+    }
+
+    public void setLogStackTraceForLargeResultSet(boolean logStackTraceForLargeResultSet) {
+        viburDBCPConfig.setLogStackTraceForLargeResultSet(logStackTraceForLargeResultSet);
+    }
+
     public boolean isResetDefaultsAfterUse() {
         return viburDBCPConfig.isResetDefaultsAfterUse();
     }

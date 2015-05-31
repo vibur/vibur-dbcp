@@ -158,20 +158,38 @@ public class ViburDBCPConfig {
      * A value of {@code 0} will log all such calls. A {@code negative number} disables it. */
     private long logConnectionLongerThanMs = 3000;
     /** Will apply only if {@link #logConnectionLongerThanMs} is enabled, and if set to {@code true},
-     * will log at WARN level the current {@code getConnection} call stack trace plus the time taken. */
+     * will log at WARN level the current {@code getConnection} call stack trace. */
     private boolean logStackTraceForLongConnection = false;
-    /** JDBC Statement {@code execute...} calls taking longer than or equal to this time limit are logged at
-     * WARN level. A value of {@code 0} will log all such calls. A {@code negative number} disables it.
+    /** The underlying SQL queries (including their concrete parameters) from a JDBC Statement {@code execute...}
+     * calls taking longer than or equal to this time limit are logged at WARN level. A value of {@code 0} will
+     * log all such calls. A {@code negative number} disables it.
      *
      * <p><b>Note that</b> while a JDBC Statement {@code execute...} call duration is roughly equivalent to
      * the execution time of the underlying SQL query, the overall call duration may also include some Java GC
-     * time, JDBC driver specific execution time, and threads context switching time (the last could be significant
-     * if the application has a very large thread count). */
+     * time, JDBC driver specific execution time, and threads context switching time (the last could be
+     * significant if the application has a very large thread count). */
     private long logQueryExecutionLongerThanMs = 3000;
     /** Will apply only if {@link #logQueryExecutionLongerThanMs} is enabled, and if set to {@code true},
-     * will log at WARN level the current JDBC Statement {@code execute...} call stack trace plus the
-     * underlying SQL query and the time taken. */
+     * will log at WARN level the current JDBC Statement {@code execute...} call stack trace. */
     private boolean logStackTraceForLongQueryExecution = false;
+    /** The underlying SQL queries (including their concrete parameters) from a JDBC Statement {@code execute...}
+     * calls that generate {@code ResultSets} with length greater than or equal to this limit are logged at
+     * WARN level. A {@code negative number} disables it.
+     *
+     * <p> The logging is done at the moment when the application issues a call to the
+     * {@code ResultSet.close()} method. Applications that rely on implicitly closing the {@code ResultSet} when
+     * the generated it {@code Statement} is closed, will not be able to benefit from this logging functionality.
+     *
+     * <p> The calculation of the {@code ResultSet} size is done based on the number of calls that the application
+     * has issued to the {@code ResultSet.next()} method. In most of the cases this is a very accurate and
+     * non-intrusive method to calculate the {@code ResultSet} size, particularly in the case of a Hibernate
+     * application. However, this calculation mechanism may give inaccurate results for some advanced application
+     * cases which navigate through the {@code ResultSet} with methods such as {@code first()}, {@code last()},
+     * or {@code afterLast()}. */
+    private long logLargeResultSet = 500;
+    /** Will apply only if {@link #logLargeResultSet} is enabled, and if set to {@code true},
+     * will log at WARN level the current {@code ResultSet.close()} call stack trace. */
+    private boolean logStackTraceForLargeResultSet = false;
 
 
     /** If set to {@code true}, will reset the connection default values below, always after the
@@ -431,6 +449,22 @@ public class ViburDBCPConfig {
 
     public void setLogStackTraceForLongQueryExecution(boolean logStackTraceForLongQueryExecution) {
         this.logStackTraceForLongQueryExecution = logStackTraceForLongQueryExecution;
+    }
+
+    public long getLogLargeResultSet() {
+        return logLargeResultSet;
+    }
+
+    public void setLogLargeResultSet(long logLargeResultSet) {
+        this.logLargeResultSet = logLargeResultSet;
+    }
+
+    public boolean isLogStackTraceForLargeResultSet() {
+        return logStackTraceForLargeResultSet;
+    }
+
+    public void setLogStackTraceForLargeResultSet(boolean logStackTraceForLargeResultSet) {
+        this.logStackTraceForLargeResultSet = logStackTraceForLargeResultSet;
     }
 
     public boolean isResetDefaultsAfterUse() {
