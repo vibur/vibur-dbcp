@@ -25,7 +25,7 @@ import java.lang.reflect.Method;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static org.vibur.dbcp.util.SqlUtils.getQueryPrefix;
 import static org.vibur.dbcp.util.SqlUtils.toSQLString;
@@ -42,7 +42,7 @@ public class ResultSetInvocationHandler extends ChildObjectInvocationHandler<Sta
     private final List<Object[]> queryParams;
     private final ViburDBCPConfig config;
 
-    private final AtomicInteger resultSetSize = new AtomicInteger(0);
+    private final AtomicLong resultSetSize = new AtomicLong(0);
 
     public ResultSetInvocationHandler(ResultSet rawResultSet, Statement statementProxy,
                                       Object[] executeMethodArgs, List<Object[]> queryParams,
@@ -73,7 +73,7 @@ public class ResultSetInvocationHandler extends ChildObjectInvocationHandler<Sta
     }
 
     private void logResultSetSize() {
-        int size = resultSetSize.get() - 1;
+        long size = resultSetSize.get() - 1;
         if (config.getLogLargeResultSet() < 0 || size < 0 || config.getLogLargeResultSet() > size)
             return;
 

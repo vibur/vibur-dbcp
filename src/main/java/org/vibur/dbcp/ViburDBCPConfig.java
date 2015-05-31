@@ -177,15 +177,15 @@ public class ViburDBCPConfig {
      * WARN level. A {@code negative number} disables it.
      *
      * <p> The logging is done at the moment when the application issues a call to the
-     * {@code ResultSet.close()} method. Applications that rely on implicitly closing the {@code ResultSet} when
+     * {@code ResultSet.close()} method. Applications that rely on the implicit closure of the {@code ResultSet} when
      * the generated it {@code Statement} is closed, will not be able to benefit from this logging functionality.
      *
      * <p> The calculation of the {@code ResultSet} size is done based on the number of calls that the application
      * has issued to the {@code ResultSet.next()} method. In most of the cases this is a very accurate and
      * non-intrusive method to calculate the {@code ResultSet} size, particularly in the case of a Hibernate
-     * application. However, this calculation mechanism may give inaccurate results for some advanced application
-     * cases which navigate through the {@code ResultSet} with methods such as {@code first()}, {@code last()},
-     * or {@code afterLast()}. */
+     * or Spring Framework JDBC application. However, this calculation mechanism may give inaccurate results
+     * for some advanced application cases which navigate through the {@code ResultSet} with methods such as
+     * {@code first()}, {@code last()}, or {@code afterLast()}. */
     private long logLargeResultSet = 500;
     /** Will apply only if {@link #logLargeResultSet} is enabled, and if set to {@code true},
      * will log at WARN level the current {@code ResultSet.close()} call stack trace. */
