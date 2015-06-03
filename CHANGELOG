@@ -31,7 +31,7 @@ Version 1.1.0 (02/06/2014)
 * Vibur DBCP is now built and distributed as a valid R4 OSGi bundle.
 * Implemented Hibernate 4.3+ integration (as a separate project).
   PLEASE NOTE that the name of the artifact providing integration for Hibernate 4.0-4.2 has changed.
-  See https://code.google.com/p/vibur-dbcp-hibernate4/ for more details.
+  See http://www.vibur.org/#hibernate-integration-artifacts for more details.
 * Retrofitted Vibur DBCP to use the new version 2.0 of Vibur Object Pool.
 * driverClassName config property was reestablished as an optional config property. This property is
   needed when Vibur DBCP is used in an OSGi container, and may also be helpful when Vibur DBCP is used
