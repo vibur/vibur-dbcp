@@ -1,7 +1,25 @@
+Version 3.0 (03/06/2015)
+========================
+* Implemented logLargeResultSet config option. This option allows SQL queries that have retrieved larger
+  than a given limit ResultSet to be logged, including their concrete parameters, and optionally with
+  the full stack trace of their execution. This option accompanies the logQueryExecutionLongerThanMs option,
+  that logs SQL queries which execution has taken longer than a given time limit, and the
+  logConnectionLongerThanMs option, that logs calls to the getConnection() method which have taken longer
+  than a specified time.
+* Implemented validateTimeoutInSeconds config option. This timeout is passed to the testConnectionQuery
+  (which defaults to Connection.isValid(int)) that is executed when a taken from the pool JDBC Connection
+  needs to be validated before use.
+* Implemented clearSQLWarnings config option.
+* Various logging improvements, including logging the concrete SQL query parameters, in the case when
+  the query execution has thrown an SQL Exception.
+* Various refactoring, and source code simplifications.
+* In order to better convey and suggest the client applications to upgrade when a new project version
+  is out, have migrated the project to single digit version numbers via dropping the 1. version prefix.
+
 Version 1.2.0 (09/07/2014)
 ==========================
 * Reporting of slow SQL queries now includes the concrete queries parameters.
-* Additional work and improvements on JDBC statements caching.
+* Additional work and improvements on JDBC statement caching.
 * Various improvements in logging and exceptions handling.
 
 Version 1.1.1 (15/06/2014)
@@ -11,7 +29,7 @@ Version 1.1.1 (15/06/2014)
 Version 1.1.0 (02/06/2014)
 ==========================
 * Vibur DBCP is now built and distributed as a valid R4 OSGi bundle.
-* Implemented Hibernate 4.3+ integration (into a separate project).
+* Implemented Hibernate 4.3+ integration (as a separate project).
   PLEASE NOTE that the name of the artifact providing integration for Hibernate 4.0-4.2 has changed.
   See https://code.google.com/p/vibur-dbcp-hibernate4/ for more details.
 * Retrofitted Vibur DBCP to use the new version 2.0 of Vibur Object Pool.
@@ -21,7 +39,7 @@ Version 1.1.0 (02/06/2014)
 * JNDI ObjectFactory implemented - see ViburDBCPObjectFactory.java.
 * name (of the DataSource) and enableJMX config properties added.
 * loginTimeout config property added (used for the DriverManager or external DataSource configuration).
-* initSQL config property added (an SQL query which will be executed only once when a JDBC Connection
+* initSQL config property added (an SQL query that will be executed only once when a JDBC Connection
   is first created).
 * criticalSQLStates config property added (advanced).
 * Various other performance optimizations, small improvements and bug fixes.
@@ -32,8 +50,8 @@ Version 1.0.0 (02/02/2014)
 * Allowed for creation of the initial connections in the pool from an existing/external DataSource.
 * Made poolReducer optional - config value of 0 disables it.
 * driverClassName config property was removed as it is not required when using Java 1.6+.
-* Implemented Hibernate4 integration (into a separate project).
-* Externalized Hibernate3 integration into a separate project.
+* Implemented Hibernate4 integration (as a separate project).
+* Externalized the Hibernate3 integration as a separate project.
 
 Version 0.8.3 (15/11/2013)
 ==========================

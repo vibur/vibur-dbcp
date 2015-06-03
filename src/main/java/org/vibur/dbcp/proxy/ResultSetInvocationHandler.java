@@ -62,9 +62,14 @@ public class ResultSetInvocationHandler extends ChildObjectInvocationHandler<Sta
         ensureNotClosed();
 
         if (methodName == "next")
-            resultSetSize.incrementAndGet();
+            return processNext(method, args);
 
         return super.doInvoke(proxy, method, args);
+    }
+
+    private Object processNext(Method method, Object[] args) throws Throwable {
+        resultSetSize.incrementAndGet();
+        return targetInvoke(method, args);
     }
 
     private Object processClose(Method method, Object[] args) throws Throwable {

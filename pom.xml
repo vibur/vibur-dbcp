@@ -117,9 +117,9 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- ConcurrentLinkedHashMap dependency is used for statements caching only,
-             which is disabled by default. If the client's application doesn't
-             enable statements caching, it may safely exclude this dependency. -->
+        <!-- ConcurrentLinkedHashMap dependency is used for JDBC statement caching only,
+             that is disabled by default. If the client's application doesn't
+             enable the statement caching, it may safely exclude this dependency. -->
         <dependency>
             <groupId>com.googlecode.concurrentlinkedhashmap</groupId>
             <artifactId>concurrentlinkedhashmap-lru</artifactId>
@@ -184,9 +184,9 @@
                             javax.management,
                             org.slf4j;version="[${version;===;${slf4j.version}},${version;+;${slf4j.version}})",
                             com.googlecode.concurrentlinkedhashmap;version="[${version;===;${concurrentlinkedhashmap-lru.version}},${version;+;${concurrentlinkedhashmap-lru.version}})";resolution:=optional,
-                            org.vibur.objectpool;version="[${version;===;${vibur-object-pool.version}},${version;=+;${vibur-object-pool.version}})",
-                            org.vibur.objectpool.listener;version="[${version;===;${vibur-object-pool.version}},${version;=+;${vibur-object-pool.version}})",
-                            org.vibur.objectpool.reducer;version="[${version;===;${vibur-object-pool.version}},${version;=+;${vibur-object-pool.version}})"
+                            org.vibur.objectpool;version="[${version;==;${vibur-object-pool.version}},${version;+;${vibur-object-pool.version}})",
+                            org.vibur.objectpool.listener;version="[${version;==;${vibur-object-pool.version}},${version;+;${vibur-object-pool.version}})",
+                            org.vibur.objectpool.reducer;version="[${version;==;${vibur-object-pool.version}},${version;+;${vibur-object-pool.version}})"
                         </Import-Package>
                         <Bundle-SymbolicName>${project.groupId}.${project.artifactId}</Bundle-SymbolicName>
                         <DynamicImport-Package>*</DynamicImport-Package>

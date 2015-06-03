@@ -76,7 +76,7 @@ public class ViburDBCPConfig {
      * is specified, it will be executed in the context of the current transaction.
      *
      * <p> Note that if the driver is JDBC 4 compliant, using the default {@code isValid} value is
-     * <b>strongly preferred</b>, as the driver can often use some ad-hoc and very efficient mechanism via which
+     * <b>strongly recommended</b>, as the driver can often use some ad-hoc and very efficient mechanism via which
      * to positively verify whether the given JDBC connection is still valid or not. */
     private String testConnectionQuery = IS_VALID_QUERY;
 
