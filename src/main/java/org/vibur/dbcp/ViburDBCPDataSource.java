@@ -21,9 +21,7 @@ import org.vibur.dbcp.cache.ConnMethodKey;
 import org.vibur.dbcp.cache.StatementInvocationCacheProvider;
 import org.vibur.dbcp.cache.StatementVal;
 import org.vibur.dbcp.jmx.ViburDBCPMonitoring;
-import org.vibur.dbcp.pool.ConnHolder;
 import org.vibur.dbcp.pool.PoolOperations;
-import org.vibur.objectpool.PoolService;
 
 import javax.sql.DataSource;
 import java.io.IOException;
@@ -40,6 +38,7 @@ import java.util.Properties;
 import java.util.concurrent.ConcurrentMap;
 import java.util.logging.Logger;
 
+import static org.vibur.dbcp.util.FormattingUtils.getPoolName;
 import static org.vibur.dbcp.util.SqlUtils.closeStatement;
 import static org.vibur.dbcp.util.ViburUtils.getStackTraceAsString;
 
@@ -209,7 +208,9 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
         if (oldState == State.NEW) return;
 
         terminateStatementCache();
-        getPoolOperations().terminate();
+        PoolOperations poolOperations = getPoolOperations();
+        if (poolOperations != null)
+            poolOperations.terminate();
 
         logger.info("Terminated {}", this);
     }
@@ -229,6 +230,11 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
 
         if (getPassword() == null) logger.warn("JDBC password is not specified.");
         if (getUsername() == null) logger.warn("JDBC username is not specified.");
+
+        if (getLogConnectionLongerThanMs() > getConnectionTimeoutInMs()) {
+            logger.warn("Setting logConnectionLongerThanMs to " + getConnectionTimeoutInMs());
+            setLogConnectionLongerThanMs(getConnectionTimeoutInMs());
+        }
 
         if (getDefaultTransactionIsolation() != null) {
             String defaultTransactionIsolation = getDefaultTransactionIsolation().toUpperCase();
@@ -291,21 +297,21 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
         boolean logSlowConn = getLogConnectionLongerThanMs() >= 0;
         long startTime = logSlowConn ? System.currentTimeMillis() : 0L;
 
+        Connection connProxy = null;
         try {
-            return getPoolOperations().getConnection(timeout);
+            return connProxy = getPoolOperations().getConnection(timeout);
         } finally {
             if (logSlowConn)
-                logGetConnection(timeout, startTime);
+                logGetConnection(timeout, startTime, connProxy);
         }
     }
 
-    private void logGetConnection(long timeout, long startTime) {
+    private void logGetConnection(long timeout, long startTime, Connection connProxy) {
         long timeTaken = System.currentTimeMillis() - startTime;
         if (timeTaken >= getLogConnectionLongerThanMs()) {
-            PoolService<ConnHolder> pool = getPoolOperations().getPool();
             StringBuilder log = new StringBuilder(4096)
-                    .append(String.format("Call to getConnection(%d) from pool %s (%d/%d) took %d ms.",
-                            timeout, getName(), pool.taken(), pool.remainingCreated(), timeTaken));
+                    .append(String.format("Call to getConnection(%d) from pool %s took %d ms, connProxy = %s",
+                            timeout, getPoolName(this), timeTaken, connProxy));
             if (isLogStackTraceForLongConnection())
                 log.append('\n').append(getStackTraceAsString(new Throwable().getStackTrace()));
             logger.warn(log.toString());

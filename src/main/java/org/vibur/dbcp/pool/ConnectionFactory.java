@@ -23,7 +23,6 @@ import org.vibur.dbcp.ViburDBCPConfig;
 import org.vibur.dbcp.ViburDBCPException;
 import org.vibur.dbcp.cache.ConnMethodKey;
 import org.vibur.dbcp.cache.StatementVal;
-import org.vibur.objectpool.PoolObjectFactory;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
@@ -49,7 +48,7 @@ import static org.vibur.dbcp.util.SqlUtils.closeStatement;
  * @author Simeon Malchev
  * @author Daniel Caldeweyher
  */
-public class ConnectionFactory implements PoolObjectFactory<ConnHolder>, VersionedObject {
+public class ConnectionFactory implements VersionedObjectFactory<ConnHolder> {
 
     private static final Logger logger = LoggerFactory.getLogger(ConnectionFactory.class);
 

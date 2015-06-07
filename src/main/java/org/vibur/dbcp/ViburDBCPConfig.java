@@ -75,7 +75,7 @@ public class ViburDBCPConfig {
      * <p>Similarly to the spec for {@link java.sql.Connection#isValid(int)}, if a custom {@code testConnectionQuery}
      * is specified, it will be executed in the context of the current transaction.
      *
-     * <p> Note that if the driver is JDBC 4 compliant, using the default {@code isValid} value is
+     * <p>Note that if the driver is JDBC 4 compliant, using the default {@code isValid} value is
      * <b>strongly recommended</b>, as the driver can often use some ad-hoc and very efficient mechanism via which
      * to positively verify whether the given JDBC connection is still valid or not. */
     private String testConnectionQuery = IS_VALID_QUERY;
@@ -103,9 +103,9 @@ public class ViburDBCPConfig {
     private static final AtomicInteger idGenerator = new AtomicInteger(1);
     private static final ConcurrentMap<String, Boolean> names = new ConcurrentHashMap<String, Boolean>();
     /** The DataSource name, mostly useful for JMX identification and similar. This {@code name} must be unique
-     * among all names for all configured DataSources. The default name is an auto generated integer id. If the
-     * configured {@code name} is not unique then the default auto generated id will be used instead. */
-    private String name = Integer.toString(idGenerator.getAndIncrement());
+     * among all names for all configured DataSources. The default name is "p" + an auto generated integer id.
+     * If the configured {@code name} is not unique then the default one will be used instead. */
+    private String name = "p" + Integer.toString(idGenerator.getAndIncrement());
 
     /** Enables or disables the DataSource JMX exposure. */
     private boolean enableJMX = true;
@@ -124,7 +124,7 @@ public class ViburDBCPConfig {
     /** Time to wait before a call to {@code getConnection()} times out and returns an error, for the case when
      * there is an available and valid connection in the pool. {@code 0} means forever.
      *
-     * <p> If there is not an available and valid connection in the pool, the total maximum time which the
+     * <p>If there is not an available and valid connection in the pool, the total maximum time which the
      * call to {@code getConnection()} may take before it times out and returns an error can be calculated as: <br>
      * maxTimeoutInMs = connectionTimeoutInMs
      *     + (acquireRetryAttempts + 1) * loginTimeoutInSeconds * 1000
@@ -155,7 +155,10 @@ public class ViburDBCPConfig {
 
 
     /** {@code getConnection} method calls taking longer than or equal to this time limit are logged at WARN level.
-     * A value of {@code 0} will log all such calls. A {@code negative number} disables it. */
+     * A value of {@code 0} will log all such calls. A {@code negative number} disables it.
+     *
+     * <p>If the value of {@code logConnectionLongerThanMs} is greater than {@code connectionTimeoutInMs},
+     * then {@code logConnectionLongerThanMs} will be set to the value of {@code connectionTimeoutInMs}. */
     private long logConnectionLongerThanMs = 3000;
     /** Will apply only if {@link #logConnectionLongerThanMs} is enabled, and if set to {@code true},
      * will log at WARN level the current {@code getConnection} call stack trace. */
@@ -178,11 +181,11 @@ public class ViburDBCPConfig {
      * on the application performance and may sometimes be an indication of a very subtle application bug, where
      * the whole ResultSet is retrieved, but only the first few records of it are subsequently read and processed.
      *
-     * <p> The logging is done at the moment when the application issues a call to the
+     * <p>The logging is done at the moment when the application issues a call to the
      * {@code ResultSet.close()} method. Applications that rely on the implicit closure of the {@code ResultSet} when
      * the generated it {@code Statement} is closed, will not be able to benefit from this logging functionality.
      *
-     * <p> The calculation of the {@code ResultSet} size is done based on the number of calls that the application
+     * <p>The calculation of the {@code ResultSet} size is done based on the number of calls that the application
      * has issued to the {@code ResultSet.next()} method. In most of the cases this is a very accurate and
      * non-intrusive method to calculate the ResultSet size, particularly in the case of a Hibernate
      * or Spring Framework JDBC application. However, this calculation mechanism may give inaccurate results

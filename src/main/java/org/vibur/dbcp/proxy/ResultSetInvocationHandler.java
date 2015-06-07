@@ -27,8 +27,8 @@ import java.sql.Statement;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static org.vibur.dbcp.util.SqlUtils.getQueryPrefix;
-import static org.vibur.dbcp.util.SqlUtils.toSQLString;
+import static org.vibur.dbcp.util.FormattingUtils.getQueryPrefix;
+import static org.vibur.dbcp.util.FormattingUtils.toSQLString;
 import static org.vibur.dbcp.util.ViburUtils.getStackTraceAsString;
 
 /**

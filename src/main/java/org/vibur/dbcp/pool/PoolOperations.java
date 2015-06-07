@@ -24,7 +24,6 @@ import org.vibur.dbcp.proxy.Proxy;
 import org.vibur.objectpool.ConcurrentLinkedPool;
 import org.vibur.objectpool.PoolService;
 import org.vibur.objectpool.listener.TakenListener;
-import org.vibur.objectpool.reducer.SamplingPoolReducer;
 import org.vibur.objectpool.reducer.ThreadedPoolReducer;
 
 import java.sql.Connection;
@@ -50,7 +49,7 @@ public class  PoolOperations {
     private final ViburDBCPConfig config;
     private final Set<String> criticalSQLStates;
 
-    private final ConnectionFactory connectionFactory;
+    private final VersionedObjectFactory<ConnHolder> connectionFactory;
     private final PoolService<ConnHolder> pool;
     private final ThreadedPoolReducer poolReducer;
 
@@ -76,34 +75,10 @@ public class  PoolOperations {
                 new TakenListener<ConnHolder>(config.getPoolInitialSize()) : null);
 
         if (config.getReducerTimeIntervalInSeconds() > 0) {
-            this.poolReducer = new PoolReducer(pool,
-                config.getReducerTimeIntervalInSeconds(), TimeUnit.SECONDS, config.getReducerSamples());
+            this.poolReducer = new PoolReducer(pool, config); // the config still doesn't have a reference to the PoolOperations
             this.poolReducer.start();
         } else
             this.poolReducer = null;
-    }
-
-    private class PoolReducer extends SamplingPoolReducer {
-        private final Logger logger = LoggerFactory.getLogger(PoolReducer.class);
-
-        private PoolReducer(PoolService poolService, long timeInterval, TimeUnit unit, int samples) {
-            super(poolService, timeInterval, unit, samples);
-        }
-
-        protected void afterReduce(int reduction, int reduced, Throwable thrown) {
-            if (thrown != null) {
-                logger.error(String.format("While trying to reduce pool %s by %d elements",
-                        config.getName(), reduction), thrown);
-                if (!(thrown instanceof ViburDBCPException))
-                    terminate();
-            } else
-                logger.debug("Pool {} ({}/{}), intended reduction {} actual {}.",
-                        config.getName(), pool.taken(), pool.remainingCreated(), reduction, reduced);
-        }
-
-        public String toString() {
-            return getClass().getSimpleName() + " for pool " + config.getName();
-        }
     }
 
     public Connection getConnection(long timeout) throws SQLException {

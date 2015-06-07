@@ -35,7 +35,10 @@ import java.util.concurrent.ConcurrentMap;
 
 import static org.vibur.dbcp.cache.StatementVal.AVAILABLE;
 import static org.vibur.dbcp.cache.StatementVal.IN_USE;
-import static org.vibur.dbcp.util.SqlUtils.*;
+import static org.vibur.dbcp.util.FormattingUtils.getQueryPrefix;
+import static org.vibur.dbcp.util.FormattingUtils.toSQLString;
+import static org.vibur.dbcp.util.SqlUtils.clearWarnings;
+import static org.vibur.dbcp.util.SqlUtils.closeStatement;
 import static org.vibur.dbcp.util.ViburUtils.getStackTraceAsString;
 
 /**

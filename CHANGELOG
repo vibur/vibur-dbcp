@@ -6,13 +6,17 @@ Version 3.0 (03/06/2015)
   that logs SQL queries which execution has taken longer than a given time limit, and the
   logConnectionLongerThanMs option, that logs calls to the getConnection() method which have taken longer
   than a specified time.
-* Implemented validateTimeoutInSeconds config option. This timeout is passed to the testConnectionQuery
+* Implemented validateTimeoutInSeconds config option. This timeout value is passed to the testConnectionQuery
   (which defaults to Connection.isValid(int)) that is executed when a taken from the pool JDBC Connection
   needs to be validated before use.
-* Implemented clearSQLWarnings config option.
-* Various logging improvements, including logging the concrete SQL query parameters, in the case when
-  the query execution has thrown an SQL Exception.
-* Various refactoring, and source code simplifications.
+* Implemented clearSQLWarnings config option - controls the clearing of the SQL warnings (if any) from the JDBC
+  Connection or Statement after use.
+* Various logging improvements, including logging of the concrete SQL query parameters, if the underlying
+  query execution has thrown an SQL Exception.
+* Have standardized all important warning messages to include information about the pool name, the number of
+  currently taken from the pool Connections, and the number of remaining created in the pool Connections, in the
+  following format: poolName (taken/remainingCreated).
+* Various refactoring, source code simplifications, and small fixes.
 * In order to better convey and suggest the client applications to upgrade when a new project version
   is out, have migrated the project to single digit version numbers via dropping the 1. version prefix.
 
