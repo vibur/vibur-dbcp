@@ -75,7 +75,7 @@ public class  PoolOperations {
                 new TakenListener<ConnHolder>(config.getPoolInitialSize()) : null);
 
         if (config.getReducerTimeIntervalInSeconds() > 0) {
-            this.poolReducer = new PoolReducer(pool, config); // the config still doesn't have a reference to the PoolOperations
+            this.poolReducer = new PoolReducer(pool, config); // here the config still doesn't have a reference to the PoolOperations
             this.poolReducer.start();
         } else
             this.poolReducer = null;
