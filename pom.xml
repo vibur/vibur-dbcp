@@ -81,7 +81,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <java.version>1.6</java.version>
-        <vibur-object-pool.version>3.0</vibur-object-pool.version>
+        <vibur-object-pool.version>4.0</vibur-object-pool.version>
         <slf4j.version>1.7.2</slf4j.version>
         <concurrentlinkedhashmap-lru.version>1.4.2</concurrentlinkedhashmap-lru.version>
 
