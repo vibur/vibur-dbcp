@@ -35,47 +35,47 @@ public class SimpleDataSource implements DataSource {
         this.jdbcUrl = jdbcUrl;
     }
 
-    /** @inheritDoc */
+    /** {@inheritDoc} */
     public Connection getConnection() throws SQLException {
         return DriverManager.getConnection(jdbcUrl);
     }
 
-    /** @inheritDoc */
+    /** {@inheritDoc} */
     public Connection getConnection(String username, String password) throws SQLException {
         return DriverManager.getConnection(jdbcUrl, username, password);
     }
 
-    /** @inheritDoc */
+    /** {@inheritDoc} */
     public PrintWriter getLogWriter() throws SQLException {
         return DriverManager.getLogWriter();
     }
 
-    /** @inheritDoc */
+    /** {@inheritDoc} */
     public void setLogWriter(PrintWriter out) throws SQLException {
         DriverManager.setLogWriter(out);
     }
 
-    /** @inheritDoc */
+    /** {@inheritDoc} */
     public void setLoginTimeout(int seconds) throws SQLException {
         DriverManager.setLoginTimeout(seconds);
     }
 
-    /** @inheritDoc */
+    /** {@inheritDoc} */
     public int getLoginTimeout() throws SQLException {
         return DriverManager.getLoginTimeout();
     }
 
-    /** @inheritDoc */
+    /** {@inheritDoc} */
     public Logger getParentLogger() throws SQLFeatureNotSupportedException {
         throw new SQLFeatureNotSupportedException();
     }
 
-    /** @inheritDoc */
+    /** {@inheritDoc} */
     public <T> T unwrap(Class<T> iface) throws SQLException {
         throw new SQLFeatureNotSupportedException();
     }
 
-    /** @inheritDoc */
+    /** {@inheritDoc} */
     public boolean isWrapperFor(Class<?> iface) throws SQLException {
         return false;
     }

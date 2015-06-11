@@ -51,7 +51,7 @@ public abstract class AbstractInvocationHandler<T> implements InvocationHandler,
         this.exceptionListener = exceptionListener;
     }
 
-    /** @inheritDoc */
+    /** {@inheritDoc} */
     @SuppressWarnings("unchecked")
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         if (logger.isTraceEnabled())
@@ -110,7 +110,7 @@ public abstract class AbstractInvocationHandler<T> implements InvocationHandler,
                 method, Arrays.toString(args), target), e);
     }
 
-    /** @inheritDoc */
+    /** {@inheritDoc} */
     @SuppressWarnings("unchecked")
     public <T> T unwrap(Class<T> iface) throws SQLException {
         if (isWrapperFor(iface))
@@ -118,7 +118,7 @@ public abstract class AbstractInvocationHandler<T> implements InvocationHandler,
         throw new SQLException("not a wrapper for " + iface);
     }
 
-    /** @inheritDoc */
+    /** {@inheritDoc} */
     public boolean isWrapperFor(Class<?> iface) {
         return iface.isInstance(target);
     }
