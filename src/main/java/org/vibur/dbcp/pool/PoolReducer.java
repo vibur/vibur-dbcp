@@ -48,7 +48,7 @@ public class PoolReducer extends SamplingPoolReducer<ConnHolder> implements Thre
     protected void afterReduce(int reduction, int reduced, Throwable thrown) {
         if (thrown != null) {
             logger.error(String.format("While trying to reduce pool %s by %d elements",
-                    config.getName(), reduction), thrown);
+                    getPoolName(config), reduction), thrown);
             if (!(thrown instanceof ViburDBCPException))
                 terminate();
         } else
