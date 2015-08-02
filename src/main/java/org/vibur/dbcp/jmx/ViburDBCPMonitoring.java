@@ -36,17 +36,17 @@ import static org.vibur.dbcp.util.ViburUtils.getStackTraceAsString;
  */
 public class ViburDBCPMonitoring implements ViburDBCPMonitoringMBean {
 
-    private final ViburDBCPConfig viburDBCPConfig;
+    private final ViburDBCPConfig config;
 
-    public ViburDBCPMonitoring(ViburDBCPConfig viburDBCPConfig) throws ViburDBCPException {
-        this.viburDBCPConfig = viburDBCPConfig;
+    public ViburDBCPMonitoring(ViburDBCPConfig config) throws ViburDBCPException {
+        this.config = config;
         initJMX();
     }
 
     private void initJMX() throws ViburDBCPException {
         try {
             MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
-            ObjectName name = new ObjectName("org.vibur.dbcp:type=ViburDBCP-" + viburDBCPConfig.getName());
+            ObjectName name = new ObjectName("org.vibur.dbcp:type=ViburDBCP-" + config.getName());
             if (!mbs.isRegistered(name))
                 mbs.registerMBean(this, name);
         } catch (JMException e) {
@@ -55,190 +55,190 @@ public class ViburDBCPMonitoring implements ViburDBCPMonitoringMBean {
     }
 
     public String getJdbcUrl() {
-        return viburDBCPConfig.getJdbcUrl();
+        return config.getJdbcUrl();
     }
 
     public String getDriverClassName() {
-        return viburDBCPConfig.getDriverClassName();
+        return config.getDriverClassName();
     }
 
     public int getConnectionIdleLimitInSeconds() {
-        return viburDBCPConfig.getConnectionIdleLimitInSeconds();
+        return config.getConnectionIdleLimitInSeconds();
     }
 
     public void setConnectionIdleLimitInSeconds(int connectionIdleLimitInSeconds) {
-        viburDBCPConfig.setConnectionIdleLimitInSeconds(connectionIdleLimitInSeconds);
+        config.setConnectionIdleLimitInSeconds(connectionIdleLimitInSeconds);
     }
 
     public int getValidateTimeoutInSeconds() {
-        return viburDBCPConfig.getValidateTimeoutInSeconds();
+        return config.getValidateTimeoutInSeconds();
     }
 
     public void setValidateTimeoutInSeconds(int validateTimeoutInSeconds) {
-        viburDBCPConfig.setValidateTimeoutInSeconds(validateTimeoutInSeconds);
+        config.setValidateTimeoutInSeconds(validateTimeoutInSeconds);
     }
 
     public String getTestConnectionQuery() {
-        return viburDBCPConfig.getTestConnectionQuery();
+        return config.getTestConnectionQuery();
     }
 
     public void setTestConnectionQuery(String testConnectionQuery) {
-        viburDBCPConfig.setTestConnectionQuery(testConnectionQuery);
+        config.setTestConnectionQuery(testConnectionQuery);
     }
 
     public String getInitSQL() {
-        return viburDBCPConfig.getInitSQL();
+        return config.getInitSQL();
     }
 
     public void setInitSQL(String initSQL) {
-        viburDBCPConfig.setInitSQL(initSQL);
+        config.setInitSQL(initSQL);
     }
 
     public int getPoolInitialSize() {
-        return viburDBCPConfig.getPoolInitialSize();
+        return config.getPoolInitialSize();
     }
 
     public int getPoolMaxSize() {
-        return viburDBCPConfig.getPoolMaxSize();
+        return config.getPoolMaxSize();
     }
 
     public int getPoolTaken() {
-        return viburDBCPConfig.getPoolOperations().getPool().taken();
+        return config.getPool().taken();
     }
 
     public int getPoolRemainingCreated() {
-        return viburDBCPConfig.getPoolOperations().getPool().remainingCreated();
+        return config.getPool().remainingCreated();
     }
 
     public boolean isPoolFair() {
-        return viburDBCPConfig.isPoolFair();
+        return config.isPoolFair();
     }
 
     public boolean isPoolEnableConnectionTracking() {
-        return viburDBCPConfig.isPoolEnableConnectionTracking();
+        return config.isPoolEnableConnectionTracking();
     }
 
     public int getReducerTimeIntervalInSeconds() {
-        return viburDBCPConfig.getReducerTimeIntervalInSeconds();
+        return config.getReducerTimeIntervalInSeconds();
     }
 
     public int getReducerSamples() {
-        return viburDBCPConfig.getReducerSamples();
+        return config.getReducerSamples();
     }
 
     public long getConnectionTimeoutInMs() {
-        return viburDBCPConfig.getConnectionTimeoutInMs();
+        return config.getConnectionTimeoutInMs();
     }
 
     public void setConnectionTimeoutInMs(long connectionTimeoutInMs) {
-        viburDBCPConfig.setConnectionTimeoutInMs(connectionTimeoutInMs);
+        config.setConnectionTimeoutInMs(connectionTimeoutInMs);
     }
 
     public int getLoginTimeoutInSeconds() {
-        return viburDBCPConfig.getLoginTimeoutInSeconds();
+        return config.getLoginTimeoutInSeconds();
     }
 
     public void setLoginTimeoutInSeconds(int loginTimeoutInSeconds) {
-        viburDBCPConfig.setLoginTimeoutInSeconds(loginTimeoutInSeconds);
+        config.setLoginTimeoutInSeconds(loginTimeoutInSeconds);
     }
 
     public long getAcquireRetryDelayInMs() {
-        return viburDBCPConfig.getAcquireRetryDelayInMs();
+        return config.getAcquireRetryDelayInMs();
     }
 
     public void setAcquireRetryDelayInMs(long acquireRetryDelayInMs) {
-        viburDBCPConfig.setAcquireRetryDelayInMs(acquireRetryDelayInMs);
+        config.setAcquireRetryDelayInMs(acquireRetryDelayInMs);
     }
 
     public int getAcquireRetryAttempts() {
-        return viburDBCPConfig.getAcquireRetryAttempts();
+        return config.getAcquireRetryAttempts();
     }
 
     public void setAcquireRetryAttempts(int acquireRetryAttempts) {
-        viburDBCPConfig.setAcquireRetryAttempts(acquireRetryAttempts);
+        config.setAcquireRetryAttempts(acquireRetryAttempts);
     }
 
     public int getStatementCacheMaxSize() {
-        return viburDBCPConfig.getStatementCacheMaxSize();
+        return config.getStatementCacheMaxSize();
     }
 
     public long getLogConnectionLongerThanMs() {
-        return viburDBCPConfig.getLogConnectionLongerThanMs();
+        return config.getLogConnectionLongerThanMs();
     }
 
     public void setLogConnectionLongerThanMs(long logConnectionLongerThanMs) {
-        viburDBCPConfig.setLogConnectionLongerThanMs(logConnectionLongerThanMs);
+        config.setLogConnectionLongerThanMs(logConnectionLongerThanMs);
     }
 
     public boolean isLogStackTraceForLongConnection() {
-        return viburDBCPConfig.isLogStackTraceForLongConnection();
+        return config.isLogStackTraceForLongConnection();
     }
 
     public void setLogStackTraceForLongConnection(boolean logStackTraceForLongConnection) {
-        viburDBCPConfig.setLogStackTraceForLongConnection(logStackTraceForLongConnection);
+        config.setLogStackTraceForLongConnection(logStackTraceForLongConnection);
     }
 
     public long getLogQueryExecutionLongerThanMs() {
-        return viburDBCPConfig.getLogQueryExecutionLongerThanMs();
+        return config.getLogQueryExecutionLongerThanMs();
     }
 
     public void setLogQueryExecutionLongerThanMs(long logQueryExecutionLongerThanMs) {
-        viburDBCPConfig.setLogQueryExecutionLongerThanMs(logQueryExecutionLongerThanMs);
+        config.setLogQueryExecutionLongerThanMs(logQueryExecutionLongerThanMs);
     }
 
     public boolean isLogStackTraceForLongQueryExecution() {
-        return viburDBCPConfig.isLogStackTraceForLongQueryExecution();
+        return config.isLogStackTraceForLongQueryExecution();
     }
 
     public void setLogStackTraceForLongQueryExecution(boolean logStackTraceForLongQueryExecution) {
-        viburDBCPConfig.setLogStackTraceForLongQueryExecution(logStackTraceForLongQueryExecution);
+        config.setLogStackTraceForLongQueryExecution(logStackTraceForLongQueryExecution);
     }
 
     public long getLogLargeResultSet() {
-        return viburDBCPConfig.getLogLargeResultSet();
+        return config.getLogLargeResultSet();
     }
 
     public void setLogLargeResultSet(long logLargeResultSet) {
-        viburDBCPConfig.setLogLargeResultSet(logLargeResultSet);
+        config.setLogLargeResultSet(logLargeResultSet);
     }
 
     public boolean isLogStackTraceForLargeResultSet() {
-        return viburDBCPConfig.isLogStackTraceForLargeResultSet();
+        return config.isLogStackTraceForLargeResultSet();
     }
 
     public void setLogStackTraceForLargeResultSet(boolean logStackTraceForLargeResultSet) {
-        viburDBCPConfig.setLogStackTraceForLargeResultSet(logStackTraceForLargeResultSet);
+        config.setLogStackTraceForLargeResultSet(logStackTraceForLargeResultSet);
     }
 
     public boolean isResetDefaultsAfterUse() {
-        return viburDBCPConfig.isResetDefaultsAfterUse();
+        return config.isResetDefaultsAfterUse();
     }
 
     public Boolean getDefaultAutoCommit() {
-        return viburDBCPConfig.getDefaultAutoCommit();
+        return config.getDefaultAutoCommit();
     }
 
     public Boolean getDefaultReadOnly() {
-        return viburDBCPConfig.getDefaultReadOnly();
+        return config.getDefaultReadOnly();
     }
 
     public String getDefaultTransactionIsolation() {
-        return viburDBCPConfig.getDefaultTransactionIsolation();
+        return config.getDefaultTransactionIsolation();
     }
 
     public String getDefaultCatalog() {
-        return viburDBCPConfig.getDefaultCatalog();
+        return config.getDefaultCatalog();
     }
 
     public boolean isClearSQLWarnings() {
-        return viburDBCPConfig.isClearSQLWarnings();
+        return config.isClearSQLWarnings();
     }
 
     public String showTakenConnections() {
-        if (!viburDBCPConfig.isPoolEnableConnectionTracking())
+        if (!config.isPoolEnableConnectionTracking())
             return "poolEnableConnectionTracking is disabled.";
 
-        List<ConnHolder> connHolders = viburDBCPConfig.getPoolOperations().getPool().listener().getTaken();
+        List<ConnHolder> connHolders = config.getPool().listener().getTaken();
         Collections.sort(connHolders, new Comparator<ConnHolder>() { // sort newest on top
             public int compare(ConnHolder h1, ConnHolder h2) {
                 long diff = h2.getTakenTime() - h1.getTakenTime();

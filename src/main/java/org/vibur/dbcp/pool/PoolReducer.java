@@ -20,24 +20,30 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.ViburDBCPConfig;
 import org.vibur.dbcp.ViburDBCPException;
-import org.vibur.objectpool.PoolService;
 import org.vibur.objectpool.reducer.SamplingPoolReducer;
 
 import java.util.concurrent.TimeUnit;
 
 import static org.vibur.dbcp.util.FormattingUtils.getPoolName;
 
-class PoolReducer extends SamplingPoolReducer<ConnHolder> {
+
+/**
+ * The pool reducer class - instantiated via reflection.
+ *
+ * @see org.vibur.dbcp.ViburDBCPDataSource
+ */
+public class PoolReducer extends SamplingPoolReducer<ConnHolder> {
 
     private final Logger logger = LoggerFactory.getLogger(PoolReducer.class);
 
     private final ViburDBCPConfig config;
 
-    public PoolReducer(PoolService<ConnHolder> pool, ViburDBCPConfig config) {
-        super(pool, config.getReducerTimeIntervalInSeconds(), TimeUnit.SECONDS, config.getReducerSamples());
+    public PoolReducer(ViburDBCPConfig config) {
+        super(config.getPool(), config.getReducerTimeIntervalInSeconds(), TimeUnit.SECONDS, config.getReducerSamples());
         this.config = config;
     }
 
+    /** {@inheritDoc} */
     protected void afterReduce(int reduction, int reduced, Throwable thrown) {
         if (thrown != null) {
             logger.error(String.format("While trying to reduce pool %s by %d elements",

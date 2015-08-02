@@ -17,12 +17,15 @@
 package org.vibur.dbcp;
 
 /**
- * Defines the {@link ViburDBCPDataSource} lifecycle operations.
+ * Defines the {@link ViburDBCPDataSource} lifecycle operations and states.
  *
  * @author Simeon Malchev
  */
 public interface DataSourceLifecycle {
 
+    /**
+     * The possible states in which the DataSource can be. The transition of the states is NEW->WORKING->TERMINATED.
+     */
     enum State {
         NEW,
         WORKING,
@@ -31,10 +34,11 @@ public interface DataSourceLifecycle {
 
     /**
      * Starts this DataSource. In order to be used, the implementing DataSource has to be
-     * first initialized via call to one of the constructors and then started via call to this method.
+     * first created via calling one of the available constructors and then started via calling this method.
      *
-     * @throws IllegalStateException if not in NEW state when started
-     * @throws IllegalArgumentException if configuration error found during start
+     * @throws IllegalStateException if not in a {@code NEW} state when started
+     * @throws IllegalArgumentException if a configuration error is found during start
+     * @throws ViburDBCPException if cannot start this DataSource successfully
      */
     void start();
 

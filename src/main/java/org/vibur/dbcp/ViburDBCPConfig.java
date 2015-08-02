@@ -21,7 +21,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.cache.ConnMethodKey;
 import org.vibur.dbcp.cache.StatementVal;
+import org.vibur.dbcp.pool.ConnHolder;
 import org.vibur.dbcp.pool.PoolOperations;
+import org.vibur.objectpool.PoolService;
 
 import javax.sql.DataSource;
 import java.util.concurrent.ConcurrentHashMap;
@@ -102,7 +104,7 @@ public class ViburDBCPConfig {
 
     private static final AtomicInteger idGenerator = new AtomicInteger(1);
     private static final ConcurrentMap<String, Boolean> names = new ConcurrentHashMap<String, Boolean>();
-    /** The DataSource name, mostly useful for JMX identification and similar. This {@code name} must be unique
+    /** The DataSource/pool name, mostly useful for JMX identification and similar. This {@code name} must be unique
      * among all names for all configured DataSources. The default name is "p" + an auto generated integer id.
      * If the configured {@code name} is not unique then the default one will be used instead. */
     private String name = "p" + Integer.toString(idGenerator.getAndIncrement());
@@ -110,6 +112,11 @@ public class ViburDBCPConfig {
     /** Enables or disables the DataSource JMX exposure. */
     private boolean enableJMX = true;
 
+
+    /** The fully qualified pool reducer class name. This pool reducer class will be instantiated via reflection.
+     * It must implement the ThreadedPoolReducer interface and must also have a public constructor accepting a
+     * single argument of type ViburDBCPConfig. */
+    private String poolReducerClass = "org.vibur.dbcp.pool.PoolReducer";
 
     /** For more details on the next 2 parameters see {@link org.vibur.objectpool.util.SamplingPoolReducer}.
      */
@@ -147,11 +154,11 @@ public class ViburDBCPConfig {
     private int statementCacheMaxSize = 0;
     private ConcurrentMap<ConnMethodKey, StatementVal> statementCache = null;
 
+
     /** The list of critical SQL states as a comma separated values, see http://stackoverflow.com/a/14412929/1682918 .
      * If an SQL exception which has any of these SQL states is thrown then all connections in the pool will be
      * considered invalid and will be closed. */
     private String criticalSQLStates = "08001,08006,08007,08S01,57P01,57P02,57P03,JZ0C0,JZ0C1";
-    private PoolOperations poolOperations;
 
 
     /** {@code getConnection} method calls taking longer than or equal to this time limit are logged at WARN level.
@@ -217,6 +224,10 @@ public class ViburDBCPConfig {
      * the pool. Similarly, if statement caching is enabled, will clear the SQL Warnings from the JDBC Prepared or
      * Callable Statement before returning it to the statement cache. */
     private boolean clearSQLWarnings = false;
+
+
+    private PoolService<ConnHolder> pool;
+    private PoolOperations poolOperations;
 
 
     //////////////////////// Getters & Setters ////////////////////////
@@ -344,6 +355,14 @@ public class ViburDBCPConfig {
         this.enableJMX = enableJMX;
     }
 
+    public String getPoolReducerClass() {
+        return poolReducerClass;
+    }
+
+    public void setPoolReducerClass(String poolReducerClass) {
+        this.poolReducerClass = poolReducerClass;
+    }
+
     public int getReducerTimeIntervalInSeconds() {
         return reducerTimeIntervalInSeconds;
     }
@@ -414,14 +433,6 @@ public class ViburDBCPConfig {
 
     public void setCriticalSQLStates(String criticalSQLStates) {
         this.criticalSQLStates = criticalSQLStates;
-    }
-
-    public PoolOperations getPoolOperations() {
-        return poolOperations;
-    }
-
-    public void setPoolOperations(PoolOperations poolOperations) {
-        this.poolOperations = poolOperations;
     }
 
     public long getLogConnectionLongerThanMs() {
@@ -526,6 +537,22 @@ public class ViburDBCPConfig {
 
     public void setClearSQLWarnings(boolean clearSQLWarnings) {
         this.clearSQLWarnings = clearSQLWarnings;
+    }
+
+    public PoolService<ConnHolder> getPool() {
+        return pool;
+    }
+
+    public void setPool(PoolService<ConnHolder> pool) {
+        this.pool = pool;
+    }
+
+    public PoolOperations getPoolOperations() {
+        return poolOperations;
+    }
+
+    public void setPoolOperations(PoolOperations poolOperations) {
+        this.poolOperations = poolOperations;
     }
 
     public String toString() {

@@ -42,7 +42,7 @@ public class FormattingUtils {
     }
 
     public static String getPoolName(ViburDBCPConfig config) {
-        PoolService<ConnHolder> pool = config.getPoolOperations().getPool();
+        PoolService<ConnHolder> pool = config.getPool();
         return String.format("%s (%d/%d)", config.getName(), pool.taken(), pool.remainingCreated());
     }
 }

@@ -24,7 +24,6 @@ import org.vibur.dbcp.proxy.listener.ExceptionListener;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.InvocationTargetException;
 import java.sql.*;
 import java.util.List;
 import java.util.concurrent.ConcurrentMap;
@@ -86,13 +85,7 @@ public final class Proxy {
     private static Object newProxy(Constructor<?> proxyCtor, InvocationHandler invocationHandler) {
         try {
             return proxyCtor.newInstance(invocationHandler);
-        } catch (IllegalArgumentException e) {
-            throw new Error(e);
-        } catch (IllegalAccessException e) {
-            throw new Error(e);
-        } catch (InstantiationException e) {
-            throw new Error(e);
-        } catch (InvocationTargetException e) {
+        } catch (ReflectiveOperationException e) {
             throw new Error(e);
         }
     }
@@ -120,7 +113,7 @@ public final class Proxy {
                 DatabaseMetaData.class).getConstructor(InvocationHandler.class);
             resultSetCtor = java.lang.reflect.Proxy.getProxyClass(classLoader,
                 ResultSet.class).getConstructor(InvocationHandler.class);
-        } catch (NoSuchMethodException e) {
+        } catch (ReflectiveOperationException e) {
             throw new Error(e);
         }
     }

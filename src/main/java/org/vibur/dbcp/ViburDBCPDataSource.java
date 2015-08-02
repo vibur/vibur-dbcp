@@ -21,7 +21,14 @@ import org.vibur.dbcp.cache.ConnMethodKey;
 import org.vibur.dbcp.cache.StatementInvocationCacheProvider;
 import org.vibur.dbcp.cache.StatementVal;
 import org.vibur.dbcp.jmx.ViburDBCPMonitoring;
+import org.vibur.dbcp.pool.ConnHolder;
+import org.vibur.dbcp.pool.ConnectionFactory;
 import org.vibur.dbcp.pool.PoolOperations;
+import org.vibur.dbcp.pool.VersionedObjectFactory;
+import org.vibur.objectpool.ConcurrentLinkedPool;
+import org.vibur.objectpool.PoolService;
+import org.vibur.objectpool.listener.TakenListener;
+import org.vibur.objectpool.reducer.ThreadedPoolReducer;
 
 import javax.sql.DataSource;
 import java.io.IOException;
@@ -61,9 +68,12 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
     public static final String DEFAULT_PROPERTIES_CONFIG_FILE_NAME = "vibur-dbcp-config.properties";
     public static final String DEFAULT_XML_CONFIG_FILE_NAME = "vibur-dbcp-config.xml";
 
-    private PrintWriter logWriter = null;
-
     private State state = State.NEW;
+
+    private VersionedObjectFactory<ConnHolder> connectionFactory;
+    private ThreadedPoolReducer poolReducer;
+
+    private PrintWriter logWriter;
 
     /**
      * Default constructor for programmatic configuration via the {@code ViburDBCPConfig}
@@ -183,8 +193,10 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
 
     /**
      * {@inheritDoc}
-
-     * @throws ViburDBCPException if cannot start this DataSource successfully
+     *
+     * @throws ViburDBCPException if cannot start this DataSource successfully, that is, if cannot successfully
+     * initialize/configure the underlying SQL system, or if cannot create the underlying SQL connections,
+     * or if cannot create the configured pool reducer, or if cannot initialize JMX
      */
     public synchronized void start() throws ViburDBCPException {
         if (state != State.NEW)
@@ -193,10 +205,18 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
 
         validateConfig();
 
-        setPoolOperations(new PoolOperations(this));
-        initStatementCache();
+        connectionFactory = new ConnectionFactory(this);
+        PoolService<ConnHolder> pool = new ConcurrentLinkedPool<ConnHolder>(connectionFactory,
+                getPoolInitialSize(), getPoolMaxSize(), isPoolFair(),
+                isPoolEnableConnectionTracking() ? new TakenListener<ConnHolder>(getPoolInitialSize()) : null);
+        setPool(pool);
+        initPoolReducer();
 
+        setPoolOperations(new PoolOperations(this));
+
+        initStatementCache();
         initJMX();
+
         logger.info("Started {}", this);
     }
 
@@ -208,11 +228,17 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
         if (oldState == State.NEW) return;
 
         terminateStatementCache();
-        PoolOperations poolOperations = getPoolOperations();
-        if (poolOperations != null)
-            poolOperations.terminate();
+        if (poolReducer != null)
+            poolReducer.terminate();
+        if (getPool() != null)
+            getPool().terminate();
 
         logger.info("Terminated {}", this);
+    }
+
+    /** {@inheritDoc} */
+    public synchronized State getState() {
+        return state;
     }
 
     private void validateConfig() {
@@ -251,6 +277,22 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
             else
                 logger.warn("Unknown defaultTransactionIsolation {}. Will use the driver's default.",
                     getDefaultTransactionIsolation());
+        }
+    }
+
+    private void initPoolReducer() throws ViburDBCPException {
+        try {
+            if (getReducerTimeIntervalInSeconds() > 0) {
+                Object reducer = Class.forName(getPoolReducerClass()).getConstructor(ViburDBCPConfig.class)
+                        .newInstance(this);
+                if (!(reducer instanceof ThreadedPoolReducer))
+                    throw new ViburDBCPException(getPoolReducerClass() + " is not an instance of ThreadedPoolReducer");
+                poolReducer = (ThreadedPoolReducer) reducer;
+                poolReducer.start();
+            } else
+                poolReducer = null;
+        } catch (ReflectiveOperationException e) {
+            throw new ViburDBCPException(e);
         }
     }
 
@@ -353,8 +395,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
         return false;
     }
 
-    /** {@inheritDoc} */
-    public State getState() {
-        return state;
+    public VersionedObjectFactory<ConnHolder> getConnectionFactory() {
+        return connectionFactory;
     }
 }

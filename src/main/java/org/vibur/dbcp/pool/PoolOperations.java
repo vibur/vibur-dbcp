@@ -19,12 +19,10 @@ package org.vibur.dbcp.pool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.ViburDBCPConfig;
+import org.vibur.dbcp.ViburDBCPDataSource;
 import org.vibur.dbcp.ViburDBCPException;
 import org.vibur.dbcp.proxy.Proxy;
-import org.vibur.objectpool.ConcurrentLinkedPool;
 import org.vibur.objectpool.PoolService;
-import org.vibur.objectpool.listener.TakenListener;
-import org.vibur.objectpool.reducer.ThreadedPoolReducer;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -42,7 +40,7 @@ import java.util.concurrent.TimeUnit;
  *
  * @author Simeon Malchev
  */
-public class  PoolOperations {
+public class PoolOperations {
 
     private static final Logger logger = LoggerFactory.getLogger(PoolOperations.class);
 
@@ -51,34 +49,24 @@ public class  PoolOperations {
 
     private final VersionedObjectFactory<ConnHolder> connectionFactory;
     private final PoolService<ConnHolder> pool;
-    private final ThreadedPoolReducer poolReducer;
+    private final String name;
 
     /**
      * Instantiates this PoolOperations facade.
      *
-     * @param config the ViburDBCPConfig from which will initialize
-     * @throws ViburDBCPException if cannot successfully initialize/configure the underlying SQL system
-     *          or if cannot create the underlying SQL connections
+     * @param dataSource the ViburDBCPDataSource from which we will initialize
      */
-    public PoolOperations(ViburDBCPConfig config) throws ViburDBCPException {
-        if (config == null)
+    public PoolOperations(ViburDBCPDataSource dataSource) throws ViburDBCPException {
+        if (dataSource == null)
             throw new NullPointerException();
 
-        this.config = config;
+        this.config = dataSource;
         this.criticalSQLStates = new HashSet<String>(Arrays.asList(
-            config.getCriticalSQLStates().replaceAll("\\s", "").split(",")));
+                dataSource.getCriticalSQLStates().replaceAll("\\s", "").split(",")));
 
-        this.connectionFactory = new ConnectionFactory(config);
-        this.pool = new ConcurrentLinkedPool<ConnHolder>(connectionFactory,
-            config.getPoolInitialSize(), config.getPoolMaxSize(), config.isPoolFair(),
-            config.isPoolEnableConnectionTracking() ?
-                new TakenListener<ConnHolder>(config.getPoolInitialSize()) : null);
-
-        if (config.getReducerTimeIntervalInSeconds() > 0) {
-            this.poolReducer = new PoolReducer(pool, config); // here the config still doesn't have a reference to the PoolOperations
-            this.poolReducer.start();
-        } else
-            this.poolReducer = null;
+        this.connectionFactory = dataSource.getConnectionFactory();
+        this.pool = dataSource.getPool();
+        this.name = dataSource.getName();
     }
 
     public Connection getConnection(long timeout) throws SQLException {
@@ -97,7 +85,7 @@ public class  PoolOperations {
         ConnHolder conn = timeout == 0 ?
             pool.take() : pool.tryTake(timeout, TimeUnit.MILLISECONDS);
         if (conn == null)
-            throw new SQLException("Couldn't obtain SQL connection from pool " + config.getName());
+            throw new SQLException("Couldn't obtain SQL connection from pool " + name);
         logger.trace("Getting {}", conn.value());
         return Proxy.newConnection(conn, config);
     }
@@ -114,7 +102,7 @@ public class  PoolOperations {
             int destroyed = pool.drainCreated(); // destroys all connections in the pool
             logger.error(String.format(
                 "Critical SQLState %s occurred, destroyed %d connections from pool %s, current connection version is %d.",
-                sqlException.getSQLState(), destroyed, config.getName(), connectionFactory.version()), sqlException);
+                sqlException.getSQLState(), destroyed, name, connectionFactory.version()), sqlException);
         }
         return valid;
     }
@@ -135,15 +123,5 @@ public class  PoolOperations {
         if (criticalSQLStates.contains(sqlException.getSQLState()))
             return true;
         return isCriticalSQLException(sqlException.getNextException());
-    }
-
-    public void terminate() {
-        if (poolReducer != null)
-            poolReducer.terminate();
-        pool.terminate();
-    }
-
-    public PoolService<ConnHolder> getPool() {
-        return pool;
     }
 }

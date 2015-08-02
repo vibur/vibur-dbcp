@@ -86,11 +86,7 @@ public class ConnectionFactory implements VersionedObjectFactory<ConnHolder> {
         if (config.getDriverClassName() != null)
             try {
                 Class.forName(config.getDriverClassName()).newInstance();
-            } catch (ClassNotFoundException e) {
-                throw new ViburDBCPException(e);
-            } catch (InstantiationException e) {
-                throw new ViburDBCPException(e);
-            } catch (IllegalAccessException e) {
+            } catch (ReflectiveOperationException e) {
                 throw new ViburDBCPException(e);
             }
     }
