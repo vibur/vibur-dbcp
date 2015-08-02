@@ -198,10 +198,12 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
      * initialize/configure the underlying SQL system, or if cannot create the underlying SQL connections,
      * or if cannot create the configured pool reducer, or if cannot initialize JMX
      */
-    public synchronized void start() throws ViburDBCPException {
-        if (state != State.NEW)
-            throw new IllegalStateException();
-        state = State.WORKING;
+    public void start() throws ViburDBCPException {
+        synchronized (this) {
+            if (state != State.NEW)
+                throw new IllegalStateException();
+            state = State.WORKING;
+        }
 
         validateConfig();
 
@@ -221,12 +223,14 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
     }
 
     /** {@inheritDoc} */
-    public synchronized void terminate() {
-        if (state == State.TERMINATED) return;
-        State oldState = state;
-        state = State.TERMINATED;
-        if (oldState == State.NEW) return;
-
+    public void terminate() {
+        synchronized (this) {
+            if (state == State.TERMINATED) return;
+            State oldState = state;
+            state = State.TERMINATED;
+            if (oldState == State.NEW) return;
+        }
+        
         terminateStatementCache();
         if (poolReducer != null)
             poolReducer.terminate();
