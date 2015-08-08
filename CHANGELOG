@@ -1,3 +1,10 @@
+Version 4.0 (08/08/2015)
+========================
+* poolReducerClass is now configurable. This is the fully qualified pool reducer class name. This pool reducer
+class will be instantiated via reflection. It must implement the ThreadedPoolReducer interface and must also
+have a public constructor accepting a single argument of type ViburDBCPConfig.
+* Various other refactoring and source code clean-up.
+
 Version 3.0 (03/06/2015)
 ========================
 * Implemented logLargeResultSet config option. This option allows SQL queries that have retrieved larger
