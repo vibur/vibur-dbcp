@@ -24,7 +24,7 @@ package org.vibur.dbcp;
 public interface DataSourceLifecycle {
 
     /**
-     * The possible states in which the DataSource can be. The transition of the states is NEW->WORKING->TERMINATED.
+     * The possible states in which the DataSource can be. The transition of the states is NEW-&gt;WORKING-&gt;TERMINATED.
      */
     enum State {
         NEW,
