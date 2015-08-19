@@ -71,7 +71,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
     private State state = State.NEW;
 
     private VersionedObjectFactory<ConnHolder> connectionFactory;
-    private ThreadedPoolReducer poolReducer;
+    private ThreadedPoolReducer poolReducer = null;
 
     private PrintWriter logWriter;
 
@@ -285,19 +285,17 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
     }
 
     private void initPoolReducer() throws ViburDBCPException {
-        try {
-            if (getReducerTimeIntervalInSeconds() > 0) {
+        if (getReducerTimeIntervalInSeconds() > 0)
+            try {
                 Object reducer = Class.forName(getPoolReducerClass()).getConstructor(ViburDBCPConfig.class)
                         .newInstance(this);
                 if (!(reducer instanceof ThreadedPoolReducer))
                     throw new ViburDBCPException(getPoolReducerClass() + " is not an instance of ThreadedPoolReducer");
                 poolReducer = (ThreadedPoolReducer) reducer;
                 poolReducer.start();
-            } else
-                poolReducer = null;
-        } catch (ReflectiveOperationException e) {
-            throw new ViburDBCPException(e);
-        }
+            } catch (ReflectiveOperationException e) {
+                throw new ViburDBCPException(e);
+            }
     }
 
     private void initStatementCache() {
