@@ -28,9 +28,7 @@ import org.vibur.dbcp.cache.StatementVal;
 import javax.sql.DataSource;
 import java.io.IOException;
 import java.sql.*;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentMap;
 
 import static org.junit.Assert.*;
@@ -62,6 +60,7 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
         } finally {
             if (connection != null) connection.close();
         }
+        assertNotNull(connection);
         assertTrue(connection.isClosed());
     }
 
@@ -75,6 +74,7 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
         } finally {
             if (connection != null) connection.close();
         }
+        assertNotNull(connection);
         assertTrue(connection.isClosed());
     }
 
@@ -96,6 +96,7 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
         } finally {
             if (connection != null) connection.close();
         }
+        assertNotNull(connection);
         assertTrue(connection.isClosed());
     }
 
@@ -109,6 +110,7 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
         } finally {
             if (connection != null) connection.close();
         }
+        assertNotNull(connection);
         assertTrue(connection.isClosed());
     }
 
@@ -122,6 +124,7 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
         } finally {
             if (connection != null) connection.close();
         }
+        assertNotNull(connection);
         assertTrue(connection.isClosed());
     }
 
@@ -152,6 +155,7 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
         } finally {
             if (connection != null) connection.close();
         }
+        assertNotNull(connection);
         assertTrue(connection.isClosed());
     }
 
@@ -186,6 +190,7 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
         } finally {
             if (connection != null) connection.close();
         }
+        assertNotNull(connection);
         assertTrue(connection.isClosed());
     }
 
@@ -209,6 +214,7 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
             if (resultSet != null) resultSet.close();
             if (statement != null) statement.close();
         }
+        assertNotNull(connection);
         assertTrue(statement.isClosed());
     }
 
@@ -233,6 +239,7 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
             if (resultSet != null) resultSet.close();
             if (pStatement != null) pStatement.close();
         }
+        assertNotNull(connection);
         assertTrue(pStatement.isClosed());
     }
 
@@ -245,7 +252,7 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
             pStatement.setString(1, "CROWE");
             resultSet = pStatement.executeQuery();
 
-            Set<String> firstNames = new HashSet<String>(Arrays.asList("SIDNEY"));
+            Set<String> firstNames = new HashSet<String>(Collections.singletonList("SIDNEY"));
             int count = 0;
             while (resultSet.next()) {
                 ++count;
