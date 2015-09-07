@@ -38,7 +38,7 @@ public class ViburDBCPGetConnectionTestPerf {
     // threads metrics:
     private static final int ITERATIONS = 100;
     private static final int THREADS_COUNT = 500;
-    private static final long DO_WORK_FOR_MS = 10;
+    private static final long DO_WORK_FOR_MS = 2;
 
     public static void main(String[] args) throws InterruptedException, ViburDBCPException {
 
@@ -112,10 +112,10 @@ public class ViburDBCPGetConnectionTestPerf {
                         errors.incrementAndGet();
                     }
                 }
-
-                doneSignal.countDown();
             } catch (InterruptedException e) {
                 errors.incrementAndGet();
+            } finally {
+                doneSignal.countDown();
             }
         }
     }
