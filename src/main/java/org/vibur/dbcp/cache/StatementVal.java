@@ -39,8 +39,8 @@ public class StatementVal {
     public static final int IN_USE = 1;
     public static final int EVICTED = 2;
 
-    private final Statement value;
-    private final AtomicInteger state; // a null value means that this StatementVal instance is not put in cache
+    private final Statement value; // the underlying raw JDBC Statement
+    private final AtomicInteger state; // a null value means that this StatementVal instance is not included in the cache
 
     public StatementVal(Statement value, AtomicInteger state) {
         if (value == null)

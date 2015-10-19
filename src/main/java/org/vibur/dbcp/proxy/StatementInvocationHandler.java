@@ -100,7 +100,7 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
             return null;
 
         Statement rawStatement = statement.value();
-        if (statementCache != null && statement.state() != null) { // if this statement is in the cache
+        if (statement.state() != null) { // if this statement is in the cache
             if (config.isClearSQLWarnings())
                 clearWarnings(rawStatement);
             if (!statement.state().compareAndSet(IN_USE, AVAILABLE)) // just mark it as available if its state was in_use

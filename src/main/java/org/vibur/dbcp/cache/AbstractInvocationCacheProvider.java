@@ -23,11 +23,11 @@ import java.util.concurrent.ConcurrentMap;
 
 /**
  * An abstract concurrent cache provider for method invocations, i.e.
- * mapping {@code ConnMethodKey} to {@code StatementVal<V>}, based on ConcurrentLinkedHashMap.
+ * mapping {@code ConnMethodKey} to {@code StatementVal}, based on ConcurrentLinkedHashMap.
  *
  * @author Simeon Malchev
  */
-public abstract class AbstractInvocationCacheProvider<V> {
+public abstract class AbstractInvocationCacheProvider {
 
     private final int maxSize;
 

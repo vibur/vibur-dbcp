@@ -27,11 +27,11 @@ import static org.vibur.dbcp.util.SqlUtils.closeStatement;
 
 /**
  * A concurrent cache provider for JDBC Statement method invocations which maps
- * {@code ConnMethodKey} to {@code StatementVal<Statement>}, based on ConcurrentLinkedHashMap.
+ * {@code ConnMethodKey} to {@code StatementVal}, based on ConcurrentLinkedHashMap.
  *
  * @author Simeon Malchev
  */
-public class StatementInvocationCacheProvider extends AbstractInvocationCacheProvider<Statement> {
+public class StatementInvocationCacheProvider extends AbstractInvocationCacheProvider {
 
     private static final org.slf4j.Logger logger = LoggerFactory.getLogger(StatementInvocationCacheProvider.class);
 

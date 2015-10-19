@@ -27,7 +27,7 @@ import java.sql.Connection;
  */
 public class ConnHolder {
 
-    private final Connection value;
+    private final Connection value; // the underlying raw JDBC Connection
     private final int version;
 
     private long takenTime = -1L;
