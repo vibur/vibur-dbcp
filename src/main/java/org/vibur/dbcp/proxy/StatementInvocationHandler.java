@@ -19,7 +19,7 @@ package org.vibur.dbcp.proxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.ViburDBCPConfig;
-import org.vibur.dbcp.cache.ConnMethodKey;
+import org.vibur.dbcp.cache.StatementCache;
 import org.vibur.dbcp.cache.StatementVal;
 import org.vibur.dbcp.proxy.listener.ExceptionListener;
 
@@ -30,39 +30,32 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentMap;
 
-import static org.vibur.dbcp.cache.StatementVal.AVAILABLE;
-import static org.vibur.dbcp.cache.StatementVal.IN_USE;
 import static org.vibur.dbcp.util.FormattingUtils.getQueryPrefix;
 import static org.vibur.dbcp.util.FormattingUtils.toSQLString;
-import static org.vibur.dbcp.util.SqlUtils.clearWarnings;
-import static org.vibur.dbcp.util.SqlUtils.closeStatement;
 import static org.vibur.dbcp.util.ViburUtils.getStackTraceAsString;
 
 /**
  * @author Simeon Malchev
  */
-public class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection, Statement> {
+public class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection, Statement> implements TargetInvoker {
 
     private static final Logger logger = LoggerFactory.getLogger(StatementInvocationHandler.class);
 
-    private final StatementVal statement;
-    private final ConcurrentMap<ConnMethodKey, StatementVal> statementCache;
+    private final StatementVal statementVal;
+    private final StatementCache statementCache;
     private final ViburDBCPConfig config;
 
     private final boolean logSlowQuery;
     private final List<Object[]> queryParams;
 
-    public StatementInvocationHandler(StatementVal statement,
-                                      ConcurrentMap<ConnMethodKey, StatementVal> statementCache,
+    public StatementInvocationHandler(StatementVal statementVal, StatementCache statementCache,
                                       Connection connectionProxy, ViburDBCPConfig config,
                                       ExceptionListener exceptionListener) {
-        super(statement.value(), connectionProxy, "getConnection", exceptionListener);
+        super(statementVal.value(), connectionProxy, "getConnection", exceptionListener);
         if (config == null)
             throw new NullPointerException();
-        this.statement = statement;
+        this.statementVal = statementVal;
         this.statementCache = statementCache;
         this.config = config;
         this.logSlowQuery = config.getLogQueryExecutionLongerThanMs() >= 0;
@@ -99,28 +92,15 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
         if (getAndSetClosed())
             return null;
 
-        Statement rawStatement = statement.value();
-        if (statement.state() != null) { // if this statement is in the cache
-            if (config.isClearSQLWarnings())
-                clearWarnings(rawStatement);
-            if (!statement.state().compareAndSet(IN_USE, AVAILABLE)) // just mark it as available if its state was in_use
-                closeStatement(rawStatement); // and close it if it was already evicted (while its state was in_use)
-        } else
-            closeStatement(rawStatement);
+        if (statementCache != null)
+            statementCache.restore(statementVal, config.isClearSQLWarnings());
         return null;
     }
 
     private Object processCancel(Method method, Object[] args) throws Throwable {
-        if (statementCache != null) {
-            Statement target = getTarget();
-            for (Map.Entry<ConnMethodKey, StatementVal> entry : statementCache.entrySet()) {
-                StatementVal value = entry.getValue();
-                if (value.value() == target) { // comparing with == as these JDBC Statements are cached objects
-                    statementCache.remove(entry.getKey(), value);
-                    break;
-                }
-            }
-        }
+        if (statementCache != null)
+            statementCache.remove(getTarget(), false);
+
         return targetInvoke(method, args);
     }
 

@@ -21,19 +21,17 @@ import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.ViburDBCPException;
 import org.vibur.dbcp.proxy.listener.ExceptionListener;
 
-import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.sql.SQLException;
 import java.sql.SQLTransientException;
-import java.sql.Wrapper;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
 * @author Simeon Malchev
 */
-public abstract class AbstractInvocationHandler<T> implements InvocationHandler, Wrapper {
+public abstract class AbstractInvocationHandler<T> implements TargetInvoker {
 
     private static final Logger logger = LoggerFactory.getLogger(AbstractInvocationHandler.class);
 
@@ -89,7 +87,8 @@ public abstract class AbstractInvocationHandler<T> implements InvocationHandler,
         return targetInvoke(method, args);
     }
 
-    protected Object targetInvoke(Method method, Object[] args) throws Throwable {
+    /** {@inheritDoc} */
+    public Object targetInvoke(Method method, Object[] args) throws Throwable {
         try {
             return method.invoke(target, args);  // the real method call on the real underlying (proxied) object
         } catch (InvocationTargetException e) {
@@ -111,10 +110,9 @@ public abstract class AbstractInvocationHandler<T> implements InvocationHandler,
     }
 
     /** {@inheritDoc} */
-    @SuppressWarnings("unchecked")
-    public <T> T unwrap(Class<T> iface) throws SQLException {
+    public T unwrap(Class<T> iface) throws SQLException {
         if (isWrapperFor(iface))
-            return (T) target;
+            return target;
         throw new SQLException("not a wrapper for " + iface);
     }
 

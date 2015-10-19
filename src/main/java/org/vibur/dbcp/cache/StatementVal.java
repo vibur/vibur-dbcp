@@ -25,7 +25,6 @@ import java.util.concurrent.atomic.AtomicInteger;
  * implementation) for the invocations of {@code Connection.prepareStatement} and {@code Connection.prepareCall}
  * methods, and their "state" is describing whether the object is currently available, in_use, or evicted.
  *
- * @see StatementInvocationCacheProvider
  * @see ConnMethodKey
  *
  * @author Simeon Malchev

@@ -18,13 +18,12 @@ package org.vibur.dbcp.proxy;
 
 import org.vibur.dbcp.proxy.listener.ExceptionListener;
 
-import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 
 /**
  * @author Simeon Malchev
  */
-public class ChildObjectInvocationHandler<P, T> extends AbstractInvocationHandler<T> implements InvocationHandler {
+public class ChildObjectInvocationHandler<P, T> extends AbstractInvocationHandler<T> implements TargetInvoker {
 
     private final P parentProxy;
     private final String getParentMethod;

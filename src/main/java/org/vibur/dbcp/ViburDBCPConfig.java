@@ -19,8 +19,7 @@ package org.vibur.dbcp;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.vibur.dbcp.cache.ConnMethodKey;
-import org.vibur.dbcp.cache.StatementVal;
+import org.vibur.dbcp.cache.StatementCache;
 import org.vibur.dbcp.pool.ConnHolder;
 import org.vibur.dbcp.pool.PoolOperations;
 import org.vibur.objectpool.PoolService;
@@ -152,7 +151,7 @@ public class ViburDBCPConfig {
      * If the statement's cache is not enabled, the client application may safely exclude the dependency
      * on ConcurrentLinkedCacheMap from its pom.xml file. */
     private int statementCacheMaxSize = 0;
-    private ConcurrentMap<ConnMethodKey, StatementVal> statementCache = null;
+    private StatementCache statementCache = null;
 
 
     /** The list of critical SQL states as a comma separated values, see http://stackoverflow.com/a/14412929/1682918 .
@@ -419,11 +418,11 @@ public class ViburDBCPConfig {
         this.statementCacheMaxSize = statementCacheMaxSize;
     }
 
-    public ConcurrentMap<ConnMethodKey, StatementVal> getStatementCache() {
+    public StatementCache getStatementCache() {
         return statementCache;
     }
 
-    public void setStatementCache(ConcurrentMap<ConnMethodKey, StatementVal> statementCache) {
+    public void setStatementCache(StatementCache statementCache) {
         this.statementCache = statementCache;
     }
 

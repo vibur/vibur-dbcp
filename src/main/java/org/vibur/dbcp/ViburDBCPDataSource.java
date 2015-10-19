@@ -17,9 +17,7 @@
 package org.vibur.dbcp;
 
 import org.slf4j.LoggerFactory;
-import org.vibur.dbcp.cache.ConnMethodKey;
-import org.vibur.dbcp.cache.StatementInvocationCacheProvider;
-import org.vibur.dbcp.cache.StatementVal;
+import org.vibur.dbcp.cache.StatementCache;
 import org.vibur.dbcp.jmx.ViburDBCPMonitoring;
 import org.vibur.dbcp.pool.ConnHolder;
 import org.vibur.dbcp.pool.ConnectionFactory;
@@ -42,11 +40,9 @@ import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
 import java.util.Map;
 import java.util.Properties;
-import java.util.concurrent.ConcurrentMap;
 import java.util.logging.Logger;
 
 import static org.vibur.dbcp.util.FormattingUtils.getPoolName;
-import static org.vibur.dbcp.util.SqlUtils.closeStatement;
 import static org.vibur.dbcp.util.ViburUtils.getStackTraceAsString;
 
 /**
@@ -265,6 +261,10 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
             logger.warn("Setting logConnectionLongerThanMs to " + getConnectionTimeoutInMs());
             setLogConnectionLongerThanMs(getConnectionTimeoutInMs());
         }
+        if (getStatementCacheMaxSize() > CACHE_MAX_SIZE) {
+            logger.warn("Setting statementCacheMaxSize to " + CACHE_MAX_SIZE);
+            setStatementCacheMaxSize(CACHE_MAX_SIZE);
+        }
 
         if (getDefaultTransactionIsolation() != null) {
             String defaultTransactionIsolation = getDefaultTransactionIsolation().toUpperCase();
@@ -300,20 +300,14 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
 
     private void initStatementCache() {
         int statementCacheMaxSize = getStatementCacheMaxSize();
-        if (statementCacheMaxSize > CACHE_MAX_SIZE)
-            statementCacheMaxSize = CACHE_MAX_SIZE;
         if (statementCacheMaxSize > 0)
-            setStatementCache(new StatementInvocationCacheProvider(statementCacheMaxSize).build());
+            setStatementCache(new StatementCache(statementCacheMaxSize));
     }
 
     private void terminateStatementCache() {
-        ConcurrentMap<ConnMethodKey, StatementVal> statementCache = getStatementCache();
+        StatementCache statementCache = getStatementCache();
         if (statementCache != null) {
-            for (Map.Entry<ConnMethodKey, StatementVal> entry : statementCache.entrySet()) {
-                StatementVal value = entry.getValue();
-                statementCache.remove(entry.getKey(), value);
-                closeStatement(value.value());
-            }
+            statementCache.clear();
             setStatementCache(null);
         }
     }

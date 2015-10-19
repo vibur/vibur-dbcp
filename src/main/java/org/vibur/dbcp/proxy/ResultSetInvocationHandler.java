@@ -34,7 +34,7 @@ import static org.vibur.dbcp.util.ViburUtils.getStackTraceAsString;
 /**
  * @author Simeon Malchev
  */
-public class ResultSetInvocationHandler extends ChildObjectInvocationHandler<Statement, ResultSet> {
+public class ResultSetInvocationHandler extends ChildObjectInvocationHandler<Statement, ResultSet> implements TargetInvoker {
 
     private static final Logger logger = LoggerFactory.getLogger(ResultSetInvocationHandler.class);
 

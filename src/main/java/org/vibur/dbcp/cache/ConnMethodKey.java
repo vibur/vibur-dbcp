@@ -26,7 +26,6 @@ import java.util.Arrays;
  * <p>Used as a caching {@code key} for method invocations in a {@link java.util.concurrent.ConcurrentMap}
  * cache implementation.
  *
- * @see StatementInvocationCacheProvider
  * @see StatementVal
  *
  * @author Simeon Malchev

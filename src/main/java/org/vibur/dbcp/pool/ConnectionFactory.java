@@ -21,16 +21,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.ViburDBCPConfig;
 import org.vibur.dbcp.ViburDBCPException;
-import org.vibur.dbcp.cache.ConnMethodKey;
-import org.vibur.dbcp.cache.StatementVal;
+import org.vibur.dbcp.cache.StatementCache;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Map;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -228,16 +225,9 @@ public class ConnectionFactory implements VersionedObjectFactory<ConnHolder> {
     }
 
     private void closeStatements(Connection connection) {
-        ConcurrentMap<ConnMethodKey, StatementVal> statementCache = config.getStatementCache();
-        if (statementCache == null)
-            return;
-
-        for (Map.Entry<ConnMethodKey, StatementVal> entry : statementCache.entrySet()) {
-            ConnMethodKey key = entry.getKey();
-            StatementVal value = entry.getValue();
-            if (key.getTarget() == connection && statementCache.remove(key, value))
-                closeStatement(value.value());
-        }
+        StatementCache statementCache = config.getStatementCache();
+        if (statementCache != null)
+            statementCache.removeAll(connection);
     }
 
     /** {@inheritDoc} */
