@@ -170,12 +170,12 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
         }
     }
 
-    protected void logTargetInvoke(Method method, Object[] args, InvocationTargetException e) {
+    protected void logInvokeFailure(Method method, Object[] args, InvocationTargetException e) {
         if (method.getName().startsWith("execute")) {
             String message = String.format("%s:\n%s\n-- threw:",
                     getQueryPrefix(config), toSQLString(getTarget(), args, queryParams));
             logger.warn(message, e);
         } else
-            super.logTargetInvoke(method, args, e);
+            super.logInvokeFailure(method, args, e);
     }
 }

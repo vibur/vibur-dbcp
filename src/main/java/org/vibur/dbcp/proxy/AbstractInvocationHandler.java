@@ -93,7 +93,7 @@ public abstract class AbstractInvocationHandler<T> implements InvocationHandler,
         try {
             return method.invoke(target, args);  // the real method call on the real underlying (proxied) object
         } catch (InvocationTargetException e) {
-            logTargetInvoke(method, args, e);
+            logInvokeFailure(method, args, e);
             Throwable cause = e.getCause();
             if (cause == null)
                 cause = e;
@@ -105,7 +105,7 @@ public abstract class AbstractInvocationHandler<T> implements InvocationHandler,
         }
     }
 
-    protected void logTargetInvoke(Method method, Object[] args, InvocationTargetException e) {
+    protected void logInvokeFailure(Method method, Object[] args, InvocationTargetException e) {
         logger.warn(String.format("The invocation of %s with args %s on %s threw:",
                 method, Arrays.toString(args), target), e);
     }
