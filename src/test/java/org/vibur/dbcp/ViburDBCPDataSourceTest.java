@@ -23,20 +23,22 @@ import org.mockito.Captor;
 import org.mockito.InOrder;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.vibur.dbcp.cache.ConnMethodKey;
-import org.vibur.dbcp.cache.StatementCache;
 import org.vibur.dbcp.cache.StatementVal;
 
 import javax.sql.DataSource;
 import java.io.IOException;
 import java.sql.*;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 
 import static org.junit.Assert.*;
-import static org.mockito.AdditionalAnswers.delegatesTo;
 import static org.mockito.Mockito.*;
 import static org.vibur.dbcp.cache.StatementVal.AVAILABLE;
 import static org.vibur.dbcp.cache.StatementVal.EVICTED;
+import static org.vibur.dbcp.util.StatementCacheUtils.mockStatementCache;
 
 /**
  * JDBC integration tests.
@@ -260,22 +262,5 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
             if (pStatement != null) pStatement.close();
         }
         assertTrue(pStatement.isClosed());
-    }
-
-    @SuppressWarnings("unchecked")
-    private ConcurrentMap<ConnMethodKey, StatementVal> mockStatementCache(final ViburDBCPDataSource ds) {
-        final List<ConcurrentMap<ConnMethodKey, StatementVal>> holder
-                = new LinkedList<ConcurrentMap<ConnMethodKey, StatementVal>>();
-
-        ds.setStatementCache(new StatementCache(ds.getStatementCacheMaxSize()) {
-            protected ConcurrentMap<ConnMethodKey, StatementVal> buildStatementCache(int maxSize) {
-                ConcurrentMap<ConnMethodKey, StatementVal> mockedStatementCache =
-                        mock(ConcurrentMap.class, delegatesTo(super.buildStatementCache(maxSize)));
-                holder.add(mockedStatementCache);
-                return mockedStatementCache;
-            }
-        });
-
-        return holder.get(0);
     }
 }
