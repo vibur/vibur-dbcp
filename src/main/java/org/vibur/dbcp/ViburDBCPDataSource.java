@@ -66,7 +66,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
 
     private State state = State.NEW;
 
-    private VersionedObjectFactory<ConnHolder> connectionFactory;
+    private ConnectionFactory connectionFactory;
     private ThreadedPoolReducer poolReducer = null;
 
     private PrintWriter logWriter;
@@ -322,10 +322,25 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
         return getConnection(getConnectionTimeoutInMs());
     }
 
-    /** {@inheritDoc} */
+    /**
+     * {@inheritDoc}
+     *
+     * This method will return a <b>raw (non-pooled)</b> JDBC Connection when called with credentials different
+     * than the configured default credentials.
+     * */
     public Connection getConnection(String username, String password) throws SQLException {
-        logger.warn("Different usernames/passwords are not supported yet. Will use the configured defaults.");
-        return getConnection();
+        if (defaultCredentials(username, password))
+            return getConnection();
+        else {
+            logger.warn("Calling getConnection with different than the default credentials. Will create and return a non-pooled Connection.");
+            return connectionFactory.create(username, password).value();
+        }
+    }
+
+    private boolean defaultCredentials(String username, String password) {
+        if (getUsername() != null ? !getUsername().equals(username) : username != null)
+            return false;
+        return !(getPassword() != null ? !getPassword().equals(password) : password != null);
     }
 
     /**

@@ -94,11 +94,15 @@ public class ConnectionFactory implements VersionedObjectFactory<ConnHolder> {
      * @throws org.vibur.dbcp.ViburDBCPException if cannot create the underlying JDBC Connection.
      */
     public ConnHolder create() throws ViburDBCPException {
+        return create(config.getUsername(), config.getPassword());
+    }
+
+    public ConnHolder create(String userName, String password) throws ViburDBCPException {
         int attempt = 0;
         Connection rawConnection = null;
         while (rawConnection == null) {
             try {
-                rawConnection = doCreate();
+                rawConnection = doCreate(userName, password);
             } catch (SQLException e) {
                 logger.debug("Couldn't create a java.sql.Connection, attempt " + attempt, e);
                 if (attempt++ >= config.getAcquireRetryAttempts())
@@ -121,18 +125,17 @@ public class ConnectionFactory implements VersionedObjectFactory<ConnHolder> {
         return new ConnHolder(rawConnection, version(), System.currentTimeMillis());
     }
 
-    private Connection doCreate() throws SQLException {
+    private Connection doCreate(String userName, String password) throws SQLException {
         Connection connection;
         DataSource externalDataSource = config.getExternalDataSource();
-        String userName = config.getUsername();
         if (externalDataSource == null) {
             if (userName != null)
-                connection = DriverManager.getConnection(config.getJdbcUrl(), userName, config.getPassword());
+                connection = DriverManager.getConnection(config.getJdbcUrl(), userName, password);
             else
                 connection = DriverManager.getConnection(config.getJdbcUrl());
         } else {
             if (userName != null)
-                connection = externalDataSource.getConnection(userName, config.getPassword());
+                connection = externalDataSource.getConnection(userName, password);
             else
                 connection = externalDataSource.getConnection();
         }
