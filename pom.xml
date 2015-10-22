@@ -101,7 +101,7 @@
         <dependency>
             <groupId>org.vibur</groupId>
             <artifactId>vibur-object-pool</artifactId>
-            <version>${vibur-object-pool.version}-SNAPSHOT</version>
+            <version>5.0-SNAPSHOT</version>
         </dependency>
 
         <dependency>
