@@ -1,3 +1,11 @@
+Version 5.0 (24/10/2015)
+========================
+* Implemented Hibernate 5+ integration (as a separate project).
+  See http://www.vibur.org/#hibernate-integration-artifacts for more details.
+* Implemented support for different usernames/passwords when calling DataSource.getConnection(username, password).
+  See https://github.com/vibur/vibur-dbcp/issues/2#issuecomment-150200148 for more details.
+* Some refactoring and javadoc updates.
+
 Version 4.0 (08/08/2015)
 ========================
 * poolReducerClass is now configurable. This is the fully qualified pool reducer class name. This pool reducer

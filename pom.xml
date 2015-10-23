@@ -67,8 +67,8 @@
     </developers>
 
     <organization>
-        <name>Simeon Malchev</name>
-        <url>http://simeonmalchev.com</url>
+        <name>vibur.org</name>
+        <url>http://www.vibur.org</url>
     </organization>
 
     <issueManagement>
@@ -81,7 +81,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <java.version>1.6</java.version>
-        <vibur-object-pool.version>5.0</vibur-object-pool.version>
+        <vibur.osgi.version>5.0</vibur.osgi.version>
         <slf4j.version>1.7.2</slf4j.version>
         <concurrentlinkedhashmap-lru.version>1.4.2</concurrentlinkedhashmap-lru.version>
 
@@ -90,7 +90,7 @@
         <hsqldb.version>2.3.0</hsqldb.version>
 
         <maven.compiler.plugin.version>2.3.2</maven.compiler.plugin.version>
-        <maven.bundle.plugin.version>2.4.0</maven.bundle.plugin.version>
+        <maven.bundle.plugin.version>3.0.0</maven.bundle.plugin.version>
         <maven.release.plugin.version>2.4.2</maven.release.plugin.version>
         <maven.javadoc.plugin.version>2.8</maven.javadoc.plugin.version>
         <maven.jar.plugin.version>2.4</maven.jar.plugin.version>
@@ -183,9 +183,9 @@
                             javax.management,
                             org.slf4j;version="[${version;===;${slf4j.version}},${version;+;${slf4j.version}})",
                             com.googlecode.concurrentlinkedhashmap;version="[${version;===;${concurrentlinkedhashmap-lru.version}},${version;+;${concurrentlinkedhashmap-lru.version}})";resolution:=optional,
-                            org.vibur.objectpool;version="[${version;==;${vibur-object-pool.version}},${version;+;${vibur-object-pool.version}})",
-                            org.vibur.objectpool.listener;version="[${version;==;${vibur-object-pool.version}},${version;+;${vibur-object-pool.version}})",
-                            org.vibur.objectpool.reducer;version="[${version;==;${vibur-object-pool.version}},${version;+;${vibur-object-pool.version}})"
+                            org.vibur.objectpool;version="[${version;==;${vibur.osgi.version}},${version;+;${vibur.osgi.version}})",
+                            org.vibur.objectpool.listener;version="[${version;==;${vibur.osgi.version}},${version;+;${vibur.osgi.version}})",
+                            org.vibur.objectpool.reducer;version="[${version;==;${vibur.osgi.version}},${version;+;${vibur.osgi.version}})"
                         </Import-Package>
                         <Bundle-SymbolicName>${project.groupId}.${project.artifactId}</Bundle-SymbolicName>
                         <DynamicImport-Package>*</DynamicImport-Package>
