@@ -4,13 +4,14 @@ Version 5.0 (24/10/2015)
   See http://www.vibur.org/#hibernate-integration-artifacts for more details.
 * Implemented support for different usernames/passwords when calling DataSource.getConnection(username, password).
   See https://github.com/vibur/vibur-dbcp/issues/2#issuecomment-150200148 for more details.
-* Some refactoring and javadoc updates.
+* Some refactoring and javadoc updates. In particular, have extracted and encapsulated all JDBC Statement caching
+  logic in the StatementCache class.
 
 Version 4.0 (08/08/2015)
 ========================
 * poolReducerClass is now configurable. This is the fully qualified pool reducer class name. This pool reducer
-class will be instantiated via reflection. It must implement the ThreadedPoolReducer interface and must also
-have a public constructor accepting a single argument of type ViburDBCPConfig.
+  class will be instantiated via reflection. It must implement the ThreadedPoolReducer interface and must also
+  have a public constructor accepting a single argument of type ViburDBCPConfig.
 * Various other refactoring and source code clean-up.
 
 Version 3.0 (03/06/2015)
