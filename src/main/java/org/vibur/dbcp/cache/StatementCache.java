@@ -57,6 +57,14 @@ public class StatementCache {
                 .build();
     }
 
+    /**
+     * Creates and returns a new EvictionListener for the CLHM. It is worth noting that this
+     * EvictionListener is called in the context of the thread that has executed an insert (putIfAbsent)
+     * operation which has increased the CLHM size above its maxSize - in which case the CLHM
+     * evicts its LRU entry.
+     *
+     * @return a new EvictionListener for the CLHM
+     */
     protected EvictionListener<ConnMethodKey, StatementVal> getListener() {
         return new EvictionListener<ConnMethodKey, StatementVal>() {
             public void onEviction(ConnMethodKey key, StatementVal value) {
