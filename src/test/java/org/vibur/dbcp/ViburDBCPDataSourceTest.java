@@ -203,7 +203,6 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
             if (resultSet != null) resultSet.close();
             if (statement != null) statement.close();
         }
-        assertNotNull(connection);
         assertTrue(statement.isClosed());
     }
 
@@ -228,7 +227,6 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
             if (resultSet != null) resultSet.close();
             if (pStatement != null) pStatement.close();
         }
-        assertNotNull(connection);
         assertTrue(pStatement.isClosed());
     }
 
