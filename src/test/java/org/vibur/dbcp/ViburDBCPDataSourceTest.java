@@ -56,20 +56,16 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
     @Test
     public void testSelectStatementNoStatementsCache() throws SQLException, IOException {
         DataSource ds = createDataSourceNoStatementsCache();
-        Connection connection = null;
-        try {
-            connection = ds.getConnection();
-            executeAndVerifySelectStatement(connection);
-        } finally {
-            if (connection != null) connection.close();
-        }
-        assertNotNull(connection);
-        assertTrue(connection.isClosed());
+        doTestSelectStatement(ds);
     }
 
     @Test
     public void testSelectStatementFromExternalDataSource() throws SQLException, IOException {
         DataSource ds = createDataSourceFromExternalDataSource();
+        doTestSelectStatement(ds);
+    }
+
+    private void doTestSelectStatement(DataSource ds) throws SQLException {
         Connection connection = null;
         try {
             connection = ds.getConnection();
@@ -104,20 +100,16 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
     @Test
     public void testPreparedSelectStatementNoStatementsCache() throws SQLException, IOException {
         DataSource ds = createDataSourceNoStatementsCache();
-        Connection connection = null;
-        try {
-            connection = ds.getConnection();
-            executeAndVerifyPreparedSelectStatement(connection);
-        } finally {
-            if (connection != null) connection.close();
-        }
-        assertNotNull(connection);
-        assertTrue(connection.isClosed());
+        doTestPreparedSelectStatement(ds);
     }
 
     @Test
     public void testPreparedSelectStatementFromExternalDataSource() throws SQLException, IOException {
         DataSource ds = createDataSourceFromExternalDataSource();
+        doTestPreparedSelectStatement(ds);
+    }
+
+    private void doTestPreparedSelectStatement(DataSource ds) throws SQLException {
         Connection connection = null;
         try {
             connection = ds.getConnection();
