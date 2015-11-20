@@ -25,6 +25,9 @@ import java.sql.Statement;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * @author Simeon Malchev
+ */
 public class FormattingUtils {
 
     private FormattingUtils() {}

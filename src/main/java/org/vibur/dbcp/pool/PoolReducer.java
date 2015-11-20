@@ -32,6 +32,8 @@ import static org.vibur.dbcp.util.FormattingUtils.getPoolName;
  * The pool reducer class - instantiated via reflection.
  *
  * @see org.vibur.dbcp.ViburDBCPDataSource
+ *
+ * @author Simeon Malchev
  */
 public class PoolReducer extends SamplingPoolReducer<ConnHolder> implements ThreadedPoolReducer {
 
