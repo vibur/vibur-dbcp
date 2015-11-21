@@ -40,9 +40,8 @@ public class ValidatorUtils {
     }
 
     private static String getFirstWord(String sql) {
-        if (sql == null || sql.isEmpty()) {
+        if (sql == null || sql.isEmpty())
             return null;
-        }
 
         int len = sql.length();
         char[] sqlChars = new char[len];
