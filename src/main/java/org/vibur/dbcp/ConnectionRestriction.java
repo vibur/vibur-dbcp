@@ -17,8 +17,11 @@
 package org.vibur.dbcp;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+
+import static java.util.Collections.unmodifiableSet;
 
 /**
  * Describes the JDBC Connection restrictions in terms of what kind of SQL queries are allowed to be executed
@@ -33,8 +36,8 @@ public enum ConnectionRestriction {
     WHITELISTED_DDL,
     BLACKLISTED_DDL;
 
-    private static final Set<String> SQL_DML_PREFIXES = new HashSet<String>(Arrays.asList(
-            "select", "insert", "update", "delete"));
+    private static final Set<String> SQL_DML_PREFIXES = unmodifiableSet(new HashSet<String>(Arrays.asList(
+            "select", "insert", "update", "delete")));
 
     static {
         WHITELISTED_DDL.set(SQL_DML_PREFIXES, true);
