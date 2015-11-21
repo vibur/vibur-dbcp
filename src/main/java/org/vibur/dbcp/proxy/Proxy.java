@@ -16,6 +16,7 @@
 
 package org.vibur.dbcp.proxy;
 
+import org.vibur.dbcp.ConnectionRestriction;
 import org.vibur.dbcp.ViburDBCPConfig;
 import org.vibur.dbcp.cache.StatementVal;
 import org.vibur.dbcp.pool.ConnHolder;
@@ -33,29 +34,32 @@ public final class Proxy {
 
     private Proxy() {}
 
-    public static Connection newConnection(ConnHolder conn, ViburDBCPConfig config) {
-        InvocationHandler handler = new ConnectionInvocationHandler(conn, config);
+    public static Connection newConnection(ConnHolder conn, ViburDBCPConfig config, ConnectionRestriction restriction) {
+        InvocationHandler handler = new ConnectionInvocationHandler(conn, config, restriction);
         return (Connection) newProxy(connectionCtor, handler);
     }
 
     public static Statement newStatement(StatementVal statement, Connection connectionProxy,
-                                         ViburDBCPConfig config, ExceptionListener exceptionListener) {
+                                         ViburDBCPConfig config, ExceptionListener exceptionListener,
+                                         ConnectionRestriction restriction) {
         InvocationHandler handler = new StatementInvocationHandler(
-            statement, null, connectionProxy, config, exceptionListener);
+            statement, null, connectionProxy, config, exceptionListener, restriction);
         return (Statement) newProxy(statementCtor, handler);
     }
 
     public static PreparedStatement newPreparedStatement(StatementVal pStatement, Connection connectionProxy,
-                                                         ViburDBCPConfig config, ExceptionListener exceptionListener) {
+                                                         ViburDBCPConfig config, ExceptionListener exceptionListener,
+                                                         ConnectionRestriction restriction) {
         InvocationHandler handler = new StatementInvocationHandler(
-            pStatement, config.getStatementCache(), connectionProxy, config, exceptionListener);
+            pStatement, config.getStatementCache(), connectionProxy, config, exceptionListener, restriction);
         return (PreparedStatement) newProxy(pStatementCtor, handler);
     }
 
     public static CallableStatement newCallableStatement(StatementVal cStatement, Connection connectionProxy,
-                                                         ViburDBCPConfig config, ExceptionListener exceptionListener) {
+                                                         ViburDBCPConfig config, ExceptionListener exceptionListener,
+                                                         ConnectionRestriction restriction) {
         InvocationHandler handler = new StatementInvocationHandler(
-            cStatement, config.getStatementCache(), connectionProxy, config, exceptionListener);
+            cStatement, config.getStatementCache(), connectionProxy, config, exceptionListener, restriction);
         return (CallableStatement) newProxy(cStatementCtor, handler);
     }
 

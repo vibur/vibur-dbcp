@@ -18,6 +18,7 @@ package org.vibur.dbcp.proxy;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.vibur.dbcp.ConnectionRestriction;
 import org.vibur.dbcp.ViburDBCPException;
 import org.vibur.dbcp.proxy.listener.ExceptionListener;
 
@@ -27,6 +28,8 @@ import java.sql.SQLException;
 import java.sql.SQLTransientException;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import static org.vibur.dbcp.util.ValidatorUtils.isQueryAllowed;
 
 /**
 * @author Simeon Malchev
@@ -132,6 +135,12 @@ public abstract class AbstractInvocationHandler<T> implements TargetInvoker {
     protected void ensureNotClosed() throws SQLException {
         if (isClosed())
             throw new SQLException(target.getClass().getName() + " is closed.");
+    }
+
+    protected void checkRestrictions(String methodName, Object[] args, ConnectionRestriction restriction) throws SQLException {
+        if (restriction != null && args != null && args.length > 0 && args[0] instanceof String
+                && !isQueryAllowed((String) args[0], restriction))
+            throw new SQLException("Attempted to call " + methodName + " with a restricted SQL query:\n-- " + args[0]);
     }
 
     protected ExceptionListener getExceptionListener() {

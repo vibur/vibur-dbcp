@@ -18,6 +18,7 @@ package org.vibur.dbcp.proxy;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.vibur.dbcp.ConnectionRestriction;
 import org.vibur.dbcp.ViburDBCPConfig;
 import org.vibur.dbcp.cache.StatementCache;
 import org.vibur.dbcp.cache.StatementVal;
@@ -45,19 +46,21 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
     private final StatementVal statementVal;
     private final StatementCache statementCache;
     private final ViburDBCPConfig config;
+    private final ConnectionRestriction restriction;
 
     private final boolean logSlowQuery;
     private final List<Object[]> queryParams;
 
     public StatementInvocationHandler(StatementVal statementVal, StatementCache statementCache,
                                       Connection connectionProxy, ViburDBCPConfig config,
-                                      ExceptionListener exceptionListener) {
+                                      ExceptionListener exceptionListener, ConnectionRestriction restriction) {
         super(statementVal.value(), connectionProxy, "getConnection", exceptionListener);
         if (config == null)
             throw new NullPointerException();
         this.statementVal = statementVal;
         this.statementCache = statementCache;
         this.config = config;
+        this.restriction = restriction;
         this.logSlowQuery = config.getLogQueryExecutionLongerThanMs() >= 0;
         this.queryParams = logSlowQuery ? new LinkedList<Object[]>() : null;
     }
@@ -74,8 +77,12 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
 
         if (methodName.startsWith("set")) // this intercepts all "set..." JDBC Prepared/Callable Statement methods
             return processSet(method, args);
-        if (methodName.startsWith("execute")) // this intercepts all "execute..." JDBC Statement methods
+        if (methodName.startsWith("execute")) { // this intercepts all "execute..." JDBC Statement methods
+            checkRestrictions(methodName, args, restriction);
             return processExecute(proxy, method, args);
+        }
+        if (methodName == "addBatch")
+            checkRestrictions(methodName, args, restriction);
 
         // Methods which results have to be proxied so that when getStatement() is called
         // on their results the return value to be the current JDBC Statement proxy.

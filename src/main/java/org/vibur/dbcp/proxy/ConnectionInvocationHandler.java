@@ -16,6 +16,7 @@
 
 package org.vibur.dbcp.proxy;
 
+import org.vibur.dbcp.ConnectionRestriction;
 import org.vibur.dbcp.ViburDBCPConfig;
 import org.vibur.dbcp.cache.ConnMethodKey;
 import org.vibur.dbcp.cache.StatementCache;
@@ -38,12 +39,14 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
     private final ConnHolder conn;
 
     private final ViburDBCPConfig config;
+    private final ConnectionRestriction restriction;
 
-    public ConnectionInvocationHandler(ConnHolder conn, ViburDBCPConfig config) {
+    public ConnectionInvocationHandler(ConnHolder conn, ViburDBCPConfig config, ConnectionRestriction restriction) {
         super(conn.value(), new ExceptionListenerImpl());
         this.poolOperations = config.getPoolOperations();
         this.conn = conn;
         this.config = config;
+        this.restriction = restriction;
     }
 
     @SuppressWarnings("unchecked")
@@ -65,15 +68,17 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
         // on their results the return value to be the current JDBC Connection proxy.
         if (methodName == "createStatement") { // *3
             StatementVal statement = getUncachedStatement(method, args);
-            return Proxy.newStatement(statement, proxy, config, getExceptionListener());
+            return Proxy.newStatement(statement, proxy, config, getExceptionListener(), restriction);
         }
         if (methodName == "prepareStatement") { // *6
+            checkRestrictions(methodName, args, restriction);
             StatementVal pStatement = getCachedStatement(method, args);
-            return Proxy.newPreparedStatement(pStatement, proxy, config, getExceptionListener());
+            return Proxy.newPreparedStatement(pStatement, proxy, config, getExceptionListener(), restriction);
         }
         if (methodName == "prepareCall") { // *3
+            checkRestrictions(methodName, args, restriction);
             StatementVal cStatement = getCachedStatement(method, args);
-            return Proxy.newCallableStatement(cStatement, proxy, config, getExceptionListener());
+            return Proxy.newCallableStatement(cStatement, proxy, config, getExceptionListener(), restriction);
         }
         if (methodName == "getMetaData") { // *1
             DatabaseMetaData rawDatabaseMetaData = (DatabaseMetaData) targetInvoke(method, args);
