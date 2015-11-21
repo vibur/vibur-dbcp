@@ -30,25 +30,30 @@ import java.util.Set;
  */
 public enum ConnectionRestriction {
 
-    WHITELISTED_DDL(ConnectionRestriction.SQL_DML_PREFIXES, true),
-    BLACKLISTED_DDL(ConnectionRestriction.SQL_DML_PREFIXES, false);
+    WHITELISTED_DDL,
+    BLACKLISTED_DDL;
 
     private static final Set<String> SQL_DML_PREFIXES = new HashSet<String>(Arrays.asList(
             "select", "insert", "update", "delete"));
+
+    static {
+        WHITELISTED_DDL.set(SQL_DML_PREFIXES, true);
+        BLACKLISTED_DDL.set(SQL_DML_PREFIXES, false);
+    }
 
     /**
      * If not {@code null}, will filter the attempted for execution SQL queries based on these prefixes.
      * The strings in this set must be in <b>all lower-case</b>.
      */
-    private final Set<String> restrictedQueryPrefixes;
+    private Set<String> restrictedQueryPrefixes;
 
     /**
      * Will apply only if {@link #restrictedQueryPrefixes} is enabled. If set to {@code true}, the specified
      * restrictedQueryPrefixes will be treated as white-listed, otherwise as black-listed.
      */
-    private final boolean whiteListed;
+    private boolean whiteListed;
 
-    ConnectionRestriction(Set<String> restrictedQueryPrefixes, boolean whiteListed) {
+    private void set(Set<String> restrictedQueryPrefixes, boolean whiteListed) {
         this.restrictedQueryPrefixes = restrictedQueryPrefixes;
         this.whiteListed = whiteListed;
     }
