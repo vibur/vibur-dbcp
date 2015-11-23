@@ -51,24 +51,10 @@ public abstract class AbstractInvocationHandler<T> implements TargetInvoker {
 
     /** {@inheritDoc} */
     @SuppressWarnings("unchecked")
-    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+    public final Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         if (logger.isTraceEnabled())
             logger.trace("Calling {} with args {} on {}", method, args, target);
 
-        try {
-            return doInvoke((T) proxy, method, args);
-        } catch (ViburDBCPException e) {
-            logger.error(String.format("The invocation of %s with args %s on %s threw:",
-                    method, Arrays.toString(args), target), e);
-            Throwable cause = e.getCause();
-            if (cause instanceof SQLException)
-                throw cause; // throw the original SQLException which have caused the ViburDBCPException
-            throw e; // not expected to happen
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    protected Object doInvoke(T proxy, Method method, Object[] args) throws Throwable {
         String methodName = method.getName();
 
         if (methodName == "equals")
@@ -83,12 +69,29 @@ public abstract class AbstractInvocationHandler<T> implements TargetInvoker {
         if (methodName == "isWrapperFor")
             return isWrapperFor((Class<?>) args[0]);
 
-        // by default just pass the call to the original method of the proxied object
+        try {
+            return doInvoke((T) proxy, method, args);
+        } catch (ViburDBCPException e) {
+            logger.error(String.format("The invocation of %s with args %s on %s threw:",
+                    method, Arrays.toString(args), target), e);
+            Throwable cause = e.getCause();
+            if (cause instanceof SQLException)
+                throw cause; // throw the original SQLException which have caused the ViburDBCPException
+            throw e; // not expected to happen
+        }
+    }
+
+    /**
+     * By default forwards the call to the original method of the proxied object. This method will be overridden
+     * in the AbstractInvocationHandler subclasses, and will be the place to implement the specific to these
+     * subclasses logic for methods invocation handling.
+     */
+    protected Object doInvoke(T proxy, Method method, Object[] args) throws Throwable {
         return targetInvoke(method, args);
     }
 
     /** {@inheritDoc} */
-    public Object targetInvoke(Method method, Object[] args) throws Throwable {
+    public final Object targetInvoke(Method method, Object[] args) throws Throwable {
         try {
             return method.invoke(target, args);  // the real method call on the real underlying (proxied) object
         } catch (InvocationTargetException e) {
@@ -107,18 +110,6 @@ public abstract class AbstractInvocationHandler<T> implements TargetInvoker {
     protected void logInvokeFailure(Method method, Object[] args, InvocationTargetException e) {
         logger.warn(String.format("The invocation of %s with args %s on %s threw:",
                 method, Arrays.toString(args), target), e);
-    }
-
-    /** {@inheritDoc} */
-    public T unwrap(Class<T> iface) throws SQLException {
-        if (isWrapperFor(iface))
-            return target;
-        throw new SQLException("not a wrapper for " + iface);
-    }
-
-    /** {@inheritDoc} */
-    public boolean isWrapperFor(Class<?> iface) {
-        return iface.isInstance(target);
     }
 
     protected boolean isClosed() {
@@ -140,5 +131,15 @@ public abstract class AbstractInvocationHandler<T> implements TargetInvoker {
 
     protected T getTarget() {
         return target;
+    }
+
+    private T unwrap(Class<T> iface) throws SQLException {
+        if (isWrapperFor(iface))
+            return target;
+        throw new SQLException("not a wrapper for " + iface);
+    }
+
+    private boolean isWrapperFor(Class<?> iface) {
+        return iface.isInstance(target);
     }
 }
