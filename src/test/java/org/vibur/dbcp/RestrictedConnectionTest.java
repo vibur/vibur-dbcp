@@ -41,7 +41,7 @@ public class RestrictedConnectionTest extends AbstractDataSourceTest {
     private static final Matcher<String> RESTRICTED_ERR_MESSAGE = new Contains("with a restricted SQL query");
 
     @Rule
-    public ExpectedException thrown = ExpectedException.none();
+    public ExpectedException exception = ExpectedException.none();
 
     @Test
     public void testAllowedExecute() throws SQLException, IOException {
@@ -62,8 +62,8 @@ public class RestrictedConnectionTest extends AbstractDataSourceTest {
         try {
             restrictedConn = ds.getRestrictedConnection(BLACKLISTED_DML);
 
-            thrown.expect(SQLException.class);
-            thrown.expectMessage(RESTRICTED_ERR_MESSAGE);
+            exception.expect(SQLException.class);
+            exception.expectMessage(RESTRICTED_ERR_MESSAGE);
             executeAndVerifySelectStatement(restrictedConn, " SELECT * from actor where first_name = 'CHRISTIAN'");
         } finally {
             if (restrictedConn != null) restrictedConn.close();
@@ -81,8 +81,8 @@ public class RestrictedConnectionTest extends AbstractDataSourceTest {
 
             executeAndVerifySelectStatement(freeConn, " SELECT * from actor where first_name = 'CHRISTIAN'"); // will pass
 
-            thrown.expect(SQLException.class);
-            thrown.expectMessage(RESTRICTED_ERR_MESSAGE);
+            exception.expect(SQLException.class);
+            exception.expectMessage(RESTRICTED_ERR_MESSAGE);
             executeAndVerifySelectStatement(restrictedConn, " SELECT * from actor where first_name = 'CHRISTIAN'"); // will throw SQLException
         } finally {
             if (freeConn != null) freeConn.close();
@@ -97,8 +97,8 @@ public class RestrictedConnectionTest extends AbstractDataSourceTest {
         try {
             restrictedConn = ds.getRestrictedConnection(WHITELISTED_DML);
 
-            thrown.expect(SQLException.class);
-            thrown.expectMessage(RESTRICTED_ERR_MESSAGE);
+            exception.expect(SQLException.class);
+            exception.expectMessage(RESTRICTED_ERR_MESSAGE);
             executeAndVerifySelectStatement(restrictedConn, "CREATE TABLE new_actor(actor_id SMALLINT NOT NULL IDENTITY, first_name VARCHAR(45) NOT NULL)");
         } finally {
             if (restrictedConn != null) restrictedConn.close();
@@ -127,8 +127,8 @@ public class RestrictedConnectionTest extends AbstractDataSourceTest {
         try {
             restrictedConn = ds.getRestrictedConnection(BLACKLISTED_DML);
 
-            thrown.expect(SQLException.class);
-            thrown.expectMessage(RESTRICTED_ERR_MESSAGE);
+            exception.expect(SQLException.class);
+            exception.expectMessage(RESTRICTED_ERR_MESSAGE);
             restrictedPStatement = restrictedConn.prepareStatement(" select * from actor where first_name = ?");
         } finally {
             if (restrictedPStatement != null) restrictedPStatement.close();
@@ -149,8 +149,8 @@ public class RestrictedConnectionTest extends AbstractDataSourceTest {
 
             freePStatement = freeConn.prepareStatement(" select * from actor where first_name = ?"); // will pass
 
-            thrown.expect(SQLException.class);
-            thrown.expectMessage(RESTRICTED_ERR_MESSAGE);
+            exception.expect(SQLException.class);
+            exception.expectMessage(RESTRICTED_ERR_MESSAGE);
             restrictedPStatement = restrictedConn.prepareStatement(" select * from actor where first_name = ?"); // will throw SQLException
         } finally {
             if (freePStatement != null) freePStatement.close();
@@ -168,8 +168,8 @@ public class RestrictedConnectionTest extends AbstractDataSourceTest {
         try {
             restrictedConn = ds.getRestrictedConnection(WHITELISTED_DML);
 
-            thrown.expect(SQLException.class);
-            thrown.expectMessage(RESTRICTED_ERR_MESSAGE);
+            exception.expect(SQLException.class);
+            exception.expectMessage(RESTRICTED_ERR_MESSAGE);
             restrictedPStatement = restrictedConn.prepareStatement("CREATE TABLE new_actor(actor_id SMALLINT NOT NULL IDENTITY, first_name VARCHAR(45) NOT NULL)");
         } finally {
             if (restrictedPStatement != null) restrictedPStatement.close();
@@ -201,8 +201,8 @@ public class RestrictedConnectionTest extends AbstractDataSourceTest {
             restrictedConn = ds.getRestrictedConnection(BLACKLISTED_DML);
             restrictedStatement = restrictedConn.createStatement();
 
-            thrown.expect(SQLException.class);
-            thrown.expectMessage(RESTRICTED_ERR_MESSAGE);
+            exception.expect(SQLException.class);
+            exception.expectMessage(RESTRICTED_ERR_MESSAGE);
             restrictedStatement.addBatch("SELECT * from actor where first_name = 'CHRISTIAN'");
         } finally {
             if (restrictedStatement != null) restrictedStatement.close();
@@ -225,8 +225,8 @@ public class RestrictedConnectionTest extends AbstractDataSourceTest {
 
             freeStatement.addBatch("SELECT * from actor where first_name = 'CHRISTIAN'"); // will pass
 
-            thrown.expect(SQLException.class);
-            thrown.expectMessage(RESTRICTED_ERR_MESSAGE);
+            exception.expect(SQLException.class);
+            exception.expectMessage(RESTRICTED_ERR_MESSAGE);
             restrictedStatement.addBatch("SELECT * from actor where first_name = 'CHRISTIAN'"); // will throw SQLException
         } finally {
             if (freeStatement != null) freeStatement.close();
@@ -245,8 +245,8 @@ public class RestrictedConnectionTest extends AbstractDataSourceTest {
             restrictedConn = ds.getRestrictedConnection(WHITELISTED_DML);
             restrictedStatement = restrictedConn.createStatement();
 
-            thrown.expect(SQLException.class);
-            thrown.expectMessage(RESTRICTED_ERR_MESSAGE);
+            exception.expect(SQLException.class);
+            exception.expectMessage(RESTRICTED_ERR_MESSAGE);
             restrictedStatement.addBatch("CREATE TABLE new_actor(actor_id SMALLINT NOT NULL IDENTITY, first_name VARCHAR(45) NOT NULL)");
         } finally {
             if (restrictedStatement != null) restrictedStatement.close();
