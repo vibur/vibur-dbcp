@@ -16,9 +16,11 @@
 
 package org.vibur.dbcp;
 
+import org.hamcrest.Matcher;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.mockito.internal.matchers.Contains;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -26,7 +28,8 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-import static org.vibur.dbcp.ConnectionRestriction.*;
+import static org.vibur.dbcp.ConnectionRestriction.BLACKLISTED_DML;
+import static org.vibur.dbcp.ConnectionRestriction.WHITELISTED_DML;
 
 /**
  * Restricted connection tests.
@@ -35,32 +38,35 @@ import static org.vibur.dbcp.ConnectionRestriction.*;
  */
 public class RestrictedConnectionTest extends AbstractDataSourceTest {
 
+    private static final Matcher<String> RESTRICTED_ERR_MESSAGE = new Contains("with a restricted SQL query");
+
     @Rule
     public ExpectedException thrown = ExpectedException.none();
 
     @Test
     public void testAllowedExecute() throws SQLException, IOException {
         ViburDBCPDataSource ds = createDataSourceNoStatementsCache();
-        Connection connection = null;
+        Connection restrictedConn = null;
         try {
-            connection = ds.getRestrictedConnection(WHITELISTED_DDL);
-            executeAndVerifySelectStatement(connection, "SELECT * from actor where first_name = 'CHRISTIAN'");
+            restrictedConn = ds.getRestrictedConnection(WHITELISTED_DML);
+            executeAndVerifySelectStatement(restrictedConn, "SELECT * from actor where first_name = 'CHRISTIAN'");
         } finally {
-            if (connection != null) connection.close();
+            if (restrictedConn != null) restrictedConn.close();
         }
     }
 
     @Test
     public void testRestrictedExecute() throws SQLException, IOException {
         ViburDBCPDataSource ds = createDataSourceNoStatementsCache();
-        Connection connection = null;
+        Connection restrictedConn = null;
         try {
-            connection = ds.getRestrictedConnection(BLACKLISTED_DDL);
+            restrictedConn = ds.getRestrictedConnection(BLACKLISTED_DML);
 
             thrown.expect(SQLException.class);
-            executeAndVerifySelectStatement(connection, " SELECT * from actor where first_name = 'CHRISTIAN'");
+            thrown.expectMessage(RESTRICTED_ERR_MESSAGE);
+            executeAndVerifySelectStatement(restrictedConn, " SELECT * from actor where first_name = 'CHRISTIAN'");
         } finally {
-            if (connection != null) connection.close();
+            if (restrictedConn != null) restrictedConn.close();
         }
     }
 
@@ -70,12 +76,13 @@ public class RestrictedConnectionTest extends AbstractDataSourceTest {
         Connection restrictedConn = null;
         Connection freeConn = null;
         try {
-            restrictedConn = ds.getRestrictedConnection(BLACKLISTED_DDL);
+            restrictedConn = ds.getRestrictedConnection(BLACKLISTED_DML);
             freeConn= ds.getConnection();
 
             executeAndVerifySelectStatement(freeConn, " SELECT * from actor where first_name = 'CHRISTIAN'"); // will pass
 
             thrown.expect(SQLException.class);
+            thrown.expectMessage(RESTRICTED_ERR_MESSAGE);
             executeAndVerifySelectStatement(restrictedConn, " SELECT * from actor where first_name = 'CHRISTIAN'"); // will throw SQLException
         } finally {
             if (freeConn != null) freeConn.close();
@@ -84,46 +91,48 @@ public class RestrictedConnectionTest extends AbstractDataSourceTest {
     }
 
     @Test
-    public void testRestrictedDdlExecute() throws SQLException, IOException {
+    public void testRestrictedDDLExecute() throws SQLException, IOException {
         ViburDBCPDataSource ds = createDataSourceNoStatementsCache();
-        Connection connection = null;
+        Connection restrictedConn = null;
         try {
-            connection = ds.getRestrictedConnection(WHITELISTED_DDL);
+            restrictedConn = ds.getRestrictedConnection(WHITELISTED_DML);
 
             thrown.expect(SQLException.class);
-            executeAndVerifySelectStatement(connection, "CREATE TABLE new_actor(actor_id SMALLINT NOT NULL IDENTITY, first_name VARCHAR(45) NOT NULL)");
+            thrown.expectMessage(RESTRICTED_ERR_MESSAGE);
+            executeAndVerifySelectStatement(restrictedConn, "CREATE TABLE new_actor(actor_id SMALLINT NOT NULL IDENTITY, first_name VARCHAR(45) NOT NULL)");
         } finally {
-            if (connection != null) connection.close();
+            if (restrictedConn != null) restrictedConn.close();
         }
     }
 
     @Test
     public void testAllowedPrepare() throws SQLException, IOException {
         ViburDBCPDataSource ds = createDataSourceNoStatementsCache();
-        Connection connection = null;
-        PreparedStatement pStatement = null;
+        Connection restrictedConn = null;
+        PreparedStatement restrictedPStatement = null;
         try {
-            connection = ds.getRestrictedConnection(WHITELISTED_DDL);
-            pStatement = connection.prepareStatement("select * from actor where first_name = ?");
+            restrictedConn = ds.getRestrictedConnection(WHITELISTED_DML);
+            restrictedPStatement = restrictedConn.prepareStatement("select * from actor where first_name = ?");
         } finally {
-            if (pStatement != null) pStatement.close();
-            if (connection != null) connection.close();
+            if (restrictedPStatement != null) restrictedPStatement.close();
+            if (restrictedConn != null) restrictedConn.close();
         }
     }
 
     @Test
     public void testRestrictedPrepare() throws SQLException, IOException {
         ViburDBCPDataSource ds = createDataSourceNoStatementsCache();
-        Connection connection = null;
-        PreparedStatement pStatement = null;
+        Connection restrictedConn = null;
+        PreparedStatement restrictedPStatement = null;
         try {
-            connection = ds.getRestrictedConnection(BLACKLISTED_DDL);
+            restrictedConn = ds.getRestrictedConnection(BLACKLISTED_DML);
 
             thrown.expect(SQLException.class);
-            pStatement = connection.prepareStatement(" select * from actor where first_name = ?");
+            thrown.expectMessage(RESTRICTED_ERR_MESSAGE);
+            restrictedPStatement = restrictedConn.prepareStatement(" select * from actor where first_name = ?");
         } finally {
-            if (pStatement != null) pStatement.close();
-            if (connection != null) connection.close();
+            if (restrictedPStatement != null) restrictedPStatement.close();
+            if (restrictedConn != null) restrictedConn.close();
         }
     }
 
@@ -135,12 +144,13 @@ public class RestrictedConnectionTest extends AbstractDataSourceTest {
         PreparedStatement restrictedPStatement = null;
         PreparedStatement freePStatement = null;
         try {
-            restrictedConn = ds.getRestrictedConnection(BLACKLISTED_DDL);
+            restrictedConn = ds.getRestrictedConnection(BLACKLISTED_DML);
             freeConn= ds.getConnection();
 
             freePStatement = freeConn.prepareStatement(" select * from actor where first_name = ?"); // will pass
 
             thrown.expect(SQLException.class);
+            thrown.expectMessage(RESTRICTED_ERR_MESSAGE);
             restrictedPStatement = restrictedConn.prepareStatement(" select * from actor where first_name = ?"); // will throw SQLException
         } finally {
             if (freePStatement != null) freePStatement.close();
@@ -151,50 +161,52 @@ public class RestrictedConnectionTest extends AbstractDataSourceTest {
     }
 
     @Test
-    public void testRestrictedDdlPrepare() throws SQLException, IOException {
+    public void testRestrictedDDLPrepare() throws SQLException, IOException {
         ViburDBCPDataSource ds = createDataSourceNoStatementsCache();
-        Connection connection = null;
-        PreparedStatement pStatement = null;
+        Connection restrictedConn = null;
+        PreparedStatement restrictedPStatement = null;
         try {
-            connection = ds.getRestrictedConnection(WHITELISTED_DDL);
+            restrictedConn = ds.getRestrictedConnection(WHITELISTED_DML);
 
             thrown.expect(SQLException.class);
-            pStatement = connection.prepareStatement("CREATE TABLE new_actor(actor_id SMALLINT NOT NULL IDENTITY, first_name VARCHAR(45) NOT NULL)");
+            thrown.expectMessage(RESTRICTED_ERR_MESSAGE);
+            restrictedPStatement = restrictedConn.prepareStatement("CREATE TABLE new_actor(actor_id SMALLINT NOT NULL IDENTITY, first_name VARCHAR(45) NOT NULL)");
         } finally {
-            if (pStatement != null) pStatement.close();
-            if (connection != null) connection.close();
+            if (restrictedPStatement != null) restrictedPStatement.close();
+            if (restrictedConn != null) restrictedConn.close();
         }
     }
 
     @Test
     public void testAllowedAddBatch() throws SQLException, IOException {
         ViburDBCPDataSource ds = createDataSourceNoStatementsCache();
-        Connection connection = null;
-        Statement statement = null;
+        Connection restrictedConn = null;
+        Statement restrictedStatement = null;
         try {
-            connection = ds.getRestrictedConnection(WHITELISTED_DDL);
-            statement = connection.createStatement();
-            statement.addBatch("SELECT * from actor where first_name = 'CHRISTIAN'");
+            restrictedConn = ds.getRestrictedConnection(WHITELISTED_DML);
+            restrictedStatement = restrictedConn.createStatement();
+            restrictedStatement.addBatch("SELECT * from actor where first_name = 'CHRISTIAN'");
         } finally {
-            if (statement != null) statement.close();
-            if (connection != null) connection.close();
+            if (restrictedStatement != null) restrictedStatement.close();
+            if (restrictedConn != null) restrictedConn.close();
         }
     }
 
     @Test
     public void testRestrictedAddBatch() throws SQLException, IOException {
         ViburDBCPDataSource ds = createDataSourceNoStatementsCache();
-        Connection connection = null;
-        Statement statement = null;
+        Connection restrictedConn = null;
+        Statement restrictedStatement = null;
         try {
-            connection = ds.getRestrictedConnection(BLACKLISTED_DDL);
-            statement = connection.createStatement();
+            restrictedConn = ds.getRestrictedConnection(BLACKLISTED_DML);
+            restrictedStatement = restrictedConn.createStatement();
 
             thrown.expect(SQLException.class);
-            statement.addBatch("SELECT * from actor where first_name = 'CHRISTIAN'");
+            thrown.expectMessage(RESTRICTED_ERR_MESSAGE);
+            restrictedStatement.addBatch("SELECT * from actor where first_name = 'CHRISTIAN'");
         } finally {
-            if (statement != null) statement.close();
-            if (connection != null) connection.close();
+            if (restrictedStatement != null) restrictedStatement.close();
+            if (restrictedConn != null) restrictedConn.close();
         }
     }
 
@@ -206,7 +218,7 @@ public class RestrictedConnectionTest extends AbstractDataSourceTest {
         Statement restrictedStatement = null;
         Statement freeStatement = null;
         try {
-            restrictedConn = ds.getRestrictedConnection(BLACKLISTED_DDL);
+            restrictedConn = ds.getRestrictedConnection(BLACKLISTED_DML);
             restrictedStatement = restrictedConn.createStatement();
             freeConn = ds.getConnection();
             freeStatement = freeConn.createStatement();
@@ -214,6 +226,7 @@ public class RestrictedConnectionTest extends AbstractDataSourceTest {
             freeStatement.addBatch("SELECT * from actor where first_name = 'CHRISTIAN'"); // will pass
 
             thrown.expect(SQLException.class);
+            thrown.expectMessage(RESTRICTED_ERR_MESSAGE);
             restrictedStatement.addBatch("SELECT * from actor where first_name = 'CHRISTIAN'"); // will throw SQLException
         } finally {
             if (freeStatement != null) freeStatement.close();
@@ -224,19 +237,20 @@ public class RestrictedConnectionTest extends AbstractDataSourceTest {
     }
 
     @Test
-    public void testRestrictedDdlAddBatch() throws SQLException, IOException {
+    public void testRestrictedDDLAddBatch() throws SQLException, IOException {
         ViburDBCPDataSource ds = createDataSourceNoStatementsCache();
-        Connection connection = null;
-        Statement statement = null;
+        Connection restrictedConn = null;
+        Statement restrictedStatement = null;
         try {
-            connection = ds.getRestrictedConnection(WHITELISTED_DDL);
-            statement = connection.createStatement();
+            restrictedConn = ds.getRestrictedConnection(WHITELISTED_DML);
+            restrictedStatement = restrictedConn.createStatement();
 
             thrown.expect(SQLException.class);
-            statement.addBatch("CREATE TABLE new_actor(actor_id SMALLINT NOT NULL IDENTITY, first_name VARCHAR(45) NOT NULL)");
+            thrown.expectMessage(RESTRICTED_ERR_MESSAGE);
+            restrictedStatement.addBatch("CREATE TABLE new_actor(actor_id SMALLINT NOT NULL IDENTITY, first_name VARCHAR(45) NOT NULL)");
         } finally {
-            if (statement != null) statement.close();
-            if (connection != null) connection.close();
+            if (restrictedStatement != null) restrictedStatement.close();
+            if (restrictedConn != null) restrictedConn.close();
         }
     }
 
