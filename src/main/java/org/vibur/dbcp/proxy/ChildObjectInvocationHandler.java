@@ -44,7 +44,7 @@ public class ChildObjectInvocationHandler<P, T> extends AbstractInvocationHandle
         return super.doInvoke(proxy, method, args);
     }
 
-    public P getParentProxy() {
+    protected P getParentProxy() {
         return parentProxy;
     }
 }
