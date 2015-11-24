@@ -18,11 +18,11 @@ package org.vibur.dbcp.pool;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.vibur.dbcp.ConnectionRestriction;
 import org.vibur.dbcp.ViburDBCPConfig;
 import org.vibur.dbcp.ViburDBCPDataSource;
 import org.vibur.dbcp.ViburDBCPException;
 import org.vibur.dbcp.proxy.Proxy;
+import org.vibur.dbcp.restriction.ConnectionRestriction;
 import org.vibur.objectpool.PoolService;
 
 import java.sql.Connection;

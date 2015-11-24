@@ -18,11 +18,11 @@ package org.vibur.dbcp.proxy;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.vibur.dbcp.ConnectionRestriction;
 import org.vibur.dbcp.ViburDBCPConfig;
 import org.vibur.dbcp.cache.StatementCache;
 import org.vibur.dbcp.cache.StatementVal;
 import org.vibur.dbcp.proxy.listener.ExceptionListener;
+import org.vibur.dbcp.restriction.ConnectionRestriction;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;

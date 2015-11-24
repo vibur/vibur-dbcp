@@ -16,7 +16,6 @@
 
 package org.vibur.dbcp.proxy;
 
-import org.vibur.dbcp.ConnectionRestriction;
 import org.vibur.dbcp.ViburDBCPConfig;
 import org.vibur.dbcp.cache.ConnMethodKey;
 import org.vibur.dbcp.cache.StatementCache;
@@ -24,6 +23,7 @@ import org.vibur.dbcp.cache.StatementVal;
 import org.vibur.dbcp.pool.ConnHolder;
 import org.vibur.dbcp.pool.PoolOperations;
 import org.vibur.dbcp.proxy.listener.ExceptionListenerImpl;
+import org.vibur.dbcp.restriction.ConnectionRestriction;
 
 import java.lang.reflect.Method;
 import java.sql.Connection;

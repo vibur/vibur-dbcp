@@ -16,7 +16,7 @@
 
 package org.vibur.dbcp.util;
 
-import org.vibur.dbcp.ConnectionRestriction;
+import org.vibur.dbcp.restriction.ConnectionRestriction;
 
 /**
  * SQL query restriction validation utils.
@@ -28,8 +28,7 @@ public class ValidatorUtils {
     private ValidatorUtils() {}
 
     public static boolean isQueryAllowed(String sql, ConnectionRestriction restriction) {
-        if (restriction == null || restriction.restrictedQueryPrefixes() == null
-                || restriction.restrictedQueryPrefixes().size() == 0)
+        if (restriction == null || restriction.restrictedQueryPrefixes() == null)
             return true;
 
         String firstWord = getFirstWord(sql);

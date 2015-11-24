@@ -16,11 +16,11 @@
 
 package org.vibur.dbcp.proxy;
 
-import org.vibur.dbcp.ConnectionRestriction;
 import org.vibur.dbcp.ViburDBCPConfig;
 import org.vibur.dbcp.cache.StatementVal;
 import org.vibur.dbcp.pool.ConnHolder;
 import org.vibur.dbcp.proxy.listener.ExceptionListener;
+import org.vibur.dbcp.restriction.ConnectionRestriction;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;

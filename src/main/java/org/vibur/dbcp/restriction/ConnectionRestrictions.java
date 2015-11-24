@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.vibur.dbcp;
+package org.vibur.dbcp.restriction;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -23,14 +23,12 @@ import java.util.Set;
 import static java.util.Collections.unmodifiableSet;
 
 /**
- * Describes the JDBC Connection restrictions in terms of what kind of SQL queries are allowed to be executed
- * on this connection. This could be a DDL only, a DML only, or a mixture of both.
- *
- * @see ViburDBCPDataSource#getRestrictedConnection(ConnectionRestriction)
+ * An utility enum which contains several pre-defined implementations of the {@link ConnectionRestriction}
+ * interface.
  *
  * @author Simeon Malchev
  */
-public enum ConnectionRestriction {
+public enum ConnectionRestrictions implements ConnectionRestriction {
 
     WHITELISTED_DML,
     BLACKLISTED_DML;
@@ -43,16 +41,7 @@ public enum ConnectionRestriction {
         BLACKLISTED_DML.set(SQL_DML_PREFIXES, false);
     }
 
-    /**
-     * If not {@code null}, will filter the attempted for execution SQL queries based on these prefixes.
-     * The strings in this set must be in <b>all lower-case</b>.
-     */
     private Set<String> restrictedQueryPrefixes;
-
-    /**
-     * Will apply only if {@link #restrictedQueryPrefixes} is enabled. If set to {@code true}, the specified
-     * restrictedQueryPrefixes will be treated as white-listed, otherwise as black-listed.
-     */
     private boolean whiteListed;
 
     private void set(Set<String> restrictedQueryPrefixes, boolean whiteListed) {
@@ -60,10 +49,12 @@ public enum ConnectionRestriction {
         this.whiteListed = whiteListed;
     }
 
+    /** {@inheritDoc} */
     public Set<String> restrictedQueryPrefixes() {
         return restrictedQueryPrefixes;
     }
 
+    /** {@inheritDoc} */
     public boolean whiteListed() {
         return whiteListed;
     }

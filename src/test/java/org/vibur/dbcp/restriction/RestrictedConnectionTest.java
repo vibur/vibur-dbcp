@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-package org.vibur.dbcp;
+package org.vibur.dbcp.restriction;
 
 import org.hamcrest.Matcher;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.mockito.internal.matchers.Contains;
+import org.vibur.dbcp.AbstractDataSourceTest;
+import org.vibur.dbcp.ViburDBCPDataSource;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -28,8 +30,8 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-import static org.vibur.dbcp.ConnectionRestriction.BLACKLISTED_DML;
-import static org.vibur.dbcp.ConnectionRestriction.WHITELISTED_DML;
+import static org.vibur.dbcp.restriction.ConnectionRestrictions.BLACKLISTED_DML;
+import static org.vibur.dbcp.restriction.ConnectionRestrictions.WHITELISTED_DML;
 
 /**
  * Restricted connection tests.
@@ -41,7 +43,7 @@ public class RestrictedConnectionTest extends AbstractDataSourceTest {
     private static final Matcher<String> RESTRICTED_ERR_MESSAGE = new Contains("with a restricted SQL query");
 
     @Rule
-    public ExpectedException exception = ExpectedException.none();
+    public final ExpectedException exception = ExpectedException.none();
 
     @Test
     public void testAllowedExecute() throws SQLException, IOException {

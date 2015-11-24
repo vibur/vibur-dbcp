@@ -23,6 +23,7 @@ import org.vibur.dbcp.pool.ConnHolder;
 import org.vibur.dbcp.pool.ConnectionFactory;
 import org.vibur.dbcp.pool.PoolOperations;
 import org.vibur.dbcp.pool.VersionedObjectFactory;
+import org.vibur.dbcp.restriction.ConnectionRestriction;
 import org.vibur.objectpool.ConcurrentLinkedPool;
 import org.vibur.objectpool.PoolService;
 import org.vibur.objectpool.listener.TakenListener;
