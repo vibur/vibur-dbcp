@@ -39,8 +39,7 @@ import java.net.URLConnection;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 import java.util.logging.Logger;
 
 import static org.vibur.dbcp.util.FormattingUtils.getPoolName;
@@ -155,10 +154,18 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
     }
 
     private void configureFromProperties(Properties properties) throws ViburDBCPException {
+        Set<String> fields = new HashSet<String>();
+        for (Field field : ViburDBCPConfig.class.getDeclaredFields())
+            fields.add(field.getName());
+
         for (Map.Entry<Object, Object> entry : properties.entrySet()) {
             String key = (String) entry.getKey();
             String val = (String) entry.getValue();
             try {
+                if (!fields.contains(key)) {
+                    logger.warn("Unknown configuration property: " + key);
+                    continue;
+                }
                 Field field = ViburDBCPConfig.class.getDeclaredField(key);
                 Class<?> type = field.getType();
                 if (type == int.class || type == Integer.class)
@@ -172,9 +179,9 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
                 else if (type == String.class)
                     set(field, val);
                 else
-                    throw new ViburDBCPException("Unexpected configuration property: " + key);
+                    throw new ViburDBCPException("Unexpected type for configuration property: " + key);
             } catch (NoSuchFieldException e) {
-                throw new ViburDBCPException("Unexpected configuration property: " + key);
+                throw new ViburDBCPException("Error calling getDeclaredField() for: " + key);
             } catch (NumberFormatException e) {
                 throw new ViburDBCPException("Wrong value for configuration property: " + key, e);
             } catch (IllegalAccessException e) {
