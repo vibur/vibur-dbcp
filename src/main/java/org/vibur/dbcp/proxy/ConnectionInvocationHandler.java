@@ -24,34 +24,49 @@ import org.vibur.dbcp.pool.ConnHolder;
 import org.vibur.dbcp.pool.PoolOperations;
 import org.vibur.dbcp.proxy.listener.ExceptionListenerImpl;
 import org.vibur.dbcp.restriction.ConnectionRestriction;
+import org.vibur.dbcp.restriction.QueryRestriction;
 
 import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
+import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Set;
 
 /**
  * @author Simeon Malchev
  */
 public class ConnectionInvocationHandler extends AbstractInvocationHandler<Connection> implements TargetInvoker {
 
-    private final PoolOperations poolOperations;
     private final ConnHolder conn;
-
     private final ViburDBCPConfig config;
-    private final ConnectionRestriction restriction;
 
-    public ConnectionInvocationHandler(ConnHolder conn, ViburDBCPConfig config, ConnectionRestriction restriction) {
-        super(conn.value(), new ExceptionListenerImpl());
-        this.poolOperations = config.getPoolOperations();
+    private final PoolOperations poolOperations;
+
+    private final QueryRestriction restriction;
+    private final Set<String> forbiddenMethods;
+
+    public ConnectionInvocationHandler(ConnHolder conn, ViburDBCPConfig config) {
+        super(conn.value(), new ExceptionListenerImpl(),
+                config.getConnectionRestriction() == null || config.getConnectionRestriction().allowsUnwrapping());
         this.conn = conn;
         this.config = config;
-        this.restriction = restriction;
+        this.poolOperations = config.getPoolOperations();
+
+        ConnectionRestriction cr = config.getConnectionRestriction();
+        if (cr != null) {
+            this.restriction = cr.getQueryRestriction();
+            this.forbiddenMethods = cr.getForbiddenMethods();
+        } else {
+            this.restriction = null;
+            this.forbiddenMethods = null;
+        }
     }
 
     @SuppressWarnings("unchecked")
     protected Object doInvoke(Connection proxy, Method method, Object[] args) throws Throwable {
         String methodName = method.getName();
+        checkMethodRestrictions(methodName);
 
         boolean aborted = methodName == "abort";
         if (aborted || methodName == "close")
@@ -68,24 +83,29 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
         // on their results the return value to be the current JDBC Connection proxy.
         if (methodName == "createStatement") { // *3
             StatementVal statement = getUncachedStatement(method, args);
-            return Proxy.newStatement(statement, proxy, config, getExceptionListener(), restriction);
+            return Proxy.newStatement(statement, proxy, config, getExceptionListener());
         }
         if (methodName == "prepareStatement") { // *6
-            checkRestrictions(methodName, args, restriction);
+            checkQueryRestrictions(methodName, args, restriction);
             StatementVal pStatement = getCachedStatement(method, args);
-            return Proxy.newPreparedStatement(pStatement, proxy, config, getExceptionListener(), restriction);
+            return Proxy.newPreparedStatement(pStatement, proxy, config, getExceptionListener());
         }
         if (methodName == "prepareCall") { // *3
-            checkRestrictions(methodName, args, restriction);
+            checkQueryRestrictions(methodName, args, restriction);
             StatementVal cStatement = getCachedStatement(method, args);
-            return Proxy.newCallableStatement(cStatement, proxy, config, getExceptionListener(), restriction);
+            return Proxy.newCallableStatement(cStatement, proxy, config, getExceptionListener());
         }
         if (methodName == "getMetaData") { // *1
             DatabaseMetaData rawDatabaseMetaData = (DatabaseMetaData) targetInvoke(method, args);
-            return Proxy.newDatabaseMetaData(rawDatabaseMetaData, proxy, getExceptionListener());
+            return Proxy.newDatabaseMetaData(rawDatabaseMetaData, proxy, config, getExceptionListener());
         }
 
         return super.doInvoke(proxy, method, args);
+    }
+
+    private void checkMethodRestrictions(String methodName) throws SQLException {
+        if (forbiddenMethods != null && forbiddenMethods.contains(methodName))
+            throw new SQLException("Attempted to call a restricted Connection method " + methodName);
     }
 
     /**

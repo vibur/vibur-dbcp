@@ -22,7 +22,7 @@ import org.vibur.dbcp.ViburDBCPConfig;
 import org.vibur.dbcp.cache.StatementCache;
 import org.vibur.dbcp.cache.StatementVal;
 import org.vibur.dbcp.proxy.listener.ExceptionListener;
-import org.vibur.dbcp.restriction.ConnectionRestriction;
+import org.vibur.dbcp.restriction.QueryRestriction;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -46,23 +46,24 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
     private final StatementVal statementVal;
     private final StatementCache statementCache;
     private final ViburDBCPConfig config;
-    private final ConnectionRestriction restriction;
 
     private final boolean logSlowQuery;
     private final List<Object[]> queryParams;
 
+    private final QueryRestriction restriction;
+
     public StatementInvocationHandler(StatementVal statementVal, StatementCache statementCache,
                                       Connection connectionProxy, ViburDBCPConfig config,
-                                      ExceptionListener exceptionListener, ConnectionRestriction restriction) {
-        super(statementVal.value(), connectionProxy, "getConnection", exceptionListener);
-        if (config == null)
-            throw new NullPointerException();
+                                      ExceptionListener exceptionListener) {
+        super(statementVal.value(), connectionProxy, "getConnection", exceptionListener,
+                config.getConnectionRestriction() == null || config.getConnectionRestriction().allowsUnwrapping());
         this.statementVal = statementVal;
         this.statementCache = statementCache;
         this.config = config;
-        this.restriction = restriction;
         this.logSlowQuery = config.getLogQueryExecutionLongerThanMs() >= 0;
         this.queryParams = logSlowQuery ? new LinkedList<Object[]>() : null;
+        this.restriction = config.getConnectionRestriction() != null ?
+                config.getConnectionRestriction().getQueryRestriction() : null;
     }
 
     protected Object doInvoke(Statement proxy, Method method, Object[] args) throws Throwable {
@@ -78,11 +79,11 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
         if (methodName.startsWith("set")) // this intercepts all "set..." JDBC Prepared/Callable Statement methods
             return processSet(method, args);
         if (methodName.startsWith("execute")) { // this intercepts all "execute..." JDBC Statement methods
-            checkRestrictions(methodName, args, restriction);
+            checkQueryRestrictions(methodName, args, restriction);
             return processExecute(proxy, method, args);
         }
         if (methodName == "addBatch")
-            checkRestrictions(methodName, args, restriction);
+            checkQueryRestrictions(methodName, args, restriction);
 
         // Methods which results have to be proxied so that when getStatement() is called
         // on their results the return value to be the current JDBC Statement proxy.

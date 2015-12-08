@@ -23,12 +23,12 @@ import java.util.Set;
 import static java.util.Collections.unmodifiableSet;
 
 /**
- * An utility enum which contains several pre-defined implementations of the {@link ConnectionRestriction}
+ * An utility enum which contains several pre-defined implementations of the {@link QueryRestriction}
  * interface.
  *
  * @author Simeon Malchev
  */
-public enum ConnectionRestrictions implements ConnectionRestriction {
+public enum QueryRestrictions implements QueryRestriction {
 
     WHITELISTED_DML,
     BLACKLISTED_DML;
@@ -41,17 +41,17 @@ public enum ConnectionRestrictions implements ConnectionRestriction {
         BLACKLISTED_DML.set(SQL_DML_PREFIXES, false);
     }
 
-    private Set<String> restrictedQueryPrefixes;
+    private Set<String> restrictedPrefixes;
     private boolean whiteListed;
 
     private void set(Set<String> restrictedQueryPrefixes, boolean whiteListed) {
-        this.restrictedQueryPrefixes = restrictedQueryPrefixes;
+        this.restrictedPrefixes = restrictedQueryPrefixes;
         this.whiteListed = whiteListed;
     }
 
     /** {@inheritDoc} */
-    public Set<String> restrictedQueryPrefixes() {
-        return restrictedQueryPrefixes;
+    public Set<String> restrictedPrefixes() {
+        return restrictedPrefixes;
     }
 
     /** {@inheritDoc} */

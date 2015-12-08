@@ -22,7 +22,7 @@ import org.vibur.dbcp.ViburDBCPConfig;
 import org.vibur.dbcp.ViburDBCPDataSource;
 import org.vibur.dbcp.ViburDBCPException;
 import org.vibur.dbcp.proxy.Proxy;
-import org.vibur.dbcp.restriction.ConnectionRestriction;
+import org.vibur.dbcp.restriction.QueryRestriction;
 import org.vibur.objectpool.PoolService;
 
 import java.sql.Connection;
@@ -70,9 +70,9 @@ public class PoolOperations {
         this.name = dataSource.getName();
     }
 
-    public Connection getConnection(long timeout, ConnectionRestriction restriction) throws SQLException {
+    public Connection getConnection(long timeout) throws SQLException {
         try {
-            return doGetConnection(timeout, restriction);
+            return doGetConnection(timeout);
         } catch (ViburDBCPException e) {
             Throwable cause = e.getCause();
             if (cause instanceof SQLException)
@@ -82,13 +82,13 @@ public class PoolOperations {
         }
     }
 
-    private Connection doGetConnection(long timeout, ConnectionRestriction restriction) throws SQLException, ViburDBCPException {
+    private Connection doGetConnection(long timeout) throws SQLException, ViburDBCPException {
         ConnHolder conn = timeout == 0 ?
             pool.take() : pool.tryTake(timeout, TimeUnit.MILLISECONDS);
         if (conn == null)
             throw new SQLException("Couldn't obtain SQL connection from pool " + name);
         logger.trace("Getting {}", conn.value());
-        return Proxy.newConnection(conn, config, restriction);
+        return Proxy.newConnection(conn, config);
     }
 
     public boolean restore(ConnHolder conn, boolean aborted, List<Throwable> errors) {

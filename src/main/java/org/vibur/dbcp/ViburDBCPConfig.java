@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.cache.StatementCache;
 import org.vibur.dbcp.pool.ConnHolder;
 import org.vibur.dbcp.pool.PoolOperations;
+import org.vibur.dbcp.restriction.ConnectionRestriction;
 import org.vibur.objectpool.PoolService;
 
 import javax.sql.DataSource;
@@ -223,6 +224,11 @@ public class ViburDBCPConfig {
      * the pool. Similarly, if statement caching is enabled, will clear the SQL Warnings from the JDBC Prepared or
      * Callable Statement before returning it to the statement cache. */
     private boolean clearSQLWarnings = false;
+
+
+    /** An object which contains the JDBC {@linkplain ConnectionRestriction connection restrictions}, if any.
+     * {@code null} means no restrictions. */
+    private ConnectionRestriction connectionRestriction = null;
 
 
     private PoolService<ConnHolder> pool;
@@ -536,6 +542,14 @@ public class ViburDBCPConfig {
 
     public void setClearSQLWarnings(boolean clearSQLWarnings) {
         this.clearSQLWarnings = clearSQLWarnings;
+    }
+
+    public ConnectionRestriction getConnectionRestriction() {
+        return connectionRestriction;
+    }
+
+    public void setConnectionRestriction(ConnectionRestriction connectionRestriction) {
+        this.connectionRestriction = connectionRestriction;
     }
 
     public PoolService<ConnHolder> getPool() {

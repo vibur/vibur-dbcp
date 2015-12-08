@@ -23,7 +23,7 @@ import org.vibur.dbcp.pool.ConnHolder;
 import org.vibur.dbcp.pool.ConnectionFactory;
 import org.vibur.dbcp.pool.PoolOperations;
 import org.vibur.dbcp.pool.VersionedObjectFactory;
-import org.vibur.dbcp.restriction.ConnectionRestriction;
+import org.vibur.dbcp.restriction.QueryRestriction;
 import org.vibur.objectpool.ConcurrentLinkedPool;
 import org.vibur.objectpool.PoolService;
 import org.vibur.objectpool.listener.TakenListener;
@@ -325,22 +325,9 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
             new ViburDBCPMonitoring(this);
     }
 
-    /**
-     * Performs the same operations as {@link #getConnection()} except that creates a restricted connection
-     * on which only certain types of SQL queries are allowed.
-     *
-     * @param restriction the connection restrictions. {@code null} means no restrictions.
-     *
-     * @return a connection to the data source
-     * @throws SQLException if a database access error occurs or if a restricted SQL query has been attempted
-     */
-    public Connection getRestrictedConnection(ConnectionRestriction restriction) throws SQLException {
-        return getConnection(getConnectionTimeoutInMs(), restriction);
-    }
-
     /** {@inheritDoc} */
     public Connection getConnection() throws SQLException {
-        return getConnection(getConnectionTimeoutInMs(), null);
+        return getConnection(getConnectionTimeoutInMs());
     }
 
     /**
@@ -367,13 +354,13 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
     /**
      * Mainly exists to provide getConnection() method timing logging.
      */
-    private Connection getConnection(long timeout, ConnectionRestriction restriction) throws SQLException {
+    private Connection getConnection(long timeout) throws SQLException {
         boolean logSlowConn = getLogConnectionLongerThanMs() >= 0;
         long startTime = logSlowConn ? System.currentTimeMillis() : 0L;
 
         Connection connProxy = null;
         try {
-            return connProxy = getPoolOperations().getConnection(timeout, restriction);
+            return connProxy = getPoolOperations().getConnection(timeout);
         } finally {
             if (logSlowConn)
                 logGetConnection(timeout, startTime, connProxy);

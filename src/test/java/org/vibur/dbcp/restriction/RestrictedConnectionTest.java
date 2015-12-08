@@ -23,6 +23,7 @@ import org.junit.rules.ExpectedException;
 import org.mockito.internal.matchers.Contains;
 import org.vibur.dbcp.AbstractDataSourceTest;
 import org.vibur.dbcp.ViburDBCPDataSource;
+import org.vibur.dbcp.util.AbstractConnectionRestriction;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -30,8 +31,8 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-import static org.vibur.dbcp.restriction.ConnectionRestrictions.BLACKLISTED_DML;
-import static org.vibur.dbcp.restriction.ConnectionRestrictions.WHITELISTED_DML;
+import static org.vibur.dbcp.restriction.QueryRestrictions.BLACKLISTED_DML;
+import static org.vibur.dbcp.restriction.QueryRestrictions.WHITELISTED_DML;
 
 /**
  * Restricted connection tests.
@@ -45,12 +46,24 @@ public class RestrictedConnectionTest extends AbstractDataSourceTest {
     @Rule
     public final ExpectedException exception = ExpectedException.none();
 
+    private final ConnectionRestriction whiteListedDml = new AbstractConnectionRestriction() {
+        public QueryRestriction getQueryRestriction() {
+            return WHITELISTED_DML;
+        }
+    };
+    private final ConnectionRestriction blackListedDml = new AbstractConnectionRestriction() {
+        public QueryRestriction getQueryRestriction() {
+            return BLACKLISTED_DML;
+        }
+    };
+
     @Test
     public void testAllowedExecute() throws SQLException, IOException {
         ViburDBCPDataSource ds = createDataSourceNoStatementsCache();
         Connection restrictedConn = null;
         try {
-            restrictedConn = ds.getRestrictedConnection(WHITELISTED_DML);
+            ds.setConnectionRestriction(whiteListedDml);
+            restrictedConn = ds.getConnection();
             executeAndVerifySelectStatement(restrictedConn, "SELECT * from actor where first_name = 'CHRISTIAN'");
         } finally {
             if (restrictedConn != null) restrictedConn.close();
@@ -62,7 +75,8 @@ public class RestrictedConnectionTest extends AbstractDataSourceTest {
         ViburDBCPDataSource ds = createDataSourceNoStatementsCache();
         Connection restrictedConn = null;
         try {
-            restrictedConn = ds.getRestrictedConnection(BLACKLISTED_DML);
+            ds.setConnectionRestriction(blackListedDml);
+            restrictedConn = ds.getConnection();
 
             exception.expect(SQLException.class);
             exception.expectMessage(RESTRICTED_ERR_MESSAGE);
@@ -78,14 +92,16 @@ public class RestrictedConnectionTest extends AbstractDataSourceTest {
         Connection restrictedConn = null;
         Connection freeConn = null;
         try {
-            restrictedConn = ds.getRestrictedConnection(BLACKLISTED_DML);
-            freeConn= ds.getConnection();
-
-            executeAndVerifySelectStatement(freeConn, " SELECT * from actor where first_name = 'CHRISTIAN'"); // will pass
+            ds.setConnectionRestriction(blackListedDml);
+            restrictedConn = ds.getConnection();
 
             exception.expect(SQLException.class);
             exception.expectMessage(RESTRICTED_ERR_MESSAGE);
             executeAndVerifySelectStatement(restrictedConn, " SELECT * from actor where first_name = 'CHRISTIAN'"); // will throw SQLException
+
+            ds.setConnectionRestriction(null);
+            freeConn= ds.getConnection();
+            executeAndVerifySelectStatement(freeConn, " SELECT * from actor where first_name = 'CHRISTIAN'"); // will pass
         } finally {
             if (freeConn != null) freeConn.close();
             if (restrictedConn != null) restrictedConn.close();
@@ -97,7 +113,8 @@ public class RestrictedConnectionTest extends AbstractDataSourceTest {
         ViburDBCPDataSource ds = createDataSourceNoStatementsCache();
         Connection restrictedConn = null;
         try {
-            restrictedConn = ds.getRestrictedConnection(WHITELISTED_DML);
+            ds.setConnectionRestriction(whiteListedDml);
+            restrictedConn = ds.getConnection();
 
             exception.expect(SQLException.class);
             exception.expectMessage(RESTRICTED_ERR_MESSAGE);
@@ -113,7 +130,8 @@ public class RestrictedConnectionTest extends AbstractDataSourceTest {
         Connection restrictedConn = null;
         PreparedStatement restrictedPStatement = null;
         try {
-            restrictedConn = ds.getRestrictedConnection(WHITELISTED_DML);
+            ds.setConnectionRestriction(whiteListedDml);
+            restrictedConn = ds.getConnection();
             restrictedPStatement = restrictedConn.prepareStatement("select * from actor where first_name = ?");
         } finally {
             if (restrictedPStatement != null) restrictedPStatement.close();
@@ -127,7 +145,8 @@ public class RestrictedConnectionTest extends AbstractDataSourceTest {
         Connection restrictedConn = null;
         PreparedStatement restrictedPStatement = null;
         try {
-            restrictedConn = ds.getRestrictedConnection(BLACKLISTED_DML);
+            ds.setConnectionRestriction(blackListedDml);
+            restrictedConn = ds.getConnection();
 
             exception.expect(SQLException.class);
             exception.expectMessage(RESTRICTED_ERR_MESSAGE);
@@ -146,14 +165,16 @@ public class RestrictedConnectionTest extends AbstractDataSourceTest {
         PreparedStatement restrictedPStatement = null;
         PreparedStatement freePStatement = null;
         try {
-            restrictedConn = ds.getRestrictedConnection(BLACKLISTED_DML);
-            freeConn= ds.getConnection();
-
-            freePStatement = freeConn.prepareStatement(" select * from actor where first_name = ?"); // will pass
+            ds.setConnectionRestriction(blackListedDml);
+            restrictedConn = ds.getConnection();
 
             exception.expect(SQLException.class);
             exception.expectMessage(RESTRICTED_ERR_MESSAGE);
             restrictedPStatement = restrictedConn.prepareStatement(" select * from actor where first_name = ?"); // will throw SQLException
+
+            ds.setConnectionRestriction(null);
+            freeConn= ds.getConnection();
+            freePStatement = freeConn.prepareStatement(" select * from actor where first_name = ?"); // will pass
         } finally {
             if (freePStatement != null) freePStatement.close();
             if (restrictedPStatement != null) restrictedPStatement.close();
@@ -168,7 +189,8 @@ public class RestrictedConnectionTest extends AbstractDataSourceTest {
         Connection restrictedConn = null;
         PreparedStatement restrictedPStatement = null;
         try {
-            restrictedConn = ds.getRestrictedConnection(WHITELISTED_DML);
+            ds.setConnectionRestriction(whiteListedDml);
+            restrictedConn = ds.getConnection();
 
             exception.expect(SQLException.class);
             exception.expectMessage(RESTRICTED_ERR_MESSAGE);
@@ -185,7 +207,8 @@ public class RestrictedConnectionTest extends AbstractDataSourceTest {
         Connection restrictedConn = null;
         Statement restrictedStatement = null;
         try {
-            restrictedConn = ds.getRestrictedConnection(WHITELISTED_DML);
+            ds.setConnectionRestriction(whiteListedDml);
+            restrictedConn = ds.getConnection();
             restrictedStatement = restrictedConn.createStatement();
             restrictedStatement.addBatch("SELECT * from actor where first_name = 'CHRISTIAN'");
         } finally {
@@ -200,7 +223,8 @@ public class RestrictedConnectionTest extends AbstractDataSourceTest {
         Connection restrictedConn = null;
         Statement restrictedStatement = null;
         try {
-            restrictedConn = ds.getRestrictedConnection(BLACKLISTED_DML);
+            ds.setConnectionRestriction(blackListedDml);
+            restrictedConn = ds.getConnection();
             restrictedStatement = restrictedConn.createStatement();
 
             exception.expect(SQLException.class);
@@ -220,16 +244,18 @@ public class RestrictedConnectionTest extends AbstractDataSourceTest {
         Statement restrictedStatement = null;
         Statement freeStatement = null;
         try {
-            restrictedConn = ds.getRestrictedConnection(BLACKLISTED_DML);
+            ds.setConnectionRestriction(blackListedDml);
+            restrictedConn = ds.getConnection();
             restrictedStatement = restrictedConn.createStatement();
-            freeConn = ds.getConnection();
-            freeStatement = freeConn.createStatement();
-
-            freeStatement.addBatch("SELECT * from actor where first_name = 'CHRISTIAN'"); // will pass
 
             exception.expect(SQLException.class);
             exception.expectMessage(RESTRICTED_ERR_MESSAGE);
             restrictedStatement.addBatch("SELECT * from actor where first_name = 'CHRISTIAN'"); // will throw SQLException
+
+            ds.setConnectionRestriction(null);
+            freeConn = ds.getConnection();
+            freeStatement = freeConn.createStatement();
+            freeStatement.addBatch("SELECT * from actor where first_name = 'CHRISTIAN'"); // will pass
         } finally {
             if (freeStatement != null) freeStatement.close();
             if (restrictedStatement != null) restrictedStatement.close();
@@ -244,7 +270,8 @@ public class RestrictedConnectionTest extends AbstractDataSourceTest {
         Connection restrictedConn = null;
         Statement restrictedStatement = null;
         try {
-            restrictedConn = ds.getRestrictedConnection(WHITELISTED_DML);
+            ds.setConnectionRestriction(whiteListedDml);
+            restrictedConn = ds.getConnection();
             restrictedStatement = restrictedConn.createStatement();
 
             exception.expect(SQLException.class);

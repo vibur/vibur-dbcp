@@ -29,8 +29,8 @@ public class ChildObjectInvocationHandler<P, T> extends AbstractInvocationHandle
     private final String getParentMethod;
 
     public ChildObjectInvocationHandler(T connectionChild, P parentProxy, String getParentMethod,
-                                        ExceptionListener exceptionListener) {
-        super(connectionChild, exceptionListener);
+                                        ExceptionListener exceptionListener, boolean allowsUnwrapping) {
+        super(connectionChild, exceptionListener, allowsUnwrapping);
         if (parentProxy == null || getParentMethod == null)
             throw new NullPointerException();
         this.parentProxy = parentProxy;

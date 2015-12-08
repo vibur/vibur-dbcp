@@ -16,34 +16,38 @@
 
 package org.vibur.dbcp.restriction;
 
-import org.vibur.dbcp.ViburDBCPDataSource;
-
 import java.util.Set;
 
 /**
- * Defines the JDBC Connection restrictions in terms of what kind of SQL queries are allowed to be executed
- * on this connection. This could be a DDL only, a DML only, or a mixture of both.
+ * Defines the JDBC Connection restrictions. The restrictions may include query restrictions, forbidden methods
+ * from the {@link java.sql.Connection} interface, forbidden JDBC objects unwrapping.
+ * <p>
+ * The invocation of any of the forbidden methods or an attempt to execute a forbidden SQL query, will result
+ * in an SQLException being thrown.
  *
- * @see ViburDBCPDataSource#getRestrictedConnection(ConnectionRestriction)
+ * @see QueryRestriction
  *
  * @author Simeon Malchev
  */
 public interface ConnectionRestriction {
 
     /**
-     * Returns a set of String prefixes that will be used to filter (allow or forbid) the attempted SQL queries.
-     * The strings in this set must be in <b>all lower-case</b>. Returning {@code null} means there are no
-     * restrictions. Returning an empty set will effectively forbid all SQL queries.
-     *
+     * Returns the query restrictions. Returning {@code null} means there are no restrictions.
      * @return see above
      */
-    Set<String> restrictedQueryPrefixes();
+    QueryRestriction getQueryRestriction();
 
     /**
-     * Will apply only if {@link #restrictedQueryPrefixes()} returns a non-null value. If set to {@code true},
-     * the specified restricted query prefixes will be treated as being white-listed, otherwise as black-listed.
-     *
+     * Returns a set of Strings containing the names of forbidden for invocation methods from the
+     * {@link java.sql.Connection} interface. Returning {@code null} or an empty set means there are no
+     * forbidden methods.
      * @return see above
      */
-    boolean whiteListed();
+    Set<String> getForbiddenMethods();
+
+    /**
+     * Returning {@code true} means that the JDBC objects unwrapping is allowed.
+     * @return see above
+     */
+    boolean allowsUnwrapping();
 }

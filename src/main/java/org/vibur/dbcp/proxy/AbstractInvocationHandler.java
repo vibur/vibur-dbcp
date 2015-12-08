@@ -20,7 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.ViburDBCPException;
 import org.vibur.dbcp.proxy.listener.ExceptionListener;
-import org.vibur.dbcp.restriction.ConnectionRestriction;
+import org.vibur.dbcp.restriction.QueryRestriction;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -43,13 +43,16 @@ public abstract class AbstractInvocationHandler<T> implements TargetInvoker {
     private final T target;
 
     private final ExceptionListener exceptionListener;
+    private final boolean allowsUnwrapping;
+
     private final AtomicBoolean logicallyClosed = new AtomicBoolean(false);
 
-    public AbstractInvocationHandler(T target, ExceptionListener exceptionListener) {
+    public AbstractInvocationHandler(T target, ExceptionListener exceptionListener, boolean allowsUnwrapping) {
         if (target == null || exceptionListener == null)
             throw new NullPointerException();
         this.target = target;
         this.exceptionListener = exceptionListener;
+        this.allowsUnwrapping = allowsUnwrapping;
     }
 
     /** {@inheritDoc} */
@@ -128,7 +131,7 @@ public abstract class AbstractInvocationHandler<T> implements TargetInvoker {
             throw new SQLException(target.getClass().getName() + " is closed.");
     }
 
-    protected void checkRestrictions(String methodName, Object[] args, ConnectionRestriction restriction) throws SQLException {
+    protected void checkQueryRestrictions(String methodName, Object[] args, QueryRestriction restriction) throws SQLException {
         if (restriction != null && args != null && args.length > 0 && args[0] instanceof String
                 && !isQueryAllowed((String) args[0], restriction))
             throw new SQLException("Attempted to call " + methodName + " with a restricted SQL query:\n-- " + args[0]);
@@ -149,6 +152,6 @@ public abstract class AbstractInvocationHandler<T> implements TargetInvoker {
     }
 
     private boolean isWrapperFor(Class<?> iface) {
-        return iface.isInstance(target);
+        return allowsUnwrapping && iface.isInstance(target);
     }
 }

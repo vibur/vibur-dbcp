@@ -47,7 +47,8 @@ public class ResultSetInvocationHandler extends ChildObjectInvocationHandler<Sta
     public ResultSetInvocationHandler(ResultSet rawResultSet, Statement statementProxy,
                                       Object[] executeMethodArgs, List<Object[]> queryParams,
                                       ViburDBCPConfig config, ExceptionListener exceptionListener) {
-        super(rawResultSet, statementProxy, "getStatement", exceptionListener);
+        super(rawResultSet, statementProxy, "getStatement", exceptionListener,
+                config.getConnectionRestriction() == null || config.getConnectionRestriction().allowsUnwrapping());
         this.executeMethodArgs = executeMethodArgs;
         this.queryParams = queryParams;
         this.config = config;
