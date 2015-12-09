@@ -33,6 +33,7 @@ public interface ConnectionRestriction {
 
     /**
      * Returns the query restrictions. Returning {@code null} means there are no restrictions.
+     *
      * @return see above
      */
     QueryRestriction getQueryRestriction();
@@ -41,12 +42,14 @@ public interface ConnectionRestriction {
      * Returns a set of Strings containing the names of forbidden for invocation methods from the
      * {@link java.sql.Connection} interface. Returning {@code null} or an empty set means there are no
      * forbidden methods.
+     *
      * @return see above
      */
     Set<String> getForbiddenMethods();
 
     /**
      * Returning {@code true} means that the JDBC objects unwrapping is allowed.
+     *
      * @return see above
      */
     boolean allowsUnwrapping();

@@ -27,6 +27,13 @@ public class QueryValidatorUtils {
 
     private QueryValidatorUtils() {}
 
+    /**
+     * Returns true if the given SQL query is allowed by the given query restrictions, false otherwise.
+     *
+     * @param sql the SQL query to be checked
+     * @param restriction the restrictions against which the query will be checked
+     * @return see above
+     */
     public static boolean isQueryAllowed(String sql, QueryRestriction restriction) {
         if (restriction == null || restriction.restrictedPrefixes() == null)
             return true;

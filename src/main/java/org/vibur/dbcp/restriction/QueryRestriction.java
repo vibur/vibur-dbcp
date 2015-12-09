@@ -22,6 +22,7 @@ import java.util.Set;
  * Defines the SQL query restrictions. This could be a DDL queries only, a DML only, or a mixture of both.
  *
  * @see ConnectionRestriction
+ * @see QueryRestrictions
  *
  * @author Simeon Malchev
  */
@@ -30,6 +31,8 @@ public interface QueryRestriction {
     /**
      * Returns a set of String prefixes that will be used to filter (allow or forbid) the attempted SQL queries.
      * The strings in this set must be in <b>all lower-case</b> and must consist of one or two words only.
+     * For examples, see {@link QueryRestrictions}.
+     * <p>
      * Returning {@code null} means there are no restrictions. Returning an empty set will effectively
      * forbid all SQL queries.
      *
