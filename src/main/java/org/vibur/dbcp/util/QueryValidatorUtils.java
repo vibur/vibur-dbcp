@@ -35,8 +35,12 @@ public class QueryValidatorUtils {
         if (words == null)
             return true;
 
-        return restriction.restrictedPrefixes().contains(words[0]) == restriction.whiteListed()
-                || restriction.restrictedPrefixes().contains(words[1]) == restriction.whiteListed();
+        if (restriction.whiteListed())
+            return restriction.restrictedPrefixes().contains(words[0]) == restriction.whiteListed()
+                    || restriction.restrictedPrefixes().contains(words[1]) == restriction.whiteListed();
+        else
+            return restriction.restrictedPrefixes().contains(words[0]) == restriction.whiteListed()
+                    && restriction.restrictedPrefixes().contains(words[1]) == restriction.whiteListed();
     }
 
     private static String[] getFirstTwoWords(String sql) {
