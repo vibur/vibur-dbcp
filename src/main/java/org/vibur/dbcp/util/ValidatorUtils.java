@@ -31,14 +31,15 @@ public class ValidatorUtils {
         if (restriction == null || restriction.restrictedPrefixes() == null)
             return true;
 
-        String firstWord = getFirstWord(sql);
-        if (firstWord == null)
+        String[] words = getFirstTwoWords(sql);
+        if (words == null)
             return true;
 
-        return restriction.restrictedPrefixes().contains(firstWord) == restriction.whiteListed();
+        return restriction.restrictedPrefixes().contains(words[0]) == restriction.whiteListed()
+                || restriction.restrictedPrefixes().contains(words[1]) == restriction.whiteListed();
     }
 
-    private static String getFirstWord(String sql) {
+    private static String[] getFirstTwoWords(String sql) {
         if (sql == null || sql.isEmpty())
             return null;
 
@@ -46,17 +47,33 @@ public class ValidatorUtils {
         char[] sqlChars = new char[len];
         sql.getChars(0, len, sqlChars, 0);
 
-        int beg = 0;
-        for (int i = 0; i < len && Character.isWhitespace((int) sqlChars[i]); i++)
-            beg++;
-        if (beg == len)
+        int firstBeg = skipWhitespaces(sqlChars, 0);
+        if (firstBeg == len)
             return null;
 
-        int end = beg;
-        for (int i = beg; i < len && !Character.isWhitespace((int) sqlChars[i]); i++) {
-            sqlChars[i] = (char) Character.toLowerCase((int) sqlChars[i]);
-            end++;
-        }
-        return new String(sqlChars, beg, end - beg);
+        int firstEnd = lowerCaseWordEnd(sqlChars, firstBeg, 0);
+        String firstWord = new String(sqlChars, firstBeg, firstEnd - firstBeg);
+
+        int secondBeg = skipWhitespaces(sqlChars, firstEnd);
+        if (secondBeg == len)
+            return new String[] {firstWord, null};
+
+        int secondEnd = lowerCaseWordEnd(sqlChars, secondBeg, secondBeg - firstEnd - 1);
+        String firstTwoWords = new String(sqlChars, firstBeg, secondEnd - firstBeg);
+        return new String[] {firstWord, firstTwoWords};
+    }
+
+    private static int skipWhitespaces(char[] sqlChars, int from) {
+        int beg = from;
+        while (beg < sqlChars.length && Character.isWhitespace((int) sqlChars[beg]))
+            beg++;
+        return beg;
+    }
+
+    private static int lowerCaseWordEnd(char[] sqlChars, int from, int skip) {
+        int end = from;
+        for (; end < sqlChars.length && !Character.isWhitespace((int) sqlChars[end]); end++)
+            sqlChars[end - skip] = (char) Character.toLowerCase((int) sqlChars[end]);
+        return end - skip;
     }
 }

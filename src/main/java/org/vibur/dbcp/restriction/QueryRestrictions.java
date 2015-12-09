@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+import static java.util.Collections.singleton;
 import static java.util.Collections.unmodifiableSet;
 
 /**
@@ -31,14 +32,21 @@ import static java.util.Collections.unmodifiableSet;
 public enum QueryRestrictions implements QueryRestriction {
 
     WHITELISTED_DML,
-    BLACKLISTED_DML;
+    BLACKLISTED_DML,
+    SELECT_ONLY,
+    BLACKLISTED_ROLE_SCHEMA;
 
     private static final Set<String> SQL_DML_PREFIXES = unmodifiableSet(new HashSet<String>(Arrays.asList(
             "select", "insert", "update", "delete")));
+    private static final Set<String> SELECT_PREFIX = singleton("select");
+    private static final Set<String> SET_ROLE_SCHEMA = unmodifiableSet(new HashSet<String>(Arrays.asList(
+            "set role", "reset role", "set schema", "reset schema", "set search_path", "reset search_path")));
 
     static {
         WHITELISTED_DML.set(SQL_DML_PREFIXES, true);
         BLACKLISTED_DML.set(SQL_DML_PREFIXES, false);
+        SELECT_ONLY.set(SELECT_PREFIX, true);
+        BLACKLISTED_ROLE_SCHEMA.set(SET_ROLE_SCHEMA, false);
     }
 
     private Set<String> restrictedPrefixes;

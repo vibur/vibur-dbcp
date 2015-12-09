@@ -100,7 +100,7 @@ public class RestrictedConnectionTest extends AbstractDataSourceTest {
             executeAndVerifySelectStatement(restrictedConn, " SELECT * from actor where first_name = 'CHRISTIAN'"); // will throw SQLException
 
             ds.setConnectionRestriction(null);
-            freeConn= ds.getConnection();
+            freeConn = ds.getConnection();
             executeAndVerifySelectStatement(freeConn, " SELECT * from actor where first_name = 'CHRISTIAN'"); // will pass
         } finally {
             if (freeConn != null) freeConn.close();
@@ -173,7 +173,7 @@ public class RestrictedConnectionTest extends AbstractDataSourceTest {
             restrictedPStatement = restrictedConn.prepareStatement(" select * from actor where first_name = ?"); // will throw SQLException
 
             ds.setConnectionRestriction(null);
-            freeConn= ds.getConnection();
+            freeConn = ds.getConnection();
             freePStatement = freeConn.prepareStatement(" select * from actor where first_name = ?"); // will pass
         } finally {
             if (freePStatement != null) freePStatement.close();
