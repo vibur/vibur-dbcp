@@ -16,8 +16,6 @@
 
 package org.vibur.dbcp.restriction;
 
-import org.vibur.dbcp.ViburDBCPDataSource;
-
 import java.util.Set;
 
 /**

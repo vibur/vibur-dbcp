@@ -22,7 +22,6 @@ import org.vibur.dbcp.ViburDBCPConfig;
 import org.vibur.dbcp.ViburDBCPDataSource;
 import org.vibur.dbcp.ViburDBCPException;
 import org.vibur.dbcp.proxy.Proxy;
-import org.vibur.dbcp.restriction.QueryRestriction;
 import org.vibur.objectpool.PoolService;
 
 import java.sql.Connection;

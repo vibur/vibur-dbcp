@@ -29,7 +29,7 @@ import java.sql.SQLTransientException;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static org.vibur.dbcp.util.ValidatorUtils.isQueryAllowed;
+import static org.vibur.dbcp.util.QueryValidatorUtils.isQueryAllowed;
 
 /**
 * @author Simeon Malchev

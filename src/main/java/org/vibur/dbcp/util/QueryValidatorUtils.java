@@ -23,9 +23,9 @@ import org.vibur.dbcp.restriction.QueryRestriction;
  *
  * @author Simeon Malchev
  */
-public class ValidatorUtils {
+public class QueryValidatorUtils {
 
-    private ValidatorUtils() {}
+    private QueryValidatorUtils() {}
 
     public static boolean isQueryAllowed(String sql, QueryRestriction restriction) {
         if (restriction == null || restriction.restrictedPrefixes() == null)
