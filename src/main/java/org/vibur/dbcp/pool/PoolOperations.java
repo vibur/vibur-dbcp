@@ -87,6 +87,9 @@ public class PoolOperations {
         if (conn == null)
             throw new SQLException("Couldn't obtain SQL connection from pool " + name);
         logger.trace("Getting {}", conn.value());
+
+        if (config.getConnectionConfigurator() != null)
+            config.getConnectionConfigurator().configure(conn.value());
         return Proxy.newConnection(conn, config);
     }
 
