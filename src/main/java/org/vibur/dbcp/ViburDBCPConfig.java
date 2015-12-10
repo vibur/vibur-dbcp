@@ -20,7 +20,7 @@ package org.vibur.dbcp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.cache.StatementCache;
-import org.vibur.dbcp.configurator.ConnectionConfigurator;
+import org.vibur.dbcp.hook.ConnectionHook;
 import org.vibur.dbcp.pool.ConnHolder;
 import org.vibur.dbcp.pool.PoolOperations;
 import org.vibur.objectpool.PoolService;
@@ -226,9 +226,12 @@ public class ViburDBCPConfig {
     private boolean clearSQLWarnings = false;
 
 
-    /** A programming configurator which will be invoked on the raw JDBC Connection as part of the
-     * {@link javax.sql.DataSource#getConnection()} flow. */
-    private ConnectionConfigurator connectionConfigurator = null;
+    /** A programming hook which will be invoked on the raw JDBC Connection as part of the
+     * {@link DataSource#getConnection()} flow. */
+    private ConnectionHook connectionHook = null;
+    /** A programming hook which will be invoked on the raw JDBC Connection as part of the
+     * {@link java.sql.Connection#close()} flow. */
+    private ConnectionHook closeHook = null;
 
     
     private PoolService<ConnHolder> pool;
@@ -544,12 +547,20 @@ public class ViburDBCPConfig {
         this.clearSQLWarnings = clearSQLWarnings;
     }
 
-    public ConnectionConfigurator getConnectionConfigurator() {
-        return connectionConfigurator;
+    public ConnectionHook getConnectionHook() {
+        return connectionHook;
     }
 
-    public void setConnectionConfigurator(ConnectionConfigurator connectionConfigurator) {
-        this.connectionConfigurator = connectionConfigurator;
+    public void setConnectionHook(ConnectionHook connectionHook) {
+        this.connectionHook = connectionHook;
+    }
+
+    public ConnectionHook getCloseHook() {
+        return closeHook;
+    }
+
+    public void setCloseHook(ConnectionHook closeHook) {
+        this.closeHook = closeHook;
     }
 
     public PoolService<ConnHolder> getPool() {
