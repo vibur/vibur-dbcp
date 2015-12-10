@@ -174,7 +174,8 @@
                         <Bundle-Name>${project.artifactId}</Bundle-Name>
                         <Export-Package>
                             org.vibur.dbcp,
-                            org.vibur.dbcp.jmx
+                            org.vibur.dbcp.jmx,
+                            org.vibur.dbcp.hook
                         </Export-Package>
                         <Import-Package>
                             javax.sql,

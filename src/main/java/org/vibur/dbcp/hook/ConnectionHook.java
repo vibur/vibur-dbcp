@@ -14,26 +14,26 @@
  * limitations under the License.
  */
 
-package org.vibur.dbcp.configurator;
+package org.vibur.dbcp.hook;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
 
 /**
- * Programming configurator for JDBC Connections.
+ * Programming hook for JDBC Connections.
  *
  * @author Simeon Malchev
  */
-public interface ConnectionConfigurator {
+public interface ConnectionHook {
 
     /**
-     * This method will be invoked on the retrieved from the pool raw JDBC Connection before it is proxied and given
-     * to the application. The invocation of this method happens as part of the {@link DataSource#getConnection()}
-     * flow, and should take as short time as possible.
+     * An application hook which will be called on a retrieved from the pool raw JDBC Connection. The invocation of
+     * this method will happen upon invoking methods from the {@link DataSource} or {@link Connection} interfaces,
+     * and should take as short time as possible.
      *
-     * @param rawConnection the retrieved from the pool raw JDBC connection
+     * @param rawConnection a retrieved from the pool raw JDBC connection
      * @throws SQLException if any operation executed on the raw JDBC Connection throws an SQLException
      */
-    void configure(Connection rawConnection) throws SQLException;
+    void on(Connection rawConnection) throws SQLException;
 }
