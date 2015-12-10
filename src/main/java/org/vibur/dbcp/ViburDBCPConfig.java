@@ -231,6 +231,7 @@ public class ViburDBCPConfig {
      * {@code null} means no restrictions. */
     private ConnectionRestriction connectionRestriction = null;
 
+
     /** A programming hook which will be invoked on the raw JDBC Connection as part of the
      * {@link DataSource#getConnection()} flow. */
     private ConnectionHook connectionHook = null;
@@ -559,8 +560,10 @@ public class ViburDBCPConfig {
     public void setConnectionRestriction(ConnectionRestriction connectionRestriction) {
         this.connectionRestriction = connectionRestriction;
     }
+
     public ConnectionHook getConnectionHook() {
         return connectionHook;
+    }
 
     public void setConnectionHook(ConnectionHook connectionHook) {
         this.connectionHook = connectionHook;
@@ -572,6 +575,8 @@ public class ViburDBCPConfig {
 
     public void setCloseHook(ConnectionHook closeHook) {
         this.closeHook = closeHook;
+    }
+
     public PoolService<ConnHolder> getPool() {
         return pool;
     }
