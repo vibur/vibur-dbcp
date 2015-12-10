@@ -175,7 +175,8 @@
                         <Export-Package>
                             org.vibur.dbcp,
                             org.vibur.dbcp.jmx,
-                            org.vibur.dbcp.hook
+                            org.vibur.dbcp.hook,
+                            org.vibur.dbcp.restriction
                         </Export-Package>
                         <Import-Package>
                             javax.sql,
