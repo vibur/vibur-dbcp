@@ -16,21 +16,20 @@
 
 package org.vibur.dbcp.hook;
 
-import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
 
 /**
- * Programming hook for JDBC Connections.
+ * An application programming hook for JDBC Connection tune-up.
  *
  * @author Simeon Malchev
  */
 public interface ConnectionHook {
 
     /**
-     * An application hook which will be called on a retrieved from the pool raw JDBC Connection. The invocation of
-     * this method will happen upon invoking methods from the {@link DataSource} or {@link Connection} interfaces,
-     * and should take as short time as possible.
+     * An application hook which will be called at a specific point of the JDBC Connection lifecycle. The invocation
+     * of this method will typically happen when a particular method of the {@link javax.sql.DataSource} or
+     * {@link Connection} interface has been called by the application, and should take as short time as possible.
      *
      * @param rawConnection a retrieved from the pool raw JDBC connection
      * @throws SQLException if any operation executed on the raw JDBC Connection throws an SQLException

@@ -117,11 +117,13 @@ public class ConnectionFactory implements VersionedObjectFactory<ConnHolder> {
         try {
             ensureConnectionInitialized(rawConnection);
             setDefaultValues(rawConnection);
+            if (config.getInitConnectionHook() != null)
+                config.getInitConnectionHook().on(rawConnection);
         } catch (SQLException e) {
             closeConnection(rawConnection);
             throw new ViburDBCPException(e);
         }
-        logger.trace("Created {}", rawConnection);
+        logger.debug("Created {}", rawConnection);
         return new ConnHolder(rawConnection, version(), System.currentTimeMillis());
     }
 
@@ -191,6 +193,8 @@ public class ConnectionFactory implements VersionedObjectFactory<ConnHolder> {
                 if (idle >= idleLimit && !validateConnection(conn.value(), config.getTestConnectionQuery()))
                     return false;
             }
+            if (config.getConnectionHook() != null)
+                config.getConnectionHook().on(conn.value());
 
             if (config.isPoolEnableConnectionTracking()) {
                 conn.setTakenTime(System.currentTimeMillis());
@@ -211,6 +215,9 @@ public class ConnectionFactory implements VersionedObjectFactory<ConnHolder> {
                 rawConnection.clearWarnings();
             if (config.isResetDefaultsAfterUse())
                 setDefaultValues(rawConnection);
+            if (config.getCloseConnectionHook() != null)
+                config.getCloseConnectionHook().on(rawConnection);
+
             conn.setRestoredTime(System.currentTimeMillis());
             return true;
         } catch (SQLException ignored) {
@@ -222,7 +229,7 @@ public class ConnectionFactory implements VersionedObjectFactory<ConnHolder> {
     /** {@inheritDoc} */
     public void destroy(ConnHolder conn) {
         Connection rawConnection = conn.value();
-        logger.trace("Destroying {}", rawConnection);
+        logger.debug("Destroying {}", rawConnection);
         closeStatements(rawConnection);
         closeConnection(rawConnection);
     }

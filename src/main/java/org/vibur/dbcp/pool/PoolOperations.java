@@ -32,8 +32,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-import static org.vibur.dbcp.util.SqlUtils.closeConnection;
-
 /**
  * The facade class via which most of the connection pool's and connection factory's functionalities
  * are accessed. Exposes an interface which allows us to:
@@ -89,31 +87,12 @@ public class PoolOperations {
         if (conn == null)
             throw new SQLException("Couldn't obtain SQL connection from pool " + name);
         logger.trace("Getting {}", conn.value());
-
-        applyGetConnectionHook(conn);
         return Proxy.newConnection(conn, config);
-    }
-
-    private void applyGetConnectionHook(ConnHolder conn) throws SQLException {
-        if (config.getConnectionHook() == null)
-            return;
-
-        try {
-            config.getConnectionHook().on(conn.value());
-        } catch (SQLException e) {
-            closeConnection(conn.value());
-            throw e;
-        } catch (RuntimeException e) {
-            closeConnection(conn.value());
-            throw e;
-        }
     }
 
     public boolean restore(ConnHolder conn, boolean aborted, List<Throwable> errors) {
         int connVersion = conn.version();
         boolean valid = !aborted && errors.isEmpty() && connVersion == connectionFactory.version();
-        if (valid)
-            valid = applyCloseHook(conn);
         pool.restore(conn, valid);
 
         SQLException sqlException;
@@ -126,22 +105,6 @@ public class PoolOperations {
                 sqlException.getSQLState(), destroyed, name, connectionFactory.version()), sqlException);
         }
         return valid;
-    }
-
-    private boolean applyCloseHook(ConnHolder conn) {
-        if (config.getCloseHook() == null)
-            return true;
-
-        try {
-            config.getCloseHook().on(conn.value());
-            return true;
-        } catch (SQLException e) {
-            logger.warn("Close connection hook threw:", e);
-            return false;
-        } catch (RuntimeException e) {
-            logger.error("Close connection hook threw:", e);
-            return false;
-        }
     }
 
     private SQLException hasCriticalSQLException(List<Throwable> errors) {
