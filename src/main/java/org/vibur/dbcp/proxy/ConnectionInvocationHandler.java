@@ -33,16 +33,16 @@ import java.sql.Statement;
  */
 public class ConnectionInvocationHandler extends AbstractInvocationHandler<Connection> implements TargetInvoker {
 
-    private final PoolOperations poolOperations;
     private final ConnHolder conn;
-
     private final ViburDBCPConfig config;
+
+    private final PoolOperations poolOperations;
 
     public ConnectionInvocationHandler(ConnHolder conn, ViburDBCPConfig config) {
         super(conn.value(), config);
-        this.poolOperations = config.getPoolOperations();
         this.conn = conn;
         this.config = config;
+        this.poolOperations = config.getPoolOperations();
     }
 
     @SuppressWarnings("unchecked")
