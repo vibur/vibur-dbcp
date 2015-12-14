@@ -45,7 +45,6 @@ import java.util.Set;
 import java.util.logging.Logger;
 
 import static org.vibur.dbcp.util.FormattingUtils.getPoolName;
-import static org.vibur.dbcp.util.ViburUtils.getStackTraceAsString;
 
 /**
  * The main DataSource which needs to be configured/instantiated by the calling application and from
@@ -371,14 +370,9 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
 
     private void logGetConnection(long timeout, long startTime, Connection connProxy) {
         long timeTaken = System.currentTimeMillis() - startTime;
-        if (timeTaken >= getLogConnectionLongerThanMs()) {
-            StringBuilder log = new StringBuilder(4096)
-                    .append(String.format("Call to getConnection(%d) from pool %s took %d ms, connProxy = %s",
-                            timeout, getPoolName(this), timeTaken, connProxy));
-            if (isLogStackTraceForLongConnection())
-                log.append('\n').append(getStackTraceAsString(new Throwable().getStackTrace()));
-            logger.warn(log.toString());
-        }
+        if (timeTaken >= getLogConnectionLongerThanMs())
+            getViburLogger().logGetConnection(getPoolName(this), connProxy, timeout, timeTaken,
+                    isLogStackTraceForLongConnection() ? new Throwable().getStackTrace() : null);
     }
 
     /** {@inheritDoc} */

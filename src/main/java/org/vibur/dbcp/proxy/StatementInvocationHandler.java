@@ -21,7 +21,6 @@ import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.ViburDBCPConfig;
 import org.vibur.dbcp.cache.StatementCache;
 import org.vibur.dbcp.cache.StatementVal;
-import org.vibur.dbcp.proxy.listener.ExceptionListener;
 import org.vibur.dbcp.restriction.QueryRestriction;
 
 import java.lang.reflect.InvocationTargetException;
@@ -32,14 +31,13 @@ import java.sql.Statement;
 import java.util.LinkedList;
 import java.util.List;
 
-import static org.vibur.dbcp.util.FormattingUtils.getQueryPrefix;
-import static org.vibur.dbcp.util.FormattingUtils.toSQLString;
-import static org.vibur.dbcp.util.ViburUtils.getStackTraceAsString;
+import static org.vibur.dbcp.util.FormattingUtils.*;
 
 /**
  * @author Simeon Malchev
  */
-public class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection, Statement> implements TargetInvoker {
+public class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection, Statement>
+        implements TargetInvoker {
 
     private static final Logger logger = LoggerFactory.getLogger(StatementInvocationHandler.class);
 
@@ -53,10 +51,10 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
     private final QueryRestriction restriction;
 
     public StatementInvocationHandler(StatementVal statementVal, StatementCache statementCache,
-                                      Connection connectionProxy, ViburDBCPConfig config,
-                                      ExceptionListener exceptionListener) {
-        super(statementVal.value(), connectionProxy, "getConnection", exceptionListener,
-                config.getConnectionRestriction() == null || config.getConnectionRestriction().allowsUnwrapping());
+                                      Connection connectionProxy, ViburDBCPConfig config) {
+        super(statementVal.value(), connectionProxy, "getConnection", config);
+        if (config == null)
+            throw new NullPointerException();
         this.statementVal = statementVal;
         this.statementCache = statementCache;
         this.config = config;
@@ -143,26 +141,21 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
 
     private ResultSet newProxiedResultSet(Statement proxy, Method method, Object[] args) throws Throwable {
         ResultSet rawResultSet = (ResultSet) targetInvoke(method, args);
-        return Proxy.newResultSet(rawResultSet, proxy, args, queryParams, config, getExceptionListener());
+        return Proxy.newResultSet(rawResultSet, proxy, args, queryParams, config);
     }
-
 
     private void logQuery(Statement proxy, Object[] args, long startTime) {
         long timeTaken = System.currentTimeMillis() - startTime;
-        if (timeTaken >= config.getLogQueryExecutionLongerThanMs()) {
-            StringBuilder message = new StringBuilder(4096).append(String.format("%s took %d ms:\n%s",
-                    getQueryPrefix(config), timeTaken, toSQLString(proxy, args, queryParams)));
-            if (config.isLogStackTraceForLongQueryExecution())
-                message.append("\n").append(getStackTraceAsString(new Throwable().getStackTrace()));
-            logger.warn(message.toString());
-        }
+        if (timeTaken >= config.getLogQueryExecutionLongerThanMs())
+            config.getViburLogger().logQuery(
+                    getPoolName(config), getSqlQuery(proxy, args), queryParams, timeTaken,
+                    config.isLogStackTraceForLongQueryExecution() ? new Throwable().getStackTrace() : null);
     }
 
     protected void logInvokeFailure(Method method, Object[] args, InvocationTargetException e) {
         if (method.getName().startsWith("execute")) {
-            String message = String.format("%s:\n%s\n-- threw:",
-                    getQueryPrefix(config), toSQLString(getTarget(), args, queryParams));
-            logger.warn(message, e);
+            logger.warn("SQL query execution from pool {}:\n{}\n-- threw:",
+                    getPoolName(config), formatSql(getSqlQuery(getTarget(), args), queryParams), e);
         } else
             super.logInvokeFailure(method, args, e);
     }

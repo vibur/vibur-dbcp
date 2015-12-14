@@ -18,8 +18,8 @@ package org.vibur.dbcp.proxy;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.vibur.dbcp.ViburDBCPConfig;
 import org.vibur.dbcp.ViburDBCPException;
-import org.vibur.dbcp.proxy.listener.ExceptionListener;
 import org.vibur.dbcp.restriction.QueryRestriction;
 
 import java.lang.reflect.InvocationTargetException;
@@ -29,6 +29,7 @@ import java.sql.SQLTransientException;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static org.vibur.dbcp.util.FormattingUtils.getPoolName;
 import static org.vibur.dbcp.util.QueryValidatorUtils.isQueryAllowed;
 
 /**
@@ -41,18 +42,15 @@ public abstract class AbstractInvocationHandler<T> implements TargetInvoker {
     /** The real (raw) object which we're dynamically proxy-ing.
      *  For example, the underlying JDBC Connection, the underlying JDBC Statement, etc. */
     private final T target;
-
-    private final ExceptionListener exceptionListener;
-    private final boolean allowsUnwrapping;
+    private final ViburDBCPConfig config;
 
     private final AtomicBoolean logicallyClosed = new AtomicBoolean(false);
 
-    public AbstractInvocationHandler(T target, ExceptionListener exceptionListener, boolean allowsUnwrapping) {
-        if (target == null || exceptionListener == null)
+    public AbstractInvocationHandler(T target, ViburDBCPConfig config) {
+        if (target == null || config == null)
             throw new NullPointerException();
         this.target = target;
-        this.exceptionListener = exceptionListener;
-        this.allowsUnwrapping = allowsUnwrapping;
+        this.config = config;
     }
 
     /** {@inheritDoc} */
@@ -78,8 +76,8 @@ public abstract class AbstractInvocationHandler<T> implements TargetInvoker {
         try {
             return doInvoke((T) proxy, method, args);
         } catch (ViburDBCPException e) {
-            logger.error(String.format("The invocation of %s with args %s on %s threw:",
-                    method, Arrays.toString(args), target), e);
+            logger.error("The invocation of {} with args {} on {} threw:",
+                    method, Arrays.toString(args), target, e);
             Throwable cause = e.getCause();
             if (cause instanceof SQLException)
                 throw cause; // throw the original SQLException which have caused the ViburDBCPException
@@ -106,7 +104,7 @@ public abstract class AbstractInvocationHandler<T> implements TargetInvoker {
             if (cause == null)
                 cause = e;
             if (!(cause instanceof SQLTransientException)) // SQL transient exceptions are not of interest
-                exceptionListener.onException(cause);
+                config.getExceptionListener().onException(cause);
             if (cause instanceof SQLException || cause instanceof RuntimeException || cause instanceof Error)
                 throw cause;
             throw new ViburDBCPException(cause); // not expected to happen
@@ -114,8 +112,8 @@ public abstract class AbstractInvocationHandler<T> implements TargetInvoker {
     }
 
     protected void logInvokeFailure(Method method, Object[] args, InvocationTargetException e) {
-        logger.warn(String.format("The invocation of %s with args %s on %s threw:",
-                method, Arrays.toString(args), target), e);
+        logger.warn("Pool {}, the invocation of {} with args {} on {} threw:",
+                getPoolName(config), method, Arrays.toString(args), target, e);
     }
 
     protected boolean isClosed() {
@@ -137,10 +135,6 @@ public abstract class AbstractInvocationHandler<T> implements TargetInvoker {
             throw new SQLException("Attempted to call " + methodName + " with a restricted SQL query:\n-- " + args[0]);
     }
 
-    protected ExceptionListener getExceptionListener() {
-        return exceptionListener;
-    }
-
     protected T getTarget() {
         return target;
     }
@@ -152,6 +146,7 @@ public abstract class AbstractInvocationHandler<T> implements TargetInvoker {
     }
 
     private boolean isWrapperFor(Class<?> iface) {
-        return allowsUnwrapping && iface.isInstance(target);
+        return (config.getConnectionRestriction() == null || config.getConnectionRestriction().allowsUnwrapping())
+                && iface.isInstance(target);
     }
 }

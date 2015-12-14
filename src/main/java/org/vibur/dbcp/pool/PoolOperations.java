@@ -100,9 +100,8 @@ public class PoolOperations {
             && connectionFactory.compareAndSetVersion(connVersion, connVersion + 1)) {
 
             int destroyed = pool.drainCreated(); // destroys all connections in the pool
-            logger.error(String.format(
-                "Critical SQLState %s occurred, destroyed %d connections from pool %s, current connection version is %d.",
-                sqlException.getSQLState(), destroyed, name, connectionFactory.version()), sqlException);
+            logger.error("Critical SQLState {} occurred, destroyed {} connections from pool {}, current connection version is {}.",
+                    sqlException.getSQLState(), destroyed, name, connectionFactory.version(), sqlException);
         }
         return valid;
     }
