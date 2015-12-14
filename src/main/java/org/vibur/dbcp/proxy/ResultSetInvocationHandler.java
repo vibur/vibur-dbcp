@@ -16,10 +16,7 @@
 
 package org.vibur.dbcp.proxy;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.ViburDBCPConfig;
-import org.vibur.dbcp.proxy.listener.ExceptionListener;
 
 import java.lang.reflect.Method;
 import java.sql.ResultSet;
@@ -27,16 +24,14 @@ import java.sql.Statement;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static org.vibur.dbcp.util.FormattingUtils.getQueryPrefix;
-import static org.vibur.dbcp.util.FormattingUtils.toSQLString;
-import static org.vibur.dbcp.util.ViburUtils.getStackTraceAsString;
+import static org.vibur.dbcp.util.FormattingUtils.getPoolName;
+import static org.vibur.dbcp.util.FormattingUtils.getSqlQuery;
 
 /**
  * @author Simeon Malchev
  */
-public class ResultSetInvocationHandler extends ChildObjectInvocationHandler<Statement, ResultSet> implements TargetInvoker {
-
-    private static final Logger logger = LoggerFactory.getLogger(ResultSetInvocationHandler.class);
+public class ResultSetInvocationHandler extends ChildObjectInvocationHandler<Statement, ResultSet>
+        implements TargetInvoker {
 
     private final Object[] executeMethodArgs;
     private final List<Object[]> queryParams;
@@ -44,10 +39,9 @@ public class ResultSetInvocationHandler extends ChildObjectInvocationHandler<Sta
 
     private final AtomicLong resultSetSize = new AtomicLong(0);
 
-    public ResultSetInvocationHandler(ResultSet rawResultSet, Statement statementProxy,
-                                      Object[] executeMethodArgs, List<Object[]> queryParams,
-                                      ViburDBCPConfig config, ExceptionListener exceptionListener) {
-        super(rawResultSet, statementProxy, "getStatement", exceptionListener);
+    public ResultSetInvocationHandler(ResultSet rawResultSet, Statement statementProxy, Object[] executeMethodArgs,
+                                      List<Object[]> queryParams, ViburDBCPConfig config) {
+        super(rawResultSet, statementProxy, "getStatement", config);
         this.executeMethodArgs = executeMethodArgs;
         this.queryParams = queryParams;
         this.config = config;
@@ -79,14 +73,9 @@ public class ResultSetInvocationHandler extends ChildObjectInvocationHandler<Sta
 
     private void logResultSetSize() {
         long size = resultSetSize.get() - 1;
-        if (config.getLogLargeResultSet() < 0 || size < 0 || config.getLogLargeResultSet() > size)
-            return;
-
-        StringBuilder message = new StringBuilder(4096).append(
-                String.format("%s retrieved a ResultSet with size %d:\n%s", getQueryPrefix(config),
-                        size, toSQLString(getParentProxy(), executeMethodArgs, queryParams)));
-        if (config.isLogStackTraceForLargeResultSet())
-            message.append("\n").append(getStackTraceAsString(new Throwable().getStackTrace()));
-        logger.warn(message.toString());
+        if (config.getLogLargeResultSet() >= 0 && config.getLogLargeResultSet() <= size)
+            config.getViburLogger().logResultSetSize(
+                    getPoolName(config), getSqlQuery(getParentProxy(), executeMethodArgs), queryParams, size,
+                    config.isLogStackTraceForLargeResultSet() ? new Throwable().getStackTrace() : null);
     }
 }

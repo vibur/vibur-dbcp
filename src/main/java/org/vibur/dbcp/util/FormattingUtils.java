@@ -32,20 +32,19 @@ public class FormattingUtils {
 
     private FormattingUtils() {}
 
-    public static String toSQLString(Statement statement, Object[] args, List<Object[]> queryParams) {
-        StringBuilder result = new StringBuilder(4096).append("-- ").append(statement instanceof PreparedStatement ?
-                statement.toString() : Arrays.toString(args)); // the latter is for simple JDBC Statements
-        if (!queryParams.isEmpty())
-            result.append("\n-- Parameters:\n-- ").append(Arrays.deepToString(queryParams.toArray()));
-        return result.toString();
-    }
-
-    public static String getQueryPrefix(ViburDBCPConfig config) {
-        return "SQL query execution from pool " + getPoolName(config);
-    }
-
     public static String getPoolName(ViburDBCPConfig config) {
         PoolService<ConnHolder> pool = config.getPool();
         return String.format("%s (%d/%d)", config.getName(), pool.taken(), pool.remainingCreated());
+    }
+
+    public static String getSqlQuery(Statement statement, Object[] args) {
+        return statement instanceof PreparedStatement ? statement.toString() : Arrays.toString(args);
+    }
+
+    public static String formatSql(String sqlQuery, List<Object[]> queryParams) {
+        StringBuilder result = new StringBuilder(4096).append("-- ").append(sqlQuery); // the latter is for simple JDBC Statements
+        if (!queryParams.isEmpty())
+            result.append("\n-- Parameters:\n-- ").append(Arrays.deepToString(queryParams.toArray()));
+        return result.toString();
     }
 }

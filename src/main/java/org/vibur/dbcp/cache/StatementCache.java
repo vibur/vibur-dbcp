@@ -79,14 +79,14 @@ public class StatementCache {
      * Returns <i>a possible</i> cached StatementVal object for the given connection method key.
      *
      * @param key the connection method key
-     * @param targetInvoker the targetInvoker via which to create the raw JDBC Statement object, if needed
+     * @param invoker the targetInvoker via which to create the raw JDBC Statement object, if needed
      * @return a retrieved from the cache or newly created StatementVal holder object wrapping the raw JDBC Statement object
      * @throws Throwable if the invoked underlying prepareXYZ method throws an exception
      */
-    public StatementVal retrieve(ConnMethodKey key, TargetInvoker targetInvoker) throws Throwable {
+    public StatementVal retrieve(ConnMethodKey key, TargetInvoker invoker) throws Throwable {
         StatementVal statement = statementCache.get(key);
         if (statement == null || !statement.state().compareAndSet(AVAILABLE, IN_USE)) {
-            Statement rawStatement = (Statement) targetInvoker.targetInvoke(key.getMethod(), key.getArgs());
+            Statement rawStatement = (Statement) invoker.targetInvoke(key.getMethod(), key.getArgs());
             if (statement == null) { // there was no entry for the key, so we'll try to put a new one
                 statement = new StatementVal(rawStatement, new AtomicInteger(IN_USE));
                 if (statementCache.putIfAbsent(key, statement) == null)

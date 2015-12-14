@@ -21,6 +21,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.cache.StatementCache;
 import org.vibur.dbcp.hook.ConnectionHook;
+import org.vibur.dbcp.listener.ExceptionListener;
+import org.vibur.dbcp.listener.ExceptionListenerImpl;
+import org.vibur.dbcp.logger.ViburLogger;
+import org.vibur.dbcp.logger.ViburLoggerImpl;
 import org.vibur.dbcp.pool.ConnHolder;
 import org.vibur.dbcp.pool.PoolOperations;
 import org.vibur.objectpool.PoolService;
@@ -235,6 +239,10 @@ public class ViburDBCPConfig {
     /** A programming hook which will be invoked on the raw JDBC Connection as part of the
      * {@link java.sql.Connection#close()} flow. Its execution should take as short time as possible. */
     private ConnectionHook closeConnectionHook = null;
+
+
+    private ViburLogger viburLogger = new ViburLoggerImpl();
+    private ExceptionListener exceptionListener = new ExceptionListenerImpl();
 
     
     private PoolService<ConnHolder> pool;
@@ -572,6 +580,22 @@ public class ViburDBCPConfig {
 
     public void setCloseConnectionHook(ConnectionHook closeConnectionHook) {
         this.closeConnectionHook = closeConnectionHook;
+    }
+
+    public ViburLogger getViburLogger() {
+        return viburLogger;
+    }
+
+    public void setViburLogger(ViburLogger viburLogger) {
+        this.viburLogger = viburLogger;
+    }
+
+    public ExceptionListener getExceptionListener() {
+        return exceptionListener;
+    }
+
+    public void setExceptionListener(ExceptionListener exceptionListener) {
+        this.exceptionListener = exceptionListener;
     }
 
     public PoolService<ConnHolder> getPool() {
