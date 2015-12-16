@@ -16,6 +16,7 @@
 
 package org.vibur.dbcp.util.collector;
 
+import java.sql.SQLTransientConnectionException;
 import java.sql.SQLTransientException;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -39,9 +40,9 @@ public class BaseExceptionCollector implements ExceptionCollector {
     private final Queue<Throwable> exceptions = new ConcurrentLinkedQueue<Throwable>();
 
     /** {@inheritDoc} */
-    public void addException(Throwable throwable) {
-        if (!(throwable instanceof SQLTransientException)) // SQL transient exceptions are not of interest
-            exceptions.add(throwable);
+    public void addException(Throwable t) {
+        if (!(t instanceof SQLTransientException) || t instanceof SQLTransientConnectionException)
+            exceptions.add(t); // the above SQL transient exceptions are not of interest and are ignored
     }
 
     /** {@inheritDoc} */
