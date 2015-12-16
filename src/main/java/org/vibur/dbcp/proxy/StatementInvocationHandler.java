@@ -30,7 +30,9 @@ import java.sql.Statement;
 import java.util.LinkedList;
 import java.util.List;
 
-import static org.vibur.dbcp.util.FormattingUtils.*;
+import static org.vibur.dbcp.util.SqlQueryUtils.formatSql;
+import static org.vibur.dbcp.util.SqlQueryUtils.getSqlQuery;
+import static org.vibur.dbcp.util.ViburUtils.getPoolName;
 
 /**
  * @author Simeon Malchev

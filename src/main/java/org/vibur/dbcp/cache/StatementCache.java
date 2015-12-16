@@ -29,8 +29,8 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.vibur.dbcp.cache.StatementVal.*;
-import static org.vibur.dbcp.util.SqlUtils.clearWarnings;
-import static org.vibur.dbcp.util.SqlUtils.closeStatement;
+import static org.vibur.dbcp.util.JdbcUtils.clearWarnings;
+import static org.vibur.dbcp.util.JdbcUtils.closeStatement;
 
 /**
  * Implements and encapsulates all JDBC Statement caching functionality and logic.

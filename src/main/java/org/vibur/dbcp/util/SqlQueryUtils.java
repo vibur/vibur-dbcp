@@ -16,10 +16,6 @@
 
 package org.vibur.dbcp.util;
 
-import org.vibur.dbcp.ViburDBCPConfig;
-import org.vibur.dbcp.pool.ConnHolder;
-import org.vibur.objectpool.PoolService;
-
 import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.util.Arrays;
@@ -28,14 +24,9 @@ import java.util.List;
 /**
  * @author Simeon Malchev
  */
-public class FormattingUtils {
+public class SqlQueryUtils {
 
-    private FormattingUtils() {}
-
-    public static String getPoolName(ViburDBCPConfig config) {
-        PoolService<ConnHolder> pool = config.getPool();
-        return String.format("%s (%d/%d)", config.getName(), pool.taken(), pool.remainingCreated());
-    }
+    private SqlQueryUtils() {}
 
     public static String getSqlQuery(Statement statement, Object[] args) {
         return statement instanceof PreparedStatement ? statement.toString() : Arrays.toString(args);

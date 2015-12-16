@@ -24,8 +24,8 @@ import java.sql.Statement;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static org.vibur.dbcp.util.FormattingUtils.getPoolName;
-import static org.vibur.dbcp.util.FormattingUtils.getSqlQuery;
+import static org.vibur.dbcp.util.SqlQueryUtils.getSqlQuery;
+import static org.vibur.dbcp.util.ViburUtils.getPoolName;
 
 /**
  * @author Simeon Malchev

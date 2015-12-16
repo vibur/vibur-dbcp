@@ -25,7 +25,7 @@ import org.vibur.objectpool.reducer.ThreadedPoolReducer;
 
 import java.util.concurrent.TimeUnit;
 
-import static org.vibur.dbcp.util.FormattingUtils.getPoolName;
+import static org.vibur.dbcp.util.ViburUtils.getPoolName;
 
 
 /**

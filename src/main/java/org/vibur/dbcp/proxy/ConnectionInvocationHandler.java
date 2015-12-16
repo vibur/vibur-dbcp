@@ -108,7 +108,7 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
         if (aborted)
             targetInvoke(method, args); // executes the abort() call, which in turn may throw an exception
         if (!getAndSetClosed())
-            poolOperations.restore(conn, aborted, config.getExceptionListener().getExceptions());
+            poolOperations.restore(conn, aborted, config.getExceptionCollector().getExceptions());
         return null;
     }
 }

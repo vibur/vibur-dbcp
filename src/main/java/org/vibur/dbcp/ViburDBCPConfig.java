@@ -20,13 +20,13 @@ package org.vibur.dbcp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.cache.StatementCache;
-import org.vibur.dbcp.hook.ConnectionHook;
-import org.vibur.dbcp.listener.ExceptionListener;
-import org.vibur.dbcp.listener.ExceptionListenerImpl;
-import org.vibur.dbcp.logger.ViburLogger;
-import org.vibur.dbcp.logger.ViburLoggerImpl;
 import org.vibur.dbcp.pool.ConnHolder;
 import org.vibur.dbcp.pool.PoolOperations;
+import org.vibur.dbcp.util.collector.BaseExceptionCollector;
+import org.vibur.dbcp.util.collector.ExceptionCollector;
+import org.vibur.dbcp.util.hook.ConnectionHook;
+import org.vibur.dbcp.util.logger.BaseViburLogger;
+import org.vibur.dbcp.util.logger.ViburLogger;
 import org.vibur.objectpool.PoolService;
 
 import javax.sql.DataSource;
@@ -117,7 +117,8 @@ public class ViburDBCPConfig {
     private boolean enableJMX = true;
 
 
-    /** The fully qualified pool reducer class name. This pool reducer class will be instantiated via reflection.
+    /** The fully qualified pool reducer class name. This pool reducer class will be instantiated via reflection,
+     * and will be instantiated only if {@link #reducerTimeIntervalInSeconds} is greater than {@code 0}.
      * It must implement the ThreadedPoolReducer interface and must also have a public constructor accepting a
      * single argument of type ViburDBCPConfig. */
     private String poolReducerClass = "org.vibur.dbcp.pool.PoolReducer";
@@ -241,8 +242,18 @@ public class ViburDBCPConfig {
     private ConnectionHook closeConnectionHook = null;
 
 
-    private ViburLogger viburLogger = new ViburLoggerImpl();
-    private ExceptionListener exceptionListener = new ExceptionListenerImpl();
+    /** Provides access to the functionality for logging of long lasting getConnection() calls, slow SQL queries,
+     * and large ResultSets. Setting this parameter to a sub-class of {@link BaseViburLogger} will allow the
+     * application to intercept all such logging events, and to accumulate statistics for the count and time
+     * taken by the executed SQL queries, or similar.
+     */
+    private ViburLogger viburLogger = new BaseViburLogger();
+    /**
+     * Provides access to the {@linkplain BaseExceptionCollector functionality} for receiving notifications for
+     * the exceptions thrown by the operations invoked on a JDBC Connection object or any of its direct or indirect
+     * derivative objects, such as Statement, ResultSet, or database Metadata objects.
+     */
+    private ExceptionCollector exceptionCollector = new BaseExceptionCollector();
 
     
     private PoolService<ConnHolder> pool;
@@ -590,12 +601,12 @@ public class ViburDBCPConfig {
         this.viburLogger = viburLogger;
     }
 
-    public ExceptionListener getExceptionListener() {
-        return exceptionListener;
+    public ExceptionCollector getExceptionCollector() {
+        return exceptionCollector;
     }
 
-    public void setExceptionListener(ExceptionListener exceptionListener) {
-        this.exceptionListener = exceptionListener;
+    public void setExceptionCollector(ExceptionCollector exceptionCollector) {
+        this.exceptionCollector = exceptionCollector;
     }
 
     public PoolService<ConnHolder> getPool() {
