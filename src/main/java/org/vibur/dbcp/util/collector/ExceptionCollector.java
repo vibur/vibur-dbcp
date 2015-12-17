@@ -21,9 +21,10 @@ import java.util.List;
 /**
  * JDBC proxy objects exceptions collector - operations definitions.
  *
- * <p>The purpose of this collector is to accumulate all non-transient SQL exceptions that has been thrown by the
- * operations invoked on a JDBC Connection object or any of its direct or indirect derivative objects, such as
- * Statement, ResultSet, or database Metadata objects.
+ * <p>The purpose of this collector is to receive notifications for all exceptions thrown by the
+ * operations invoked on a JDBC Connection object or any of its direct or indirect derivative objects
+ * (such as Statement, ResultSet, or database Metadata objects), and to accumulate a list of all
+ * non-transient exceptions.
  *
  * @see BaseExceptionCollector
  *
@@ -37,14 +38,14 @@ public interface ExceptionCollector {
      * an Exception. If needed, this method may implement filtering logic and can store/accumulate only those
      * Exceptions that are perceived as being not-temporarily.
      *
-     * @param throwable the exception thrown
+     * @param t the exception thrown
      */
-    void addException(Throwable throwable);
+    void addException(Throwable t);
 
     /**
      * Returns a list of all exceptions that were filtered and accumulated by the {@link #addException(Throwable)}
      * method. This method will be called by Vibur DBCP when a JDBC Connection proxy has been closed, in order to
-     * determine whether the underlying (raw) JDBC Connection needs to be physically closed, too.
+     * determine whether the underlying (raw) JDBC Connection needs to be physically closed or not.
      *
      * @return see above
      */

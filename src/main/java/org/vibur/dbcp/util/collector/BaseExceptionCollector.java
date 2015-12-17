@@ -31,7 +31,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  * to physically close the raw JDBC Connection which corresponding Connection proxy object has been just closed.
  * An application class that wants to receive notifications for all thrown on a JDBC Connection object (and its
  * derivatives) exceptions, may sub-class this class and override the {@link #addException(Throwable)} method,
- * returning the call back to its super-method.
+ * returning at the end the call back to its super-method.
  *
  * @author Simeon Malchev
  */

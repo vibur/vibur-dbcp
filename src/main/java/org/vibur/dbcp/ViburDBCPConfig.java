@@ -244,13 +244,13 @@ public class ViburDBCPConfig {
 
     /** Provides access to the functionality for logging of long lasting getConnection() calls, slow SQL queries,
      * and large ResultSets. Setting this parameter to a sub-class of {@link BaseViburLogger} will allow the
-     * application to intercept all such logging events, and to accumulate statistics for the count and time
-     * taken by the executed SQL queries, or similar.
+     * application to intercept all such logging events, and to accumulate statistics of the count and execution time
+     * of the SQL queries, or similar.
      */
     private ViburLogger viburLogger = new BaseViburLogger();
     /**
-     * Provides access to the {@linkplain BaseExceptionCollector functionality} for receiving notifications for
-     * the exceptions thrown by the operations invoked on a JDBC Connection object or any of its direct or indirect
+     * Provides access to the {@linkplain ExceptionCollector functionality} for receiving notifications for
+     * all exceptions thrown by the operations invoked on a JDBC Connection object or any of its direct or indirect
      * derivative objects, such as Statement, ResultSet, or database Metadata objects.
      */
     private ExceptionCollector exceptionCollector = new BaseExceptionCollector();
