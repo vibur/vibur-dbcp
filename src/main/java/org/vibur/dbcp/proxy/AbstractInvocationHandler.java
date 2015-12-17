@@ -25,12 +25,11 @@ import org.vibur.dbcp.restriction.QueryRestriction;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.sql.SQLException;
-import java.sql.SQLTransientException;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static org.vibur.dbcp.util.ViburUtils.getPoolName;
 import static org.vibur.dbcp.util.QueryValidatorUtils.isQueryAllowed;
+import static org.vibur.dbcp.util.ViburUtils.getPoolName;
 
 /**
 * @author Simeon Malchev

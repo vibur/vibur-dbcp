@@ -22,12 +22,12 @@ import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.cache.StatementCache;
 import org.vibur.dbcp.pool.ConnHolder;
 import org.vibur.dbcp.pool.PoolOperations;
+import org.vibur.dbcp.restriction.ConnectionRestriction;
 import org.vibur.dbcp.util.collector.BaseExceptionCollector;
 import org.vibur.dbcp.util.collector.ExceptionCollector;
 import org.vibur.dbcp.util.hook.ConnectionHook;
 import org.vibur.dbcp.util.logger.BaseViburLogger;
 import org.vibur.dbcp.util.logger.ViburLogger;
-import org.vibur.dbcp.restriction.ConnectionRestriction;
 import org.vibur.objectpool.PoolService;
 
 import javax.sql.DataSource;
