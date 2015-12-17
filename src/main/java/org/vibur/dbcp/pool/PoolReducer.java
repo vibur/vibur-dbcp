@@ -35,6 +35,7 @@ import static org.vibur.dbcp.util.ViburUtils.getPoolName;
  *
  * @author Simeon Malchev
  */
+@SuppressWarnings("unused")
 public class PoolReducer extends SamplingPoolReducer<ConnHolder> implements ThreadedPoolReducer {
 
     private final Logger logger = LoggerFactory.getLogger(PoolReducer.class);
