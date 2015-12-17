@@ -45,7 +45,7 @@ public class HsqldbUtils {
             sqlFile.execute();
         } finally {
             if (connection != null)
-                SqlUtils.closeConnection(connection);
+                JdbcUtils.closeConnection(connection);
         }
     }
 }

@@ -14,13 +14,17 @@
  * limitations under the License.
  */
 
-package org.vibur.dbcp.hook;
+package org.vibur.dbcp.util.hook;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 
 /**
  * An application programming hook for JDBC Connection tune-up.
+ *
+ * @see org.vibur.dbcp.ViburDBCPConfig#initConnectionHook
+ * @see org.vibur.dbcp.ViburDBCPConfig#connectionHook
+ * @see org.vibur.dbcp.ViburDBCPConfig#closeConnectionHook
  *
  * @author Simeon Malchev
  */

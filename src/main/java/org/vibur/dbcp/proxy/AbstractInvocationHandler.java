@@ -29,7 +29,7 @@ import java.sql.SQLTransientException;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static org.vibur.dbcp.util.FormattingUtils.getPoolName;
+import static org.vibur.dbcp.util.ViburUtils.getPoolName;
 import static org.vibur.dbcp.util.QueryValidatorUtils.isQueryAllowed;
 
 /**
@@ -103,8 +103,7 @@ public abstract class AbstractInvocationHandler<T> implements TargetInvoker {
             Throwable cause = e.getCause();
             if (cause == null)
                 cause = e;
-            if (!(cause instanceof SQLTransientException)) // SQL transient exceptions are not of interest
-                config.getExceptionListener().onException(cause);
+            config.getExceptionCollector().addException(cause);
             if (cause instanceof SQLException || cause instanceof RuntimeException || cause instanceof Error)
                 throw cause;
             throw new ViburDBCPException(cause); // not expected to happen

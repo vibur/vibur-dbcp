@@ -16,12 +16,21 @@
 
 package org.vibur.dbcp.util;
 
+import org.vibur.dbcp.ViburDBCPConfig;
+import org.vibur.dbcp.pool.ConnHolder;
+import org.vibur.objectpool.PoolService;
+
 /**
  * @author Simeon Malchev
  */
 public final class ViburUtils {
 
     private ViburUtils() {}
+
+    public static String getPoolName(ViburDBCPConfig config) {
+        PoolService<ConnHolder> pool = config.getPool();
+        return String.format("%s (%d/%d)", config.getName(), pool.taken(), pool.remainingCreated());
+    }
 
     public static String getStackTraceAsString(StackTraceElement[] stackTrace) {
         int i;

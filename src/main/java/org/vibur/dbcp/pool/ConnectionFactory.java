@@ -31,8 +31,8 @@ import java.sql.Statement;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.vibur.dbcp.util.SqlUtils.closeConnection;
-import static org.vibur.dbcp.util.SqlUtils.closeStatement;
+import static org.vibur.dbcp.util.JdbcUtils.closeConnection;
+import static org.vibur.dbcp.util.JdbcUtils.closeStatement;
 
 /**
  * The object factory which controls the lifecycle of the underlying JDBC Connections: creates them,

@@ -44,7 +44,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import static org.vibur.dbcp.util.FormattingUtils.getPoolName;
+import static org.vibur.dbcp.util.ViburUtils.getPoolName;
 
 /**
  * The main DataSource which needs to be configured/instantiated by the calling application and from

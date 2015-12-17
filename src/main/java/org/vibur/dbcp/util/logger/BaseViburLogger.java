@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.vibur.dbcp.logger;
+package org.vibur.dbcp.util.logger;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,16 +22,23 @@ import org.slf4j.LoggerFactory;
 import java.sql.Connection;
 import java.util.List;
 
-import static org.vibur.dbcp.util.FormattingUtils.formatSql;
+import static org.vibur.dbcp.util.SqlQueryUtils.formatSql;
 import static org.vibur.dbcp.util.ViburUtils.getStackTraceAsString;
 
 /**
+ * Vibur logging of long lasting getConnection() calls, slow SQL queries, and large ResultSets - operations implementation.
+ *
+ * <p>This class can be sub-classed by an application class that wants to intercept all such logging calls in order to
+ * collect SQL queries execution statistics or similar, and that also wants to return the calls back to their
+ * super-methods, as this will in turn allow the Vibur DBCP log to be created as normal.
+ *
  * @author Simeon Malchev
  */
-public class ViburLoggerImpl implements ViburLogger {
+public class BaseViburLogger implements ViburLogger {
 
-    private static final Logger logger = LoggerFactory.getLogger(ViburLoggerImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(BaseViburLogger.class);
 
+    /** {@inheritDoc} */
     public void logGetConnection(String poolName, Connection connProxy, long timeout, long timeTaken,
                                  StackTraceElement[] stackTrace) {
         StringBuilder log = new StringBuilder(4096)
@@ -42,6 +49,7 @@ public class ViburLoggerImpl implements ViburLogger {
         logger.warn(log.toString());
     }
 
+    /** {@inheritDoc} */
     public void logQuery(String poolName, String sqlQuery, List<Object[]> queryParams, long timeTaken,
                          StackTraceElement[] stackTrace) {
         StringBuilder message = new StringBuilder(4096).append(String.format("SQL query execution from pool %s took %d ms:\n%s",
@@ -51,6 +59,7 @@ public class ViburLoggerImpl implements ViburLogger {
         logger.warn(message.toString());
     }
 
+    /** {@inheritDoc} */
     public void logResultSetSize(String poolName, String sqlQuery, List<Object[]> queryParams, long resultSetSize,
                                  StackTraceElement[] stackTrace) {
         StringBuilder message = new StringBuilder(4096).append(

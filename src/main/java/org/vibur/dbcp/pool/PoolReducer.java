@@ -25,7 +25,7 @@ import org.vibur.objectpool.reducer.ThreadedPoolReducer;
 
 import java.util.concurrent.TimeUnit;
 
-import static org.vibur.dbcp.util.FormattingUtils.getPoolName;
+import static org.vibur.dbcp.util.ViburUtils.getPoolName;
 
 
 /**
@@ -35,6 +35,7 @@ import static org.vibur.dbcp.util.FormattingUtils.getPoolName;
  *
  * @author Simeon Malchev
  */
+@SuppressWarnings("unused")
 public class PoolReducer extends SamplingPoolReducer<ConnHolder> implements ThreadedPoolReducer {
 
     private final Logger logger = LoggerFactory.getLogger(PoolReducer.class);
