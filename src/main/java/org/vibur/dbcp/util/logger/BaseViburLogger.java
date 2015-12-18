@@ -22,7 +22,7 @@ import org.slf4j.LoggerFactory;
 import java.sql.Connection;
 import java.util.List;
 
-import static org.vibur.dbcp.util.SqlQueryUtils.formatSql;
+import static org.vibur.dbcp.util.QueryUtils.formatSql;
 import static org.vibur.dbcp.util.ViburUtils.getStackTraceAsString;
 
 /**
