@@ -24,9 +24,9 @@ import java.util.List;
 /**
  * @author Simeon Malchev
  */
-public class SqlQueryUtils {
+public class QueryUtils {
 
-    private SqlQueryUtils() {}
+    private QueryUtils() {}
 
     public static String getSqlQuery(Statement statement, Object[] args) {
         return statement instanceof PreparedStatement ? statement.toString() : Arrays.toString(args);
