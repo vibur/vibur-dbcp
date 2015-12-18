@@ -30,7 +30,8 @@ public interface QueryRestriction {
 
     /**
      * Returns a set of String prefixes that will be used to filter (allow or forbid) the attempted SQL queries.
-     * The strings in this set must be in <b>all lower-case</b> and must consist of one or two words only.
+     * The strings in this set must be in <b>all lower-case</b>, without leading or trailing whitespaces,
+     * and must consist of one or two words only. When there are two words, they must be separated by a single space.
      * For examples, see {@link QueryRestrictions}.
      * <p>
      * Returning {@code null} means there are no restrictions. Returning an empty set will effectively
