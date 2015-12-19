@@ -100,10 +100,10 @@ public class StatementCache {
         }
     }
 
-    public void restore(StatementVal statement, boolean clear) {
+    public void restore(StatementVal statement, boolean clearWarnings) {
         Statement rawStatement = statement.value();
         if (statement.state() != null) { // if this statement is in the cache
-            if (clear)
+            if (clearWarnings)
                 clearWarnings(rawStatement);
             if (!statement.state().compareAndSet(IN_USE, AVAILABLE)) // just mark it as available if its state was in_use
                 closeStatement(rawStatement); // and close it if it was already evicted (while its state was in_use)
