@@ -237,14 +237,14 @@ public class ViburDBCPConfig {
     private ConnectionRestriction connectionRestriction = null;
 
 
-    /** A programming {@linkplain ConnectionHook#on(java.sql.Connection) hook } which will be invoked only once when
+    /** A programming {@linkplain ConnectionHook#on(java.sql.Connection) hook} which will be invoked only once when
      * the raw JDBC Connection is first created. Its execution should take as short time as possible. */
     private ConnectionHook initConnectionHook = null;
-    /** A programming {@linkplain ConnectionHook#on(java.sql.Connection) hook } which will be invoked on the raw JDBC
+    /** A programming {@linkplain ConnectionHook#on(java.sql.Connection) hook} which will be invoked on the raw JDBC
      * Connection as part of the {@link DataSource#getConnection()} flow. Its execution should take as short time as
      * possible. */
     private ConnectionHook connectionHook = null;
-    /** A programming {@linkplain ConnectionHook#on(java.sql.Connection) hook } which will be invoked on the raw JDBC
+    /** A programming {@linkplain ConnectionHook#on(java.sql.Connection) hook} which will be invoked on the raw JDBC
      * Connection as part of the {@link java.sql.Connection#close()} flow. Its execution should take as short time as
      * possible. */
     private ConnectionHook closeConnectionHook = null;
@@ -575,14 +575,6 @@ public class ViburDBCPConfig {
 
     public void setClearSQLWarnings(boolean clearSQLWarnings) {
         this.clearSQLWarnings = clearSQLWarnings;
-    }
-
-    public ConnectionRestriction getConnectionRestriction() {
-        return connectionRestriction;
-    }
-
-    public void setConnectionRestriction(ConnectionRestriction connectionRestriction) {
-        this.connectionRestriction = connectionRestriction;
     }
 
     public ConnectionHook getInitConnectionHook() {
