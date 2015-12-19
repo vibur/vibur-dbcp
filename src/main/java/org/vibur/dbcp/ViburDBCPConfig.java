@@ -231,14 +231,16 @@ public class ViburDBCPConfig {
     private boolean clearSQLWarnings = false;
 
 
-    /** A programming hook which will be invoked only once when the raw JDBC Connection is first created.
-     * Its execution should take as short time as possible. */
+    /** A programming {@linkplain ConnectionHook#on(java.sql.Connection) hook } which will be invoked only once when
+     * the raw JDBC Connection is first created. Its execution should take as short time as possible. */
     private ConnectionHook initConnectionHook = null;
-    /** A programming hook which will be invoked on the raw JDBC Connection as part of the
-     * {@link DataSource#getConnection()} flow. Its execution should take as short time as possible. */
+    /** A programming {@linkplain ConnectionHook#on(java.sql.Connection) hook } which will be invoked on the raw JDBC
+     * Connection as part of the {@link DataSource#getConnection()} flow. Its execution should take as short time as
+     * possible. */
     private ConnectionHook connectionHook = null;
-    /** A programming hook which will be invoked on the raw JDBC Connection as part of the
-     * {@link java.sql.Connection#close()} flow. Its execution should take as short time as possible. */
+    /** A programming {@linkplain ConnectionHook#on(java.sql.Connection) hook } which will be invoked on the raw JDBC
+     * Connection as part of the {@link java.sql.Connection#close()} flow. Its execution should take as short time as
+     * possible. */
     private ConnectionHook closeConnectionHook = null;
 
 

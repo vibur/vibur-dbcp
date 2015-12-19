@@ -35,6 +35,11 @@ public interface ConnectionHook {
      * of this method will typically happen when a particular method of the {@link javax.sql.DataSource} or
      * {@link Connection} interface has been called by the application, and should take as short time as possible.
      *
+     * <p>This application hook serves as an extension point to the internal workings of the connection pool and has
+     * access to the <b>raw (original)</b> JDBC Connection object, not the proxied such. In order to avoid interfering
+     * with how the connection pool manages its underlying connections, the application <b>must not</b> keep or store
+     * in one or another form a reference to the {@code rawConnection} object.
+     *
      * @param rawConnection a retrieved from the pool raw JDBC connection
      * @throws SQLException if any operation executed on the raw JDBC Connection throws an SQLException
      */
