@@ -7,7 +7,7 @@ Version 6.0 (19/12/2015)
   b) getConnection - will be invoked on the raw JDBC Connection as part of the DataSource.getConnection() flow.
      This is the place to execute an application specific per taken Connection setup logic, such as to set the
      default database schema or role, if they vary for each getConnection() call.
-  c) will be invoked on the raw JDBC Connection as part of the Connection.close() flow.
+  c) closeConnection - will be invoked on the raw JDBC Connection as part of the Connection.close() flow.
      This is the place to execute an application specific per taken Connection winding down logic, if needed.
 * Introduced ViburLogger - allows the application to receive notifications for all long lasting
   getConnection() calls, slow SQL queries, or retrieved large ResultSets. This can be used by the
