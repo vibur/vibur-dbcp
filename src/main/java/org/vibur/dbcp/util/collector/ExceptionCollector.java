@@ -36,7 +36,7 @@ public interface ExceptionCollector {
      * This method will be called by Vibur DBCP when an operation invoked on a JDBC Connection object or any of its
      * direct or indirect derivative objects, such as Statement, ResultSet, or database Metadata objects, throws
      * an Exception. If needed, this method may implement filtering logic and can store/accumulate only those
-     * Exceptions that are perceived as being not-temporarily.
+     * Exceptions that are considered permanent.
      *
      * @param t the exception thrown
      */
