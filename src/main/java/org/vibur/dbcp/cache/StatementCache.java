@@ -18,6 +18,7 @@ package org.vibur.dbcp.cache;
 
 import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap;
 import com.googlecode.concurrentlinkedhashmap.EvictionListener;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.proxy.TargetInvoker;
 
@@ -39,7 +40,7 @@ import static org.vibur.dbcp.util.JdbcUtils.closeStatement;
  */
 public class StatementCache {
 
-    private static final org.slf4j.Logger logger = LoggerFactory.getLogger(StatementCache.class);
+    private static final Logger logger = LoggerFactory.getLogger(StatementCache.class);
 
     private final ConcurrentMap<ConnMethodKey, StatementVal> statementCache;
 
@@ -76,10 +77,10 @@ public class StatementCache {
     }
 
     /**
-     * Returns <i>a possible</i> cached StatementVal object for the given connection method key.
+     * Returns <i>a possibly</i> cached StatementVal object for the given connection method key.
      *
      * @param key the connection method key
-     * @param invoker the targetInvoker via which to create the raw JDBC Statement object, if needed
+     * @param invoker the invoker through which to create the raw JDBC Statement object, if needed
      * @return a retrieved from the cache or newly created StatementVal holder object wrapping the raw JDBC Statement object
      * @throws Throwable if the invoked underlying prepareXYZ method throws an exception
      */

@@ -107,7 +107,7 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
     }
 
     /**
-     * Returns <i>a possible</i> cached StatementVal object for the given proxied Connection object and the
+     * Returns <i>a possibly</i> cached StatementVal object for the given proxied Connection object and the
      * invoked on it prepareXYZ Method with the given args.
      *
      * @param method the invoked method

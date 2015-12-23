@@ -16,6 +16,7 @@
 
 package org.vibur.dbcp.util;
 
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
@@ -27,7 +28,7 @@ import java.sql.Statement;
  */
 public final class JdbcUtils {
 
-    private static final org.slf4j.Logger logger = LoggerFactory.getLogger(JdbcUtils.class);
+    private static final Logger logger = LoggerFactory.getLogger(JdbcUtils.class);
 
     private JdbcUtils() {}
 

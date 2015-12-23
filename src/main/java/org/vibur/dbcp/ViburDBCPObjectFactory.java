@@ -30,6 +30,7 @@ import java.util.Properties;
  *
  * @author Daniel Caldeweyher
  */
+@SuppressWarnings("unused")
 public class ViburDBCPObjectFactory implements ObjectFactory {
 
     /** {@inheritDoc} */
