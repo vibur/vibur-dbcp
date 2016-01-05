@@ -23,8 +23,6 @@ import org.vibur.dbcp.cache.StatementCache;
 import org.vibur.dbcp.pool.ConnHolder;
 import org.vibur.dbcp.pool.PoolOperations;
 import org.vibur.dbcp.restriction.ConnectionRestriction;
-import org.vibur.dbcp.util.collector.BaseExceptionCollector;
-import org.vibur.dbcp.util.collector.ExceptionCollector;
 import org.vibur.dbcp.util.hook.ConnectionHook;
 import org.vibur.dbcp.util.listener.ExceptionListener;
 import org.vibur.dbcp.util.logger.BaseViburLogger;
@@ -576,6 +574,14 @@ public class ViburDBCPConfig {
 
     public void setClearSQLWarnings(boolean clearSQLWarnings) {
         this.clearSQLWarnings = clearSQLWarnings;
+    }
+
+    public ConnectionRestriction getConnectionRestriction() {
+        return connectionRestriction;
+    }
+
+    public void setConnectionRestriction(ConnectionRestriction connectionRestriction) {
+        this.connectionRestriction = connectionRestriction;
     }
 
     public ConnectionHook getInitConnectionHook() {
