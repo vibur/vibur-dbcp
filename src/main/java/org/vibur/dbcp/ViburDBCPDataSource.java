@@ -262,6 +262,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
         if (getConnectionIdleLimitInSeconds() >= 0 && getTestConnectionQuery() == null)
             throw new IllegalArgumentException();
         if (getValidateTimeoutInSeconds() < 0) throw new IllegalArgumentException();
+        if (getViburLogger() == null) throw new IllegalArgumentException();
 
         if (getPassword() == null) logger.warn("JDBC password is not specified.");
         if (getUsername() == null) logger.warn("JDBC username is not specified.");

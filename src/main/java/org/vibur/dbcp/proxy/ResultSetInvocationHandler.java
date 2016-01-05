@@ -17,6 +17,7 @@
 package org.vibur.dbcp.proxy;
 
 import org.vibur.dbcp.ViburDBCPConfig;
+import org.vibur.dbcp.util.collector.ExceptionCollector;
 
 import java.lang.reflect.Method;
 import java.sql.ResultSet;
@@ -39,9 +40,10 @@ public class ResultSetInvocationHandler extends ChildObjectInvocationHandler<Sta
 
     private final AtomicLong resultSetSize = new AtomicLong(0);
 
-    public ResultSetInvocationHandler(ResultSet rawResultSet, Statement statementProxy, Object[] executeMethodArgs,
-                                      List<Object[]> queryParams, ViburDBCPConfig config) {
-        super(rawResultSet, statementProxy, "getStatement", config);
+    public ResultSetInvocationHandler(ResultSet rawResultSet, Statement statementProxy,
+                                      Object[] executeMethodArgs, List<Object[]> queryParams,
+                                      ViburDBCPConfig config, ExceptionCollector exceptionCollector) {
+        super(rawResultSet, statementProxy, "getStatement", config, exceptionCollector);
         this.executeMethodArgs = executeMethodArgs;
         this.queryParams = queryParams;
         this.config = config;

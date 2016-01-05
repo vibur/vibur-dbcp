@@ -17,6 +17,7 @@
 package org.vibur.dbcp.proxy;
 
 import org.vibur.dbcp.ViburDBCPConfig;
+import org.vibur.dbcp.util.collector.ExceptionCollector;
 
 import java.lang.reflect.Method;
 
@@ -29,8 +30,8 @@ public class ChildObjectInvocationHandler<P, T> extends AbstractInvocationHandle
     private final String getParentMethod;
 
     public ChildObjectInvocationHandler(T connectionChild, P parentProxy, String getParentMethod,
-                                        ViburDBCPConfig config) {
-        super(connectionChild, config);
+                                        ViburDBCPConfig config, ExceptionCollector exceptionCollector) {
+        super(connectionChild, config, exceptionCollector);
         if (parentProxy == null || getParentMethod == null)
             throw new NullPointerException();
         this.parentProxy = parentProxy;

@@ -20,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.ViburDBCPConfig;
 import org.vibur.dbcp.ViburDBCPException;
+import org.vibur.dbcp.util.collector.ExceptionCollector;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -39,15 +40,18 @@ public abstract class AbstractInvocationHandler<T> implements TargetInvoker {
     /** The real (raw) object which we're dynamically proxy-ing.
      *  For example, the underlying JDBC Connection, the underlying JDBC Statement, etc. */
     private final T target;
+
     private final ViburDBCPConfig config;
+    private final ExceptionCollector exceptionCollector;
 
     private final AtomicBoolean logicallyClosed = new AtomicBoolean(false);
 
-    public AbstractInvocationHandler(T target, ViburDBCPConfig config) {
-        if (target == null || config == null)
+    public AbstractInvocationHandler(T target, ViburDBCPConfig config, ExceptionCollector exceptionCollector) {
+        if (target == null || config == null || exceptionCollector == null)
             throw new NullPointerException();
         this.target = target;
         this.config = config;
+        this.exceptionCollector = exceptionCollector;
     }
 
     /** {@inheritDoc} */
@@ -100,7 +104,7 @@ public abstract class AbstractInvocationHandler<T> implements TargetInvoker {
             Throwable cause = e.getCause();
             if (cause == null)
                 cause = e;
-            config.getExceptionCollector().addException(cause);
+            exceptionCollector.addException(cause);
             if (cause instanceof SQLException || cause instanceof RuntimeException || cause instanceof Error)
                 throw cause;
             throw new ViburDBCPException(cause); // not expected to happen
@@ -123,6 +127,10 @@ public abstract class AbstractInvocationHandler<T> implements TargetInvoker {
     protected void ensureNotClosed() throws SQLException {
         if (isClosed())
             throw new SQLException(target.getClass().getName() + " is closed.");
+    }
+
+    protected ExceptionCollector getExceptionCollector() {
+        return exceptionCollector;
     }
 
     protected T getTarget() {

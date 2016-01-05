@@ -16,7 +16,9 @@
 
 package org.vibur.dbcp;
 
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
@@ -52,6 +54,9 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
     private ArgumentCaptor<ConnMethodKey> key1, key2;
     @Captor
     private ArgumentCaptor<StatementVal> val1, val2;
+
+    @Rule
+    public final ExpectedException exception = ExpectedException.none();
 
     @Test
     public void testSelectStatementNoStatementsCache() throws SQLException, IOException {
@@ -181,6 +186,29 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
         }
         assertNotNull(connection);
         assertTrue(connection.isClosed());
+    }
+
+    @Test
+    public void testExceptionOnOneConnectionDoesNotImpactOtherConnections() throws SQLException, IOException {
+        ViburDBCPDataSource ds = createDataSourceNoStatementsCache();
+        assertEquals(POOL_INITIAL_SIZE, ds.getPool().remainingCreated());
+
+        Connection connection = null;
+        Statement statement = null;
+        try {
+            connection = ds.getConnection();
+
+            statement = connection.createStatement();
+            exception.expect(SQLException.class);
+            statement.executeUpdate("drop table nonexistent");
+        } finally {
+            if (statement != null) statement.close();
+            if (connection != null) connection.close();
+        }
+        assertEquals(POOL_INITIAL_SIZE - 1, ds.getPool().remainingCreated()); // the remainingCreated connections count should decrease by 1
+
+        doTestSelectStatement(ds);
+        assertEquals(POOL_INITIAL_SIZE - 1, ds.getPool().remainingCreated()); // the remainingCreated connections count should not decrease more
     }
 
     private void executeAndVerifySelectStatement(Connection connection) throws SQLException {
