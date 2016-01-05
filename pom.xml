@@ -177,7 +177,7 @@
                             org.vibur.dbcp.jmx,
                             org.vibur.dbcp.restriction,
                             org.vibur.dbcp.util.hook,
-                            org.vibur.dbcp.util.collector,
+                            org.vibur.dbcp.util.listener,
                             org.vibur.dbcp.util.logger
                         </Export-Package>
                         <Import-Package>

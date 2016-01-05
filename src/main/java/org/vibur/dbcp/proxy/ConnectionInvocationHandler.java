@@ -24,6 +24,7 @@ import org.vibur.dbcp.pool.ConnHolder;
 import org.vibur.dbcp.pool.PoolOperations;
 import org.vibur.dbcp.restriction.ConnectionRestriction;
 import org.vibur.dbcp.restriction.QueryRestriction;
+import org.vibur.dbcp.util.collector.ExceptionCollectorImpl;
 
 import java.lang.reflect.Method;
 import java.sql.Connection;
@@ -46,7 +47,7 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
     private final Set<String> forbiddenMethods;
 
     public ConnectionInvocationHandler(ConnHolder conn, ViburDBCPConfig config) {
-        super(conn.value(), config);
+        super(conn.value(), config, new ExceptionCollectorImpl(config));
         this.conn = conn;
         this.config = config;
         this.poolOperations = config.getPoolOperations();
@@ -81,21 +82,21 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
         // on their results the return value to be the current JDBC Connection proxy.
         if (methodName == "createStatement") { // *3
             StatementVal statement = getUncachedStatement(method, args);
-            return Proxy.newStatement(statement, proxy, config);
+            return Proxy.newStatement(statement, proxy, config, getExceptionCollector());
         }
         if (methodName == "prepareStatement") { // *6
             checkQueryRestrictions(methodName, args, restriction);
             StatementVal pStatement = getCachedStatement(method, args);
-            return Proxy.newPreparedStatement(pStatement, proxy, config);
+            return Proxy.newPreparedStatement(pStatement, proxy, config, getExceptionCollector());
         }
         if (methodName == "prepareCall") { // *3
             checkQueryRestrictions(methodName, args, restriction);
             StatementVal cStatement = getCachedStatement(method, args);
-            return Proxy.newCallableStatement(cStatement, proxy, config);
+            return Proxy.newCallableStatement(cStatement, proxy, config, getExceptionCollector());
         }
         if (methodName == "getMetaData") { // *1
             DatabaseMetaData rawDatabaseMetaData = (DatabaseMetaData) targetInvoke(method, args);
-            return Proxy.newDatabaseMetaData(rawDatabaseMetaData, proxy, config);
+            return Proxy.newDatabaseMetaData(rawDatabaseMetaData, proxy, config, getExceptionCollector());
         }
 
         return super.doInvoke(proxy, method, args);
@@ -132,7 +133,7 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
         if (aborted)
             targetInvoke(method, args); // executes the abort() call, which in turn may throw an exception
         if (!getAndSetClosed())
-            poolOperations.restore(conn, aborted, config.getExceptionCollector().getExceptions());
+            poolOperations.restore(conn, aborted, getExceptionCollector().getExceptions());
         return null;
     }
 }

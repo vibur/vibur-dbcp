@@ -26,6 +26,7 @@ import org.vibur.dbcp.restriction.ConnectionRestriction;
 import org.vibur.dbcp.util.collector.BaseExceptionCollector;
 import org.vibur.dbcp.util.collector.ExceptionCollector;
 import org.vibur.dbcp.util.hook.ConnectionHook;
+import org.vibur.dbcp.util.listener.ExceptionListener;
 import org.vibur.dbcp.util.logger.BaseViburLogger;
 import org.vibur.dbcp.util.logger.ViburLogger;
 import org.vibur.objectpool.PoolService;
@@ -257,11 +258,11 @@ public class ViburDBCPConfig {
      */
     private ViburLogger viburLogger = new BaseViburLogger();
     /**
-     * Provides access to the {@linkplain ExceptionCollector functionality} for receiving notifications for
-     * all exceptions thrown by the operations invoked on a JDBC Connection object or any of its direct or indirect
-     * derivative objects, such as Statement, ResultSet, or database Metadata objects.
+     * Allows the application to receiving notifications for all exceptions thrown by the operations
+     * invoked on a JDBC Connection object or any of its direct or indirect derivative objects, such as Statement,
+     * ResultSet, or database Metadata objects.
      */
-    private ExceptionCollector exceptionCollector = new BaseExceptionCollector();
+    private ExceptionListener exceptionListener = null;
 
     
     private PoolService<ConnHolder> pool;
@@ -609,12 +610,12 @@ public class ViburDBCPConfig {
         this.viburLogger = viburLogger;
     }
 
-    public ExceptionCollector getExceptionCollector() {
-        return exceptionCollector;
+    public ExceptionListener getExceptionListener() {
+        return exceptionListener;
     }
 
-    public void setExceptionCollector(ExceptionCollector exceptionCollector) {
-        this.exceptionCollector = exceptionCollector;
+    public void setExceptionListener(ExceptionListener exceptionListener) {
+        this.exceptionListener = exceptionListener;
     }
 
     public PoolService<ConnHolder> getPool() {

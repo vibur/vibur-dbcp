@@ -16,6 +16,8 @@
 
 package org.vibur.dbcp.util.collector;
 
+import org.vibur.dbcp.ViburDBCPConfig;
+
 import java.sql.SQLTransientConnectionException;
 import java.sql.SQLTransientException;
 import java.util.Collections;
@@ -27,20 +29,25 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 /**
  * JDBC proxy objects exceptions collector - operations implementation.
  *
- * <p><b>Note that</b> this class plays an important role when Vibur DBCP needs to decide whether
- * to physically close the raw JDBC Connection which corresponding Connection proxy object has been just closed.
- * An application class that wants to receive notifications for all thrown on a JDBC Connection object (and its
- * derivatives) exceptions, may sub-class this class and override the {@link #addException(Throwable)} method,
- * returning at the end the call back to its super-method.
- *
  * @author Simeon Malchev
  */
-public class BaseExceptionCollector implements ExceptionCollector {
+public class ExceptionCollectorImpl implements ExceptionCollector {
+
+    private final ViburDBCPConfig config;
 
     private final Queue<Throwable> exceptions = new ConcurrentLinkedQueue<Throwable>();
 
+    public ExceptionCollectorImpl(ViburDBCPConfig config) {
+        if (config == null)
+            throw new NullPointerException();
+        this.config = config;
+    }
+
     /** {@inheritDoc} */
     public void addException(Throwable t) {
+        if (config.getExceptionListener() != null)
+            config.getExceptionListener().on(t);
+
         if (!(t instanceof SQLTransientException) || t instanceof SQLTransientConnectionException)
             exceptions.add(t); // the above SQL transient exceptions are not of interest and are ignored
     }

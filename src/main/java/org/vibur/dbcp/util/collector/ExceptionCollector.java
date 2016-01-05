@@ -26,8 +26,6 @@ import java.util.List;
  * (such as Statement, ResultSet, or database Metadata objects), and to accumulate a list of all
  * non-transient exceptions.
  *
- * @see BaseExceptionCollector
- *
  * @author Simeon Malchev
  */
 public interface ExceptionCollector {

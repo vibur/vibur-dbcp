@@ -22,6 +22,7 @@ import org.vibur.dbcp.ViburDBCPConfig;
 import org.vibur.dbcp.cache.StatementCache;
 import org.vibur.dbcp.cache.StatementVal;
 import org.vibur.dbcp.restriction.QueryRestriction;
+import org.vibur.dbcp.util.collector.ExceptionCollector;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -53,8 +54,9 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
     private final QueryRestriction restriction;
 
     public StatementInvocationHandler(StatementVal statementVal, StatementCache statementCache,
-                                      Connection connectionProxy, ViburDBCPConfig config) {
-        super(statementVal.value(), connectionProxy, "getConnection", config);
+                                      Connection connectionProxy, ViburDBCPConfig config,
+                                      ExceptionCollector exceptionCollector) {
+        super(statementVal.value(), connectionProxy, "getConnection", config, exceptionCollector);
         if (config == null)
             throw new NullPointerException();
         this.statementVal = statementVal;
@@ -143,7 +145,7 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
 
     private ResultSet newProxiedResultSet(Statement proxy, Method method, Object[] args) throws Throwable {
         ResultSet rawResultSet = (ResultSet) targetInvoke(method, args);
-        return Proxy.newResultSet(rawResultSet, proxy, args, queryParams, config);
+        return Proxy.newResultSet(rawResultSet, proxy, args, queryParams, config, getExceptionCollector());
     }
 
     private void logQuery(Statement proxy, Object[] args, long startTime) {

@@ -1,3 +1,12 @@
+Version 6.1 (05/01/2016) - bug fixing release
+=============================================
+* Fixed a bug introduced in version 6.0 where the ExceptionCollector object was shared between all JDBC Connection
+  objects in the pool. As a side effect of this bug, when an Exception is thrown on a particular JDBC Connection
+  object, this will later cause the next taken from the pool JDBC Connection to be physically closed when the
+  Connection.close() method is called - the last will cause overall performance degradation of the pool operations.
+* The ExceptionCollector interface was renamed to ExceptionListener in order to better convey the exact purpose of
+  this facility.
+
 Version 6.0 (19/12/2015)
 ========================
 * Introduced ConnectionHooks for:
