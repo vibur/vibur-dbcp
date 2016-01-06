@@ -49,6 +49,7 @@ public class ResultSetInvocationHandler extends ChildObjectInvocationHandler<Sta
         this.config = config;
     }
 
+    @Override
     protected Object doInvoke(ResultSet proxy, Method method, Object[] args) throws Throwable {
         String methodName = method.getName();
 

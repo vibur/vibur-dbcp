@@ -203,6 +203,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
      * initialize/configure the underlying SQL system, or if cannot create the underlying SQL connections,
      * or if cannot create the configured pool reducer, or if cannot initialize JMX
      */
+    @Override
     public void start() throws ViburDBCPException {
         synchronized (this) {
             if (state != State.NEW)
@@ -228,6 +229,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
     }
 
     /** {@inheritDoc} */
+    @Override
     public void terminate() {
         synchronized (this) {
             if (state == State.TERMINATED) return;
@@ -246,6 +248,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
     }
 
     /** {@inheritDoc} */
+    @Override
     public synchronized State getState() {
         return state;
     }
@@ -328,6 +331,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
     }
 
     /** {@inheritDoc} */
+    @Override
     public Connection getConnection() throws SQLException {
         return getConnection(getConnectionTimeoutInMs());
     }
@@ -338,6 +342,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
      * This method will return a <b>raw (non-pooled)</b> JDBC Connection when called with credentials different
      * than the configured default credentials.
      * */
+    @Override
     public Connection getConnection(String username, String password) throws SQLException {
         if (defaultCredentials(username, password))
             return getConnection();
@@ -377,36 +382,43 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
     }
 
     /** {@inheritDoc} */
+    @Override
     public PrintWriter getLogWriter() throws SQLException {
         return logWriter;
     }
 
     /** {@inheritDoc} */
+    @Override
     public void setLogWriter(PrintWriter out) throws SQLException {
         this.logWriter = out;
     }
 
     /** {@inheritDoc} */
+    @Override
     public void setLoginTimeout(int seconds) throws SQLException {
         setLoginTimeoutInSeconds(seconds);
     }
 
     /** {@inheritDoc} */
+    @Override
     public int getLoginTimeout() throws SQLException {
         return getLoginTimeoutInSeconds();
     }
 
     /** {@inheritDoc} */
+    @Override
     public Logger getParentLogger() throws SQLFeatureNotSupportedException {
         throw new SQLFeatureNotSupportedException();
     }
 
     /** {@inheritDoc} */
+    @Override
     public <T> T unwrap(Class<T> iface) throws SQLException {
         throw new SQLException("not a wrapper");
     }
 
     /** {@inheritDoc} */
+    @Override
     public boolean isWrapperFor(Class<?> iface) {
         return false;
     }

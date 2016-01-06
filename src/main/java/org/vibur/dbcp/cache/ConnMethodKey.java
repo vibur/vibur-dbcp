@@ -56,6 +56,7 @@ public class ConnMethodKey {
         return args;
     }
 
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
@@ -66,6 +67,7 @@ public class ConnMethodKey {
             && Arrays.equals(args, that.args);
     }
 
+    @Override
     public int hashCode() {
         int result = target.hashCode();
         result = 31 * result + method.hashCode();

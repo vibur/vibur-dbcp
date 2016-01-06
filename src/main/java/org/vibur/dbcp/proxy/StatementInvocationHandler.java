@@ -23,7 +23,6 @@ import org.vibur.dbcp.cache.StatementCache;
 import org.vibur.dbcp.cache.StatementVal;
 import org.vibur.dbcp.util.collector.ExceptionCollector;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -63,6 +62,7 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
         this.queryParams = logSlowQuery ? new LinkedList<Object[]>() : null;
     }
 
+    @Override
     protected Object doInvoke(Statement proxy, Method method, Object[] args) throws Throwable {
         String methodName = method.getName();
 
@@ -147,11 +147,13 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
                     config.isLogStackTraceForLongQueryExecution() ? new Throwable().getStackTrace() : null);
     }
 
-    protected void logInvokeFailure(Method method, Object[] args, InvocationTargetException e) {
+    @Override
+    protected void logInvokeFailure(Method method, Object[] args, Throwable t) {
         if (method.getName().startsWith("execute")) {
-            logger.warn("SQL query execution from pool {}:\n{}\n-- threw:",
-                    getPoolName(config), formatSql(getSqlQuery(getTarget(), args), queryParams), e);
+            if (logger.isInfoEnabled())
+                logger.info("SQL query execution from pool {}:\n{}\n-- threw:",
+                        getPoolName(config), formatSql(getSqlQuery(getTarget(), args), queryParams), t);
         } else
-            super.logInvokeFailure(method, args, e);
+            super.logInvokeFailure(method, args, t);
     }
 }

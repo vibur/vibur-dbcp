@@ -39,6 +39,7 @@ public class StatementCacheUtils {
                 = new LinkedList<ConcurrentMap<ConnMethodKey, StatementVal>>();
 
         ds.setStatementCache(new StatementCache(ds.getStatementCacheMaxSize()) {
+            @Override
             protected ConcurrentMap<ConnMethodKey, StatementVal> buildStatementCache(int maxSize) {
                 ConcurrentMap<ConnMethodKey, StatementVal> mockedStatementCache =
                         mock(ConcurrentMap.class, delegatesTo(super.buildStatementCache(maxSize)));

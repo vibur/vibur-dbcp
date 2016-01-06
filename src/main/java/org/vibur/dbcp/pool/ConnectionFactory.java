@@ -93,6 +93,7 @@ public class ConnectionFactory implements VersionedObjectFactory<ConnHolder> {
      *
      * @throws org.vibur.dbcp.ViburDBCPException if cannot create the underlying JDBC Connection.
      */
+    @Override
     public ConnHolder create() throws ViburDBCPException {
         return create(config.getUsername(), config.getPassword());
     }
@@ -182,6 +183,7 @@ public class ConnectionFactory implements VersionedObjectFactory<ConnHolder> {
     }
 
     /** {@inheritDoc} */
+    @Override
     public boolean readyToTake(ConnHolder conn) {
         if (conn.version() != version())
             return false;
@@ -208,6 +210,7 @@ public class ConnectionFactory implements VersionedObjectFactory<ConnHolder> {
     }
 
     /** {@inheritDoc} */
+    @Override
     public boolean readyToRestore(ConnHolder conn) {
         Connection rawConnection = conn.value();
         try {
@@ -227,6 +230,7 @@ public class ConnectionFactory implements VersionedObjectFactory<ConnHolder> {
     }
 
     /** {@inheritDoc} */
+    @Override
     public void destroy(ConnHolder conn) {
         Connection rawConnection = conn.value();
         logger.debug("Destroying {}", rawConnection);
@@ -241,11 +245,13 @@ public class ConnectionFactory implements VersionedObjectFactory<ConnHolder> {
     }
 
     /** {@inheritDoc} */
+    @Override
     public int version() {
         return version.get();
     }
 
     /** {@inheritDoc} */
+    @Override
     public boolean compareAndSetVersion(int expect, int update) {
         return version.compareAndSet(expect, update);
     }

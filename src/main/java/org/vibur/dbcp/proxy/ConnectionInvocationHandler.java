@@ -46,6 +46,7 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
         this.poolOperations = config.getPoolOperations();
     }
 
+    @Override
     @SuppressWarnings("unchecked")
     protected Object doInvoke(Connection proxy, Method method, Object[] args) throws Throwable {
         String methodName = method.getName();

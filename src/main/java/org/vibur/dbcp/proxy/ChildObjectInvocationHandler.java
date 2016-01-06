@@ -38,6 +38,7 @@ public class ChildObjectInvocationHandler<P, T> extends AbstractInvocationHandle
         this.getParentMethod = getParentMethod;
     }
 
+    @Override
     protected Object doInvoke(T proxy, Method method, Object[] args) throws Throwable {
         if (method.getName() == getParentMethod)
             return parentProxy;

@@ -48,6 +48,7 @@ public class PoolReducer extends SamplingPoolReducer<ConnHolder> implements Thre
     }
 
     /** {@inheritDoc} */
+    @Override
     protected void afterReduce(int reduction, int reduced, Throwable thrown) {
         if (thrown != null) {
             logger.error("While trying to reduce pool {} by {} elements", getPoolName(config), reduction, thrown);
@@ -57,6 +58,7 @@ public class PoolReducer extends SamplingPoolReducer<ConnHolder> implements Thre
             logger.debug("Pool {}, intended reduction {} actual {}.", getPoolName(config), reduction, reduced);
     }
 
+    @Override
     public String toString() {
         return getClass().getSimpleName() + " for pool " + config.getName();
     }

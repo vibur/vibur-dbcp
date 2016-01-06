@@ -98,6 +98,7 @@ public class ViburDBCPGetConnectionTestPerf {
             this.doneSignal = doneSignal;
         }
 
+        @Override
         public void run() {
             try {
                 readySignal.countDown();
