@@ -88,7 +88,7 @@ public abstract class AbstractInvocationHandler<T> implements TargetInvoker {
     }
 
     /**
-     * By default forwards the call to the original method of the proxied object. This method will be overridden
+     * By default, forwards the call to the original method of the proxied object. This method will be overridden
      * in the {@code AbstractInvocationHandler} subclasses, and will be the place to implement the specific to these
      * subclasses logic for methods invocation handling.
      *
