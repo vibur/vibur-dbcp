@@ -1,3 +1,10 @@
+Version 7.0 (10/01/2016)
+========================
+* This is a small changes only release, which is distributed as a new major version mainly due to the bug
+  introduced in version 6.0 and subsequently fixed in 6.1.
+* Exception logging improvements and logging level changes.
+* Dependencies versions updates and small refactoring.
+
 Version 6.1 (05/01/2016) - bug fixing release
 =============================================
 * Fixed a bug introduced in version 6.0 where the ExceptionCollector object was shared between all JDBC Connection
