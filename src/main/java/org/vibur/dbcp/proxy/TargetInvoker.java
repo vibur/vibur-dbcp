@@ -26,7 +26,7 @@ public interface TargetInvoker extends InvocationHandler {
 
     /**
      * Dispatches the method call to the real underlying (proxied) object and implements the logic for
-     * handling the InvocationTargetException that may be thrown when invoking the underlying method.
+     * handling the {@code InvocationTargetException} that may be thrown when invoking the underlying method.
      *
      * @param method the invoked method
      * @param args the method arguments

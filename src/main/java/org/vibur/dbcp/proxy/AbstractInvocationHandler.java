@@ -89,8 +89,14 @@ public abstract class AbstractInvocationHandler<T> implements TargetInvoker {
 
     /**
      * By default forwards the call to the original method of the proxied object. This method will be overridden
-     * in the AbstractInvocationHandler subclasses, and will be the place to implement the specific to these
+     * in the {@code AbstractInvocationHandler} subclasses, and will be the place to implement the specific to these
      * subclasses logic for methods invocation handling.
+     *
+     * @param proxy see {@link java.lang.reflect.InvocationHandler#invoke(Object, Method, Object[])}
+     * @param method see above
+     * @param args see above
+     * @return see above
+     * @throws Throwable
      */
     protected Object doInvoke(T proxy, Method method, Object[] args) throws Throwable {
         return targetInvoke(method, args);
