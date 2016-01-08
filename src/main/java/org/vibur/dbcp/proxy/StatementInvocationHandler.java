@@ -150,8 +150,8 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
     @Override
     protected void logInvokeFailure(Method method, Object[] args, Throwable t) {
         if (method.getName().startsWith("execute")) {
-            if (logger.isInfoEnabled())
-                logger.info("SQL query execution from pool {}:\n{}\n-- threw:",
+            if (logger.isDebugEnabled())
+                logger.debug("SQL query execution from pool {}:\n{}\n-- threw:",
                         getPoolName(config), formatSql(getSqlQuery(getTarget(), args), queryParams), t);
         } else
             super.logInvokeFailure(method, args, t);

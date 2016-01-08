@@ -149,7 +149,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
                 try {
                     inputStream.close();
                 } catch (IOException ignored) {
-                    logger.warn("Couldn't close configuration URL " + config, ignored);
+                    logger.debug("Couldn't close configuration URL " + config, ignored);
                 }
         }
     }
@@ -347,7 +347,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
         if (defaultCredentials(username, password))
             return getConnection();
         else {
-            logger.warn("Calling getConnection with different than the default credentials. Will create and return a non-pooled Connection.");
+            logger.warn("Calling getConnection with different than the default credentials; will create and return a non-pooled Connection.");
             return connectionFactory.create(username, password).value();
         }
     }

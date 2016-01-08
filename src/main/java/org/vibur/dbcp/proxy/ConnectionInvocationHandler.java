@@ -47,7 +47,6 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     protected Object doInvoke(Connection proxy, Method method, Object[] args) throws Throwable {
         String methodName = method.getName();
 

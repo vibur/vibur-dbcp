@@ -38,7 +38,7 @@ public final class JdbcUtils {
         } catch (SQLException e) {
             logger.debug("Couldn't close " + statement, e);
         } catch (RuntimeException e) {
-            logger.error("Unexpected exception thrown by the JDBC driver for " + statement, e);
+            logger.warn("Unexpected exception thrown by the JDBC driver for " + statement, e);
         }
     }
 
@@ -48,7 +48,7 @@ public final class JdbcUtils {
         } catch (SQLException e) {
             logger.debug("Couldn't clearWarnings on " + statement, e);
         } catch (RuntimeException e) {
-            logger.error("Unexpected exception thrown by the JDBC driver for " + statement, e);
+            logger.warn("Unexpected exception thrown by the JDBC driver for " + statement, e);
         }
     }
 
@@ -58,7 +58,7 @@ public final class JdbcUtils {
         } catch (SQLException e) {
             logger.debug("Couldn't close " + connection, e);
         } catch (RuntimeException e) {
-            logger.error("Unexpected exception thrown by the JDBC driver for " + connection, e);
+            logger.warn("Unexpected exception thrown by the JDBC driver for " + connection, e);
         }
     }
 }

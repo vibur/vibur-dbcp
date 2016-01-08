@@ -114,8 +114,8 @@ public abstract class AbstractInvocationHandler<T> implements TargetInvoker {
     }
 
     protected void logInvokeFailure(Method method, Object[] args, Throwable t) {
-        if (logger.isInfoEnabled())
-            logger.info("Pool {}, the invocation of {} with args {} on {} threw:",
+        if (logger.isDebugEnabled())
+            logger.debug("Pool {}, the invocation of {} with args {} on {} threw:",
                     getPoolName(config), method, Arrays.toString(args), target, t);
     }
 
