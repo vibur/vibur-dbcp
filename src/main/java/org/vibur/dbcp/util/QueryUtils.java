@@ -29,11 +29,12 @@ public class QueryUtils {
     private QueryUtils() {}
 
     public static String getSqlQuery(Statement statement, Object[] args) {
-        return statement instanceof PreparedStatement ? statement.toString() : Arrays.toString(args);
+        return statement instanceof PreparedStatement ?
+                statement.toString() : Arrays.toString(args); // the latter is for simple JDBC Statements
     }
 
     public static String formatSql(String sqlQuery, List<Object[]> queryParams) {
-        StringBuilder result = new StringBuilder(4096).append("-- ").append(sqlQuery); // the latter is for simple JDBC Statements
+        StringBuilder result = new StringBuilder(4096).append("-- ").append(sqlQuery);
         if (!queryParams.isEmpty())
             result.append("\n-- Parameters:\n-- ").append(Arrays.deepToString(queryParams.toArray()));
         return result.toString();

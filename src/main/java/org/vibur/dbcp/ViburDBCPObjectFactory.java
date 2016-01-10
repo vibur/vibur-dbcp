@@ -34,6 +34,7 @@ import java.util.Properties;
 public class ViburDBCPObjectFactory implements ObjectFactory {
 
     /** {@inheritDoc} */
+    @Override
     public Object getObjectInstance(Object obj, Name name, Context nameCtx, Hashtable<?, ?> environment)
         throws ViburDBCPException {
 

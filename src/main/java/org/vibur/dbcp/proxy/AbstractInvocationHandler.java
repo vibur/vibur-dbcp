@@ -57,6 +57,7 @@ public abstract class AbstractInvocationHandler<T> implements TargetInvoker {
     }
 
     /** {@inheritDoc} */
+    @Override
     @SuppressWarnings("unchecked")
     public final Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         if (logger.isTraceEnabled())
@@ -89,23 +90,30 @@ public abstract class AbstractInvocationHandler<T> implements TargetInvoker {
     }
 
     /**
-     * By default forwards the call to the original method of the proxied object. This method will be overridden
-     * in the AbstractInvocationHandler subclasses, and will be the place to implement the specific to these
+     * By default, forwards the call to the original method of the proxied object. This method will be overridden
+     * in the {@code AbstractInvocationHandler} subclasses, and will be the place to implement the specific to these
      * subclasses logic for methods invocation handling.
+     *
+     * @param proxy see {@link java.lang.reflect.InvocationHandler#invoke(Object, Method, Object[])}
+     * @param method see above
+     * @param args see above
+     * @return see above
+     * @throws Throwable
      */
     protected Object doInvoke(T proxy, Method method, Object[] args) throws Throwable {
         return targetInvoke(method, args);
     }
 
     /** {@inheritDoc} */
+    @Override
     public final Object targetInvoke(Method method, Object[] args) throws Throwable {
         try {
             return method.invoke(target, args);  // the real method call on the real underlying (proxied) object
         } catch (InvocationTargetException e) {
-            logInvokeFailure(method, args, e);
             Throwable cause = e.getCause();
             if (cause == null)
                 cause = e;
+            logInvokeFailure(method, args, cause);
             exceptionCollector.addException(cause);
             if (cause instanceof SQLException || cause instanceof RuntimeException || cause instanceof Error)
                 throw cause;
@@ -113,9 +121,10 @@ public abstract class AbstractInvocationHandler<T> implements TargetInvoker {
         }
     }
 
-    protected void logInvokeFailure(Method method, Object[] args, InvocationTargetException e) {
-        logger.warn("Pool {}, the invocation of {} with args {} on {} threw:",
-                getPoolName(config), method, Arrays.toString(args), target, e);
+    protected void logInvokeFailure(Method method, Object[] args, Throwable t) {
+        if (logger.isDebugEnabled())
+            logger.debug("Pool {}, the invocation of {} with args {} on {} threw:",
+                    getPoolName(config), method, Arrays.toString(args), target, t);
     }
 
     protected boolean isClosed() {

@@ -68,6 +68,7 @@ public class StatementCache {
      */
     protected EvictionListener<ConnMethodKey, StatementVal> getListener() {
         return new EvictionListener<ConnMethodKey, StatementVal>() {
+            @Override
             public void onEviction(ConnMethodKey key, StatementVal value) {
                 if (value.state().getAndSet(EVICTED) == AVAILABLE)
                     closeStatement(value.value());

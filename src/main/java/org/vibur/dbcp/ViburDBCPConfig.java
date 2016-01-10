@@ -640,6 +640,7 @@ public class ViburDBCPConfig {
         this.poolOperations = poolOperations;
     }
 
+    @Override
     public String toString() {
         return getClass().getSimpleName() +
             " {driverClassName='" + driverClassName + '\'' +

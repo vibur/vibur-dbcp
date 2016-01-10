@@ -82,12 +82,12 @@
 
         <java.version>1.6</java.version>
         <vibur.osgi.version>7.0</vibur.osgi.version>
-        <slf4j.version>1.7.2</slf4j.version>
+        <slf4j.version>1.7.13</slf4j.version>
         <concurrentlinkedhashmap-lru.version>1.4.2</concurrentlinkedhashmap-lru.version>
 
-        <junit.version>4.11</junit.version>
-        <mockito-all.version>1.9.5</mockito-all.version>
-        <hsqldb.version>2.3.0</hsqldb.version>
+        <junit.version>4.12</junit.version>
+        <mockito-all.version>1.10.19</mockito-all.version>
+        <hsqldb.version>2.3.3</hsqldb.version>
 
         <maven.compiler.plugin.version>2.3.2</maven.compiler.plugin.version>
         <maven.bundle.plugin.version>3.0.0</maven.bundle.plugin.version>

@@ -44,6 +44,7 @@ public class ExceptionCollectorImpl implements ExceptionCollector {
     }
 
     /** {@inheritDoc} */
+    @Override
     public void addException(Throwable t) {
         if (config.getExceptionListener() != null)
             config.getExceptionListener().on(t);
@@ -53,6 +54,7 @@ public class ExceptionCollectorImpl implements ExceptionCollector {
     }
 
     /** {@inheritDoc} */
+    @Override
     public List<Throwable> getExceptions() {
         return exceptions.isEmpty() ? Collections.<Throwable>emptyList() : new LinkedList<Throwable>(exceptions);
     }

@@ -39,6 +39,7 @@ public class BaseViburLogger implements ViburLogger {
     private static final Logger logger = LoggerFactory.getLogger(BaseViburLogger.class);
 
     /** {@inheritDoc} */
+    @Override
     public void logGetConnection(String poolName, Connection connProxy, long timeout, long timeTaken,
                                  StackTraceElement[] stackTrace) {
         StringBuilder log = new StringBuilder(4096)
@@ -50,6 +51,7 @@ public class BaseViburLogger implements ViburLogger {
     }
 
     /** {@inheritDoc} */
+    @Override
     public void logQuery(String poolName, String sqlQuery, List<Object[]> queryParams, long timeTaken,
                          StackTraceElement[] stackTrace) {
         StringBuilder message = new StringBuilder(4096).append(String.format("SQL query execution from pool %s took %d ms:\n%s",
@@ -60,6 +62,7 @@ public class BaseViburLogger implements ViburLogger {
     }
 
     /** {@inheritDoc} */
+    @Override
     public void logResultSetSize(String poolName, String sqlQuery, List<Object[]> queryParams, long resultSetSize,
                                  StackTraceElement[] stackTrace) {
         StringBuilder message = new StringBuilder(4096).append(
