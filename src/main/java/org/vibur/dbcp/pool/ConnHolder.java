@@ -35,6 +35,8 @@ public class ConnHolder {
     private StackTraceElement[] stackTrace = null;
 
     public ConnHolder(Connection value, int version, long currentTime) {
+        if (value == null)
+            throw new NullPointerException();
         this.value = value;
         this.version = version;
         this.restoredTime = currentTime;
