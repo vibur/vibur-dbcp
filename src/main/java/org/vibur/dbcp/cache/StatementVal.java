@@ -20,7 +20,7 @@ import java.sql.Statement;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * A thin wrapper class which allows us to augment a raw JDBC {@code Statement} object with some additional "state"
+ * A thin wrapper around the raw JDBC {@code Statement} object which allows us to augment it with useful "state"
  * information. The instances of this class are used as a cached {@code value} (in a {@code ConcurrentMap} cache
  * implementation) for the invocations of {@code Connection.prepareStatement} and {@code Connection.prepareCall}
  * methods, and their "state" is describing whether the object is currently available, in_use, or evicted.
