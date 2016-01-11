@@ -19,9 +19,9 @@ package org.vibur.dbcp.pool;
 import java.sql.Connection;
 
 /**
- * The "stateful" object which is held in the object pool. This is just a thin wrapper
- * which allows us to augment a raw JDBC {@code Connection} object with useful "state" information,
- * like the Connection last {@code takenTime}, {@code restoredTime} and similar.
+ * The stateful object which is held in the object pool. It is just a thin wrapper around the
+ * raw JDBC {@code Connection} object which allows us to augment it with useful "state" information,
+ * such as the Connection last {@code takenTime}, {@code restoredTime}, and similar.
  *
  * @author Simeon Malchev
  */
