@@ -40,6 +40,8 @@ public class ViburDBCPMonitoring implements ViburDBCPMonitoringMBean {
     private final ViburDBCPConfig config;
 
     public ViburDBCPMonitoring(ViburDBCPConfig config) throws ViburDBCPException {
+        if (config == null)
+            throw new NullPointerException();
         this.config = config;
         initJMX();
     }
