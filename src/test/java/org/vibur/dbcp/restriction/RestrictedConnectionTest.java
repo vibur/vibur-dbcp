@@ -47,11 +47,13 @@ public class RestrictedConnectionTest extends AbstractDataSourceTest {
     public final ExpectedException exception = ExpectedException.none();
 
     private final ConnectionRestriction whiteListedDml = new AbstractConnectionRestriction() {
+        @Override
         public QueryRestriction getQueryRestriction() {
             return WHITELISTED_DML;
         }
     };
     private final ConnectionRestriction blackListedDml = new AbstractConnectionRestriction() {
+        @Override
         public QueryRestriction getQueryRestriction() {
             return BLACKLISTED_DML;
         }

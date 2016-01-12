@@ -58,11 +58,13 @@ public enum QueryRestrictions implements QueryRestriction {
     }
 
     /** {@inheritDoc} */
+    @Override
     public Set<String> restrictedPrefixes() {
         return restrictedPrefixes;
     }
 
     /** {@inheritDoc} */
+    @Override
     public boolean whiteListed() {
         return whiteListed;
     }

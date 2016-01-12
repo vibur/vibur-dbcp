@@ -26,14 +26,17 @@ import java.util.Set;
  */
 public abstract class AbstractConnectionRestriction implements ConnectionRestriction {
 
+    @Override
     public QueryRestriction getQueryRestriction() {
         return null;
     }
 
+    @Override
     public Set<String> getForbiddenMethods() {
         return null;
     }
 
+    @Override
     public boolean allowsUnwrapping() {
         return true;
     }
