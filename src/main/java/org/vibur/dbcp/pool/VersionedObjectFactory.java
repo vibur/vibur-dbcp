@@ -32,7 +32,7 @@ public interface VersionedObjectFactory<T> extends PoolObjectFactory<T> {
      *
      * @return the current version value
      */
-    public int version();
+    int version();
 
     /**
      * Atomically sets the version value to the given updated value
@@ -43,5 +43,5 @@ public interface VersionedObjectFactory<T> extends PoolObjectFactory<T> {
      * @return true if successful. False return indicates that
      * the actual value was not equal to the expected value.
      */
-    public boolean compareAndSetVersion(int expect, int update);
+    boolean compareAndSetVersion(int expect, int update);
 }
