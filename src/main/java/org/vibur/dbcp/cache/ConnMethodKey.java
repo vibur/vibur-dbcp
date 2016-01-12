@@ -74,4 +74,9 @@ public class ConnMethodKey {
         result = 31 * result + Arrays.hashCode(args);
         return result;
     }
+
+    @Override
+    public String toString() {
+        return String.format("connection %s, method %s, args %s", target, method, Arrays.toString(args));
+    }
 }

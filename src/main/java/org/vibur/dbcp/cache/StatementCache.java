@@ -96,8 +96,7 @@ public class StatementCache {
             }
             return new StatementVal(rawStatement, null);
         } else { // the statement was in the cache and was available
-            if (logger.isTraceEnabled())
-                logger.trace("Using cached statement for {}", toString(key));
+            logger.trace("Using cached statement for {}", key);
             return statement;
         }
     }
@@ -144,10 +143,5 @@ public class StatementCache {
             statementCache.remove(entry.getKey(), value);
             closeStatement(value.value());
         }
-    }
-
-    public String toString(ConnMethodKey key) {
-        return String.format("connection %s, method %s, args %s",
-                key.getTarget(), key.getMethod(), Arrays.toString(key.getArgs()));
     }
 }
