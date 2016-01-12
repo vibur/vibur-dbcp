@@ -24,7 +24,6 @@ import org.vibur.dbcp.proxy.TargetInvoker;
 
 import java.sql.Connection;
 import java.sql.Statement;
-import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
