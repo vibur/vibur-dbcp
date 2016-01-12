@@ -33,13 +33,14 @@ import static org.vibur.dbcp.util.QueryValidatorUtils.isQueryAllowed;
 import static org.vibur.dbcp.util.ViburUtils.getPoolName;
 
 /**
-* @author Simeon Malchev
+ * @author Simeon Malchev
+ * @param <T> the type of the object that we are dynamically proxy-ing
 */
 public abstract class AbstractInvocationHandler<T> implements TargetInvoker {
 
     private static final Logger logger = LoggerFactory.getLogger(AbstractInvocationHandler.class);
 
-    /** The real (raw) object which we're dynamically proxy-ing.
+    /** The real (raw) object that we are dynamically proxy-ing.
      *  For example, the underlying JDBC Connection, the underlying JDBC Statement, etc. */
     private final T target;
 
@@ -95,10 +96,10 @@ public abstract class AbstractInvocationHandler<T> implements TargetInvoker {
      * subclasses logic for methods invocation handling.
      *
      * @param proxy see {@link java.lang.reflect.InvocationHandler#invoke(Object, Method, Object[])}
-     * @param method see above
-     * @param args see above
-     * @return see above
-     * @throws Throwable
+     * @param method as above
+     * @param args as above
+     * @return as above
+     * @throws Throwable as above
      */
     protected Object doInvoke(T proxy, Method method, Object[] args) throws Throwable {
         return targetInvoke(method, args);

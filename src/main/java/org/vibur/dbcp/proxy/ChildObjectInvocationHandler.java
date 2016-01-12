@@ -23,6 +23,8 @@ import java.lang.reflect.Method;
 
 /**
  * @author Simeon Malchev
+ * @param <P> the type of the parent object from which the {@code T} object was derived
+ * @param <T> the type of the object that we are dynamically proxy-ing
  */
 public class ChildObjectInvocationHandler<P, T> extends AbstractInvocationHandler<T> implements TargetInvoker {
 

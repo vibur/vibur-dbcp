@@ -23,7 +23,7 @@ import org.vibur.objectpool.PoolObjectFactory;
  * which has a version associated with its state.
  *
  * @author Simeon Malchev
- * @param <T> the type of objects held in the concrete object pool
+ * @param <T> the type of the objects created by this {@code PoolObjectFactory}
  */
 public interface VersionedObjectFactory<T> extends PoolObjectFactory<T> {
 
