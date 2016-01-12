@@ -70,18 +70,6 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
         doTestSelectStatement(ds);
     }
 
-    private void doTestSelectStatement(DataSource ds) throws SQLException {
-        Connection connection = null;
-        try {
-            connection = ds.getConnection();
-            executeAndVerifySelectStatement(connection);
-        } finally {
-            if (connection != null) connection.close();
-        }
-        assertNotNull(connection);
-        assertTrue(connection.isClosed());
-    }
-
     @Test
     public void testSelectStatementWithStatementsCache() throws SQLException, IOException {
         ViburDBCPDataSource ds = createDataSourceWithStatementsCache();
@@ -111,18 +99,6 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
     public void testPreparedSelectStatementFromExternalDataSource() throws SQLException, IOException {
         DataSource ds = createDataSourceFromExternalDataSource();
         doTestPreparedSelectStatement(ds);
-    }
-
-    private void doTestPreparedSelectStatement(DataSource ds) throws SQLException {
-        Connection connection = null;
-        try {
-            connection = ds.getConnection();
-            executeAndVerifyPreparedSelectStatement(connection);
-        } finally {
-            if (connection != null) connection.close();
-        }
-        assertNotNull(connection);
-        assertTrue(connection.isClosed());
     }
 
     @Test
@@ -190,10 +166,11 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
         ViburDBCPDataSource ds = createDataSourceNoStatementsCache();
         assertEquals(POOL_INITIAL_SIZE, ds.getPool().remainingCreated());
 
-        Connection connection = null;
+        Connection connection = null, internal1, internal2;
         Statement statement = null;
         try {
             connection = ds.getConnection();
+            internal1 = connection.unwrap(Connection.class);
 
             statement = connection.createStatement();
             exception.expect(SQLException.class);
@@ -202,10 +179,43 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
             if (statement != null) statement.close();
             if (connection != null) connection.close();
         }
+        assertTrue(internal1.isClosed());
         assertEquals(POOL_INITIAL_SIZE - 1, ds.getPool().remainingCreated()); // the remainingCreated connections count should decrease by 1
 
-        doTestSelectStatement(ds);
+        try {
+            connection = ds.getConnection();
+            internal2 = connection.unwrap(Connection.class);
+            executeAndVerifySelectStatement(connection);
+        } finally {
+            if (connection != null) connection.close();
+        }
+        assertNotSame(internal1, internal2);
+        assertFalse(internal2.isClosed());
         assertEquals(POOL_INITIAL_SIZE - 1, ds.getPool().remainingCreated()); // the remainingCreated connections count should not decrease more
+    }
+
+    private void doTestSelectStatement(DataSource ds) throws SQLException {
+        Connection connection = null;
+        try {
+            connection = ds.getConnection();
+            executeAndVerifySelectStatement(connection);
+        } finally {
+            if (connection != null) connection.close();
+        }
+        assertNotNull(connection);
+        assertTrue(connection.isClosed());
+    }
+
+    private void doTestPreparedSelectStatement(DataSource ds) throws SQLException {
+        Connection connection = null;
+        try {
+            connection = ds.getConnection();
+            executeAndVerifyPreparedSelectStatement(connection);
+        } finally {
+            if (connection != null) connection.close();
+        }
+        assertNotNull(connection);
+        assertTrue(connection.isClosed());
     }
 
     private void executeAndVerifySelectStatement(Connection connection) throws SQLException {
