@@ -16,11 +16,9 @@
 
 package org.vibur.dbcp.restriction;
 
-import org.hamcrest.Matcher;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.mockito.internal.matchers.Contains;
 import org.vibur.dbcp.AbstractDataSourceTest;
 import org.vibur.dbcp.ViburDBCPDataSource;
 import org.vibur.dbcp.util.AbstractConnectionRestriction;
@@ -44,7 +42,6 @@ import static org.vibur.dbcp.restriction.QueryRestrictions.WHITELISTED_DML;
 public class RestrictedConnectionTest extends AbstractDataSourceTest {
 
     private static final String RESTRICTED_ERR_STR = "with a restricted SQL query";
-    private static final Matcher<String> RESTRICTED_ERR = new Contains(RESTRICTED_ERR_STR);
 
     @Rule
     public final ExpectedException exception = ExpectedException.none();
@@ -84,8 +81,9 @@ public class RestrictedConnectionTest extends AbstractDataSourceTest {
             restrictedConn = ds.getConnection();
 
             exception.expect(SQLException.class);
-            exception.expectMessage(RESTRICTED_ERR);
+            exception.expectMessage(RESTRICTED_ERR_STR);
             executeAndVerifySelectStatement(restrictedConn, " SELECT * from actor where first_name = 'CHRISTIAN'");
+            fail("SQLException expected");
         } finally {
             if (restrictedConn != null) restrictedConn.close();
         }
@@ -124,8 +122,9 @@ public class RestrictedConnectionTest extends AbstractDataSourceTest {
             restrictedConn = ds.getConnection();
 
             exception.expect(SQLException.class);
-            exception.expectMessage(RESTRICTED_ERR);
+            exception.expectMessage(RESTRICTED_ERR_STR);
             executeAndVerifySelectStatement(restrictedConn, "CREATE TABLE new_actor(actor_id SMALLINT NOT NULL IDENTITY, first_name VARCHAR(45) NOT NULL)");
+            fail("SQLException expected");
         } finally {
             if (restrictedConn != null) restrictedConn.close();
         }
@@ -156,8 +155,9 @@ public class RestrictedConnectionTest extends AbstractDataSourceTest {
             restrictedConn = ds.getConnection();
 
             exception.expect(SQLException.class);
-            exception.expectMessage(RESTRICTED_ERR);
+            exception.expectMessage(RESTRICTED_ERR_STR);
             restrictedPStatement = restrictedConn.prepareStatement(" select * from actor where first_name = ?");
+            fail("SQLException expected");
         } finally {
             if (restrictedPStatement != null) restrictedPStatement.close();
             if (restrictedConn != null) restrictedConn.close();
@@ -202,8 +202,9 @@ public class RestrictedConnectionTest extends AbstractDataSourceTest {
             restrictedConn = ds.getConnection();
 
             exception.expect(SQLException.class);
-            exception.expectMessage(RESTRICTED_ERR);
+            exception.expectMessage(RESTRICTED_ERR_STR);
             restrictedPStatement = restrictedConn.prepareStatement("CREATE TABLE new_actor(actor_id SMALLINT NOT NULL IDENTITY, first_name VARCHAR(45) NOT NULL)");
+            fail("SQLException expected");
         } finally {
             if (restrictedPStatement != null) restrictedPStatement.close();
             if (restrictedConn != null) restrictedConn.close();
@@ -237,8 +238,9 @@ public class RestrictedConnectionTest extends AbstractDataSourceTest {
             restrictedStatement = restrictedConn.createStatement();
 
             exception.expect(SQLException.class);
-            exception.expectMessage(RESTRICTED_ERR);
+            exception.expectMessage(RESTRICTED_ERR_STR);
             restrictedStatement.addBatch("SELECT * from actor where first_name = 'CHRISTIAN'");
+            fail("SQLException expected");
         } finally {
             if (restrictedStatement != null) restrictedStatement.close();
             if (restrictedConn != null) restrictedConn.close();
@@ -286,8 +288,9 @@ public class RestrictedConnectionTest extends AbstractDataSourceTest {
             restrictedStatement = restrictedConn.createStatement();
 
             exception.expect(SQLException.class);
-            exception.expectMessage(RESTRICTED_ERR);
+            exception.expectMessage(RESTRICTED_ERR_STR);
             restrictedStatement.addBatch("CREATE TABLE new_actor(actor_id SMALLINT NOT NULL IDENTITY, first_name VARCHAR(45) NOT NULL)");
+            fail("SQLException expected");
         } finally {
             if (restrictedStatement != null) restrictedStatement.close();
             if (restrictedConn != null) restrictedConn.close();
