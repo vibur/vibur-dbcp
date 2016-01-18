@@ -86,7 +86,7 @@
         <concurrentlinkedhashmap-lru.version>1.4.2</concurrentlinkedhashmap-lru.version>
 
         <junit.version>4.12</junit.version>
-        <mockito-all.version>1.10.19</mockito-all.version>
+        <mockito-core.version>1.10.19</mockito-core.version>
         <hsqldb.version>2.3.3</hsqldb.version>
 
         <maven.compiler.plugin.version>2.3.2</maven.compiler.plugin.version>
@@ -140,9 +140,15 @@
 
         <dependency>
             <groupId>org.mockito</groupId>
-            <artifactId>mockito-all</artifactId>
-            <version>${mockito-all.version}</version>
+            <artifactId>mockito-core</artifactId>
+            <version>${mockito-core.version}</version>
             <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.hamcrest</groupId>
+                    <artifactId>hamcrest-core</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
