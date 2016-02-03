@@ -190,6 +190,24 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
         assertEquals(POOL_INITIAL_SIZE - 1, ds.getPool().remainingCreated()); // the remainingCreated connections count should not decrease more
     }
 
+    @Test
+    public void testStatementCloseShouldCloseTheInternalStatementToo() throws SQLException, IOException {
+        DataSource ds = createDataSourceNoStatementsCache();
+
+        Connection connection = ds.getConnection();
+        Statement statement = connection.createStatement();
+        PreparedStatement pStatement = connection.prepareStatement("select * from actor where first_name = ?");
+
+        pStatement.close();
+        statement.close();
+        connection.close();
+
+        Statement internal1 = statement.unwrap(Statement.class);
+        assertTrue(internal1.isClosed());
+        PreparedStatement internal2 = pStatement.unwrap(PreparedStatement.class);
+        assertTrue(internal2.isClosed());
+    }
+
     private void doTestSelectStatement(DataSource ds) throws SQLException {
         Connection connection = ds.getConnection();
         try {

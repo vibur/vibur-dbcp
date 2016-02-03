@@ -73,7 +73,7 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
         String methodName = method.getName();
 
         if (methodName == "close")
-            return processClose();
+            return processClose(method, args);
         if (methodName == "isClosed")
             return isClosed();
 
@@ -99,13 +99,15 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
         return super.doInvoke(proxy, method, args);
     }
 
-    private Object processClose() {
+    private Object processClose(Method method, Object[] args) throws Throwable {
         if (getAndSetClosed())
             return null;
 
-        if (statementCache != null)
+        if (statementCache != null) {
             statementCache.restore(statementVal, config.isClearSQLWarnings());
-        return null;
+            return null;
+        } else
+            return targetInvoke(method, args);
     }
 
     private Object processCancel(Method method, Object[] args) throws Throwable {
