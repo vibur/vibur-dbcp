@@ -1,5 +1,5 @@
-Version 8.0 (02/02/2016)
-========================
+Version 8.0 (02/02/2016) - recommended
+======================================
 * Fixed issue https://github.com/vibur/vibur-dbcp/issues/7 - statement leak when statement cache is disabled.
   This was a regression bug introduced in version 5.0 and was existing until 7.0.
   This release is distributed as a new major version to better convey the importance to upgrade the Vibur DBCP
