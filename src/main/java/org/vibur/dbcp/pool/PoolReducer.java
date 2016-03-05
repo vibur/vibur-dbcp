@@ -47,7 +47,6 @@ public class PoolReducer extends SamplingPoolReducer<ConnHolder> implements Thre
         this.config = config;
     }
 
-    /** {@inheritDoc} */
     @Override
     protected void afterReduce(int reduction, int reduced, Throwable thrown) {
         if (thrown != null) {

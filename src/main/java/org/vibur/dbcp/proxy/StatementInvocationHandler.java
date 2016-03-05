@@ -62,7 +62,6 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
         this.queryParams = logSlowQuery ? new LinkedList<Object[]>() : null;
     }
 
-    /** {@inheritDoc} */
     @Override
     protected Object doInvoke(Statement proxy, Method method, Object[] args) throws Throwable {
         String methodName = method.getName();

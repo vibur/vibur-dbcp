@@ -43,7 +43,6 @@ public class ExceptionCollectorImpl implements ExceptionCollector {
         this.config = config;
     }
 
-    /** {@inheritDoc} */
     @Override
     public void addException(Throwable t) {
         if (config.getExceptionListener() != null)
@@ -53,7 +52,6 @@ public class ExceptionCollectorImpl implements ExceptionCollector {
             exceptions.add(t); // the above SQL transient exceptions are not of interest and are ignored
     }
 
-    /** {@inheritDoc} */
     @Override
     public List<Throwable> getExceptions() {
         return exceptions.isEmpty() ? Collections.<Throwable>emptyList() : new LinkedList<Throwable>(exceptions);

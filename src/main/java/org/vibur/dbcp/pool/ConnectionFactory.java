@@ -182,7 +182,6 @@ public class ConnectionFactory implements VersionedObjectFactory<ConnHolder> {
         }
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean readyToTake(ConnHolder conn) {
         if (conn.version() != version())
@@ -209,7 +208,6 @@ public class ConnectionFactory implements VersionedObjectFactory<ConnHolder> {
         }
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean readyToRestore(ConnHolder conn) {
         Connection rawConnection = conn.value();
@@ -229,7 +227,6 @@ public class ConnectionFactory implements VersionedObjectFactory<ConnHolder> {
         }
     }
 
-    /** {@inheritDoc} */
     @Override
     public void destroy(ConnHolder conn) {
         Connection rawConnection = conn.value();
@@ -244,13 +241,11 @@ public class ConnectionFactory implements VersionedObjectFactory<ConnHolder> {
             statementCache.removeAll(connection);
     }
 
-    /** {@inheritDoc} */
     @Override
     public int version() {
         return version.get();
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean compareAndSetVersion(int expect, int update) {
         return version.compareAndSet(expect, update);

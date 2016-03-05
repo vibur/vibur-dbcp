@@ -55,7 +55,6 @@ public abstract class AbstractInvocationHandler<T> implements TargetInvoker {
         this.exceptionCollector = exceptionCollector;
     }
 
-    /** {@inheritDoc} */
     @Override
     @SuppressWarnings("unchecked")
     public final Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
@@ -103,7 +102,6 @@ public abstract class AbstractInvocationHandler<T> implements TargetInvoker {
         return targetInvoke(method, args);
     }
 
-    /** {@inheritDoc} */
     @Override
     public final Object targetInvoke(Method method, Object[] args) throws Throwable {
         try {

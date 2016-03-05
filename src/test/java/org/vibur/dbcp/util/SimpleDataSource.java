@@ -35,55 +35,46 @@ public class SimpleDataSource implements DataSource {
         this.jdbcUrl = jdbcUrl;
     }
 
-    /** {@inheritDoc} */
     @Override
     public Connection getConnection() throws SQLException {
         return DriverManager.getConnection(jdbcUrl);
     }
 
-    /** {@inheritDoc} */
     @Override
     public Connection getConnection(String username, String password) throws SQLException {
         return DriverManager.getConnection(jdbcUrl, username, password);
     }
 
-    /** {@inheritDoc} */
     @Override
     public PrintWriter getLogWriter() throws SQLException {
         return DriverManager.getLogWriter();
     }
 
-    /** {@inheritDoc} */
     @Override
     public void setLogWriter(PrintWriter out) throws SQLException {
         DriverManager.setLogWriter(out);
     }
 
-    /** {@inheritDoc} */
     @Override
     public void setLoginTimeout(int seconds) throws SQLException {
         DriverManager.setLoginTimeout(seconds);
     }
 
-    /** {@inheritDoc} */
     @Override
     public int getLoginTimeout() throws SQLException {
         return DriverManager.getLoginTimeout();
     }
 
-    /** {@inheritDoc} */
     @Override
     public Logger getParentLogger() throws SQLFeatureNotSupportedException {
         throw new SQLFeatureNotSupportedException();
     }
 
-    /** {@inheritDoc} */
     @Override
     public <T> T unwrap(Class<T> iface) throws SQLException {
         throw new SQLFeatureNotSupportedException();
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isWrapperFor(Class<?> iface) throws SQLException {
         return false;

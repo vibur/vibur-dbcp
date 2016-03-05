@@ -228,7 +228,6 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
         logger.info("Started {}", this);
     }
 
-    /** {@inheritDoc} */
     @Override
     public void terminate() {
         synchronized (this) {
@@ -247,7 +246,6 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
         logger.info("Terminated {}", this);
     }
 
-    /** {@inheritDoc} */
     @Override
     public synchronized State getState() {
         return state;
@@ -330,7 +328,6 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
             new ViburDBCPMonitoring(this);
     }
 
-    /** {@inheritDoc} */
     @Override
     public Connection getConnection() throws SQLException {
         return getConnection(getConnectionTimeoutInMs());
@@ -381,43 +378,36 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
                     isLogStackTraceForLongConnection() ? new Throwable().getStackTrace() : null);
     }
 
-    /** {@inheritDoc} */
     @Override
     public PrintWriter getLogWriter() throws SQLException {
         return logWriter;
     }
 
-    /** {@inheritDoc} */
     @Override
     public void setLogWriter(PrintWriter out) throws SQLException {
         this.logWriter = out;
     }
 
-    /** {@inheritDoc} */
     @Override
     public void setLoginTimeout(int seconds) throws SQLException {
         setLoginTimeoutInSeconds(seconds);
     }
 
-    /** {@inheritDoc} */
     @Override
     public int getLoginTimeout() throws SQLException {
         return getLoginTimeoutInSeconds();
     }
 
-    /** {@inheritDoc} */
     @Override
     public Logger getParentLogger() throws SQLFeatureNotSupportedException {
         throw new SQLFeatureNotSupportedException();
     }
 
-    /** {@inheritDoc} */
     @Override
     public <T> T unwrap(Class<T> iface) throws SQLException {
         throw new SQLException("not a wrapper");
     }
 
-    /** {@inheritDoc} */
     @Override
     public boolean isWrapperFor(Class<?> iface) {
         return false;
