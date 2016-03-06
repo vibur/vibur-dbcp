@@ -208,6 +208,18 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
         assertTrue(internal2.isClosed());
     }
 
+    @Test
+    public void testConnectionCloseAfterPoolTerminationShouldCloseTheInternalConnectionToo() throws SQLException, IOException {
+        ViburDBCPDataSource ds = createDataSourceNoStatementsCache();
+
+        Connection connection = ds.getConnection();
+        ds.terminate();
+        connection.close();
+
+        Connection internal1 = connection.unwrap(Connection.class);
+        assertTrue(internal1.isClosed());
+    }
+
     private void doTestSelectStatement(DataSource ds) throws SQLException {
         Connection connection = ds.getConnection();
         try {
