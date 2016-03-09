@@ -106,7 +106,7 @@ public class ViburDBCPConfig {
 
 
     private static final AtomicInteger idGenerator = new AtomicInteger(1);
-    private static final ConcurrentMap<String, Boolean> names = new ConcurrentHashMap<String, Boolean>();
+    private static final ConcurrentMap<String, Boolean> names = new ConcurrentHashMap<>();
     /** The DataSource/pool name, mostly useful for JMX identification and similar. This {@code name} must be unique
      * among all names for all configured DataSources. The default name is "p" + an auto generated integer id.
      * If the configured {@code name} is not unique then the default one will be used instead. */

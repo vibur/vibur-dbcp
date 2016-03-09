@@ -32,17 +32,12 @@ public class WrapperTest extends AbstractDataSourceTest {
     @Test
     public void testWrapperMethods() throws SQLException, IOException {
         DataSource ds = createDataSourceNoStatementsCache();
-        Connection connection = null;
-        Statement statement = null;
-        PreparedStatement pStatement = null;
-        CallableStatement cStatement = null;
-        ResultSet resultSet = null;
-        try {
-            connection = ds.getConnection();
-            statement = connection.createStatement();
-            resultSet = statement.executeQuery("select * from actor where first_name = 'CHRISTIAN'");
-            pStatement = connection.prepareStatement("select count(*) from actor");
-            cStatement = connection.prepareCall("select count(*) from actor");
+        try (Connection connection = ds.getConnection();
+             Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery("select * from actor where first_name = 'CHRISTIAN'");
+             PreparedStatement pStatement = connection.prepareStatement("select count(*) from actor");
+             CallableStatement cStatement = connection.prepareCall("select count(*) from actor")) {
+
             DatabaseMetaData metaData = connection.getMetaData();
 
             assertTrue(metaData.isWrapperFor(DatabaseMetaData.class));
@@ -74,12 +69,6 @@ public class WrapperTest extends AbstractDataSourceTest {
             Connection c = connection.unwrap(Connection.class);
             assertNotNull(c);
             assertNotEquals(c, connection);
-        } finally {
-            if (resultSet != null) resultSet.close();
-            if (cStatement != null) cStatement.close();
-            if (pStatement != null) pStatement.close();
-            if (statement != null) statement.close();
-            if (connection != null) connection.close();
         }
     }
 }

@@ -35,7 +35,7 @@ public class ExceptionCollectorImpl implements ExceptionCollector {
 
     private final ViburDBCPConfig config;
 
-    private final Queue<Throwable> exceptions = new ConcurrentLinkedQueue<Throwable>();
+    private final Queue<Throwable> exceptions = new ConcurrentLinkedQueue<>();
 
     public ExceptionCollectorImpl(ViburDBCPConfig config) {
         if (config == null)
@@ -54,6 +54,6 @@ public class ExceptionCollectorImpl implements ExceptionCollector {
 
     @Override
     public List<Throwable> getExceptions() {
-        return exceptions.isEmpty() ? Collections.<Throwable>emptyList() : new LinkedList<Throwable>(exceptions);
+        return exceptions.isEmpty() ? Collections.<Throwable>emptyList() : new LinkedList<>(exceptions);
     }
 }

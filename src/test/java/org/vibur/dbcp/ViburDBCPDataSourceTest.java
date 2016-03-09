@@ -163,14 +163,12 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
 
         // Executing a Statement that will produce an SQLException:
         Connection connection = ds.getConnection();
-        Statement statement = connection.createStatement();
-        try {
+        try (Statement statement = connection.createStatement()) {
             statement.executeUpdate("drop table nonexistent");
             fail("SQLException expected");
         } catch (SQLException ignored) {
-            // don't need to log it
+            // no-op
         } finally {
-            statement.close();
             connection.close();
         }
         Connection internal1 = connection.unwrap(Connection.class);

@@ -61,7 +61,7 @@ public class PoolOperations {
             throw new NullPointerException();
 
         this.config = dataSource;
-        this.criticalSQLStates = new HashSet<String>(Arrays.asList(
+        this.criticalSQLStates = new HashSet<>(Arrays.asList(
                 dataSource.getCriticalSQLStates().replaceAll("\\s", "").split(",")));
 
         this.connectionFactory = dataSource.getConnectionFactory();

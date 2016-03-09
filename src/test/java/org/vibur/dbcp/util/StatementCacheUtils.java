@@ -35,8 +35,7 @@ public class StatementCacheUtils {
 
     @SuppressWarnings("unchecked")
     public static ConcurrentMap<ConnMethodKey, StatementVal> mockStatementCache(ViburDBCPDataSource ds) {
-        final List<ConcurrentMap<ConnMethodKey, StatementVal>> holder
-                = new LinkedList<ConcurrentMap<ConnMethodKey, StatementVal>>();
+        final List<ConcurrentMap<ConnMethodKey, StatementVal>> holder = new LinkedList<>();
 
         ds.setStatementCache(new StatementCache(ds.getStatementCacheMaxSize()) {
             @Override

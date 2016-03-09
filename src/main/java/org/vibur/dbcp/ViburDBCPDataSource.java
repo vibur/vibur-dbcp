@@ -155,7 +155,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
     }
 
     private void configureFromProperties(Properties properties) throws ViburDBCPException {
-        Set<String> fields = new HashSet<String>();
+        Set<String> fields = new HashSet<>();
         for (Field field : ViburDBCPConfig.class.getDeclaredFields())
             fields.add(field.getName());
 
@@ -214,7 +214,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
         validateConfig();
 
         connectionFactory = new ConnectionFactory(this);
-        PoolService<ConnHolder> pool = new ConcurrentLinkedPool<ConnHolder>(connectionFactory,
+        PoolService<ConnHolder> pool = new ConcurrentLinkedPool<>(connectionFactory,
                 getPoolInitialSize(), getPoolMaxSize(), isPoolFair(),
                 isPoolEnableConnectionTracking() ? new TakenListener<ConnHolder>(getPoolInitialSize()) : null);
         setPool(pool);
@@ -279,19 +279,26 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
 
         if (getDefaultTransactionIsolation() != null) {
             String defaultTransactionIsolation = getDefaultTransactionIsolation().toUpperCase();
-            if (defaultTransactionIsolation.equals("NONE"))
-                setDefaultTransactionIsolationValue(Connection.TRANSACTION_NONE);
-            else if (defaultTransactionIsolation.equals("READ_COMMITTED"))
-                setDefaultTransactionIsolationValue(Connection.TRANSACTION_READ_COMMITTED);
-            else if (defaultTransactionIsolation.equals("REPEATABLE_READ"))
-                setDefaultTransactionIsolationValue(Connection.TRANSACTION_REPEATABLE_READ);
-            else if (defaultTransactionIsolation.equals("READ_UNCOMMITTED"))
-                setDefaultTransactionIsolationValue(Connection.TRANSACTION_READ_UNCOMMITTED);
-            else if (defaultTransactionIsolation.equals("SERIALIZABLE"))
-                setDefaultTransactionIsolationValue(Connection.TRANSACTION_SERIALIZABLE);
-            else
-                logger.warn("Unknown defaultTransactionIsolation {}. Will use the driver's default.",
-                    getDefaultTransactionIsolation());
+            switch (defaultTransactionIsolation) {
+                case "NONE" :
+                    setDefaultTransactionIsolationValue(Connection.TRANSACTION_NONE);
+                    break;
+                case "READ_COMMITTED" :
+                    setDefaultTransactionIsolationValue(Connection.TRANSACTION_READ_COMMITTED);
+                    break;
+                case "REPEATABLE_READ" :
+                    setDefaultTransactionIsolationValue(Connection.TRANSACTION_REPEATABLE_READ);
+                    break;
+                case "READ_UNCOMMITTED" :
+                    setDefaultTransactionIsolationValue(Connection.TRANSACTION_READ_UNCOMMITTED);
+                    break;
+                case "SERIALIZABLE" :
+                    setDefaultTransactionIsolationValue(Connection.TRANSACTION_SERIALIZABLE);
+                    break;
+                default:
+                    logger.warn("Unknown defaultTransactionIsolation {}. Will use the driver's default.",
+                            getDefaultTransactionIsolation());
+            }
         }
     }
 

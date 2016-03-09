@@ -35,19 +35,11 @@ public class StatementProxyTest extends AbstractDataSourceTest {
     @Test
     public void testSameStatement() throws SQLException, IOException {
         DataSource ds = createDataSourceNoStatementsCache();
-        Connection connection = null;
-        Statement statement = null;
-        ResultSet resultSet = null;
-        try {
-            connection = ds.getConnection();
-            statement = connection.createStatement();
-            resultSet = statement.executeQuery("select * from actor where first_name = 'CHRISTIAN'");
+        try (Connection connection = ds.getConnection();
+             Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery("select * from actor where first_name = 'CHRISTIAN'")) {
 
             assertSame(statement, resultSet.getStatement());
-        } finally {
-            if (resultSet != null) resultSet.close();
-            if (statement != null) statement.close();
-            if (connection != null) connection.close();
         }
     }
 }
