@@ -68,20 +68,14 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
     @Test
     public void testSelectStatementWithStatementsCache() throws SQLException, IOException {
         ViburDBCPDataSource ds = createDataSourceWithStatementsCache();
-        Connection connection = null;
-        try {
+        try (Connection connection = ds.getConnection()) {
             ConcurrentMap<ConnMethodKey, StatementVal> mockedStatementCache = mockStatementCache(ds);
 
-            connection = ds.getConnection();
             executeAndVerifySelectStatement(connection);
             executeAndVerifySelectStatement(connection);
 
             verifyZeroInteractions(mockedStatementCache);
-        } finally {
-            if (connection != null) connection.close();
         }
-        assertNotNull(connection);
-        assertTrue(connection.isClosed());
     }
 
     @Test
@@ -99,11 +93,9 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
     @Test
     public void testPreparedSelectStatementWithStatementsCache() throws SQLException, IOException {
         ViburDBCPDataSource ds = createDataSourceWithStatementsCache();
-        Connection connection = null;
-        try {
+        try (Connection connection = ds.getConnection()) {
             ConcurrentMap<ConnMethodKey, StatementVal> mockedStatementCache = mockStatementCache(ds);
 
-            connection = ds.getConnection();
             executeAndVerifyPreparedSelectStatement(connection);
             executeAndVerifyPreparedSelectStatement(connection);
 
@@ -117,21 +109,15 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
             assertEquals(key1.getValue(), key2.getValue());
             assertEquals("prepareStatement", key1.getValue().getMethod().getName());
             assertEquals(AVAILABLE, val1.getValue().state().get());
-        } finally {
-            if (connection != null) connection.close();
         }
-        assertNotNull(connection);
-        assertTrue(connection.isClosed());
     }
 
     @Test
     public void testTwoPreparedSelectStatementsWithStatementsCache() throws SQLException, IOException {
         ViburDBCPDataSource ds = createDataSourceWithStatementsCache();
-        Connection connection = null;
-        try {
+        try (Connection connection = ds.getConnection()) {
             ConcurrentMap<ConnMethodKey, StatementVal> mockedStatementCache = mockStatementCache(ds);
 
-            connection = ds.getConnection();
             executeAndVerifyPreparedSelectStatement(connection);
             executeAndVerifyPreparedSelectStatementByLastName(connection);
 
@@ -149,11 +135,7 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
             assertEquals("prepareStatement", key2.getValue().getMethod().getName());
             assertTrue(val1.getValue().state().get() == EVICTED);
             assertTrue(val2.getValue().state().get() == AVAILABLE);
-        } finally {
-            if (connection != null) connection.close();
         }
-        assertNotNull(connection);
-        assertTrue(connection.isClosed());
     }
 
     @Test
@@ -200,10 +182,13 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
         statement.close();
         connection.close();
 
-        Statement internal1 = statement.unwrap(Statement.class);
-        assertTrue(internal1.isClosed());
-        PreparedStatement internal2 = pStatement.unwrap(PreparedStatement.class);
-        assertTrue(internal2.isClosed());
+        Statement internalStatement = statement.unwrap(Statement.class);
+        assertTrue(statement.isClosed());
+        assertTrue(internalStatement.isClosed());
+
+        PreparedStatement internalPStatement = pStatement.unwrap(PreparedStatement.class);
+        assertTrue(pStatement.isClosed());
+        assertTrue(internalPStatement.isClosed());
     }
 
     @Test
@@ -212,103 +197,72 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
 
         Connection connection = ds.getConnection();
         ds.terminate();
-        connection.close();
 
-        Connection internal1 = connection.unwrap(Connection.class);
-        assertTrue(internal1.isClosed());
+        Connection internalConnection = connection.unwrap(Connection.class);
+        assertFalse(connection.isClosed());
+        assertFalse(internalConnection.isClosed());
+
+        connection.close();
+        assertTrue(connection.isClosed());
+        assertTrue(internalConnection.isClosed());
     }
 
     private void doTestSelectStatement(DataSource ds) throws SQLException {
-        Connection connection = ds.getConnection();
-        try {
+        try (Connection connection = ds.getConnection()) {
             executeAndVerifySelectStatement(connection);
-        } finally {
-            connection.close();
         }
-        assertTrue(connection.isClosed());
     }
 
     private void doTestPreparedSelectStatement(DataSource ds) throws SQLException {
-        Connection connection = ds.getConnection();
-        try {
+        try (Connection connection = ds.getConnection()) {
             executeAndVerifyPreparedSelectStatement(connection);
-        } finally {
-            connection.close();
         }
-        assertTrue(connection.isClosed());
     }
 
     private void executeAndVerifySelectStatement(Connection connection) throws SQLException {
-        Statement statement = null;
-        ResultSet resultSet = null;
-        try {
-            connection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
-            statement = connection.createStatement();
-            resultSet = statement.executeQuery("select * from actor where first_name = 'CHRISTIAN'");
+        try (Statement statement = connection.createStatement()) {
+            ResultSet resultSet = statement.executeQuery("select * from actor where first_name = 'CHRISTIAN'");
 
-            Set<String> expectedLastNames = new HashSet<String>(Arrays.asList("GABLE", "AKROYD", "NEESON"));
-            int count = 0;
+            Set<String> expectedLastNames = new HashSet<>(Arrays.asList("GABLE", "AKROYD", "NEESON"));
+            int size = 0;
             while (resultSet.next()) {
-                ++count;
+                ++size;
                 String lastName = resultSet.getString("last_name");
                 assertTrue(expectedLastNames.remove(lastName));
             }
-            assertEquals(3, count);
-        } finally {
-            if (resultSet != null) resultSet.close();
-            if (statement != null) statement.close();
+            assertEquals(3, size);
         }
-        assertTrue(resultSet.isClosed());
-        assertTrue(statement.isClosed());
     }
 
     private void executeAndVerifyPreparedSelectStatement(Connection connection) throws SQLException {
-        PreparedStatement pStatement = null;
-        ResultSet resultSet = null;
-        try {
-            connection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
-            pStatement = connection.prepareStatement("select * from actor where first_name = ?");
+        try (PreparedStatement pStatement = connection.prepareStatement("select * from actor where first_name = ?")) {
             pStatement.setString(1, "CHRISTIAN");
-            resultSet = pStatement.executeQuery();
+            ResultSet resultSet = pStatement.executeQuery();
 
-            Set<String> lastNames = new HashSet<String>(Arrays.asList("GABLE", "AKROYD", "NEESON"));
-            int count = 0;
+            Set<String> lastNames = new HashSet<>(Arrays.asList("GABLE", "AKROYD", "NEESON"));
+            int size = 0;
             while (resultSet.next()) {
-                ++count;
+                ++size;
                 String lastName = resultSet.getString("last_name");
                 assertTrue(lastNames.remove(lastName));
             }
-            assertEquals(3, count);
-        } finally {
-            if (resultSet != null) resultSet.close();
-            if (pStatement != null) pStatement.close();
+            assertEquals(3, size);
         }
-        assertTrue(resultSet.isClosed());
-        assertTrue(pStatement.isClosed());
     }
 
     private void executeAndVerifyPreparedSelectStatementByLastName(Connection connection) throws SQLException {
-        PreparedStatement pStatement = null;
-        ResultSet resultSet = null;
-        try {
-            connection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
-            pStatement = connection.prepareStatement("select * from actor where last_name = ?");
+        try (PreparedStatement pStatement = connection.prepareStatement("select * from actor where last_name = ?")) {
             pStatement.setString(1, "CROWE");
-            resultSet = pStatement.executeQuery();
+            ResultSet resultSet = pStatement.executeQuery();
 
-            Set<String> firstNames = new HashSet<String>(Collections.singletonList("SIDNEY"));
-            int count = 0;
+            Set<String> firstNames = new HashSet<>(Collections.singletonList("SIDNEY"));
+            int size = 0;
             while (resultSet.next()) {
-                ++count;
+                ++size;
                 String firstName = resultSet.getString("first_name");
                 assertTrue(firstNames.remove(firstName));
             }
-            assertEquals(1, count);
-        } finally {
-            if (resultSet != null) resultSet.close();
-            if (pStatement != null) pStatement.close();
+            assertEquals(1, size);
         }
-        assertTrue(resultSet.isClosed());
-        assertTrue(pStatement.isClosed());
     }
 }
