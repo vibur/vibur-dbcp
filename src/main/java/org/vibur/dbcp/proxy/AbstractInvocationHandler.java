@@ -77,8 +77,8 @@ public abstract class AbstractInvocationHandler<T> implements TargetInvoker {
         try {
             return doInvoke((T) proxy, method, args);
         } catch (ViburDBCPException e) {
-            logger.error("The invocation of {} with args {} on {} threw:",
-                    method, Arrays.toString(args), target, e);
+            logger.error("Pool {}, the invocation of {} with args {} on {} threw:",
+                    getPoolName(config), method, Arrays.toString(args), target, e);
             Throwable cause = e.getCause();
             if (cause instanceof SQLException)
                 throw cause; // throw the original SQLException which have caused the ViburDBCPException
