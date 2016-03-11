@@ -30,6 +30,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 
+import static java.util.Objects.requireNonNull;
 import static org.vibur.dbcp.util.ViburUtils.getStackTraceAsString;
 
 /**
@@ -40,9 +41,7 @@ public class ViburDBCPMonitoring implements ViburDBCPMonitoringMBean {
     private final ViburDBCPConfig config;
 
     public ViburDBCPMonitoring(ViburDBCPConfig config) throws ViburDBCPException {
-        if (config == null)
-            throw new NullPointerException();
-        this.config = config;
+        this.config = requireNonNull(config);
         initJMX();
     }
 

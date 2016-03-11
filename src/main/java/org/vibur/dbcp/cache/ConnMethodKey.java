@@ -20,6 +20,8 @@ import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.util.Arrays;
 
+import static java.util.Objects.requireNonNull;
+
 /**
  * Describes a {@code method} with {@code args} which has been invoked on a JDBC Connection.
  *
@@ -37,10 +39,8 @@ public class ConnMethodKey {
     private final Object[] args;
 
     public ConnMethodKey(Connection target, Method method, Object[] args) {
-        if (target == null || method == null)
-            throw new NullPointerException();
-        this.target = target;
-        this.method = method;
+        this.target = requireNonNull(target);
+        this.method = requireNonNull(method);
         this.args = args;
     }
 

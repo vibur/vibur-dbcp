@@ -26,6 +26,8 @@ import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import static java.util.Objects.requireNonNull;
+
 /**
  * JDBC proxy objects exceptions collector - operations implementation.
  *
@@ -38,9 +40,7 @@ public class ExceptionCollectorImpl implements ExceptionCollector {
     private final Queue<Throwable> exceptions = new ConcurrentLinkedQueue<>();
 
     public ExceptionCollectorImpl(ViburDBCPConfig config) {
-        if (config == null)
-            throw new NullPointerException();
-        this.config = config;
+        this.config = requireNonNull(config);
     }
 
     @Override

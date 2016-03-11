@@ -30,6 +30,7 @@ import java.sql.Statement;
 import java.util.LinkedList;
 import java.util.List;
 
+import static java.util.Objects.requireNonNull;
 import static org.vibur.dbcp.util.QueryUtils.formatSql;
 import static org.vibur.dbcp.util.QueryUtils.getSqlQuery;
 import static org.vibur.dbcp.util.ViburUtils.getPoolName;
@@ -53,11 +54,9 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
                                       Connection connectionProxy, ViburDBCPConfig config,
                                       ExceptionCollector exceptionCollector) {
         super(statementVal.value(), connectionProxy, "getConnection", config, exceptionCollector);
-        if (config == null)
-            throw new NullPointerException();
+        this.config = requireNonNull(config);
         this.statementVal = statementVal;
         this.statementCache = statementCache;
-        this.config = config;
         this.logSlowQuery = config.getLogQueryExecutionLongerThanMs() >= 0;
         this.queryParams = logSlowQuery ? new LinkedList<Object[]>() : null;
     }

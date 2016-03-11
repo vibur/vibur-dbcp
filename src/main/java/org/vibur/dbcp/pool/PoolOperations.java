@@ -32,6 +32,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import static java.util.Objects.requireNonNull;
+
 /**
  * The facade class via which most of the connection pool's and connection factory's functionalities
  * are accessed. Exposes an interface which allows us to:
@@ -57,10 +59,7 @@ public class PoolOperations {
      * @param dataSource the ViburDBCPDataSource from which we will initialize
      */
     public PoolOperations(ViburDBCPDataSource dataSource) throws ViburDBCPException {
-        if (dataSource == null)
-            throw new NullPointerException();
-
-        this.config = dataSource;
+        this.config = requireNonNull(dataSource);
         this.criticalSQLStates = new HashSet<>(Arrays.asList(
                 dataSource.getCriticalSQLStates().replaceAll("\\s", "").split(",")));
 

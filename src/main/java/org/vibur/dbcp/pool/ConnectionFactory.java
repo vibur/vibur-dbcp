@@ -31,6 +31,7 @@ import java.sql.Statement;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static java.util.Objects.requireNonNull;
 import static org.vibur.dbcp.util.JdbcUtils.closeConnection;
 import static org.vibur.dbcp.util.JdbcUtils.closeStatement;
 
@@ -59,9 +60,7 @@ public class ConnectionFactory implements VersionedObjectFactory<ConnHolder> {
      * @throws ViburDBCPException if cannot successfully initialize/configure the underlying SQL system
      */
     public ConnectionFactory(ViburDBCPConfig config) throws ViburDBCPException {
-        if (config == null)
-            throw new NullPointerException();
-        this.config = config;
+        this.config = requireNonNull(config);
 
         initLoginTimeout(config);
         initJdbcDriver(config);

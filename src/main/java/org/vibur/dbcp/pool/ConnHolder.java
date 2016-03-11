@@ -18,6 +18,8 @@ package org.vibur.dbcp.pool;
 
 import java.sql.Connection;
 
+import static java.util.Objects.requireNonNull;
+
 /**
  * The stateful object which is held in the object pool. It is just a thin wrapper around the
  * raw JDBC {@code Connection} object which allows us to augment it with useful "state" information,
@@ -35,9 +37,7 @@ public class ConnHolder {
     private StackTraceElement[] stackTrace = null;
 
     public ConnHolder(Connection value, int version, long currentTime) {
-        if (value == null)
-            throw new NullPointerException();
-        this.value = value;
+        this.value = requireNonNull(value);
         this.version = version;
         this.restoredTime = currentTime;
     }
