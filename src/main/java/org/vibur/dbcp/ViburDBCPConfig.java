@@ -105,12 +105,10 @@ public class ViburDBCPConfig {
     private boolean poolEnableConnectionTracking = false;
 
 
-    private static final AtomicInteger idGenerator = new AtomicInteger(1);
-    private static final ConcurrentMap<String, Boolean> names = new ConcurrentHashMap<>();
     /** The DataSource/pool name, mostly useful for JMX identification and similar. This {@code name} must be unique
      * among all names for all configured DataSources. The default name is "p" + an auto generated integer id.
      * If the configured {@code name} is not unique then the default one will be used instead. */
-    private String name = "p" + Integer.toString(idGenerator.getAndIncrement());
+    private String name = registerDefaultName();
 
     /** Enables or disables the DataSource JMX exposure. */
     private boolean enableJMX = true;
@@ -372,7 +370,7 @@ public class ViburDBCPConfig {
     }
 
     public void setName(String name) {
-        if (names.putIfAbsent(name, Boolean.TRUE) == null)
+        if (registerName(name))
             this.name = name;
         else
             logger.warn("DataSource name {} is not unique, using {} instead", name, this.name);
@@ -638,5 +636,27 @@ public class ViburDBCPConfig {
             ", name='" + name + '\'' +
             ", statementCacheMaxSize=" + statementCacheMaxSize +
             '}';
+    }
+
+
+    //////////////////////// pool name management ////////////////////////
+
+    private static final AtomicInteger idGenerator = new AtomicInteger(1);
+    private static final ConcurrentMap<String, Boolean> names = new ConcurrentHashMap<>();
+
+    private String registerDefaultName() {
+        String defaultName;
+        do {
+            defaultName = "p" + Integer.toString(idGenerator.getAndIncrement());
+        } while (names.putIfAbsent(defaultName, Boolean.TRUE) != null);
+        return defaultName;
+    }
+
+    private boolean registerName(String name) {
+        return names.putIfAbsent(name, Boolean.TRUE) != null;
+    }
+
+    void unregisterName() {
+        names.remove(name);
     }
 }

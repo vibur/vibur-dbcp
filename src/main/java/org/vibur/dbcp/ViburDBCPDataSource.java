@@ -243,6 +243,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
         if (getPool() != null)
             getPool().terminate();
 
+        unregisterName();
         logger.info("Terminated {}", this);
     }
 
