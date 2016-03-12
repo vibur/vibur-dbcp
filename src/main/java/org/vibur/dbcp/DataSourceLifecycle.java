@@ -21,7 +21,7 @@ package org.vibur.dbcp;
  *
  * @author Simeon Malchev
  */
-public interface DataSourceLifecycle {
+public interface DataSourceLifecycle extends AutoCloseable {
 
     /**
      * The possible states in which the DataSource can be. The transition of the states is NEW-&gt;WORKING-&gt;TERMINATED.

@@ -246,6 +246,16 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
         logger.info("Terminated {}", this);
     }
 
+    /**
+     * A synonym for {@link #terminate()}.
+     * <p>
+     * {@inheritDoc}
+     */
+    @Override
+    public void close() {
+        terminate();
+    }
+
     @Override
     public synchronized State getState() {
         return state;
