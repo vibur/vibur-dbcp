@@ -370,9 +370,7 @@ public class ViburDBCPConfig {
     }
 
     public void setName(String name) {
-        if (registerName(name))
-            this.name = name;
-        else
+        if (!registerName(name))
             logger.warn("DataSource name {} is not unique, using {} instead", name, this.name);
     }
 
@@ -653,7 +651,12 @@ public class ViburDBCPConfig {
     }
 
     private boolean registerName(String name) {
-        return names.putIfAbsent(name, Boolean.TRUE) != null;
+        if (names.putIfAbsent(name, Boolean.TRUE) == null) {
+            unregisterName();
+            this.name = name;
+            return true;
+        } else
+            return false;
     }
 
     void unregisterName() {

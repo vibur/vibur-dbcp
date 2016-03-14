@@ -102,8 +102,8 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
             if (config == null) {
                 config = getURL(DEFAULT_PROPERTIES_CONFIG_FILE_NAME);
                 if (config == null)
-                    throw new ViburDBCPException("Unable to load default resources " + DEFAULT_XML_CONFIG_FILE_NAME
-                        + " or " + DEFAULT_PROPERTIES_CONFIG_FILE_NAME);
+                    throw new ViburDBCPException("Unable to load default resources from "
+                        + DEFAULT_XML_CONFIG_FILE_NAME + " or " + DEFAULT_PROPERTIES_CONFIG_FILE_NAME);
             }
         }
         configureFromURL(config);
