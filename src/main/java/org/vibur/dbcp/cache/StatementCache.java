@@ -94,7 +94,8 @@ public class StatementCache {
                     return statement; // the new entry was successfully put in the cache
             }
             return new StatementVal(rawStatement, null);
-        } else { // the statement was in the cache and was available
+        }
+        else { // the statement was in the cache and was available
             logger.trace("Using cached statement for {}", key);
             return statement;
         }

@@ -53,7 +53,8 @@ public class PoolReducer extends SamplingPoolReducer<ConnHolder> implements Thre
             logger.warn("While trying to reduce pool {} by {} elements", getPoolName(config), reduction, thrown);
             if (!(thrown instanceof ViburDBCPException))
                 terminate();
-        } else
+        }
+        else
             logger.debug("Pool {}, intended reduction {} actual {}.", getPoolName(config), reduction, reduced);
     }
 

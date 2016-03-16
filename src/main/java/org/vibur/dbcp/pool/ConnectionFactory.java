@@ -70,21 +70,23 @@ public class ConnectionFactory implements VersionedObjectFactory<ConnHolder> {
         int loginTimeout = config.getLoginTimeoutInSeconds();
         if (config.getExternalDataSource() == null)
             DriverManager.setLoginTimeout(loginTimeout);
-        else
+        else {
             try {
                 config.getExternalDataSource().setLoginTimeout(loginTimeout);
             } catch (SQLException e) {
                 throw new ViburDBCPException(e);
             }
+        }
     }
 
     private void initJdbcDriver(ViburDBCPConfig config) throws ViburDBCPException {
-        if (config.getDriverClassName() != null)
+        if (config.getDriverClassName() != null) {
             try {
                 Class.forName(config.getDriverClassName()).newInstance();
             } catch (ReflectiveOperationException e) {
                 throw new ViburDBCPException(e);
             }
+        }
     }
 
     /**
@@ -135,7 +137,8 @@ public class ConnectionFactory implements VersionedObjectFactory<ConnHolder> {
                 connection = DriverManager.getConnection(config.getJdbcUrl(), userName, password);
             else
                 connection = DriverManager.getConnection(config.getJdbcUrl());
-        } else {
+        }
+        else {
             if (userName != null)
                 connection = externalDataSource.getConnection(userName, password);
             else

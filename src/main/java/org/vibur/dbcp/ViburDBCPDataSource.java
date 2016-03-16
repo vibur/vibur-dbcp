@@ -97,7 +97,8 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
             config = getURL(configFileName);
             if (config == null)
                 throw new ViburDBCPException("Unable to load resource " + configFileName);
-        } else {
+        }
+        else {
             config = getURL(DEFAULT_XML_CONFIG_FILE_NAME);
             if (config == null) {
                 config = getURL(DEFAULT_PROPERTIES_CONFIG_FILE_NAME);
@@ -145,12 +146,13 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
         } catch (IOException e) {
             throw new ViburDBCPException(config.toString(), e);
         } finally {
-            if (inputStream != null)
+            if (inputStream != null) {
                 try {
                     inputStream.close();
                 } catch (IOException ignored) {
                     logger.debug("Couldn't close configuration URL " + config, ignored);
                 }
+            }
         }
     }
 
@@ -361,10 +363,9 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
     public Connection getConnection(String username, String password) throws SQLException {
         if (defaultCredentials(username, password))
             return getConnection();
-        else {
-            logger.warn("Calling getConnection with different than the default credentials; will create and return a non-pooled Connection.");
-            return connectionFactory.create(username, password).value();
-        }
+
+        logger.warn("Calling getConnection with different than the default credentials; will create and return a non-pooled Connection.");
+        return connectionFactory.create(username, password).value();
     }
 
     private boolean defaultCredentials(String username, String password) {

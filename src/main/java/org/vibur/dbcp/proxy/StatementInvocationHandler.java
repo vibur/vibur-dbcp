@@ -95,7 +95,8 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
         if (statementCache != null) {
             statementCache.restore(statementVal, config.isClearSQLWarnings());
             return null;
-        } else
+        }
+        else
             return targetInvoke(method, args);
     }
 
@@ -154,7 +155,8 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
             if (logger.isDebugEnabled())
                 logger.debug("SQL query execution from pool {}:\n{}\n-- threw:",
                         getPoolName(config), formatSql(getSqlQuery(getTarget(), args), queryParams), t);
-        } else
+        }
+        else
             super.logInvokeFailure(method, args, t);
     }
 }

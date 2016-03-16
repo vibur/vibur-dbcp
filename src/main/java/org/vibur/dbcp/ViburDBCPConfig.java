@@ -655,7 +655,8 @@ public class ViburDBCPConfig {
             unregisterName();
             this.name = name;
             return true;
-        } else
+        }
+        else
             return false;
     }
 
