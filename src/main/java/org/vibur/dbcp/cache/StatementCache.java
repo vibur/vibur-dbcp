@@ -86,19 +86,18 @@ public class StatementCache {
      */
     public StatementVal retrieve(ConnMethodKey key, TargetInvoker invoker) throws Throwable {
         StatementVal statement = statementCache.get(key);
-        if (statement == null || !statement.state().compareAndSet(AVAILABLE, IN_USE)) {
-            Statement rawStatement = (Statement) invoker.targetInvoke(key.getMethod(), key.getArgs());
-            if (statement == null) { // there was no entry for the key, so we'll try to put a new one
-                statement = new StatementVal(rawStatement, new AtomicInteger(IN_USE));
-                if (statementCache.putIfAbsent(key, statement) == null)
-                    return statement; // the new entry was successfully put in the cache
-            }
-            return new StatementVal(rawStatement, null);
-        }
-        else { // the statement was in the cache and was available
+        if (statement != null && statement.state().compareAndSet(AVAILABLE, IN_USE)) {
             logger.trace("Using cached statement for {}", key);
             return statement;
         }
+
+        Statement rawStatement = (Statement) invoker.targetInvoke(key.getMethod(), key.getArgs());
+        if (statement == null) { // there was no entry for the key, so we'll try to put a new one
+            statement = new StatementVal(rawStatement, new AtomicInteger(IN_USE));
+            if (statementCache.putIfAbsent(key, statement) == null)
+                return statement; // the new entry was successfully put in the cache
+        }
+        return new StatementVal(rawStatement, null);
     }
 
     public void restore(StatementVal statement, boolean clearWarnings) {
