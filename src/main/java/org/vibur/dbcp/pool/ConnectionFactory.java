@@ -167,8 +167,8 @@ public class ConnectionFactory implements VersionedObjectFactory<ConnHolder> {
     private boolean validateConnection(Connection connection, String query) throws SQLException {
         if (query.equals(ViburDBCPConfig.IS_VALID_QUERY))
             return connection.isValid(config.getValidateTimeoutInSeconds());
-        else
-            return executeQuery(connection, query);
+
+        return executeQuery(connection, query);
     }
 
     private boolean executeQuery(Connection connection, String query) throws SQLException {

@@ -91,13 +91,11 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
     private Object processClose(Method method, Object[] args) throws Throwable {
         if (getAndSetClosed())
             return null;
-
-        if (statementCache != null) {
-            statementCache.restore(statementVal, config.isClearSQLWarnings());
-            return null;
-        }
-        else
+        if (statementCache == null)
             return targetInvoke(method, args);
+
+        statementCache.restore(statementVal, config.isClearSQLWarnings());
+        return null;
     }
 
     private Object processCancel(Method method, Object[] args) throws Throwable {
@@ -128,8 +126,8 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
             // on its result the return value to be the current JDBC Statement proxy.
             if (method.getName() == "executeQuery") // *1
                 return newProxiedResultSet(proxy, method, args);
-            else
-                return targetInvoke(method, args); // the real "execute..." call
+
+            return targetInvoke(method, args); // the real "execute..." call
         } finally {
             if (logSlowQuery)
                 logQuery(proxy, args, startTime);

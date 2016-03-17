@@ -96,8 +96,8 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
         StatementCache statementCache = config.getStatementCache();
         if (statementCache != null)
             return statementCache.retrieve(new ConnMethodKey(getTarget(), method, args), this);
-        else
-            return getUncachedStatement(method, args);
+
+        return getUncachedStatement(method, args);
     }
 
     private StatementVal getUncachedStatement(Method method, Object[] args) throws Throwable {
@@ -106,10 +106,12 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
     }
 
     private Object processCloseOrAbort(boolean aborted, Method method, Object[] args) throws Throwable {
-        if (aborted)
-            targetInvoke(method, args); // executes the abort() call, which in turn may throw an exception
-        if (!getAndSetClosed())
+        if (getAndSetClosed())
+            return null;
+        try {
+            return aborted ? targetInvoke(method, args) : null; // calls to close() are not passed, to abort() are passed
+        } finally {
             poolOperations.restore(conn, aborted, getExceptionCollector().getExceptions());
-        return null;
+        }
     }
 }

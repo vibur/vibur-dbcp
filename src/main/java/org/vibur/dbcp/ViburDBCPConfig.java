@@ -651,13 +651,12 @@ public class ViburDBCPConfig {
     }
 
     private boolean registerName(String name) {
-        if (names.putIfAbsent(name, Boolean.TRUE) == null) {
-            unregisterName();
-            this.name = name;
-            return true;
-        }
-        else
+        if (names.putIfAbsent(name, Boolean.TRUE) != null)
             return false;
+
+        unregisterName();
+        this.name = name;
+        return true;
     }
 
     void unregisterName() {
