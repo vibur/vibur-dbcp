@@ -31,6 +31,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static org.vibur.dbcp.cache.StatementVal.*;
 import static org.vibur.dbcp.util.JdbcUtils.clearWarnings;
 import static org.vibur.dbcp.util.JdbcUtils.closeStatement;
+import static org.vibur.objectpool.util.ArgumentUtils.forbidIllegalArgument;
 
 /**
  * Implements and encapsulates all JDBC Statement caching functionality and logic.
@@ -44,8 +45,7 @@ public class StatementCache {
     private final ConcurrentMap<ConnMethodKey, StatementVal> statementCache;
 
     public StatementCache(int maxSize) {
-        if (maxSize <= 0)
-            throw new IllegalArgumentException();
+        forbidIllegalArgument(maxSize <= 0);
         statementCache = buildStatementCache(maxSize);
     }
 

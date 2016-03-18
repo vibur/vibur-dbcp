@@ -194,7 +194,8 @@
                             com.googlecode.concurrentlinkedhashmap;version="[${version;===;${concurrentlinkedhashmap-lru.version}},${version;+;${concurrentlinkedhashmap-lru.version}})";resolution:=optional,
                             org.vibur.objectpool;version="[${version;==;${vibur.osgi.version}},${version;+;${vibur.osgi.version}})",
                             org.vibur.objectpool.listener;version="[${version;==;${vibur.osgi.version}},${version;+;${vibur.osgi.version}})",
-                            org.vibur.objectpool.reducer;version="[${version;==;${vibur.osgi.version}},${version;+;${vibur.osgi.version}})"
+                            org.vibur.objectpool.reducer;version="[${version;==;${vibur.osgi.version}},${version;+;${vibur.osgi.version}})",
+                            org.vibur.objectpool.util;version="[${version;==;${vibur.osgi.version}},${version;+;${vibur.osgi.version}})"
                         </Import-Package>
                         <Bundle-SymbolicName>${project.groupId}.${project.artifactId}</Bundle-SymbolicName>
                         <DynamicImport-Package>*</DynamicImport-Package>

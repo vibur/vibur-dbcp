@@ -44,7 +44,9 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.logging.Logger;
 
+import static java.util.Objects.requireNonNull;
 import static org.vibur.dbcp.util.ViburUtils.getPoolName;
+import static org.vibur.objectpool.util.ArgumentUtils.forbidIllegalArgument;
 
 /**
  * The main DataSource which needs to be configured/instantiated by the calling application and from
@@ -265,18 +267,19 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
     }
 
     private void validateConfig() {
-        if (getExternalDataSource() == null && getJdbcUrl() == null) throw new IllegalArgumentException();
-        if (getAcquireRetryDelayInMs() < 0) throw new IllegalArgumentException();
-        if (getAcquireRetryAttempts() < 0) throw new IllegalArgumentException();
-        if (getConnectionTimeoutInMs() < 0) throw new IllegalArgumentException();
-        if (getLoginTimeoutInSeconds() < 0) throw new IllegalArgumentException();
-        if (getStatementCacheMaxSize() < 0) throw new IllegalArgumentException();
-        if (getReducerTimeIntervalInSeconds() < 0) throw new IllegalArgumentException();
-        if (getReducerSamples() <= 0) throw new IllegalArgumentException();
-        if (getConnectionIdleLimitInSeconds() >= 0 && getTestConnectionQuery() == null)
-            throw new IllegalArgumentException();
-        if (getValidateTimeoutInSeconds() < 0) throw new IllegalArgumentException();
-        if (getViburLogger() == null) throw new IllegalArgumentException();
+        forbidIllegalArgument(getExternalDataSource() == null && getJdbcUrl() == null);
+        forbidIllegalArgument(getAcquireRetryDelayInMs() < 0);
+        forbidIllegalArgument(getAcquireRetryAttempts() < 0);
+        forbidIllegalArgument(getConnectionTimeoutInMs() < 0);
+        forbidIllegalArgument(getLoginTimeoutInSeconds() < 0);
+        forbidIllegalArgument(getStatementCacheMaxSize() < 0);
+        forbidIllegalArgument(getReducerTimeIntervalInSeconds() < 0);
+        forbidIllegalArgument(getReducerTimeIntervalInSeconds() == 0 && getPoolReducerClass() == null);
+        forbidIllegalArgument(getReducerSamples() <= 0);
+        forbidIllegalArgument(getConnectionIdleLimitInSeconds() >= 0 && getTestConnectionQuery() == null);
+        forbidIllegalArgument(getValidateTimeoutInSeconds() < 0);
+        requireNonNull(getCriticalSQLStates());
+        requireNonNull(getViburLogger());
 
         if (getPassword() == null) logger.warn("JDBC password is not specified.");
         if (getUsername() == null) logger.warn("JDBC username is not specified.");
