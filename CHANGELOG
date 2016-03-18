@@ -1,3 +1,10 @@
+Version 9.0 (21/03/2016) - recommended
+======================================
+* Migrated the source code base to Java 1.7 and implemented AutoCloseable for ViburDBCPDataSource.
+* This version of Vibur DBCP depends on version 9.0 of Vibur Object Pool, which contains a fix for #2:
+  close the underlying physical connection when closing a proxy connection after pool termination.
+* Minor other refactoring and improvements.
+
 Version 8.0 (02/02/2016) - recommended
 ======================================
 * Fixed issue https://github.com/vibur/vibur-dbcp/issues/7 - statement leak when statement cache is disabled.
