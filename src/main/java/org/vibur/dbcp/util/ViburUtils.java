@@ -34,10 +34,11 @@ public final class ViburUtils {
 
     public static String getStackTraceAsString(StackTraceElement[] stackTrace) {
         int i;
-        for (i = 0; i < stackTrace.length; i++)
+        for (i = 0; i < stackTrace.length; i++) {
             if (!stackTrace[i].getClassName().startsWith("org.vibur.dbcp")
                 || stackTrace[i].getClassName().endsWith("Test"))
                 break;
+        }
 
         StringBuilder builder = new StringBuilder(4096);
         for ( ; i < stackTrace.length; i++)

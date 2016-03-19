@@ -106,12 +106,13 @@ public class PoolOperations {
     }
 
     private SQLException hasCriticalSQLException(List<Throwable> errors) {
-        for (Throwable error : errors)
+        for (Throwable error : errors) {
             if (error instanceof SQLException) {
                 SQLException sqlException = (SQLException) error;
                 if (isCriticalSQLException(sqlException))
                     return sqlException;
             }
+        }
         return null;
     }
 
