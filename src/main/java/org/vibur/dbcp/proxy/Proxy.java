@@ -38,31 +38,31 @@ public final class Proxy {
         return (Connection) newProxy(connectionCtor, handler);
     }
 
-    public static Statement newStatement(StatementHolder statement, Connection connectionProxy,
+    public static Statement newStatement(StatementHolder statement, Connection connProxy,
                                          ViburDBCPConfig config, ExceptionCollector exceptionCollector) {
         InvocationHandler handler = new StatementInvocationHandler(
-                statement, null, connectionProxy, config, exceptionCollector);
+                statement, null, connProxy, config, exceptionCollector);
         return (Statement) newProxy(statementCtor, handler);
     }
 
-    public static PreparedStatement newPreparedStatement(StatementHolder pStatement, Connection connectionProxy,
+    public static PreparedStatement newPreparedStatement(StatementHolder pStatement, Connection connProxy,
                                                          ViburDBCPConfig config, ExceptionCollector exceptionCollector) {
         InvocationHandler handler = new StatementInvocationHandler(
-                pStatement, config.getStatementCache(), connectionProxy, config, exceptionCollector);
+                pStatement, config.getStatementCache(), connProxy, config, exceptionCollector);
         return (PreparedStatement) newProxy(pStatementCtor, handler);
     }
 
-    public static CallableStatement newCallableStatement(StatementHolder cStatement, Connection connectionProxy,
+    public static CallableStatement newCallableStatement(StatementHolder cStatement, Connection connProxy,
                                                          ViburDBCPConfig config, ExceptionCollector exceptionCollector) {
         InvocationHandler handler = new StatementInvocationHandler(
-            cStatement, config.getStatementCache(), connectionProxy, config, exceptionCollector);
+            cStatement, config.getStatementCache(), connProxy, config, exceptionCollector);
         return (CallableStatement) newProxy(cStatementCtor, handler);
     }
 
-    public static DatabaseMetaData newDatabaseMetaData(DatabaseMetaData rawMetaData, Connection connectionProxy,
+    public static DatabaseMetaData newDatabaseMetaData(DatabaseMetaData rawMetaData, Connection connProxy,
                                                        ViburDBCPConfig config, ExceptionCollector exceptionCollector) {
         InvocationHandler handler = new ChildObjectInvocationHandler<>(
-            rawMetaData, connectionProxy, "getConnection", config, exceptionCollector);
+            rawMetaData, connProxy, "getConnection", config, exceptionCollector);
         return (DatabaseMetaData) newProxy(metadataCtor, handler);
     }
 

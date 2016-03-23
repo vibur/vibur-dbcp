@@ -130,21 +130,21 @@ public class ConnectionFactory implements VersionedObjectFactory<ConnHolder> {
     }
 
     private Connection doCreate(String userName, String password) throws SQLException {
-        Connection connection;
+        Connection rawConnection;
         DataSource externalDataSource = config.getExternalDataSource();
         if (externalDataSource == null) {
             if (userName != null)
-                connection = DriverManager.getConnection(config.getJdbcUrl(), userName, password);
+                rawConnection = DriverManager.getConnection(config.getJdbcUrl(), userName, password);
             else
-                connection = DriverManager.getConnection(config.getJdbcUrl());
+                rawConnection = DriverManager.getConnection(config.getJdbcUrl());
         }
         else {
             if (userName != null)
-                connection = externalDataSource.getConnection(userName, password);
+                rawConnection = externalDataSource.getConnection(userName, password);
             else
-                connection = externalDataSource.getConnection();
+                rawConnection = externalDataSource.getConnection();
         }
-        return connection;
+        return rawConnection;
     }
 
     private void ensureConnectionInitialized(Connection rawConnection) throws SQLException {
@@ -172,15 +172,15 @@ public class ConnectionFactory implements VersionedObjectFactory<ConnHolder> {
     }
 
     private boolean executeQuery(Connection rawConnection, String query) throws SQLException {
-        Statement statement = null;
+        Statement rawStatement = null;
         try {
-            statement = rawConnection.createStatement();
-            statement.setQueryTimeout(config.getValidateTimeoutInSeconds());
-            statement.execute(query);
+            rawStatement = rawConnection.createStatement();
+            rawStatement.setQueryTimeout(config.getValidateTimeoutInSeconds());
+            rawStatement.execute(query);
             return true;
         } finally {
-            if (statement != null)
-                closeStatement(statement);
+            if (rawStatement != null)
+                closeStatement(rawStatement);
         }
     }
 
