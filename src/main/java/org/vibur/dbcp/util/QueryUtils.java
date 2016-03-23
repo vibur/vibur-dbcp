@@ -35,7 +35,7 @@ public class QueryUtils {
 
     public static String formatSql(String sqlQuery, List<Object[]> queryParams) {
         StringBuilder result = new StringBuilder(4096).append("-- ").append(sqlQuery);
-        if (!queryParams.isEmpty())
+        if (queryParams != null && !queryParams.isEmpty())
             result.append("\n-- Parameters:\n-- ").append(Arrays.deepToString(queryParams.toArray()));
         return result.toString();
     }
