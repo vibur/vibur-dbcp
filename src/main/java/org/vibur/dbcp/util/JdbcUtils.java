@@ -32,33 +32,33 @@ public final class JdbcUtils {
 
     private JdbcUtils() {}
 
-    public static void closeStatement(Statement statement) {
+    public static void closeStatement(Statement rawStatement) {
         try {
-            statement.close();
+            rawStatement.close();
         } catch (SQLException e) {
-            logger.debug("Couldn't close " + statement, e);
+            logger.debug("Couldn't close " + rawStatement, e);
         } catch (RuntimeException e) {
-            logger.warn("Unexpected exception thrown by the JDBC driver for " + statement, e);
+            logger.warn("Unexpected exception thrown by the JDBC driver for " + rawStatement, e);
         }
     }
 
-    public static void clearWarnings(Statement statement) {
+    public static void clearWarnings(Statement rawStatement) {
         try {
-            statement.clearWarnings();
+            rawStatement.clearWarnings();
         } catch (SQLException e) {
-            logger.debug("Couldn't clearWarnings on " + statement, e);
+            logger.debug("Couldn't clearWarnings on " + rawStatement, e);
         } catch (RuntimeException e) {
-            logger.warn("Unexpected exception thrown by the JDBC driver for " + statement, e);
+            logger.warn("Unexpected exception thrown by the JDBC driver for " + rawStatement, e);
         }
     }
 
-    public static void closeConnection(Connection connection) {
+    public static void closeConnection(Connection rawConnection) {
         try {
-            connection.close();
+            rawConnection.close();
         } catch (SQLException e) {
-            logger.debug("Couldn't close " + connection, e);
+            logger.debug("Couldn't close " + rawConnection, e);
         } catch (RuntimeException e) {
-            logger.warn("Unexpected exception thrown by the JDBC driver for " + connection, e);
+            logger.warn("Unexpected exception thrown by the JDBC driver for " + rawConnection, e);
         }
     }
 }

@@ -147,34 +147,34 @@ public class ConnectionFactory implements VersionedObjectFactory<ConnHolder> {
         return connection;
     }
 
-    private void ensureConnectionInitialized(Connection connection) throws SQLException {
+    private void ensureConnectionInitialized(Connection rawConnection) throws SQLException {
         String initSQL = config.getInitSQL();
-        if (initSQL != null && !validateConnection(connection, initSQL))
-            throw new SQLException("Couldn't validate " + connection);
+        if (initSQL != null && !validateConnection(rawConnection, initSQL))
+            throw new SQLException("Couldn't validate " + rawConnection);
     }
 
-    private void setDefaultValues(Connection connection) throws SQLException {
+    private void setDefaultValues(Connection rawConnection) throws SQLException {
         if (config.getDefaultAutoCommit() != null)
-            connection.setAutoCommit(config.getDefaultAutoCommit());
+            rawConnection.setAutoCommit(config.getDefaultAutoCommit());
         if (config.getDefaultReadOnly() != null)
-            connection.setReadOnly(config.getDefaultReadOnly());
+            rawConnection.setReadOnly(config.getDefaultReadOnly());
         if (config.getDefaultTransactionIsolationValue() != null)
-            connection.setTransactionIsolation(config.getDefaultTransactionIsolationValue());
+            rawConnection.setTransactionIsolation(config.getDefaultTransactionIsolationValue());
         if (config.getDefaultCatalog() != null)
-            connection.setCatalog(config.getDefaultCatalog());
+            rawConnection.setCatalog(config.getDefaultCatalog());
     }
 
-    private boolean validateConnection(Connection connection, String query) throws SQLException {
+    private boolean validateConnection(Connection rawConnection, String query) throws SQLException {
         if (query.equals(ViburDBCPConfig.IS_VALID_QUERY))
-            return connection.isValid(config.getValidateTimeoutInSeconds());
+            return rawConnection.isValid(config.getValidateTimeoutInSeconds());
 
-        return executeQuery(connection, query);
+        return executeQuery(rawConnection, query);
     }
 
-    private boolean executeQuery(Connection connection, String query) throws SQLException {
+    private boolean executeQuery(Connection rawConnection, String query) throws SQLException {
         Statement statement = null;
         try {
-            statement = connection.createStatement();
+            statement = rawConnection.createStatement();
             statement.setQueryTimeout(config.getValidateTimeoutInSeconds());
             statement.execute(query);
             return true;
@@ -237,10 +237,10 @@ public class ConnectionFactory implements VersionedObjectFactory<ConnHolder> {
         closeConnection(rawConnection);
     }
 
-    private void closeStatements(Connection connection) {
+    private void closeStatements(Connection rawConnection) {
         StatementCache statementCache = config.getStatementCache();
         if (statementCache != null)
-            statementCache.removeAll(connection);
+            statementCache.removeAll(rawConnection);
     }
 
     @Override
