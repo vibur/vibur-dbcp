@@ -28,7 +28,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.vibur.dbcp.cache.StatementVal.*;
+import static org.vibur.dbcp.cache.StatementHolder.*;
 import static org.vibur.dbcp.util.JdbcUtils.clearWarnings;
 import static org.vibur.dbcp.util.JdbcUtils.closeStatement;
 import static org.vibur.objectpool.util.ArgumentUtils.forbidIllegalArgument;
@@ -42,15 +42,15 @@ public class StatementCache {
 
     private static final Logger logger = LoggerFactory.getLogger(StatementCache.class);
 
-    private final ConcurrentMap<ConnMethodKey, StatementVal> statementCache;
+    private final ConcurrentMap<ConnMethod, StatementHolder> statementCache;
 
     public StatementCache(int maxSize) {
         forbidIllegalArgument(maxSize <= 0);
         statementCache = buildStatementCache(maxSize);
     }
 
-    protected ConcurrentMap<ConnMethodKey, StatementVal> buildStatementCache(int maxSize) {
-        return new ConcurrentLinkedHashMap.Builder<ConnMethodKey, StatementVal>()
+    protected ConcurrentMap<ConnMethod, StatementHolder> buildStatementCache(int maxSize) {
+        return new ConcurrentLinkedHashMap.Builder<ConnMethod, StatementHolder>()
                 .initialCapacity(maxSize)
                 .maximumWeightedCapacity(maxSize)
                 .listener(getListener())
@@ -65,10 +65,10 @@ public class StatementCache {
      *
      * @return a new EvictionListener for the CLHM
      */
-    protected EvictionListener<ConnMethodKey, StatementVal> getListener() {
-        return new EvictionListener<ConnMethodKey, StatementVal>() {
+    protected EvictionListener<ConnMethod, StatementHolder> getListener() {
+        return new EvictionListener<ConnMethod, StatementHolder>() {
             @Override
-            public void onEviction(ConnMethodKey key, StatementVal value) {
+            public void onEviction(ConnMethod key, StatementHolder value) {
                 if (value.state().getAndSet(EVICTED) == AVAILABLE)
                     closeStatement(value.value());
                 logger.trace("Evicted {}", value.value());
@@ -77,15 +77,15 @@ public class StatementCache {
     }
 
     /**
-     * Returns <i>a possibly</i> cached StatementVal object for the given connection method key.
+     * Returns <i>a possibly</i> cached StatementHolder object for the given connection method key.
      *
      * @param key the connection method key
      * @param invoker the invoker through which to create the raw JDBC Statement object, if needed
-     * @return a retrieved from the cache or newly created StatementVal holder object wrapping the raw JDBC Statement object
+     * @return a retrieved from the cache or newly created StatementHolder object wrapping the raw JDBC Statement object
      * @throws Throwable if the invoked underlying prepareXYZ method throws an exception
      */
-    public StatementVal retrieve(ConnMethodKey key, TargetInvoker invoker) throws Throwable {
-        StatementVal statement = statementCache.get(key);
+    public StatementHolder retrieve(ConnMethod key, TargetInvoker invoker) throws Throwable {
+        StatementHolder statement = statementCache.get(key);
         if (statement != null && statement.state().compareAndSet(AVAILABLE, IN_USE)) {
             logger.trace("Using cached statement for {}", key);
             return statement;
@@ -93,14 +93,14 @@ public class StatementCache {
 
         Statement rawStatement = (Statement) invoker.targetInvoke(key.getMethod(), key.getArgs());
         if (statement == null) { // there was no entry for the key, so we'll try to put a new one
-            statement = new StatementVal(rawStatement, new AtomicInteger(IN_USE));
+            statement = new StatementHolder(rawStatement, new AtomicInteger(IN_USE));
             if (statementCache.putIfAbsent(key, statement) == null)
                 return statement; // the new entry was successfully put in the cache
         }
-        return new StatementVal(rawStatement, null);
+        return new StatementHolder(rawStatement, null);
     }
 
-    public void restore(StatementVal statement, boolean clearWarnings) {
+    public void restore(StatementHolder statement, boolean clearWarnings) {
         if (statement.state() == null) // this statement is not in the cache
             return;
 
@@ -112,8 +112,8 @@ public class StatementCache {
     }
 
     public boolean remove(Statement rawStatement, boolean close) {
-        for (Map.Entry<ConnMethodKey, StatementVal> entry : statementCache.entrySet()) {
-            StatementVal value = entry.getValue();
+        for (Map.Entry<ConnMethod, StatementHolder> entry : statementCache.entrySet()) {
+            StatementHolder value = entry.getValue();
             if (value.value() == rawStatement) { // comparing with == as these JDBC Statements are cached objects
                 if (close)
                     closeStatement(rawStatement);
@@ -125,9 +125,9 @@ public class StatementCache {
 
     public int removeAll(Connection rawConnection) {
         int removed = 0;
-        for (Map.Entry<ConnMethodKey, StatementVal> entry : statementCache.entrySet()) {
-            ConnMethodKey key = entry.getKey();
-            StatementVal value = entry.getValue();
+        for (Map.Entry<ConnMethod, StatementHolder> entry : statementCache.entrySet()) {
+            ConnMethod key = entry.getKey();
+            StatementHolder value = entry.getValue();
             if (key.getTarget() == rawConnection && statementCache.remove(key, value)) {
                 closeStatement(value.value());
                 removed++;
@@ -137,8 +137,8 @@ public class StatementCache {
     }
 
     public void clear() {
-        for (Map.Entry<ConnMethodKey, StatementVal> entry : statementCache.entrySet()) {
-            StatementVal value = entry.getValue();
+        for (Map.Entry<ConnMethod, StatementHolder> entry : statementCache.entrySet()) {
+            StatementHolder value = entry.getValue();
             statementCache.remove(entry.getKey(), value);
             closeStatement(value.value());
         }

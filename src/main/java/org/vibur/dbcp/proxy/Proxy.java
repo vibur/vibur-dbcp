@@ -17,7 +17,7 @@
 package org.vibur.dbcp.proxy;
 
 import org.vibur.dbcp.ViburDBCPConfig;
-import org.vibur.dbcp.cache.StatementVal;
+import org.vibur.dbcp.cache.StatementHolder;
 import org.vibur.dbcp.pool.ConnHolder;
 import org.vibur.dbcp.util.collector.ExceptionCollector;
 
@@ -38,21 +38,21 @@ public final class Proxy {
         return (Connection) newProxy(connectionCtor, handler);
     }
 
-    public static Statement newStatement(StatementVal statement, Connection connectionProxy,
+    public static Statement newStatement(StatementHolder statement, Connection connectionProxy,
                                          ViburDBCPConfig config, ExceptionCollector exceptionCollector) {
         InvocationHandler handler = new StatementInvocationHandler(
                 statement, null, connectionProxy, config, exceptionCollector);
         return (Statement) newProxy(statementCtor, handler);
     }
 
-    public static PreparedStatement newPreparedStatement(StatementVal pStatement, Connection connectionProxy,
+    public static PreparedStatement newPreparedStatement(StatementHolder pStatement, Connection connectionProxy,
                                                          ViburDBCPConfig config, ExceptionCollector exceptionCollector) {
         InvocationHandler handler = new StatementInvocationHandler(
                 pStatement, config.getStatementCache(), connectionProxy, config, exceptionCollector);
         return (PreparedStatement) newProxy(pStatementCtor, handler);
     }
 
-    public static CallableStatement newCallableStatement(StatementVal cStatement, Connection connectionProxy,
+    public static CallableStatement newCallableStatement(StatementHolder cStatement, Connection connectionProxy,
                                                          ViburDBCPConfig config, ExceptionCollector exceptionCollector) {
         InvocationHandler handler = new StatementInvocationHandler(
             cStatement, config.getStatementCache(), connectionProxy, config, exceptionCollector);

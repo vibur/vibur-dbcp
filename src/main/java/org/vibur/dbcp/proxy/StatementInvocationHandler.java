@@ -20,7 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.ViburDBCPConfig;
 import org.vibur.dbcp.cache.StatementCache;
-import org.vibur.dbcp.cache.StatementVal;
+import org.vibur.dbcp.cache.StatementHolder;
 import org.vibur.dbcp.util.collector.ExceptionCollector;
 
 import java.lang.reflect.Method;
@@ -43,19 +43,19 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
 
     private static final Logger logger = LoggerFactory.getLogger(StatementInvocationHandler.class);
 
-    private final StatementVal statementVal;
+    private final StatementHolder statement;
     private final StatementCache statementCache;
     private final ViburDBCPConfig config;
 
     private final boolean logSlowQuery;
     private final List<Object[]> queryParams;
 
-    public StatementInvocationHandler(StatementVal statementVal, StatementCache statementCache,
+    public StatementInvocationHandler(StatementHolder statement, StatementCache statementCache,
                                       Connection connectionProxy, ViburDBCPConfig config,
                                       ExceptionCollector exceptionCollector) {
-        super(statementVal.value(), connectionProxy, "getConnection", config, exceptionCollector);
+        super(statement.value(), connectionProxy, "getConnection", config, exceptionCollector);
         this.config = requireNonNull(config);
-        this.statementVal = statementVal;
+        this.statement = statement;
         this.statementCache = statementCache;
         this.logSlowQuery = config.getLogQueryExecutionLongerThanMs() >= 0;
         this.queryParams = logSlowQuery ? new LinkedList<Object[]>() : null;
@@ -94,7 +94,7 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
         if (statementCache == null)
             return targetInvoke(method, args);
 
-        statementCache.restore(statementVal, config.isClearSQLWarnings());
+        statementCache.restore(statement, config.isClearSQLWarnings());
         return null;
     }
 

@@ -17,9 +17,9 @@
 package org.vibur.dbcp.util;
 
 import org.vibur.dbcp.ViburDBCPDataSource;
-import org.vibur.dbcp.cache.ConnMethodKey;
+import org.vibur.dbcp.cache.ConnMethod;
 import org.vibur.dbcp.cache.StatementCache;
-import org.vibur.dbcp.cache.StatementVal;
+import org.vibur.dbcp.cache.StatementHolder;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -34,13 +34,13 @@ import static org.mockito.Mockito.mock;
 public class StatementCacheUtils {
 
     @SuppressWarnings("unchecked")
-    public static ConcurrentMap<ConnMethodKey, StatementVal> mockStatementCache(ViburDBCPDataSource ds) {
-        final List<ConcurrentMap<ConnMethodKey, StatementVal>> holder = new LinkedList<>();
+    public static ConcurrentMap<ConnMethod, StatementHolder> mockStatementCache(ViburDBCPDataSource ds) {
+        final List<ConcurrentMap<ConnMethod, StatementHolder>> holder = new LinkedList<>();
 
         ds.setStatementCache(new StatementCache(ds.getStatementCacheMaxSize()) {
             @Override
-            protected ConcurrentMap<ConnMethodKey, StatementVal> buildStatementCache(int maxSize) {
-                ConcurrentMap<ConnMethodKey, StatementVal> mockedStatementCache =
+            protected ConcurrentMap<ConnMethod, StatementHolder> buildStatementCache(int maxSize) {
+                ConcurrentMap<ConnMethod, StatementHolder> mockedStatementCache =
                         mock(ConcurrentMap.class, delegatesTo(super.buildStatementCache(maxSize)));
                 holder.add(mockedStatementCache);
                 return mockedStatementCache;

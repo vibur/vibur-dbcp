@@ -17,9 +17,9 @@
 package org.vibur.dbcp.proxy;
 
 import org.vibur.dbcp.ViburDBCPConfig;
-import org.vibur.dbcp.cache.ConnMethodKey;
+import org.vibur.dbcp.cache.ConnMethod;
 import org.vibur.dbcp.cache.StatementCache;
-import org.vibur.dbcp.cache.StatementVal;
+import org.vibur.dbcp.cache.StatementHolder;
 import org.vibur.dbcp.pool.ConnHolder;
 import org.vibur.dbcp.pool.PoolOperations;
 import org.vibur.dbcp.util.collector.ExceptionCollectorImpl;
@@ -64,15 +64,15 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
         // Methods which results have to be proxied so that when getConnection() is called
         // on their results the return value to be the current JDBC Connection proxy.
         if (methodName == "createStatement") { // *3
-            StatementVal statement = getUncachedStatement(method, args);
+            StatementHolder statement = getUncachedStatement(method, args);
             return Proxy.newStatement(statement, proxy, config, getExceptionCollector());
         }
         if (methodName == "prepareStatement") { // *6
-            StatementVal pStatement = getCachedStatement(method, args);
+            StatementHolder pStatement = getCachedStatement(method, args);
             return Proxy.newPreparedStatement(pStatement, proxy, config, getExceptionCollector());
         }
         if (methodName == "prepareCall") { // *3
-            StatementVal cStatement = getCachedStatement(method, args);
+            StatementHolder cStatement = getCachedStatement(method, args);
             return Proxy.newCallableStatement(cStatement, proxy, config, getExceptionCollector());
         }
         if (methodName == "getMetaData") { // *1
@@ -84,25 +84,25 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
     }
 
     /**
-     * Returns <i>a possibly</i> cached StatementVal object for the given proxied Connection object and the
+     * Returns <i>a possibly</i> cached StatementHolder object for the given proxied Connection object and the
      * invoked on it prepareXYZ Method with the given args.
      *
      * @param method the invoked method
      * @param args the invoked method arguments
-     * @return a retrieved from the cache or newly created StatementVal holder object wrapping the raw JDBC Statement object
+     * @return a retrieved from the cache or newly created StatementHolder object wrapping the raw JDBC Statement object
      * @throws Throwable if the invoked underlying prepareXYZ method throws an exception
      */
-    private StatementVal getCachedStatement(Method method, Object[] args) throws Throwable {
+    private StatementHolder getCachedStatement(Method method, Object[] args) throws Throwable {
         StatementCache statementCache = config.getStatementCache();
         if (statementCache != null)
-            return statementCache.retrieve(new ConnMethodKey(getTarget(), method, args), this);
+            return statementCache.retrieve(new ConnMethod(getTarget(), method, args), this);
 
         return getUncachedStatement(method, args);
     }
 
-    private StatementVal getUncachedStatement(Method method, Object[] args) throws Throwable {
+    private StatementHolder getUncachedStatement(Method method, Object[] args) throws Throwable {
         Statement rawStatement = (Statement) targetInvoke(method, args);
-        return new StatementVal(rawStatement, null);
+        return new StatementHolder(rawStatement, null);
     }
 
     private Object processCloseOrAbort(boolean aborted, Method method, Object[] args) throws Throwable {

@@ -23,27 +23,28 @@ import static java.util.Objects.requireNonNull;
 
 /**
  * A thin wrapper around the raw JDBC {@code Statement} object which allows us to augment it with useful "state"
- * information. The instances of this class are used as a cached {@code value} (in a {@code ConcurrentMap} cache
+ * information. The instances of this class are used as a cached {@code value} (in {@code ConcurrentMap} cache
  * implementation) for the invocations of {@code Connection.prepareStatement} and {@code Connection.prepareCall}
- * methods, and their "state" is describing whether the object is currently available, in_use, or evicted.
+ * methods, and their "state" is describing whether the {@code Statement} object is currently AVAILABLE, IN_USE,
+ * or EVICTED.
  *
- * @see ConnMethodKey
+ * @see ConnMethod
  *
  * @author Simeon Malchev
  */
-public class StatementVal {
+public class StatementHolder {
 
     /**
-     * The 3 different states in which a StatementVal instance can be, when it is used as a cached value:
+     * The 3 different states in which a StatementHolder instance can be, when it is used as a cached value:
      */
     public static final int AVAILABLE = 0;
     public static final int IN_USE = 1;
     public static final int EVICTED = 2;
 
     private final Statement value; // the underlying raw JDBC Statement
-    private final AtomicInteger state; // a null value means that this StatementVal instance is not included in the cache
+    private final AtomicInteger state; // a null value means that this StatementHolder instance is not included in the cache
 
-    public StatementVal(Statement value, AtomicInteger state) {
+    public StatementHolder(Statement value, AtomicInteger state) {
         this.value = requireNonNull(value);
         this.state = state;
     }

@@ -25,20 +25,19 @@ import static java.util.Objects.requireNonNull;
 /**
  * Describes a {@code method} with {@code args} which has been invoked on a JDBC Connection.
  *
- * <p>Used as a caching {@code key} for method invocations in a {@link java.util.concurrent.ConcurrentMap}
- * cache implementation.
+ * <p>Used as a caching {@code key} for Connection method invocations in {@code ConcurrentMap} cache implementation.
  *
- * @see StatementVal
+ * @see StatementHolder
  *
  * @author Simeon Malchev
  */
-public class ConnMethodKey {
+public class ConnMethod {
 
     private final Connection target;
     private final Method method;
     private final Object[] args;
 
-    public ConnMethodKey(Connection target, Method method, Object[] args) {
+    public ConnMethod(Connection target, Method method, Object[] args) {
         this.target = requireNonNull(target);
         this.method = requireNonNull(method);
         this.args = args;
@@ -61,7 +60,7 @@ public class ConnMethodKey {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        ConnMethodKey that = (ConnMethodKey) o;
+        ConnMethod that = (ConnMethod) o;
         return target == that.target // comparing with == as the JDBC Connections are pooled objects
             && method.equals(that.method)
             && Arrays.equals(args, that.args);
