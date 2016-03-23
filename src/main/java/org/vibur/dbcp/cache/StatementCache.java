@@ -107,8 +107,8 @@ public class StatementCache {
         Statement rawStatement = statement.value();
         if (clearWarnings)
             clearWarnings(rawStatement);
-        if (!statement.state().compareAndSet(IN_USE, AVAILABLE)) // just mark it as available if its state was in_use
-            closeStatement(rawStatement); // and close it if it was already evicted (while its state was in_use)
+        if (!statement.state().compareAndSet(IN_USE, AVAILABLE)) // just mark it as AVAILABLE if its state was IN_USE
+            closeStatement(rawStatement); // and close it if it was already EVICTED (while its state was IN_USE)
     }
 
     public boolean remove(Statement rawStatement, boolean close) {
