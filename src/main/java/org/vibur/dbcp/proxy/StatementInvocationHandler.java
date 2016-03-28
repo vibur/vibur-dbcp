@@ -94,13 +94,12 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
             return targetInvoke(method, args);
 
         statementCache.restore(statement, config.isClearSQLWarnings());
-        return null;
+        return null; // calls to close() are not passed when StatementCache is used
     }
 
     private Object processCancel(Method method, Object[] args) throws Throwable {
         if (statementCache != null)
-            statementCache.remove(getTarget(), false);
-
+            statementCache.remove(getTarget(), false); // because cancelled Statements are not longer valid
         return targetInvoke(method, args);
     }
 
