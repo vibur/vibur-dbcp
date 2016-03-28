@@ -24,7 +24,7 @@ import java.util.List;
 /**
  * @author Simeon Malchev
  */
-public class QueryUtils {
+public final class QueryUtils {
 
     private QueryUtils() {}
 
