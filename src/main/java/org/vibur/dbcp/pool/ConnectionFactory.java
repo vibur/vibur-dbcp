@@ -144,7 +144,7 @@ public class ConnectionFactory implements VersionedObjectFactory<ConnHolder> {
             else
                 rawConnection = externalDataSource.getConnection();
         }
-        return rawConnection;
+        return requireNonNull(rawConnection);
     }
 
     private void ensureConnectionInitialized(Connection rawConnection) throws SQLException {

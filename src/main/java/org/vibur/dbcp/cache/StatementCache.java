@@ -28,6 +28,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static java.util.Objects.requireNonNull;
 import static org.vibur.dbcp.cache.StatementHolder.*;
 import static org.vibur.dbcp.util.JdbcUtils.clearWarnings;
 import static org.vibur.dbcp.util.JdbcUtils.closeStatement;
@@ -46,14 +47,14 @@ public class StatementCache {
 
     public StatementCache(int maxSize) {
         forbidIllegalArgument(maxSize <= 0);
-        statementCache = buildStatementCache(maxSize);
+        statementCache = requireNonNull(buildStatementCache(maxSize));
     }
 
     protected ConcurrentMap<ConnMethod, StatementHolder> buildStatementCache(int maxSize) {
         return new ConcurrentLinkedHashMap.Builder<ConnMethod, StatementHolder>()
                 .initialCapacity(maxSize)
                 .maximumWeightedCapacity(maxSize)
-                .listener(getListener())
+                .listener(requireNonNull(getListener()))
                 .build();
     }
 
