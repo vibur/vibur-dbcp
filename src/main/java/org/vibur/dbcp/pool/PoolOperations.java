@@ -84,7 +84,8 @@ public class PoolOperations {
         ConnHolder conn = timeout == 0 ?
             pool.take() : pool.tryTake(timeout, TimeUnit.MILLISECONDS);
         if (conn == null)
-            throw new SQLException("Couldn't obtain SQL connection from pool " + name);
+            throw new SQLException(!pool.isTerminated() ? "Couldn't obtain SQL connection from pool " + name
+                    : "Pool " + name + " is terminated.");
         logger.trace("Getting {}", conn.value());
         return Proxy.newConnection(conn, config);
     }
