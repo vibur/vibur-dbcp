@@ -27,13 +27,11 @@ import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.util.Objects.requireNonNull;
-import static org.vibur.dbcp.util.JdbcUtils.closeConnection;
-import static org.vibur.dbcp.util.JdbcUtils.closeStatement;
+import static org.vibur.dbcp.util.JdbcUtils.*;
 
 /**
  * The object factory which controls the lifecycle of the underlying JDBC Connections: creates them,
@@ -117,10 +115,10 @@ public class ConnectionFactory implements VersionedObjectFactory<ConnHolder> {
         }
 
         try {
-            ensureConnectionInitialized(rawConnection);
-            setDefaultValues(rawConnection);
             if (config.getInitConnectionHook() != null)
                 config.getInitConnectionHook().on(rawConnection);
+            ensureConnectionInitialized(rawConnection);
+            setDefaultValues(config, rawConnection);
         } catch (SQLException e) {
             closeConnection(rawConnection);
             throw new ViburDBCPException(e);
@@ -148,40 +146,8 @@ public class ConnectionFactory implements VersionedObjectFactory<ConnHolder> {
     }
 
     private void ensureConnectionInitialized(Connection rawConnection) throws SQLException {
-        String initSQL = config.getInitSQL();
-        if (initSQL != null && !validateConnection(rawConnection, initSQL))
-            throw new SQLException("Couldn't validate " + rawConnection);
-    }
-
-    private void setDefaultValues(Connection rawConnection) throws SQLException {
-        if (config.getDefaultAutoCommit() != null)
-            rawConnection.setAutoCommit(config.getDefaultAutoCommit());
-        if (config.getDefaultReadOnly() != null)
-            rawConnection.setReadOnly(config.getDefaultReadOnly());
-        if (config.getDefaultTransactionIsolationValue() != null)
-            rawConnection.setTransactionIsolation(config.getDefaultTransactionIsolationValue());
-        if (config.getDefaultCatalog() != null)
-            rawConnection.setCatalog(config.getDefaultCatalog());
-    }
-
-    private boolean validateConnection(Connection rawConnection, String query) throws SQLException {
-        if (query.equals(ViburDBCPConfig.IS_VALID_QUERY))
-            return rawConnection.isValid(config.getValidateTimeoutInSeconds());
-
-        return executeQuery(rawConnection, query);
-    }
-
-    private boolean executeQuery(Connection rawConnection, String query) throws SQLException {
-        Statement rawStatement = null;
-        try {
-            rawStatement = rawConnection.createStatement();
-            rawStatement.setQueryTimeout(config.getValidateTimeoutInSeconds());
-            rawStatement.execute(query);
-            return true;
-        } finally {
-            if (rawStatement != null)
-                closeStatement(rawStatement);
-        }
+        if (!validateConnection(rawConnection, config.getInitSQL(), config.getValidateTimeoutInSeconds(), null))
+            throw new SQLException("Couldn't initialize " + rawConnection);
     }
 
     @Override
@@ -193,7 +159,8 @@ public class ConnectionFactory implements VersionedObjectFactory<ConnHolder> {
             int idleLimit = config.getConnectionIdleLimitInSeconds();
             if (idleLimit >= 0) {
                 int idle = (int) ((System.currentTimeMillis() - conn.getRestoredTime()) / 1000);
-                if (idle >= idleLimit && !validateConnection(conn.value(), config.getTestConnectionQuery()))
+                if (idle >= idleLimit && !validateConnection(conn.value(), config.getTestConnectionQuery(),
+                        config.getValidateTimeoutInSeconds(), null))
                     return false;
             }
             if (config.getConnectionHook() != null)
@@ -214,12 +181,12 @@ public class ConnectionFactory implements VersionedObjectFactory<ConnHolder> {
     public boolean readyToRestore(ConnHolder conn) {
         Connection rawConnection = conn.value();
         try {
+            if (config.getCloseConnectionHook() != null)
+                config.getCloseConnectionHook().on(rawConnection);
             if (config.isClearSQLWarnings())
                 rawConnection.clearWarnings();
             if (config.isResetDefaultsAfterUse())
-                setDefaultValues(rawConnection);
-            if (config.getCloseConnectionHook() != null)
-                config.getCloseConnectionHook().on(rawConnection);
+                setDefaultValues(config, rawConnection);
 
             conn.setRestoredTime(System.currentTimeMillis());
             return true;
