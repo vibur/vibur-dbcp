@@ -21,10 +21,6 @@ import org.vibur.dbcp.ViburDBCPException;
 import org.vibur.dbcp.pool.ConnHolder;
 import org.vibur.objectpool.listener.TakenListener;
 
-import javax.management.JMException;
-import javax.management.MBeanServer;
-import javax.management.ObjectName;
-import java.lang.management.ManagementFactory;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -42,18 +38,6 @@ public class ViburDBCPMonitoring implements ViburDBCPMonitoringMBean {
 
     public ViburDBCPMonitoring(ViburDBCPConfig config) throws ViburDBCPException {
         this.config = requireNonNull(config);
-        initJMX();
-    }
-
-    private void initJMX() throws ViburDBCPException {
-        try {
-            MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
-            ObjectName name = new ObjectName("org.vibur.dbcp:type=ViburDBCP-" + config.getName());
-            if (!mbs.isRegistered(name))
-                mbs.registerMBean(this, name);
-        } catch (JMException e) {
-            throw new ViburDBCPException(e);
-        }
     }
 
     @Override

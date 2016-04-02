@@ -45,6 +45,8 @@ import java.util.Set;
 import java.util.logging.Logger;
 
 import static java.util.Objects.requireNonNull;
+import static org.vibur.dbcp.util.JmxUtils.registerMBean;
+import static org.vibur.dbcp.util.JmxUtils.unregisterMBean;
 import static org.vibur.dbcp.util.ViburUtils.getPoolName;
 import static org.vibur.objectpool.util.ArgumentUtils.forbidIllegalArgument;
 
@@ -225,10 +227,10 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
         initPoolReducer();
 
         setPoolOperations(new PoolOperations(this));
-
         initStatementCache();
-        initJMX();
 
+        if (isEnableJMX())
+            registerMBean(new ViburDBCPMonitoring(this), getName());
         logger.info("Started {}", this);
     }
 
@@ -247,6 +249,8 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
         if (getPool() != null)
             getPool().terminate();
 
+        if (isEnableJMX())
+            unregisterMBean(getName());
         unregisterName();
         logger.info("Terminated {}", this);
     }
@@ -344,11 +348,6 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
             statementCache.clear();
             setStatementCache(null);
         }
-    }
-
-    private void initJMX() throws ViburDBCPException {
-        if (isEnableJMX())
-            new ViburDBCPMonitoring(this);
     }
 
     @Override
