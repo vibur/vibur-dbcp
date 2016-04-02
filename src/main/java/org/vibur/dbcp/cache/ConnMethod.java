@@ -20,6 +20,7 @@ import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.util.Arrays;
 
+import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 
 /**
@@ -76,6 +77,6 @@ public class ConnMethod {
 
     @Override
     public String toString() {
-        return String.format("connection %s, method %s, args %s", target, method, Arrays.toString(args));
+        return format("connection %s, method %s, args %s", target, method, Arrays.toString(args));
     }
 }

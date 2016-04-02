@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 import java.sql.Connection;
 import java.util.List;
 
+import static java.lang.String.format;
 import static org.vibur.dbcp.util.QueryUtils.formatSql;
 import static org.vibur.dbcp.util.ViburUtils.getStackTraceAsString;
 
@@ -42,7 +43,7 @@ public class BaseViburLogger implements ViburLogger {
     public void logGetConnection(String poolName, Connection connProxy, long timeout, long timeTaken,
                                  StackTraceElement[] stackTrace) {
         StringBuilder log = new StringBuilder(4096)
-                .append(String.format("Call to getConnection(%d) from pool %s took %d ms, connProxy = %s",
+                .append(format("Call to getConnection(%d) from pool %s took %d ms, connProxy = %s",
                         timeout, poolName, timeTaken, connProxy));
         if (stackTrace != null)
             log.append('\n').append(getStackTraceAsString(stackTrace));
@@ -52,7 +53,7 @@ public class BaseViburLogger implements ViburLogger {
     @Override
     public void logQuery(String poolName, String sqlQuery, List<Object[]> queryParams, long timeTaken,
                          StackTraceElement[] stackTrace) {
-        StringBuilder message = new StringBuilder(4096).append(String.format("SQL query execution from pool %s took %d ms:\n%s",
+        StringBuilder message = new StringBuilder(4096).append(format("SQL query execution from pool %s took %d ms:\n%s",
                 poolName, timeTaken, formatSql(sqlQuery, queryParams)));
         if (stackTrace != null)
             message.append("\n").append(getStackTraceAsString(stackTrace));
@@ -63,7 +64,7 @@ public class BaseViburLogger implements ViburLogger {
     public void logResultSetSize(String poolName, String sqlQuery, List<Object[]> queryParams, long resultSetSize,
                                  StackTraceElement[] stackTrace) {
         StringBuilder message = new StringBuilder(4096).append(
-                String.format("SQL query execution from pool %s retrieved a ResultSet with size %d:\n%s",
+                format("SQL query execution from pool %s retrieved a ResultSet with size %d:\n%s",
                         poolName, resultSetSize, formatSql(sqlQuery, queryParams)));
         if (stackTrace != null)
             message.append("\n").append(getStackTraceAsString(stackTrace));

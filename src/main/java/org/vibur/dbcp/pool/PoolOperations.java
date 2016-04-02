@@ -32,7 +32,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
+import static org.vibur.dbcp.util.ViburUtils.getPoolName;
 
 /**
  * The facade class via which most of the connection pool's and connection factory's functionalities
@@ -84,8 +86,9 @@ public class PoolOperations {
         ConnHolder conn = timeout == 0 ?
             pool.take() : pool.tryTake(timeout, TimeUnit.MILLISECONDS);
         if (conn == null)
-            throw new SQLException(!pool.isTerminated() ? "Couldn't obtain SQL connection from pool " + name
-                    : "Pool " + name + " is terminated.");
+            throw new SQLException(!pool.isTerminated() ?
+                    format("Couldn't obtain SQL connection from pool %s within %dms.", getPoolName(config), timeout)
+                    : format("Pool %s is terminated.", name));
         logger.trace("Getting {}", conn.value());
         return Proxy.newConnection(conn, config);
     }
