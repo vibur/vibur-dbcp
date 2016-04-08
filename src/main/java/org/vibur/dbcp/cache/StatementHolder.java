@@ -38,8 +38,8 @@ public class StatementHolder {
      * The 3 different states in which a StatementHolder instance can be, when it is used as a cached value:
      */
     public static final int AVAILABLE = 0;
-    public static final int IN_USE = 1;
-    public static final int EVICTED = 2;
+    public static final int IN_USE    = 1;
+    public static final int EVICTED   = 2;
 
     private final Statement value; // the underlying raw JDBC Statement
     private final AtomicInteger state; // a null value means that this StatementHolder instance is not included in the cache
