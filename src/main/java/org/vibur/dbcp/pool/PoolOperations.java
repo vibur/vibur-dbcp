@@ -60,7 +60,7 @@ public class PoolOperations {
      *
      * @param dataSource the ViburDBCPDataSource from which we will initialize
      */
-    public PoolOperations(ViburDBCPDataSource dataSource) throws ViburDBCPException {
+    public PoolOperations(ViburDBCPDataSource dataSource) {
         this.config = requireNonNull(dataSource);
         this.criticalSQLStates = new HashSet<>(Arrays.asList(
                 dataSource.getCriticalSQLStates().replaceAll("\\s", "").split(",")));
@@ -85,10 +85,13 @@ public class PoolOperations {
     private Connection doGetConnection(long timeout) throws SQLException, ViburDBCPException {
         ConnHolder conn = timeout == 0 ?
             pool.take() : pool.tryTake(timeout, TimeUnit.MILLISECONDS);
-        if (conn == null)
-            throw new SQLException(!pool.isTerminated() ?
-                    format("Couldn't obtain SQL connection from pool %s within %dms.", getPoolName(config), timeout)
-                    : format("Pool %s is terminated.", name));
+        if (conn == null) {
+            if (pool.isTerminated())
+                throw new SQLException(format("Pool %s is terminated.", name), "VI001");
+            else
+                throw new SQLException(format("Couldn't obtain SQL connection from pool %s within %dms.",
+                        getPoolName(config), timeout), "VI002");
+        }
         logger.trace("Getting {}", conn.value());
         return Proxy.newConnection(conn, config);
     }

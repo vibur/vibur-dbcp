@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.proxy.TargetInvoker;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
@@ -106,10 +107,16 @@ public class StatementCache {
             return;
 
         Statement rawStatement = statement.value();
-        if (clearWarnings)
-            clearWarnings(rawStatement);
-        if (!statement.state().compareAndSet(IN_USE, AVAILABLE)) // just mark it as AVAILABLE if its state was IN_USE
-            closeStatement(rawStatement); // and close it if it was already EVICTED (while its state was IN_USE)
+        try {
+            if (clearWarnings)
+                clearWarnings(rawStatement);
+            if (!statement.state().compareAndSet(IN_USE, AVAILABLE)) // just mark it as AVAILABLE if its state was IN_USE
+                closeStatement(rawStatement); // and close it if it was already EVICTED (while its state was IN_USE)
+        } catch (SQLException e) {
+            logger.debug("Couldn't clear warnings on {}", rawStatement, e);
+            remove(rawStatement, false);
+            closeStatement(rawStatement);
+        }
     }
 
     public boolean remove(Statement rawStatement, boolean close) {

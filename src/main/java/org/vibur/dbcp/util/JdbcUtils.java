@@ -19,13 +19,19 @@ package org.vibur.dbcp.util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.ViburDBCPConfig;
-import org.vibur.dbcp.util.hook.ConnectionHook;
+import org.vibur.dbcp.ViburDBCPException;
 
+import javax.sql.DataSource;
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import static java.util.Objects.requireNonNull;
+
 /**
+ * This class encapsulates all JDBC operations invoked on raw JDBC objects such as rawConnection or rawStatement.
+ *
  * @author Simeon Malchev
  */
 public final class JdbcUtils {
@@ -33,6 +39,80 @@ public final class JdbcUtils {
     private static final Logger logger = LoggerFactory.getLogger(JdbcUtils.class);
 
     private JdbcUtils() {}
+
+    public static void initLoginTimeout(ViburDBCPConfig config) throws ViburDBCPException {
+        int loginTimeout = config.getLoginTimeoutInSeconds();
+        if (config.getExternalDataSource() == null)
+            DriverManager.setLoginTimeout(loginTimeout);
+        else {
+            try {
+                config.getExternalDataSource().setLoginTimeout(loginTimeout);
+            } catch (SQLException e) {
+                throw new ViburDBCPException(e);
+            }
+        }
+    }
+
+    public static Connection createConnection(ViburDBCPConfig config, String userName, String password) throws SQLException {
+        Connection rawConnection;
+        DataSource externalDataSource = config.getExternalDataSource();
+        if (externalDataSource == null) {
+            if (userName != null)
+                rawConnection = DriverManager.getConnection(config.getJdbcUrl(), userName, password);
+            else
+                rawConnection = DriverManager.getConnection(config.getJdbcUrl());
+        }
+        else {
+            if (userName != null)
+                rawConnection = externalDataSource.getConnection(userName, password);
+            else
+                rawConnection = externalDataSource.getConnection();
+        }
+        return requireNonNull(rawConnection);
+    }
+
+    public static void setDefaultValues(ViburDBCPConfig config, Connection rawConnection) throws SQLException {
+        if (config.getDefaultAutoCommit() != null)
+            rawConnection.setAutoCommit(config.getDefaultAutoCommit());
+        if (config.getDefaultReadOnly() != null)
+            rawConnection.setReadOnly(config.getDefaultReadOnly());
+        if (config.getDefaultTransactionIsolationValue() != null)
+            rawConnection.setTransactionIsolation(config.getDefaultTransactionIsolationValue());
+        if (config.getDefaultCatalog() != null)
+            rawConnection.setCatalog(config.getDefaultCatalog());
+    }
+
+    public static boolean validateConnection(Connection rawConnection, String query, int timeout) throws SQLException {
+        if (query == null || query.trim().isEmpty())
+            return true;
+
+        if (query.equals(ViburDBCPConfig.IS_VALID_QUERY))
+            return rawConnection.isValid(timeout);
+        return executeQuery(rawConnection, query, timeout);
+    }
+
+    private static boolean executeQuery(Connection rawConnection, String query, int timeout) throws SQLException {
+        Statement rawStatement = null;
+        try {
+            rawStatement = rawConnection.createStatement();
+            rawStatement.setQueryTimeout(timeout);
+            rawStatement.execute(query);
+            return true;
+        } finally {
+            if (rawStatement != null)
+                closeStatement(rawStatement);
+        }
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    public static void clearWarnings(Connection rawConnection) throws SQLException {
+        rawConnection.clearWarnings();
+    }
+
+    public static void clearWarnings(Statement rawStatement) throws SQLException {
+        rawStatement.clearWarnings();
+    }
 
     public static void closeConnection(Connection rawConnection) {
         try {
@@ -51,53 +131,6 @@ public final class JdbcUtils {
             logger.debug("Couldn't close " + rawStatement, e);
         } catch (RuntimeException e) {
             logger.warn("Unexpected exception thrown by the JDBC driver for " + rawStatement, e);
-        }
-    }
-
-    public static void clearWarnings(Statement rawStatement) {
-        try {
-            rawStatement.clearWarnings();
-        } catch (SQLException e) {
-            logger.debug("Couldn't clearWarnings on " + rawStatement, e);
-        } catch (RuntimeException e) {
-            logger.warn("Unexpected exception thrown by the JDBC driver for " + rawStatement, e);
-        }
-    }
-
-    public static void setDefaultValues(ViburDBCPConfig config, Connection rawConnection) throws SQLException {
-        if (config.getDefaultAutoCommit() != null)
-            rawConnection.setAutoCommit(config.getDefaultAutoCommit());
-        if (config.getDefaultReadOnly() != null)
-            rawConnection.setReadOnly(config.getDefaultReadOnly());
-        if (config.getDefaultTransactionIsolationValue() != null)
-            rawConnection.setTransactionIsolation(config.getDefaultTransactionIsolationValue());
-        if (config.getDefaultCatalog() != null)
-            rawConnection.setCatalog(config.getDefaultCatalog());
-    }
-
-    public static boolean validateConnection(Connection rawConnection, String query, int timeout,
-                                             ConnectionHook validateConnectionHook) throws SQLException {
-        if (query == null || query.trim().isEmpty())
-            return true;
-
-        if (validateConnectionHook != null)
-            validateConnectionHook.on(rawConnection);
-
-        if (query.equals(ViburDBCPConfig.IS_VALID_QUERY))
-            return rawConnection.isValid(timeout);
-        return executeQuery(rawConnection, query, timeout);
-    }
-
-    private static boolean executeQuery(Connection rawConnection, String query, int timeout) throws SQLException {
-        Statement rawStatement = null;
-        try {
-            rawStatement = rawConnection.createStatement();
-            rawStatement.setQueryTimeout(timeout);
-            rawStatement.execute(query);
-            return true;
-        } finally {
-            if (rawStatement != null)
-                closeStatement(rawStatement);
         }
     }
 }

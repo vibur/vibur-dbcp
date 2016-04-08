@@ -426,7 +426,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
 
     @Override
     public <T> T unwrap(Class<T> iface) throws SQLException {
-        throw new SQLException("not a wrapper");
+        throw new SQLException("not a wrapper for " + iface, "VI000");
     }
 
     @Override

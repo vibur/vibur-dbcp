@@ -62,7 +62,7 @@ public abstract class AbstractInvocationHandler<T> implements TargetInvoker {
 
         String methodName = method.getName();
 
-        if (methodName == "equals")
+        if (methodName == "equals") // comparing with == as the Method names are interned Strings
             return proxy == args[0];
         if (methodName == "hashCode")
             return System.identityHashCode(proxy);
@@ -133,7 +133,7 @@ public abstract class AbstractInvocationHandler<T> implements TargetInvoker {
 
     protected void ensureNotClosed() throws SQLException {
         if (isClosed())
-            throw new SQLException(target.getClass().getName() + " is closed.");
+            throw new SQLException(target.getClass().getName() + " is closed.", "VI000");
     }
 
     protected ExceptionCollector getExceptionCollector() {
@@ -147,7 +147,7 @@ public abstract class AbstractInvocationHandler<T> implements TargetInvoker {
     private T unwrap(Class<T> iface) throws SQLException {
         if (isWrapperFor(iface))
             return target;
-        throw new SQLException("not a wrapper for " + iface);
+        throw new SQLException("not a wrapper for " + iface, "VI000");
     }
 
     private boolean isWrapperFor(Class<?> iface) {

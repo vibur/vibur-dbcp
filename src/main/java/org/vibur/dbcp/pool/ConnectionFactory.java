@@ -23,9 +23,7 @@ import org.vibur.dbcp.ViburDBCPConfig;
 import org.vibur.dbcp.ViburDBCPException;
 import org.vibur.dbcp.cache.StatementCache;
 
-import javax.sql.DataSource;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -61,23 +59,10 @@ public class ConnectionFactory implements VersionedObjectFactory<ConnHolder> {
         this.config = requireNonNull(config);
 
         initLoginTimeout(config);
-        initJdbcDriver(config);
+        initJdbcDriver();
     }
 
-    private void initLoginTimeout(ViburDBCPConfig config) throws ViburDBCPException {
-        int loginTimeout = config.getLoginTimeoutInSeconds();
-        if (config.getExternalDataSource() == null)
-            DriverManager.setLoginTimeout(loginTimeout);
-        else {
-            try {
-                config.getExternalDataSource().setLoginTimeout(loginTimeout);
-            } catch (SQLException e) {
-                throw new ViburDBCPException(e);
-            }
-        }
-    }
-
-    private void initJdbcDriver(ViburDBCPConfig config) throws ViburDBCPException {
+    private void initJdbcDriver() throws ViburDBCPException {
         if (config.getDriverClassName() != null) {
             try {
                 Class.forName(config.getDriverClassName()).newInstance();
@@ -102,9 +87,9 @@ public class ConnectionFactory implements VersionedObjectFactory<ConnHolder> {
         Connection rawConnection = null;
         while (rawConnection == null) {
             try {
-                rawConnection = doCreate(userName, password);
+                rawConnection = createConnection(config, userName, password);
             } catch (SQLException e) {
-                logger.debug("Couldn't create a java.sql.Connection, attempt " + attempt, e);
+                logger.debug("Couldn't create a java.sql.Connection, attempt {}", attempt, e);
                 if (attempt++ >= config.getAcquireRetryAttempts())
                     throw new ViburDBCPException(e);
                 try {
@@ -127,27 +112,9 @@ public class ConnectionFactory implements VersionedObjectFactory<ConnHolder> {
         return new ConnHolder(rawConnection, version(), System.currentTimeMillis());
     }
 
-    private Connection doCreate(String userName, String password) throws SQLException {
-        Connection rawConnection;
-        DataSource externalDataSource = config.getExternalDataSource();
-        if (externalDataSource == null) {
-            if (userName != null)
-                rawConnection = DriverManager.getConnection(config.getJdbcUrl(), userName, password);
-            else
-                rawConnection = DriverManager.getConnection(config.getJdbcUrl());
-        }
-        else {
-            if (userName != null)
-                rawConnection = externalDataSource.getConnection(userName, password);
-            else
-                rawConnection = externalDataSource.getConnection();
-        }
-        return requireNonNull(rawConnection);
-    }
-
     private void ensureConnectionInitialized(Connection rawConnection) throws SQLException {
-        if (!validateConnection(rawConnection, config.getInitSQL(), config.getValidateTimeoutInSeconds(), null))
-            throw new SQLException("Couldn't initialize " + rawConnection);
+        if (!validateConnection(rawConnection, config.getInitSQL(), config.getValidateTimeoutInSeconds()))
+            throw new SQLException("Couldn't initialize " + rawConnection, "VI003");
     }
 
     @Override
@@ -160,7 +127,7 @@ public class ConnectionFactory implements VersionedObjectFactory<ConnHolder> {
             if (idleLimit >= 0) {
                 int idle = (int) ((System.currentTimeMillis() - conn.getRestoredTime()) / 1000);
                 if (idle >= idleLimit && !validateConnection(conn.value(), config.getTestConnectionQuery(),
-                        config.getValidateTimeoutInSeconds(), null))
+                        config.getValidateTimeoutInSeconds()))
                     return false;
             }
             if (config.getConnectionHook() != null)
@@ -171,8 +138,8 @@ public class ConnectionFactory implements VersionedObjectFactory<ConnHolder> {
                 conn.setStackTrace(new Throwable().getStackTrace());
             }
             return true;
-        } catch (SQLException ignored) {
-            logger.debug("Couldn't validate " + conn.value(), ignored);
+        } catch (SQLException e) {
+            logger.debug("Couldn't validate {}", conn.value(), e);
             return false;
         }
     }
@@ -184,14 +151,14 @@ public class ConnectionFactory implements VersionedObjectFactory<ConnHolder> {
             if (config.getCloseConnectionHook() != null)
                 config.getCloseConnectionHook().on(rawConnection);
             if (config.isClearSQLWarnings())
-                rawConnection.clearWarnings();
+                clearWarnings(rawConnection);
             if (config.isResetDefaultsAfterUse())
                 setDefaultValues(config, rawConnection);
 
             conn.setRestoredTime(System.currentTimeMillis());
             return true;
-        } catch (SQLException ignored) {
-            logger.debug("Couldn't reset " + rawConnection, ignored);
+        } catch (SQLException e) {
+            logger.debug("Couldn't reset {}", rawConnection, e);
             return false;
         }
     }
