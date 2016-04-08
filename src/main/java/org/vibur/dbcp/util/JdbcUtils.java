@@ -88,10 +88,10 @@ public final class JdbcUtils {
 
         if (query.equals(ViburDBCPConfig.IS_VALID_QUERY))
             return rawConnection.isValid(timeout);
-        return executeQuery(rawConnection, query, timeout);
+        return executeValidationQuery(rawConnection, query, timeout);
     }
 
-    private static boolean executeQuery(Connection rawConnection, String query, int timeout) throws SQLException {
+    private static boolean executeValidationQuery(Connection rawConnection, String query, int timeout) throws SQLException {
         Statement rawStatement = null;
         try {
             rawStatement = rawConnection.createStatement();
@@ -99,8 +99,7 @@ public final class JdbcUtils {
             rawStatement.execute(query);
             return true;
         } finally {
-            if (rawStatement != null)
-                closeStatement(rawStatement);
+            closeStatement(rawStatement);
         }
     }
 
@@ -116,7 +115,8 @@ public final class JdbcUtils {
 
     public static void closeConnection(Connection rawConnection) {
         try {
-            rawConnection.close();
+            if (rawConnection != null)
+                rawConnection.close();
         } catch (SQLException e) {
             logger.debug("Couldn't close " + rawConnection, e);
         } catch (RuntimeException e) {
@@ -126,7 +126,8 @@ public final class JdbcUtils {
 
     public static void closeStatement(Statement rawStatement) {
         try {
-            rawStatement.close();
+            if (rawStatement != null)
+                rawStatement.close();
         } catch (SQLException e) {
             logger.debug("Couldn't close " + rawStatement, e);
         } catch (RuntimeException e) {

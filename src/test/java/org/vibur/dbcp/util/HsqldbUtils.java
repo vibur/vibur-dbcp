@@ -25,6 +25,8 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
+import static org.vibur.dbcp.util.JdbcUtils.closeConnection;
+
 /**
  * @author Simeon Malchev
  */
@@ -44,8 +46,7 @@ public class HsqldbUtils {
             sqlFile.setConnection(connection);
             sqlFile.execute();
         } finally {
-            if (connection != null)
-                JdbcUtils.closeConnection(connection);
+            closeConnection(connection);
         }
     }
 }
