@@ -43,6 +43,12 @@ public class ViburDBCPConfig {
 
     private static final Logger logger = LoggerFactory.getLogger(ViburDBCPConfig.class);
 
+    public static final String SQLSTATE_POOL_CLOSED_ERROR   = "VI000";
+    public static final String SQLSTATE_TIMEOUT_ERROR       = "VI001";
+    public static final String SQLSTATE_CONN_INIT_ERROR     = "VI002";
+    public static final String SQLSTATE_OBJECT_CLOSED_ERROR = "VI003";
+    public static final String SQLSTATE_WRAPPER_ERROR       = "VI004";
+
     /** Database driver class name. This is <b>an optional</b> parameter if the driver is JDBC 4 complaint. If specified,
      * a call to {@code Class.forName(driverClassName).newInstance()} will be issued during the Vibur DBCP initialization.
      * This is needed when Vibur DBCP is used in an OSGi container and may also be helpful if Vibur DBCP is used in an

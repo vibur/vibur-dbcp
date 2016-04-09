@@ -29,6 +29,8 @@ import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static java.util.Objects.requireNonNull;
+import static org.vibur.dbcp.ViburDBCPConfig.SQLSTATE_OBJECT_CLOSED_ERROR;
+import static org.vibur.dbcp.ViburDBCPConfig.SQLSTATE_WRAPPER_ERROR;
 import static org.vibur.dbcp.util.ViburUtils.getPoolName;
 
 /**
@@ -133,7 +135,7 @@ public abstract class AbstractInvocationHandler<T> implements TargetInvoker {
 
     protected void ensureNotClosed() throws SQLException {
         if (isClosed())
-            throw new SQLException(target.getClass().getName() + " is closed.", "VI000");
+            throw new SQLException(target.getClass().getName() + " is closed.", SQLSTATE_OBJECT_CLOSED_ERROR);
     }
 
     protected ExceptionCollector getExceptionCollector() {
@@ -147,7 +149,7 @@ public abstract class AbstractInvocationHandler<T> implements TargetInvoker {
     private T unwrap(Class<T> iface) throws SQLException {
         if (isWrapperFor(iface))
             return target;
-        throw new SQLException("not a wrapper for " + iface, "VI000");
+        throw new SQLException("not a wrapper for " + iface, SQLSTATE_WRAPPER_ERROR);
     }
 
     private boolean isWrapperFor(Class<?> iface) {

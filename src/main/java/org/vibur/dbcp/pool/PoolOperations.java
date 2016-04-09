@@ -34,6 +34,8 @@ import java.util.concurrent.TimeUnit;
 
 import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
+import static org.vibur.dbcp.ViburDBCPConfig.SQLSTATE_POOL_CLOSED_ERROR;
+import static org.vibur.dbcp.ViburDBCPConfig.SQLSTATE_TIMEOUT_ERROR;
 import static org.vibur.dbcp.util.ViburUtils.getPoolName;
 
 /**
@@ -87,10 +89,10 @@ public class PoolOperations {
             pool.take() : pool.tryTake(timeout, TimeUnit.MILLISECONDS);
         if (conn == null) {
             if (pool.isTerminated())
-                throw new SQLException(format("Pool %s is terminated.", name), "VI001");
+                throw new SQLException(format("Pool %s is terminated.", name), SQLSTATE_POOL_CLOSED_ERROR);
             else
                 throw new SQLException(format("Couldn't obtain SQL connection from pool %s within %dms.",
-                        getPoolName(config), timeout), "VI002");
+                        getPoolName(config), timeout), SQLSTATE_TIMEOUT_ERROR, (int) timeout);
         }
         logger.trace("Getting {}", conn.value());
         return Proxy.newConnection(conn, config);

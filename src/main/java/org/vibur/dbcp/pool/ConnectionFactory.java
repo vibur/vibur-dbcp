@@ -29,6 +29,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.util.Objects.requireNonNull;
+import static org.vibur.dbcp.ViburDBCPConfig.SQLSTATE_CONN_INIT_ERROR;
 import static org.vibur.dbcp.util.JdbcUtils.*;
 
 /**
@@ -114,7 +115,7 @@ public class ConnectionFactory implements VersionedObjectFactory<ConnHolder> {
 
     private void ensureConnectionInitialized(Connection rawConnection) throws SQLException {
         if (!validateConnection(rawConnection, config.getInitSQL(), config.getValidateTimeoutInSeconds()))
-            throw new SQLException("Couldn't initialize " + rawConnection, "VI003");
+            throw new SQLException("Couldn't initialize " + rawConnection, SQLSTATE_CONN_INIT_ERROR);
     }
 
     @Override
