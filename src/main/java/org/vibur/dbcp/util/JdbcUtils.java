@@ -82,25 +82,36 @@ public final class JdbcUtils {
             rawConnection.setCatalog(config.getDefaultCatalog());
     }
 
-    public static boolean validateConnection(Connection rawConnection, String query, int timeout) throws SQLException {
+    public static boolean validateConnection(ViburDBCPConfig config, Connection rawConnection, String query) throws SQLException {
         if (query == null || query.trim().isEmpty())
             return true;
 
         if (query.equals(ViburDBCPConfig.IS_VALID_QUERY))
-            return rawConnection.isValid(timeout);
-        return executeValidationQuery(rawConnection, query, timeout);
+            return rawConnection.isValid(config.getValidateTimeoutInSeconds());
+        return executeValidationQuery(config, rawConnection, query);
     }
 
-    private static boolean executeValidationQuery(Connection rawConnection, String query, int timeout) throws SQLException {
+    private static boolean executeValidationQuery(ViburDBCPConfig config, Connection rawConnection, String query) throws SQLException {
+        int newTimeout = config.getValidateTimeoutInSeconds() * 1000;
+        int oldTimeout = newTimeout;
+        if (config.isUseNetworkTimeout()) {
+            oldTimeout = rawConnection.getNetworkTimeout();
+            if (oldTimeout != newTimeout)
+                rawConnection.setNetworkTimeout(config.getNetworkTimeoutExecutor(), newTimeout);
+        }
+
         Statement rawStatement = null;
         try {
             rawStatement = rawConnection.createStatement();
-            rawStatement.setQueryTimeout(timeout);
+            rawStatement.setQueryTimeout(config.getValidateTimeoutInSeconds());
             rawStatement.execute(query);
-            return true;
         } finally {
             closeStatement(rawStatement);
         }
+
+        if (oldTimeout != newTimeout)
+            rawConnection.setNetworkTimeout(config.getNetworkTimeoutExecutor(), oldTimeout);
+        return true;
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////

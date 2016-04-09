@@ -114,7 +114,7 @@ public class ConnectionFactory implements VersionedObjectFactory<ConnHolder> {
     }
 
     private void ensureConnectionInitialized(Connection rawConnection) throws SQLException {
-        if (!validateConnection(rawConnection, config.getInitSQL(), config.getValidateTimeoutInSeconds()))
+        if (!validateConnection(config, rawConnection, config.getInitSQL()))
             throw new SQLException("Couldn't initialize " + rawConnection, SQLSTATE_CONN_INIT_ERROR);
     }
 
@@ -127,8 +127,7 @@ public class ConnectionFactory implements VersionedObjectFactory<ConnHolder> {
             int idleLimit = config.getConnectionIdleLimitInSeconds();
             if (idleLimit >= 0) {
                 int idle = (int) ((System.currentTimeMillis() - conn.getRestoredTime()) / 1000);
-                if (idle >= idleLimit && !validateConnection(conn.value(), config.getTestConnectionQuery(),
-                        config.getValidateTimeoutInSeconds()))
+                if (idle >= idleLimit && !validateConnection(config, conn.value(), config.getTestConnectionQuery()))
                     return false;
             }
             if (config.getConnectionHook() != null)

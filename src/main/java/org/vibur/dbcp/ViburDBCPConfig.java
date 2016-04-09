@@ -31,6 +31,7 @@ import org.vibur.objectpool.PoolService;
 import javax.sql.DataSource;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -97,6 +98,25 @@ public class ViburDBCPConfig {
      * application is connecting to the database via some middleware, for example, connecting to PostgreSQL server(s)
      * via PgBouncer. */
     private String initSQL = null;
+
+    /** This option applies only if {@code testConnectionQuery} or {@code initSQL} are enabled and if at least one
+     * of them has a value different than {@code IS_VALID_QUERY} ({@code isValid}). If enabled,
+     * the calls to the validation or initialization SQL query will be preceded by a call to
+     * {@link java.sql.Connection#setNetworkTimeout(Executor, int)}, and after that the original network
+     * timeout value will be restored.
+     *
+     * <p>Note that it is responsibility of the application developer to make sure that used by the application
+     * JDBC driver supports {@code setNetworkTimeout}.
+     */
+    private boolean useNetworkTimeout = false;
+    /** This option applies only if {@code useNetworkTimeout} is enabled. This is the {@code Executor} that will
+     * be passed to the call of {@link java.sql.Connection#setNetworkTimeout(Executor, int)}.
+     *
+     * <p>Note that it is responsibility of the application developer to supply {@code Executor} that is suitable
+     * for the needs of the application JDBC driver. For example, some JDBC drivers may require a synchronous
+     * {@code Executor}.
+     */
+     private Executor networkTimeoutExecutor = null;
 
 
     /** The pool initial size, i.e. the initial number of JDBC Connections allocated in this pool. */
@@ -337,6 +357,22 @@ public class ViburDBCPConfig {
 
     public void setInitSQL(String initSQL) {
         this.initSQL = initSQL;
+    }
+
+    public boolean isUseNetworkTimeout() {
+        return useNetworkTimeout;
+    }
+
+    public void setUseNetworkTimeout(boolean useNetworkTimeout) {
+        this.useNetworkTimeout = useNetworkTimeout;
+    }
+
+    public Executor getNetworkTimeoutExecutor() {
+        return networkTimeoutExecutor;
+    }
+
+    public void setNetworkTimeoutExecutor(Executor networkTimeoutExecutor) {
+        this.networkTimeoutExecutor = networkTimeoutExecutor;
     }
 
     public int getPoolInitialSize() {
