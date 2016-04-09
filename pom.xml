@@ -181,9 +181,9 @@
                         <Export-Package>
                             org.vibur.dbcp,
                             org.vibur.dbcp.jmx,
-                            org.vibur.dbcp.util.hook,
-                            org.vibur.dbcp.util.listener,
-                            org.vibur.dbcp.util.logger
+                            org.vibur.dbcp.util.event,
+                            org.vibur.dbcp.util.logger,
+                            org.vibur.dbcp.util.pool
                         </Export-Package>
                         <Import-Package>
                             javax.sql,

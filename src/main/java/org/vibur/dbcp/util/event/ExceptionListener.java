@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.vibur.dbcp.util.listener;
+package org.vibur.dbcp.util.event;
 
 /**
  * JDBC proxy objects exceptions listener.

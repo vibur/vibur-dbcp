@@ -20,12 +20,12 @@ package org.vibur.dbcp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.cache.StatementCache;
-import org.vibur.dbcp.pool.ConnHolder;
 import org.vibur.dbcp.pool.PoolOperations;
-import org.vibur.dbcp.util.hook.ConnectionHook;
-import org.vibur.dbcp.util.listener.ExceptionListener;
+import org.vibur.dbcp.util.event.ConnectionHook;
+import org.vibur.dbcp.util.event.ExceptionListener;
 import org.vibur.dbcp.util.logger.BaseViburLogger;
 import org.vibur.dbcp.util.logger.ViburLogger;
+import org.vibur.dbcp.util.pool.ConnHolder;
 import org.vibur.objectpool.PoolService;
 
 import javax.sql.DataSource;

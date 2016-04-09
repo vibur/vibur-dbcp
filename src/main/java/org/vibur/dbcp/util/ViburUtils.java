@@ -17,7 +17,7 @@
 package org.vibur.dbcp.util;
 
 import org.vibur.dbcp.ViburDBCPConfig;
-import org.vibur.dbcp.pool.ConnHolder;
+import org.vibur.dbcp.util.pool.ConnHolder;
 import org.vibur.objectpool.PoolService;
 
 import static java.lang.String.format;

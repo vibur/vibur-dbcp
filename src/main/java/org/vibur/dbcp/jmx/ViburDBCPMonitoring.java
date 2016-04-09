@@ -18,7 +18,7 @@ package org.vibur.dbcp.jmx;
 
 import org.vibur.dbcp.ViburDBCPConfig;
 import org.vibur.dbcp.ViburDBCPException;
-import org.vibur.dbcp.pool.ConnHolder;
+import org.vibur.dbcp.util.pool.ConnHolder;
 import org.vibur.objectpool.listener.TakenListener;
 
 import java.util.Collections;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.vibur.dbcp.util.hook;
+package org.vibur.dbcp.util.event;
 
 import java.sql.Connection;
 import java.sql.SQLException;

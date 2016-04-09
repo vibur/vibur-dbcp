@@ -20,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.ViburDBCPConfig;
 import org.vibur.dbcp.ViburDBCPException;
+import org.vibur.dbcp.util.pool.ConnHolder;
 import org.vibur.objectpool.reducer.SamplingPoolReducer;
 import org.vibur.objectpool.reducer.ThreadedPoolReducer;
 
