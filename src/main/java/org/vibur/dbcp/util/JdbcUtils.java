@@ -29,6 +29,7 @@ import java.sql.Statement;
 
 import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.vibur.dbcp.ViburDBCPConfig.IS_VALID_QUERY;
 
 /**
  * This class encapsulates all JDBC operations invoked on raw JDBC objects such as rawConnection or rawStatement.
@@ -87,7 +88,7 @@ public final class JdbcUtils {
         if (query == null || query.trim().isEmpty())
             return true;
 
-        if (query.equals(ViburDBCPConfig.IS_VALID_QUERY))
+        if (query.equals(IS_VALID_QUERY))
             return rawConnection.isValid(config.getValidateTimeoutInSeconds());
         return executeValidationQuery(config, rawConnection, query);
     }
