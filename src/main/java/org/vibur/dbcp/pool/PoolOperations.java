@@ -31,10 +31,10 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.vibur.dbcp.ViburDBCPConfig.SQLSTATE_POOL_CLOSED_ERROR;
 import static org.vibur.dbcp.ViburDBCPConfig.SQLSTATE_TIMEOUT_ERROR;
 import static org.vibur.dbcp.util.ViburUtils.getPoolName;
@@ -87,7 +87,7 @@ public class PoolOperations {
 
     private Connection doGetConnection(long timeout) throws SQLException, ViburDBCPException {
         ConnHolder conn = timeout == 0 ?
-            pool.take() : pool.tryTake(timeout, TimeUnit.MILLISECONDS);
+            pool.take() : pool.tryTake(timeout, MILLISECONDS);
         if (conn == null) {
             if (pool.isTerminated())
                 throw new SQLException(format("Pool %s is terminated.", name), SQLSTATE_POOL_CLOSED_ERROR);

@@ -24,8 +24,7 @@ import org.vibur.dbcp.util.pool.ConnHolder;
 import org.vibur.objectpool.reducer.SamplingPoolReducer;
 import org.vibur.objectpool.reducer.ThreadedPoolReducer;
 
-import java.util.concurrent.TimeUnit;
-
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.vibur.dbcp.util.ViburUtils.getPoolName;
 
 
@@ -44,7 +43,7 @@ public class PoolReducer extends SamplingPoolReducer<ConnHolder> implements Thre
     private final ViburDBCPConfig config;
 
     public PoolReducer(ViburDBCPConfig config) {
-        super(config.getPool(), config.getReducerTimeIntervalInSeconds(), TimeUnit.SECONDS, config.getReducerSamples());
+        super(config.getPool(), config.getReducerTimeIntervalInSeconds(), SECONDS, config.getReducerSamples());
         this.config = config;
     }
 

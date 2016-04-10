@@ -154,7 +154,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
                 try {
                     inputStream.close();
                 } catch (IOException ignored) {
-                    logger.debug("Couldn't close configuration URL " + config, ignored);
+                    logger.debug("Couldn't close configuration URL {}", config, ignored);
                 }
             }
         }
@@ -170,7 +170,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
             String val = (String) entry.getValue();
             try {
                 if (!fields.contains(key)) {
-                    logger.warn("Unknown configuration property: " + key);
+                    logger.warn("Unknown configuration property: {}", key);
                     continue;
                 }
                 Field field = ViburDBCPConfig.class.getDeclaredField(key);
@@ -289,11 +289,11 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
         if (getUsername() == null) logger.warn("JDBC username is not specified.");
 
         if (getLogConnectionLongerThanMs() > getConnectionTimeoutInMs()) {
-            logger.warn("Setting logConnectionLongerThanMs to " + getConnectionTimeoutInMs());
+            logger.warn("Setting logConnectionLongerThanMs to {}", getConnectionTimeoutInMs());
             setLogConnectionLongerThanMs(getConnectionTimeoutInMs());
         }
         if (getStatementCacheMaxSize() > CACHE_MAX_SIZE) {
-            logger.warn("Setting statementCacheMaxSize to " + CACHE_MAX_SIZE);
+            logger.warn("Setting statementCacheMaxSize to {}", CACHE_MAX_SIZE);
             setStatementCacheMaxSize(CACHE_MAX_SIZE);
         }
 

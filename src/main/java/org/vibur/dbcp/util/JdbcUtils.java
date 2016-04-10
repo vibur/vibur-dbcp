@@ -28,6 +28,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 import static java.util.Objects.requireNonNull;
+import static java.util.concurrent.TimeUnit.SECONDS;
 
 /**
  * This class encapsulates all JDBC operations invoked on raw JDBC objects such as rawConnection or rawStatement.
@@ -92,13 +93,7 @@ public final class JdbcUtils {
     }
 
     private static boolean executeValidationQuery(ViburDBCPConfig config, Connection rawConnection, String query) throws SQLException {
-        int newTimeout = config.getValidateTimeoutInSeconds() * 1000;
-        int oldTimeout = newTimeout;
-        if (config.isUseNetworkTimeout()) {
-            oldTimeout = rawConnection.getNetworkTimeout();
-            if (oldTimeout != newTimeout)
-                rawConnection.setNetworkTimeout(config.getNetworkTimeoutExecutor(), newTimeout);
-        }
+        int oldTimeout = getSetNetworkTimeout(config, rawConnection);
 
         Statement rawStatement = null;
         try {
@@ -109,9 +104,25 @@ public final class JdbcUtils {
             closeStatement(rawStatement);
         }
 
-        if (oldTimeout != newTimeout)
-            rawConnection.setNetworkTimeout(config.getNetworkTimeoutExecutor(), oldTimeout);
+        resetNetworkTimeout(config, rawConnection, oldTimeout);
         return true;
+    }
+
+    private static int getSetNetworkTimeout(ViburDBCPConfig config, Connection rawConnection) throws SQLException {
+        if (config.isUseNetworkTimeout()) {
+            int newTimeout = (int) SECONDS.toMillis(config.getValidateTimeoutInSeconds());
+            int oldTimeout = rawConnection.getNetworkTimeout();
+            if (newTimeout != oldTimeout) {
+                rawConnection.setNetworkTimeout(config.getNetworkTimeoutExecutor(), newTimeout);
+                return oldTimeout;
+            }
+        }
+        return -1;
+    }
+
+    private static void resetNetworkTimeout(ViburDBCPConfig config, Connection rawConnection, int oldTimeout) throws SQLException {
+        if (oldTimeout >= 0)
+            rawConnection.setNetworkTimeout(config.getNetworkTimeoutExecutor(), oldTimeout);
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -129,9 +140,9 @@ public final class JdbcUtils {
             if (rawConnection != null)
                 rawConnection.close();
         } catch (SQLException e) {
-            logger.debug("Couldn't close " + rawConnection, e);
+            logger.debug("Couldn't close {}", rawConnection, e);
         } catch (RuntimeException e) {
-            logger.warn("Unexpected exception thrown by the JDBC driver for " + rawConnection, e);
+            logger.warn("Unexpected exception thrown by the JDBC driver for {}", rawConnection, e);
         }
     }
 
@@ -140,9 +151,9 @@ public final class JdbcUtils {
             if (rawStatement != null)
                 rawStatement.close();
         } catch (SQLException e) {
-            logger.debug("Couldn't close " + rawStatement, e);
+            logger.debug("Couldn't close {}", rawStatement, e);
         } catch (RuntimeException e) {
-            logger.warn("Unexpected exception thrown by the JDBC driver for " + rawStatement, e);
+            logger.warn("Unexpected exception thrown by the JDBC driver for {}", rawStatement, e);
         }
     }
 }

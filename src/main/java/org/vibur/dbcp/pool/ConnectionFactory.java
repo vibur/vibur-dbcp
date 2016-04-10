@@ -26,10 +26,10 @@ import org.vibur.dbcp.util.pool.ConnHolder;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.util.Objects.requireNonNull;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.vibur.dbcp.ViburDBCPConfig.SQLSTATE_CONN_INIT_ERROR;
 import static org.vibur.dbcp.util.JdbcUtils.*;
 
@@ -95,7 +95,7 @@ public class ConnectionFactory implements VersionedObjectFactory<ConnHolder> {
                 if (attempt++ >= config.getAcquireRetryAttempts())
                     throw new ViburDBCPException(e);
                 try {
-                    TimeUnit.MILLISECONDS.sleep(config.getAcquireRetryDelayInMs());
+                    MILLISECONDS.sleep(config.getAcquireRetryDelayInMs());
                 } catch (InterruptedException ignore) {
                 }
             }
@@ -127,7 +127,7 @@ public class ConnectionFactory implements VersionedObjectFactory<ConnHolder> {
         try {
             int idleLimit = config.getConnectionIdleLimitInSeconds();
             if (idleLimit >= 0) {
-                int idle = (int) ((System.currentTimeMillis() - conn.getRestoredTime()) / 1000);
+                int idle = (int) MILLISECONDS.toSeconds(System.currentTimeMillis() - conn.getRestoredTime());
                 if (idle >= idleLimit && !validateConnection(config, conn.value(), config.getTestConnectionQuery()))
                     return false;
             }
