@@ -32,7 +32,8 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.vibur.dbcp.ViburDBCPConfig.IS_VALID_QUERY;
 
 /**
- * This class encapsulates all JDBC operations invoked on raw JDBC objects such as rawConnection or rawStatement.
+ * This class encapsulates all low-level JDBC operations invoked on raw JDBC objects such as
+ * rawConnection or rawStatement.
  *
  * @author Simeon Malchev
  */
@@ -50,6 +51,16 @@ public final class JdbcUtils {
             try {
                 config.getExternalDataSource().setLoginTimeout(loginTimeout);
             } catch (SQLException e) {
+                throw new ViburDBCPException(e);
+            }
+        }
+    }
+
+    public static void initJdbcDriver(ViburDBCPConfig config) throws ViburDBCPException {
+        if (config.getDriverClassName() != null) {
+            try {
+                Class.forName(config.getDriverClassName()).newInstance();
+            } catch (ReflectiveOperationException e) {
                 throw new ViburDBCPException(e);
             }
         }

@@ -61,17 +61,7 @@ public class ConnectionFactory implements VersionedObjectFactory<ConnHolder> {
         this.config = requireNonNull(config);
 
         initLoginTimeout(config);
-        initJdbcDriver();
-    }
-
-    private void initJdbcDriver() throws ViburDBCPException {
-        if (config.getDriverClassName() != null) {
-            try {
-                Class.forName(config.getDriverClassName()).newInstance();
-            } catch (ReflectiveOperationException e) {
-                throw new ViburDBCPException(e);
-            }
-        }
+        initJdbcDriver(config);
     }
 
     /**
