@@ -33,7 +33,8 @@ import static org.vibur.dbcp.ViburDBCPConfig.IS_VALID_QUERY;
 
 /**
  * This class encapsulates all low-level JDBC operations invoked on raw JDBC objects such as
- * rawConnection or rawStatement.
+ * rawConnection or rawStatement, plus operations related to JDBC Driver or DataSource initialization
+ * and Connection creation.
  *
  * @author Simeon Malchev
  */
@@ -66,6 +67,16 @@ public final class JdbcUtils {
         }
     }
 
+    /**
+     * This method creates the physical connection to the database via using the DriverManager or the configured
+     * external DataSource.
+     *
+     * @param config the ViburDBCPConfig
+     * @param userName the user name to use when connecting to the database
+     * @param password the password to use when connecting to the database
+     * @return a newly established raw JDBC Connection to the database
+     * @throws SQLException if the DriverManager or the DataSource throws an SQLException
+     */
     public static Connection createConnection(ViburDBCPConfig config, String userName, String password) throws SQLException {
         Connection rawConnection;
         DataSource externalDataSource = config.getExternalDataSource();
@@ -83,6 +94,8 @@ public final class JdbcUtils {
         }
         return requireNonNull(rawConnection);
     }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
 
     public static void setDefaultValues(ViburDBCPConfig config, Connection rawConnection) throws SQLException {
         if (config.getDefaultAutoCommit() != null)
