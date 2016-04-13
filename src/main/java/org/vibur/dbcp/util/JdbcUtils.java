@@ -126,7 +126,7 @@ public final class JdbcUtils {
             rawStatement.setQueryTimeout(config.getValidateTimeoutInSeconds());
             rawStatement.execute(query);
         } finally {
-            closeStatement(rawStatement);
+            quietClose(rawStatement);
         }
 
         resetNetworkTimeout(config, rawConnection, oldTimeout);
@@ -160,7 +160,7 @@ public final class JdbcUtils {
         rawStatement.clearWarnings();
     }
 
-    public static void closeConnection(Connection rawConnection) {
+    public static void quietClose(Connection rawConnection) {
         try {
             if (rawConnection != null)
                 rawConnection.close();
@@ -171,7 +171,7 @@ public final class JdbcUtils {
         }
     }
 
-    public static void closeStatement(Statement rawStatement) {
+    public static void quietClose(Statement rawStatement) {
         try {
             if (rawStatement != null)
                 rawStatement.close();

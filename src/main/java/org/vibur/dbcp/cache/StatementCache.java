@@ -32,7 +32,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static java.util.Objects.requireNonNull;
 import static org.vibur.dbcp.cache.StatementHolder.*;
 import static org.vibur.dbcp.util.JdbcUtils.clearWarnings;
-import static org.vibur.dbcp.util.JdbcUtils.closeStatement;
+import static org.vibur.dbcp.util.JdbcUtils.quietClose;
 import static org.vibur.objectpool.util.ArgumentUtils.forbidIllegalArgument;
 
 /**
@@ -72,7 +72,7 @@ public class StatementCache {
             @Override
             public void onEviction(ConnMethod key, StatementHolder value) {
                 if (value.state().getAndSet(EVICTED) == AVAILABLE)
-                    closeStatement(value.value());
+                    quietClose(value.value());
                 logger.trace("Evicted {}", value.value());
             }
         };
@@ -111,11 +111,11 @@ public class StatementCache {
             if (clearWarnings)
                 clearWarnings(rawStatement);
             if (!statement.state().compareAndSet(IN_USE, AVAILABLE)) // just mark it as AVAILABLE if its state was IN_USE
-                closeStatement(rawStatement); // and close it if it was already EVICTED (while its state was IN_USE)
+                quietClose(rawStatement); // and close it if it was already EVICTED (while its state was IN_USE)
         } catch (SQLException e) {
             logger.debug("Couldn't clear warnings on {}", rawStatement, e);
             remove(rawStatement, false);
-            closeStatement(rawStatement);
+            quietClose(rawStatement);
         }
     }
 
@@ -124,7 +124,7 @@ public class StatementCache {
             StatementHolder value = entry.getValue();
             if (value.value() == rawStatement) { // comparing with == as these JDBC Statements are cached objects
                 if (close)
-                    closeStatement(rawStatement);
+                    quietClose(rawStatement);
                 return statementCache.remove(entry.getKey(), value);
             }
         }
@@ -137,7 +137,7 @@ public class StatementCache {
             ConnMethod key = entry.getKey();
             StatementHolder value = entry.getValue();
             if (key.getTarget() == rawConnection && statementCache.remove(key, value)) {
-                closeStatement(value.value());
+                quietClose(value.value());
                 removed++;
             }
         }
@@ -148,7 +148,7 @@ public class StatementCache {
         for (Map.Entry<ConnMethod, StatementHolder> entry : statementCache.entrySet()) {
             StatementHolder value = entry.getValue();
             statementCache.remove(entry.getKey(), value);
-            closeStatement(value.value());
+            quietClose(value.value());
         }
     }
 }

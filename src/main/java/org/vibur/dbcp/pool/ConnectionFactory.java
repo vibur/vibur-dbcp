@@ -97,7 +97,7 @@ public class ConnectionFactory implements VersionedObjectFactory<ConnHolder> {
             ensureConnectionInitialized(rawConnection);
             setDefaultValues(config, rawConnection);
         } catch (SQLException e) {
-            closeConnection(rawConnection);
+            quietClose(rawConnection);
             throw new ViburDBCPException(e);
         }
         logger.debug("Created {}", rawConnection);
@@ -159,7 +159,7 @@ public class ConnectionFactory implements VersionedObjectFactory<ConnHolder> {
         Connection rawConnection = conn.value();
         logger.debug("Destroying {}", rawConnection);
         closeStatements(rawConnection);
-        closeConnection(rawConnection);
+        quietClose(rawConnection);
     }
 
     private void closeStatements(Connection rawConnection) {
