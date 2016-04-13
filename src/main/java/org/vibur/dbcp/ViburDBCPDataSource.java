@@ -282,6 +282,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
         forbidIllegalArgument(getReducerSamples() <= 0);
         forbidIllegalArgument(getConnectionIdleLimitInSeconds() >= 0 && getTestConnectionQuery() == null);
         forbidIllegalArgument(getValidateTimeoutInSeconds() < 0);
+        forbidIllegalArgument(isUseNetworkTimeout() && getNetworkTimeoutExecutor() == null);
         requireNonNull(getCriticalSQLStates());
         requireNonNull(getViburLogger());
 

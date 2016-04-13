@@ -118,7 +118,7 @@ public final class JdbcUtils {
     }
 
     private static boolean executeValidationQuery(ViburDBCPConfig config, Connection rawConnection, String query) throws SQLException {
-        int oldTimeout = getSetNetworkTimeout(config, rawConnection);
+        int oldTimeout = setNetworkTimeoutIfDifferent(config, rawConnection);
 
         Statement rawStatement = null;
         try {
@@ -133,7 +133,7 @@ public final class JdbcUtils {
         return true;
     }
 
-    private static int getSetNetworkTimeout(ViburDBCPConfig config, Connection rawConnection) throws SQLException {
+    private static int setNetworkTimeoutIfDifferent(ViburDBCPConfig config, Connection rawConnection) throws SQLException {
         if (config.isUseNetworkTimeout()) {
             int newTimeout = (int) SECONDS.toMillis(config.getValidateTimeoutInSeconds());
             int oldTimeout = rawConnection.getNetworkTimeout();
