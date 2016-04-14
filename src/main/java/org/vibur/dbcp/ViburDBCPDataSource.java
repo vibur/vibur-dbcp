@@ -367,8 +367,16 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
         if (defaultCredentials(username, password))
             return getConnection();
 
-        logger.warn("Calling getConnection with different than the default credentials; will create and return a non-pooled Connection.");
-        return connectionFactory.create(username, password).value();
+        try {
+            logger.warn("Calling getConnection with different than the default credentials; will create and return a non-pooled Connection.");
+            return connectionFactory.create(username, password).value();
+        } catch (ViburDBCPException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof SQLException)
+                throw (SQLException) cause;
+            logger.error("Unexpected exception cause", e);
+            throw e; // not expected to happen
+        }
     }
 
     private boolean defaultCredentials(String username, String password) {
