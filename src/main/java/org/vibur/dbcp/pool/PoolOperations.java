@@ -38,6 +38,7 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.vibur.dbcp.ViburDBCPConfig.SQLSTATE_POOL_CLOSED_ERROR;
 import static org.vibur.dbcp.ViburDBCPConfig.SQLSTATE_TIMEOUT_ERROR;
 import static org.vibur.dbcp.util.ViburUtils.getPoolName;
+import static org.vibur.dbcp.util.ViburUtils.unrollSQLException;
 
 /**
  * The facade class via which most of the connection pool's and connection factory's functionalities
@@ -77,11 +78,7 @@ public class PoolOperations {
         try {
             return doGetConnection(timeout);
         } catch (ViburDBCPException e) {
-            Throwable cause = e.getCause();
-            if (cause instanceof SQLException)
-                throw (SQLException) cause;
-            logger.error("Unexpected exception cause", e);
-            throw e; // not expected to happen
+            return unrollSQLException(e);
         }
     }
 

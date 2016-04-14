@@ -48,6 +48,7 @@ import static java.util.Objects.requireNonNull;
 import static org.vibur.dbcp.util.JmxUtils.registerMBean;
 import static org.vibur.dbcp.util.JmxUtils.unregisterMBean;
 import static org.vibur.dbcp.util.ViburUtils.getPoolName;
+import static org.vibur.dbcp.util.ViburUtils.unrollSQLException;
 import static org.vibur.objectpool.util.ArgumentUtils.forbidIllegalArgument;
 
 /**
@@ -367,15 +368,11 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
         if (defaultCredentials(username, password))
             return getConnection();
 
+        logger.warn("Calling getConnection() with different than the default credentials; will create and return a non-pooled Connection.");
         try {
-            logger.warn("Calling getConnection with different than the default credentials; will create and return a non-pooled Connection.");
             return connectionFactory.create(username, password).value();
         } catch (ViburDBCPException e) {
-            Throwable cause = e.getCause();
-            if (cause instanceof SQLException)
-                throw (SQLException) cause;
-            logger.error("Unexpected exception cause", e);
-            throw e; // not expected to happen
+            return unrollSQLException(e);
         }
     }
 
