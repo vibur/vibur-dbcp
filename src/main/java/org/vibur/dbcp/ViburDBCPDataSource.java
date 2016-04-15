@@ -325,7 +325,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
     }
 
     private void initPoolReducer() throws ViburDBCPException {
-        if (getReducerTimeIntervalInSeconds() > 0)
+        if (getReducerTimeIntervalInSeconds() > 0) {
             try {
                 Object reducer = Class.forName(getPoolReducerClass()).getConstructor(ViburDBCPConfig.class)
                         .newInstance(this);
@@ -336,6 +336,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
             } catch (ReflectiveOperationException e) {
                 throw new ViburDBCPException(e);
             }
+        }
     }
 
     private void initStatementCache() {
