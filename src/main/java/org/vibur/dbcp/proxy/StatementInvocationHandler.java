@@ -38,8 +38,7 @@ import static org.vibur.dbcp.util.ViburUtils.getPoolName;
 /**
  * @author Simeon Malchev
  */
-public class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection, Statement>
-        implements TargetInvoker {
+public class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection, Statement> {
 
     private static final Logger logger = LoggerFactory.getLogger(StatementInvocationHandler.class);
 

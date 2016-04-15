@@ -32,7 +32,7 @@ import java.sql.Statement;
 /**
  * @author Simeon Malchev
  */
-public class ConnectionInvocationHandler extends AbstractInvocationHandler<Connection> implements TargetInvoker {
+public class ConnectionInvocationHandler extends AbstractInvocationHandler<Connection> {
 
     private final ConnHolder conn;
     private final ViburDBCPConfig config;

@@ -31,8 +31,7 @@ import static org.vibur.dbcp.util.ViburUtils.getPoolName;
 /**
  * @author Simeon Malchev
  */
-public class ResultSetInvocationHandler extends ChildObjectInvocationHandler<Statement, ResultSet>
-        implements TargetInvoker {
+public class ResultSetInvocationHandler extends ChildObjectInvocationHandler<Statement, ResultSet> {
 
     private final Object[] executeMethodArgs;
     private final List<Object[]> queryParams;
