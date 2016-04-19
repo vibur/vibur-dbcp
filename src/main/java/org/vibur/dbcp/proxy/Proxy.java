@@ -89,7 +89,7 @@ public final class Proxy {
     private static final Constructor<?> metadataCtor;
     private static final Constructor<?> resultSetCtor;
 
-    private static ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+    private static final ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
     // static initializer for all constructors:
     static {
         try {

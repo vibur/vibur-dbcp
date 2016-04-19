@@ -68,7 +68,7 @@ public abstract class AbstractDataSourceTest {
         }
     }
 
-    protected ViburDBCPDataSource createDataSourceNoStatementsCache() throws IOException, ViburDBCPException {
+    protected ViburDBCPDataSource createDataSourceNoStatementsCache() throws ViburDBCPException {
         dataSource = new ViburDBCPDataSource();
 
         dataSource.setJdbcUrl(jdbcUrl);
@@ -90,7 +90,7 @@ public abstract class AbstractDataSourceTest {
         return dataSource;
     }
 
-    protected ViburDBCPDataSource createDataSourceFromExternalDataSource() throws IOException, ViburDBCPException {
+    protected ViburDBCPDataSource createDataSourceFromExternalDataSource() throws ViburDBCPException {
         dataSource = new ViburDBCPDataSource();
 
         dataSource.setExternalDataSource(new SimpleDataSource(jdbcUrl));
@@ -108,7 +108,7 @@ public abstract class AbstractDataSourceTest {
         return dataSource;
     }
 
-    protected ViburDBCPDataSource createDataSourceWithStatementsCache() throws IOException, ViburDBCPException {
+    protected ViburDBCPDataSource createDataSourceWithStatementsCache() throws ViburDBCPException {
         dataSource = new ViburDBCPDataSource();
 
         dataSource.setJdbcUrl(jdbcUrl);

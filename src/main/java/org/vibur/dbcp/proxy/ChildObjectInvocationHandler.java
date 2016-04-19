@@ -28,7 +28,7 @@ import static java.util.Objects.requireNonNull;
  * @param <P> the type of the parent object from which the {@code T} object was derived
  * @param <T> the type of the object that we are dynamically proxy-ing
  */
-public class ChildObjectInvocationHandler<P, T> extends AbstractInvocationHandler<T> {
+class ChildObjectInvocationHandler<P, T> extends AbstractInvocationHandler<T> {
 
     private final P parentProxy;
     private final String getParentMethod;
@@ -41,14 +41,14 @@ public class ChildObjectInvocationHandler<P, T> extends AbstractInvocationHandle
     }
 
     @Override
-    protected Object doInvoke(T proxy, Method method, Object[] args) throws Throwable {
+    Object doInvoke(T proxy, Method method, Object[] args) throws Throwable {
         if (method.getName() == getParentMethod)
             return parentProxy;
 
         return super.doInvoke(proxy, method, args);
     }
 
-    protected P getParentProxy() {
+    P getParentProxy() {
         return parentProxy;
     }
 }

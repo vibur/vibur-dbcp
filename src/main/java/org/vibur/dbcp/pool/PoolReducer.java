@@ -22,7 +22,6 @@ import org.vibur.dbcp.ViburDBCPConfig;
 import org.vibur.dbcp.ViburDBCPException;
 import org.vibur.dbcp.util.pool.ConnHolder;
 import org.vibur.objectpool.reducer.SamplingPoolReducer;
-import org.vibur.objectpool.reducer.ThreadedPoolReducer;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.vibur.dbcp.util.ViburUtils.getPoolName;

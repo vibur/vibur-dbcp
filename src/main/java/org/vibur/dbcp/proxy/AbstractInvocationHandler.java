@@ -50,7 +50,7 @@ abstract class AbstractInvocationHandler<T> implements TargetInvoker {
 
     private final AtomicBoolean logicallyClosed = new AtomicBoolean(false);
 
-    protected AbstractInvocationHandler(T target, ViburDBCPConfig config, ExceptionCollector exceptionCollector) {
+    AbstractInvocationHandler(T target, ViburDBCPConfig config, ExceptionCollector exceptionCollector) {
         this.target = requireNonNull(target);
         this.config = requireNonNull(config);
         this.exceptionCollector = requireNonNull(exceptionCollector);
@@ -99,7 +99,7 @@ abstract class AbstractInvocationHandler<T> implements TargetInvoker {
      * @return as above
      * @throws Throwable as above
      */
-    protected Object doInvoke(T proxy, Method method, Object[] args) throws Throwable {
+    Object doInvoke(T proxy, Method method, Object[] args) throws Throwable {
         return targetInvoke(method, args);
     }
 
@@ -119,30 +119,30 @@ abstract class AbstractInvocationHandler<T> implements TargetInvoker {
         }
     }
 
-    protected void logInvokeFailure(Method method, Object[] args, Throwable t) {
+    void logInvokeFailure(Method method, Object[] args, Throwable t) {
         if (logger.isDebugEnabled())
             logger.debug("Pool {}, the invocation of {} with args {} on {} threw:",
                     getPoolName(config), method, Arrays.toString(args), target, t);
     }
 
-    protected boolean isClosed() {
+    boolean isClosed() {
         return logicallyClosed.get();
     }
 
-    protected boolean getAndSetClosed() {
+    boolean getAndSetClosed() {
         return logicallyClosed.getAndSet(true);
     }
 
-    protected void ensureNotClosed() throws SQLException {
+    void ensureNotClosed() throws SQLException {
         if (isClosed())
             throw new SQLException(target.getClass().getName() + " is closed.", SQLSTATE_OBJECT_CLOSED_ERROR);
     }
 
-    protected ExceptionCollector getExceptionCollector() {
+    ExceptionCollector getExceptionCollector() {
         return exceptionCollector;
     }
 
-    protected T getTarget() {
+    T getTarget() {
         return target;
     }
 

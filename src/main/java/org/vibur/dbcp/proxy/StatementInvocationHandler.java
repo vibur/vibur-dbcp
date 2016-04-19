@@ -38,7 +38,7 @@ import static org.vibur.dbcp.util.ViburUtils.getPoolName;
 /**
  * @author Simeon Malchev
  */
-public class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection, Statement> {
+class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection, Statement> {
 
     private static final Logger logger = LoggerFactory.getLogger(StatementInvocationHandler.class);
 
@@ -60,7 +60,7 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
     }
 
     @Override
-    protected Object doInvoke(Statement proxy, Method method, Object[] args) throws Throwable {
+    Object doInvoke(Statement proxy, Method method, Object[] args) throws Throwable {
         String methodName = method.getName();
 
         if (methodName == "close")
@@ -145,7 +145,7 @@ public class StatementInvocationHandler extends ChildObjectInvocationHandler<Con
     }
 
     @Override
-    protected void logInvokeFailure(Method method, Object[] args, Throwable t) {
+    void logInvokeFailure(Method method, Object[] args, Throwable t) {
         if (method.getName().startsWith("execute")) {
             if (logger.isDebugEnabled())
                 logger.debug("SQL query execution from pool {}:\n{}\n-- threw:",

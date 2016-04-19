@@ -32,7 +32,7 @@ import java.sql.Statement;
 /**
  * @author Simeon Malchev
  */
-public class ConnectionInvocationHandler extends AbstractInvocationHandler<Connection> {
+class ConnectionInvocationHandler extends AbstractInvocationHandler<Connection> {
 
     private final ConnHolder conn;
     private final ViburDBCPConfig config;
@@ -47,7 +47,7 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
     }
 
     @Override
-    protected Object doInvoke(Connection proxy, Method method, Object[] args) throws Throwable {
+    Object doInvoke(Connection proxy, Method method, Object[] args) throws Throwable {
         String methodName = method.getName();
 
         boolean aborted = methodName == "abort";

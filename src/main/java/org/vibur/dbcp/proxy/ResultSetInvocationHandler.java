@@ -31,7 +31,7 @@ import static org.vibur.dbcp.util.ViburUtils.getPoolName;
 /**
  * @author Simeon Malchev
  */
-public class ResultSetInvocationHandler extends ChildObjectInvocationHandler<Statement, ResultSet> {
+class ResultSetInvocationHandler extends ChildObjectInvocationHandler<Statement, ResultSet> {
 
     private final Object[] executeMethodArgs;
     private final List<Object[]> queryParams;
@@ -49,7 +49,7 @@ public class ResultSetInvocationHandler extends ChildObjectInvocationHandler<Sta
     }
 
     @Override
-    protected Object doInvoke(ResultSet proxy, Method method, Object[] args) throws Throwable {
+    Object doInvoke(ResultSet proxy, Method method, Object[] args) throws Throwable {
         String methodName = method.getName();
 
         if (methodName == "close")
