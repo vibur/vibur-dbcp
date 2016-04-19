@@ -37,7 +37,7 @@ import static org.vibur.dbcp.util.ViburUtils.getPoolName;
  * @author Simeon Malchev
  * @param <T> the type of the object that we are dynamically proxy-ing
 */
-public abstract class AbstractInvocationHandler<T> implements TargetInvoker {
+abstract class AbstractInvocationHandler<T> implements TargetInvoker {
 
     private static final Logger logger = LoggerFactory.getLogger(AbstractInvocationHandler.class);
 
@@ -50,7 +50,7 @@ public abstract class AbstractInvocationHandler<T> implements TargetInvoker {
 
     private final AtomicBoolean logicallyClosed = new AtomicBoolean(false);
 
-    public AbstractInvocationHandler(T target, ViburDBCPConfig config, ExceptionCollector exceptionCollector) {
+    protected AbstractInvocationHandler(T target, ViburDBCPConfig config, ExceptionCollector exceptionCollector) {
         this.target = requireNonNull(target);
         this.config = requireNonNull(config);
         this.exceptionCollector = requireNonNull(exceptionCollector);
