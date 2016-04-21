@@ -1,4 +1,4 @@
-Version 9.0 (12/04/2016) - recommended
+Version 9.0 (26/04/2016) - recommended
 ======================================
 * Migrated the source code base to Java 1.7 and implemented AutoCloseable for ViburDBCPDataSource.
 * This version of Vibur DBCP depends on version 9.0 of Vibur Object Pool, which contains a fix for issue #2 -
