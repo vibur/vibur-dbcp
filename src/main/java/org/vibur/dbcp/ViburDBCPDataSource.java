@@ -45,8 +45,8 @@ import java.util.Set;
 import java.util.logging.Logger;
 
 import static java.util.Objects.requireNonNull;
-import static org.vibur.dbcp.JmxUtils.registerMBean;
-import static org.vibur.dbcp.JmxUtils.unregisterMBean;
+import static org.vibur.dbcp.util.JmxUtils.registerMBean;
+import static org.vibur.dbcp.util.JmxUtils.unregisterMBean;
 import static org.vibur.dbcp.util.ViburUtils.getPoolName;
 import static org.vibur.dbcp.util.ViburUtils.unwrapSQLException;
 import static org.vibur.objectpool.util.ArgumentUtils.forbidIllegalArgument;
