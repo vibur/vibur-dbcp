@@ -20,7 +20,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.ViburDBCPConfig;
 import org.vibur.dbcp.ViburDBCPException;
-import org.vibur.dbcp.util.pool.ConnHolder;
 import org.vibur.objectpool.reducer.SamplingPoolReducer;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -35,7 +34,7 @@ import static org.vibur.dbcp.util.ViburUtils.getPoolName;
  * @author Simeon Malchev
  */
 @SuppressWarnings("unused")
-public class PoolReducer extends SamplingPoolReducer<ConnHolder> {
+public class PoolReducer extends SamplingPoolReducer {
 
     private static final Logger logger = LoggerFactory.getLogger(PoolReducer.class);
 

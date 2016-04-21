@@ -20,8 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.ViburDBCPConfig;
 import org.vibur.dbcp.ViburDBCPException;
-import org.vibur.dbcp.util.pool.ConnHolder;
-import org.vibur.objectpool.PoolService;
+import org.vibur.objectpool.BasePool;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -38,7 +37,7 @@ public final class ViburUtils {
     private ViburUtils() {}
 
     public static String getPoolName(ViburDBCPConfig config) {
-        PoolService<ConnHolder> pool = config.getPool();
+        BasePool pool = config.getPool();
         return format("%s (%d/%d)", config.getName(), pool.taken(), pool.remainingCreated());
     }
 
@@ -56,7 +55,7 @@ public final class ViburUtils {
         return builder.toString();
     }
 
-    public static Connection unrollSQLException(ViburDBCPException e) throws SQLException {
+    public static Connection unwrapSQLException(ViburDBCPException e) throws SQLException {
         Throwable cause = e.getCause();
         if (cause instanceof SQLException)
             throw (SQLException) cause;

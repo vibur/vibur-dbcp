@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 
-package org.vibur.dbcp.util.pool;
+package org.vibur.dbcp.pool;
 
 import java.sql.Connection;
-
-import static java.util.Objects.requireNonNull;
 
 /**
  * The stateful object which is held in the object pool. It is just a thin wrapper around the
@@ -37,7 +35,9 @@ public class ConnHolder {
     private StackTraceElement[] stackTrace = null;
 
     public ConnHolder(Connection value, int version, long currentTime) {
-        this.value = requireNonNull(value);
+        if (value == null)
+            throw new NullPointerException();
+        this.value = value;
         this.version = version;
         this.restoredTime = currentTime;
     }

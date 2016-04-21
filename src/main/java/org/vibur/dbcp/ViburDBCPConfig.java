@@ -21,12 +21,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.cache.StatementCache;
 import org.vibur.dbcp.pool.PoolOperations;
+import org.vibur.dbcp.util.event.BaseViburLogger;
 import org.vibur.dbcp.util.event.ConnectionHook;
 import org.vibur.dbcp.util.event.ExceptionListener;
-import org.vibur.dbcp.util.logger.BaseViburLogger;
-import org.vibur.dbcp.util.logger.ViburLogger;
-import org.vibur.dbcp.util.pool.ConnHolder;
-import org.vibur.objectpool.PoolService;
+import org.vibur.dbcp.util.event.ViburLogger;
+import org.vibur.objectpool.BasePool;
 
 import javax.sql.DataSource;
 import java.util.concurrent.ConcurrentHashMap;
@@ -50,6 +49,8 @@ public class ViburDBCPConfig {
     public static final String SQLSTATE_OBJECT_CLOSED_ERROR = "VI003";
     public static final String SQLSTATE_WRAPPER_ERROR       = "VI004";
 
+    public static final int STATEMENT_CACHE_MAX_SIZE = 2000;
+
     /** Database driver class name. This is <b>an optional</b> parameter if the driver is JDBC 4 complaint. If specified,
      * a call to {@code Class.forName(driverClassName).newInstance()} will be issued during the Vibur DBCP initialization.
      * This is needed when Vibur DBCP is used in an OSGi container and may also be helpful if Vibur DBCP is used in an
@@ -57,34 +58,35 @@ public class ViburDBCPConfig {
      * If this property is not specified, then Vibur DBCP will depend on the JavaSE Service Provider mechanism to find
      * the driver. */
     private String driverClassName = null;
-    /** Database JDBC Connection string. */
+    /** The database JDBC Connection string. */
     private String jdbcUrl;
-    /** User name to use. */
+    /** The user name to use when connecting to the database. */
     private String username;
-    /** Password to use. */
+    /** The password to use when connecting to the database. */
     private String password;
     /** If specified, this {@code externalDataSource} will be used as an alternative way to obtain the raw
-     * connections for the pool instead of calling {@code DriverManager.getConnection()}. */
+     * connections for the pool instead of calling {@link java.sql.DriverManager#getConnection(String)}. */
     private DataSource externalDataSource = null;
 
 
     /** If the connection has stayed in the pool for at least {@code connectionIdleLimitInSeconds},
-     * it will be validated before being given to the application using the {@code testConnectionQuery}.
+     * it will be validated before being given to the application using the {@link #testConnectionQuery}.
      * If set to {@code 0}, will validate the connection always when it is taken from the pool.
      * If set to a negative number, will never validate the taken from the pool connection. */
-    private int connectionIdleLimitInSeconds = 15;
-    /** The timeout that will be passed to the call to {@code testConnectionQuery} when a taken
-     * from the pool JDBC Connection is validated before use, or when {@code initSQL} is executed (if specified).
+    private int connectionIdleLimitInSeconds = 5;
+    /** The timeout that will be passed to the call to {@link #testConnectionQuery} when a taken
+     * from the pool JDBC Connection is validated before use, or when {@link #initSQL} is executed (if specified).
      * {@code 0} means no limit. */
     private int validateTimeoutInSeconds = 3;
 
     public static final String IS_VALID_QUERY = "isValid";
 
-    /** Used to test the validity of a JDBC Connection. If the {@code connectionIdleLimitInSeconds} is set to
-     * a non-negative number, the {@code testConnectionQuery} should be set to a valid SQL query, for example
-     * {@code SELECT 1}, or to {@code isValid} in which case the {@code Connection.isValid()} method will be used.
+    /** Used to test the validity of a JDBC Connection. If the {@link #connectionIdleLimitInSeconds} is set to
+     * a non-negative number, the {@link #testConnectionQuery} should be set to a valid SQL query, for example
+     * {@code SELECT 1}, or to {@code isValid} in which case the {@link java.sql.Connection#isValid} method
+     * will be used.
      *
-     * <p>Similarly to the spec for {@link java.sql.Connection#isValid(int)}, if a custom {@code testConnectionQuery}
+     * <p>Similarly to the spec for {@link java.sql.Connection#isValid}, if a custom {@link #testConnectionQuery}
      * is specified, it will be executed in the context of the current transaction.
      *
      * <p>Note that if the driver is JDBC 4 compliant, using the default {@code isValid} value is
@@ -94,25 +96,25 @@ public class ViburDBCPConfig {
 
     /** An SQL query which will be run only once when a JDBC Connection is first created. This property should be
      * set to a valid SQL query, to {@code null} which means no query, or to {@code isValid} which means that the
-     * {@code Connection.isValid()} method will be used. An use case in which this property can be useful is when the
-     * application is connecting to the database via some middleware, for example, connecting to PostgreSQL server(s)
-     * via PgBouncer. */
+     * {@link java.sql.Connection#isValid} method will be used. An use case in which this property can be useful
+     * is when the application is connecting to the database via some middleware, for example, connecting to PostgreSQL
+     * server(s) via PgBouncer. */
     private String initSQL = null;
 
-    /** This option applies only if {@code testConnectionQuery} or {@code initSQL} are enabled and if at least one
+    /** This option applies only if {@link #testConnectionQuery} or {@link #initSQL} are enabled and if at least one
      * of them has a value different than {@code IS_VALID_QUERY} ({@code isValid}). If enabled,
      * the calls to the validation or initialization SQL query will be preceded by a call to
-     * {@link java.sql.Connection#setNetworkTimeout(Executor, int)}, and after that the original network
+     * {@link java.sql.Connection#setNetworkTimeout}, and after that the original network
      * timeout value will be restored.
      *
-     * <p>Note that it is responsibility of the application developer to make sure that used by the application
+     * <p>Note that it is responsibility of the application developer to make sure that the used by the application
      * JDBC driver supports {@code setNetworkTimeout}.
      */
     private boolean useNetworkTimeout = false;
     /** This option applies only if {@code useNetworkTimeout} is enabled. This is the {@code Executor} that will
-     * be passed to the call of {@link java.sql.Connection#setNetworkTimeout(Executor, int)}.
+     * be passed to the call of {@link java.sql.Connection#setNetworkTimeout}.
      *
-     * <p>Note that it is responsibility of the application developer to supply {@code Executor} that is suitable
+     * <p>Note that it is responsibility of the application developer to supply {@link Executor} that is suitable
      * for the needs of the application JDBC driver. For example, some JDBC drivers may require a synchronous
      * {@code Executor}.
      */
@@ -123,9 +125,9 @@ public class ViburDBCPConfig {
     private int poolInitialSize = 10;
     /** The pool max size, i.e. the maximum number of JDBC Connections allocated in this pool. */
     private int poolMaxSize = 100;
-    /** If `true`, guarantees that the threads invoking the pool's {@code take} methods will be selected to obtain a
-     * connection from it in FIFO order, and no thread will be starved out from accessing the pool's underlying
-     * resources. */
+    /** If `true`, guarantees that the threads invoking the pool's {@link org.vibur.objectpool.PoolService#take}
+     * methods will be selected to obtain a connection from it in FIFO order, and no thread will be starved out from
+     * accessing the pool's underlying resources. */
     private boolean poolFair = true;
     /** If {@code true}, the pool will keep information for the current stack trace of every taken connection. */
     private boolean poolEnableConnectionTracking = false;
@@ -142,41 +144,43 @@ public class ViburDBCPConfig {
 
     /** The fully qualified pool reducer class name. This pool reducer class will be instantiated via reflection,
      * and will be instantiated only if {@link #reducerTimeIntervalInSeconds} is greater than {@code 0}.
-     * It must implement the ThreadedPoolReducer interface and must also have a public constructor accepting a
+     * It must implements the ThreadedPoolReducer interface and must also have a public constructor accepting a
      * single argument of type ViburDBCPConfig. */
     private String poolReducerClass = "org.vibur.dbcp.pool.PoolReducer";
 
-    /** For more details on the next 2 parameters see {@link org.vibur.objectpool.util.SamplingPoolReducer}.
+    /** For more details on the next 2 parameters see {@link org.vibur.objectpool.reducer.SamplingPoolReducer}.
      */
     /** The time period after which the {@code poolReducer} will try to possibly reduce the number of created
      * but unused JDBC Connections in this pool. {@code 0} disables it. */
     private int reducerTimeIntervalInSeconds = 60;
     /** How many times the {@code poolReducer} will wake up during the given
-     * {@code reducerTimeIntervalInSeconds} period in order to sample various information from this pool. */
+     * {@link #reducerTimeIntervalInSeconds} period in order to sample various information from this pool. */
     private int reducerSamples = 20;
 
 
-    /** Time to wait before a call to {@code getConnection()} times out and returns an error, for the case when
+    /** The time to wait before a call to {@code getConnection()} times out and returns an error, for the case when
      * there is an available and valid connection in the pool. {@code 0} means forever.
      *
      * <p>If there is not an available and valid connection in the pool, the total maximum time which the
-     * call to {@code getConnection()} may take before it times out and returns an error can be calculated as: <br>
+     * call to {@code getConnection()} may take before it times out and returns an error can be calculated as:
+     * <pre>
      * maxTimeoutInMs = connectionTimeoutInMs
      *     + (acquireRetryAttempts + 1) * loginTimeoutInSeconds * 1000
-     *     + acquireRetryAttempts * acquireRetryDelayInMs */
+     *     + acquireRetryAttempts * acquireRetryDelayInMs
+     * </pre> */
     private long connectionTimeoutInMs = 30000;
-    /** Login timeout which is to be set to the call to {@code DriverManager.setLoginTimeout()}
+    /** The login timeout that will be set to the call to {@code DriverManager.setLoginTimeout()}
      * or {@code getExternalDataSource().setLoginTimeout()} during the initialization process of the DataSource. */
     private int loginTimeoutInSeconds = 10;
     /** After attempting to acquire a JDBC Connection and failing with an {@code SQLException},
-     * wait for this long time before attempting to acquire a new JDBC Connection again. */
+     * wait for this long before attempting to acquire a new JDBC Connection again. */
     private long acquireRetryDelayInMs = 1000;
     /** After attempting to acquire a JDBC Connection and failing with an {@code SQLException},
      * try to connect these many times before giving up. */
     private int acquireRetryAttempts = 3;
 
 
-    /** Defines the maximum statement cache size. {@code 0} disables it, max values is {@code 1000}.
+    /** Defines the maximum statement cache size. {@code 0} disables it, max values is {@link #STATEMENT_CACHE_MAX_SIZE}.
      * If the statement's cache is not enabled, the client application may safely exclude the dependency
      * on ConcurrentLinkedCacheMap from its pom.xml file. */
     private int statementCacheMaxSize = 0;
@@ -184,7 +188,7 @@ public class ViburDBCPConfig {
 
 
     /** The list of critical SQL states as a comma separated values, see http://stackoverflow.com/a/14412929/1682918 .
-     * If an SQL exception which has any of these SQL states is thrown then all connections in the pool will be
+     * If an SQL exception that has any of these SQL states occurs then all connections in the pool will be
      * considered invalid and will be closed. */
     private String criticalSQLStates = "08001,08006,08007,08S01,57P01,57P02,57P03,JZ0C0,JZ0C1";
 
@@ -192,7 +196,7 @@ public class ViburDBCPConfig {
     /** {@code getConnection} method calls taking longer than or equal to this time limit are logged at WARN level.
      * A value of {@code 0} will log all such calls. A {@code negative number} disables it.
      *
-     * <p>If the value of {@code logConnectionLongerThanMs} is greater than {@code connectionTimeoutInMs},
+     * <p>If the value of {@link #logConnectionLongerThanMs} is greater than {@code connectionTimeoutInMs},
      * then {@code logConnectionLongerThanMs} will be set to the value of {@code connectionTimeoutInMs}. */
     private long logConnectionLongerThanMs = 3000;
     /** Will apply only if {@link #logConnectionLongerThanMs} is enabled, and if set to {@code true},
@@ -216,9 +220,9 @@ public class ViburDBCPConfig {
      * on the application performance and may sometimes be an indication of a very subtle application bug, where
      * the whole ResultSet is retrieved, but only the first few records of it are subsequently read and processed.
      *
-     * <p>The logging is done at the moment when the application issues a call to the
-     * {@code ResultSet.close()} method. Applications that rely on the implicit closure of the {@code ResultSet} when
-     * the generated it {@code Statement} is closed, will not be able to benefit from this logging functionality.
+     * <p>The logging is done at the moment when the application issues a call to the {@code ResultSet.close()}
+     * method. Applications that rely on the <i>implicit</i> closure of the {@code ResultSet} when the generated it
+     * {@code Statement} is closed, will not be able to benefit from this logging functionality.
      *
      * <p>The calculation of the {@code ResultSet} size is done based on the number of calls that the application
      * has issued to the {@code ResultSet.next()} method. In most of the cases this is a very accurate and
@@ -242,9 +246,9 @@ public class ViburDBCPConfig {
     private Boolean defaultReadOnly;
     /** The default transaction isolation state of the created connections. */
     private String defaultTransactionIsolation;
-    /** The default catalog state of the created connections. */
+    /** The default catalog of the created connections. */
     private String defaultCatalog;
-    /** The parsed transaction isolation value. Default = driver value. */
+    /** The parsed transaction isolation value. {@code null} means use the default driver value. */
     private Integer defaultTransactionIsolationValue;
 
 
@@ -270,7 +274,7 @@ public class ViburDBCPConfig {
     /** Provides access to the functionality for logging of long lasting getConnection() calls, slow SQL queries,
      * and large ResultSets. Setting this parameter to a sub-class of {@link BaseViburLogger} will allow the
      * application to intercept all such logging events, and to accumulate statistics of the count and execution time
-     * of the SQL queries, or similar.
+     * of the SQL queries, and similar.
      */
     private ViburLogger viburLogger = new BaseViburLogger();
     /**
@@ -280,8 +284,9 @@ public class ViburDBCPConfig {
      */
     private ExceptionListener exceptionListener = null;
 
-    
-    private PoolService<ConnHolder> pool;
+    private boolean fifo = false;
+
+    private BasePool pool;
     private PoolOperations poolOperations;
 
 
@@ -648,11 +653,19 @@ public class ViburDBCPConfig {
         this.exceptionListener = exceptionListener;
     }
 
-    public PoolService<ConnHolder> getPool() {
+    public boolean isFifo() {
+        return fifo;
+    }
+
+    public void setFifo(boolean fifo) {
+        this.fifo = fifo;
+    }
+
+    public BasePool getPool() {
         return pool;
     }
 
-    public void setPool(PoolService<ConnHolder> pool) {
+    public void setPool(BasePool pool) {
         this.pool = pool;
     }
 

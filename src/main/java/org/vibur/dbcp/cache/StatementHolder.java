@@ -19,8 +19,6 @@ package org.vibur.dbcp.cache;
 import java.sql.Statement;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static java.util.Objects.requireNonNull;
-
 /**
  * A thin wrapper around the raw JDBC {@code Statement} object which allows us to augment it with useful "state"
  * information. The instances of this class are used as a cached {@code value} (in {@code ConcurrentMap} cache
@@ -45,7 +43,9 @@ public class StatementHolder {
     private final AtomicInteger state; // a null value means that this StatementHolder instance is not included in the cache
 
     public StatementHolder(Statement value, AtomicInteger state) {
-        this.value = requireNonNull(value);
+        if (value == null)
+            throw new NullPointerException();
+        this.value = value;
         this.state = state;
     }
 

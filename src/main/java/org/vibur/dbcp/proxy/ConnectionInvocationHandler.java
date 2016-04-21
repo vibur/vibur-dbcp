@@ -20,9 +20,9 @@ import org.vibur.dbcp.ViburDBCPConfig;
 import org.vibur.dbcp.cache.ConnMethod;
 import org.vibur.dbcp.cache.StatementCache;
 import org.vibur.dbcp.cache.StatementHolder;
+import org.vibur.dbcp.pool.ConnHolder;
 import org.vibur.dbcp.pool.PoolOperations;
 import org.vibur.dbcp.util.collector.ExceptionCollectorImpl;
-import org.vibur.dbcp.util.pool.ConnHolder;
 
 import java.lang.reflect.Method;
 import java.sql.Connection;

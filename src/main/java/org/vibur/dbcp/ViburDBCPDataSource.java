@@ -19,10 +19,10 @@ package org.vibur.dbcp;
 import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.cache.StatementCache;
 import org.vibur.dbcp.jmx.ViburDBCPMonitoring;
+import org.vibur.dbcp.pool.ConnHolder;
 import org.vibur.dbcp.pool.ConnectionFactory;
 import org.vibur.dbcp.pool.PoolOperations;
 import org.vibur.dbcp.pool.VersionedObjectFactory;
-import org.vibur.dbcp.util.pool.ConnHolder;
 import org.vibur.objectpool.ConcurrentLinkedPool;
 import org.vibur.objectpool.PoolService;
 import org.vibur.objectpool.listener.TakenListener;
@@ -45,10 +45,10 @@ import java.util.Set;
 import java.util.logging.Logger;
 
 import static java.util.Objects.requireNonNull;
-import static org.vibur.dbcp.util.JmxUtils.registerMBean;
-import static org.vibur.dbcp.util.JmxUtils.unregisterMBean;
+import static org.vibur.dbcp.JmxUtils.registerMBean;
+import static org.vibur.dbcp.JmxUtils.unregisterMBean;
 import static org.vibur.dbcp.util.ViburUtils.getPoolName;
-import static org.vibur.dbcp.util.ViburUtils.unrollSQLException;
+import static org.vibur.dbcp.util.ViburUtils.unwrapSQLException;
 import static org.vibur.objectpool.util.ArgumentUtils.forbidIllegalArgument;
 
 /**
@@ -64,8 +64,6 @@ import static org.vibur.objectpool.util.ArgumentUtils.forbidIllegalArgument;
 public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, DataSourceLifecycle {
 
     private static final org.slf4j.Logger logger = LoggerFactory.getLogger(ViburDBCPDataSource.class);
-
-    private static final int CACHE_MAX_SIZE = 1000;
 
     public static final String DEFAULT_PROPERTIES_CONFIG_FILE_NAME = "vibur-dbcp-config.properties";
     public static final String DEFAULT_XML_CONFIG_FILE_NAME = "vibur-dbcp-config.xml";
@@ -223,7 +221,8 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
         connectionFactory = new ConnectionFactory(this);
         PoolService<ConnHolder> pool = new ConcurrentLinkedPool<>(connectionFactory,
                 getPoolInitialSize(), getPoolMaxSize(), isPoolFair(),
-                isPoolEnableConnectionTracking() ? new TakenListener<ConnHolder>(getPoolInitialSize()) : null);
+                isPoolEnableConnectionTracking() ? new TakenListener<ConnHolder>(getPoolInitialSize()) : null,
+                isFifo());
         setPool(pool);
         initPoolReducer();
 
@@ -294,9 +293,9 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
             logger.warn("Setting logConnectionLongerThanMs to {}", getConnectionTimeoutInMs());
             setLogConnectionLongerThanMs(getConnectionTimeoutInMs());
         }
-        if (getStatementCacheMaxSize() > CACHE_MAX_SIZE) {
-            logger.warn("Setting statementCacheMaxSize to {}", CACHE_MAX_SIZE);
-            setStatementCacheMaxSize(CACHE_MAX_SIZE);
+        if (getStatementCacheMaxSize() > STATEMENT_CACHE_MAX_SIZE) {
+            logger.warn("Setting statementCacheMaxSize to {}", STATEMENT_CACHE_MAX_SIZE);
+            setStatementCacheMaxSize(STATEMENT_CACHE_MAX_SIZE);
         }
 
         if (getDefaultTransactionIsolation() != null) {
@@ -373,7 +372,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
         try {
             return connectionFactory.create(username, password).value();
         } catch (ViburDBCPException e) {
-            return unrollSQLException(e);
+            return unwrapSQLException(e);
         }
     }
 

@@ -18,7 +18,8 @@ package org.vibur.dbcp.jmx;
 
 import org.vibur.dbcp.ViburDBCPConfig;
 import org.vibur.dbcp.ViburDBCPException;
-import org.vibur.dbcp.util.pool.ConnHolder;
+import org.vibur.dbcp.pool.ConnHolder;
+import org.vibur.objectpool.PoolService;
 import org.vibur.objectpool.listener.TakenListener;
 
 import java.util.Collections;
@@ -266,11 +267,13 @@ public class ViburDBCPMonitoring implements ViburDBCPMonitoringMBean {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public String showTakenConnections() {
         if (!config.isPoolEnableConnectionTracking())
             return "poolEnableConnectionTracking is disabled.";
 
-        List<ConnHolder> connHolders = ((TakenListener<ConnHolder>) config.getPool().listener()).getTaken();
+        PoolService<ConnHolder> poolService = (PoolService<ConnHolder>) config.getPool();
+        List<ConnHolder> connHolders = ((TakenListener<ConnHolder>) poolService.listener()).getTaken();
         Collections.sort(connHolders, new Comparator<ConnHolder>() { // sort newest on top
             @Override
             public int compare(ConnHolder h1, ConnHolder h2) {

@@ -109,7 +109,7 @@ public final class JdbcUtils {
     }
 
     public static boolean validateConnection(ViburDBCPConfig config, Connection rawConnection, String query) throws SQLException {
-        if (query == null || query.trim().isEmpty())
+        if (query == null)
             return true;
 
         if (query.equals(IS_VALID_QUERY))

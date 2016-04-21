@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.vibur.dbcp.util.logger;
+package org.vibur.dbcp.util.event;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

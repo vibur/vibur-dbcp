@@ -28,7 +28,6 @@ import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static java.util.Objects.requireNonNull;
 import static org.vibur.dbcp.ViburDBCPConfig.SQLSTATE_OBJECT_CLOSED_ERROR;
 import static org.vibur.dbcp.ViburDBCPConfig.SQLSTATE_WRAPPER_ERROR;
 import static org.vibur.dbcp.util.ViburUtils.getPoolName;
@@ -51,9 +50,11 @@ abstract class AbstractInvocationHandler<T> implements TargetInvoker {
     private final AtomicBoolean logicallyClosed = new AtomicBoolean(false);
 
     AbstractInvocationHandler(T target, ViburDBCPConfig config, ExceptionCollector exceptionCollector) {
-        this.target = requireNonNull(target);
-        this.config = requireNonNull(config);
-        this.exceptionCollector = requireNonNull(exceptionCollector);
+        if (target == null || config == null || exceptionCollector == null)
+            throw new NullPointerException();
+        this.target = target;
+        this.config = config;
+        this.exceptionCollector = exceptionCollector;
     }
 
     @Override

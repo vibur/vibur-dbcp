@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.vibur.dbcp.util;
+package org.vibur.dbcp;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,7 +34,7 @@ public final class JmxUtils {
 
     private JmxUtils() {}
 
-    public static void registerMBean(ViburDBCPMonitoringMBean mBean, String poolName) {
+    static void registerMBean(ViburDBCPMonitoringMBean mBean, String poolName) {
         String jmxPoolName = getJmxPoolName(poolName);
         try {
             MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
@@ -48,7 +48,7 @@ public final class JmxUtils {
         }
     }
 
-    public static void unregisterMBean(String poolName) {
+    static void unregisterMBean(String poolName) {
         String jmxPoolName = getJmxPoolName(poolName);
         try {
             MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();

@@ -21,8 +21,6 @@ import org.vibur.dbcp.util.collector.ExceptionCollector;
 
 import java.lang.reflect.Method;
 
-import static java.util.Objects.requireNonNull;
-
 /**
  * @author Simeon Malchev
  * @param <P> the type of the parent object from which the {@code T} object was derived
@@ -36,8 +34,10 @@ class ChildObjectInvocationHandler<P, T> extends AbstractInvocationHandler<T> {
     public ChildObjectInvocationHandler(T connectionChild, P parentProxy, String getParentMethod,
                                         ViburDBCPConfig config, ExceptionCollector exceptionCollector) {
         super(connectionChild, config, exceptionCollector);
-        this.parentProxy = requireNonNull(parentProxy);
-        this.getParentMethod = requireNonNull(getParentMethod);
+        if (parentProxy == null || getParentMethod == null)
+            throw new NullPointerException();
+        this.parentProxy = parentProxy;
+        this.getParentMethod = getParentMethod;
     }
 
     @Override
