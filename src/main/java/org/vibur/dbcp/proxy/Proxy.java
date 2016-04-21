@@ -94,18 +94,18 @@ public final class Proxy {
     // static initializer for all constructors:
     static {
         try {
-            connectionCtor = java.lang.reflect.Proxy.getProxyClass(classLoader,
-                    Connection.class).getConstructor(InvocationHandler.class);
-            statementCtor = java.lang.reflect.Proxy.getProxyClass(classLoader,
-                    Statement.class).getConstructor(InvocationHandler.class);
-            pStatementCtor = java.lang.reflect.Proxy.getProxyClass(classLoader,
-                    PreparedStatement.class).getConstructor(InvocationHandler.class);
-            cStatementCtor = java.lang.reflect.Proxy.getProxyClass(classLoader,
-                    CallableStatement.class).getConstructor(InvocationHandler.class);
-            metadataCtor = java.lang.reflect.Proxy.getProxyClass(classLoader,
-                    DatabaseMetaData.class).getConstructor(InvocationHandler.class);
-            resultSetCtor = java.lang.reflect.Proxy.getProxyClass(classLoader,
-                    ResultSet.class).getConstructor(InvocationHandler.class);
+            connectionCtor = java.lang.reflect.Proxy.getProxyClass(classLoader, Connection.class)
+                    .getConstructor(InvocationHandler.class);
+            statementCtor = java.lang.reflect.Proxy.getProxyClass(classLoader, Statement.class)
+                    .getConstructor(InvocationHandler.class);
+            pStatementCtor = java.lang.reflect.Proxy.getProxyClass(classLoader, PreparedStatement.class)
+                    .getConstructor(InvocationHandler.class);
+            cStatementCtor = java.lang.reflect.Proxy.getProxyClass(classLoader, CallableStatement.class)
+                    .getConstructor(InvocationHandler.class);
+            metadataCtor = java.lang.reflect.Proxy.getProxyClass(classLoader, DatabaseMetaData.class)
+                    .getConstructor(InvocationHandler.class);
+            resultSetCtor = java.lang.reflect.Proxy.getProxyClass(classLoader, ResultSet.class)
+                    .getConstructor(InvocationHandler.class);
         } catch (ReflectiveOperationException e) {
             throw new Error(e);
         }
