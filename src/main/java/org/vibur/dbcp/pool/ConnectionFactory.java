@@ -22,9 +22,11 @@ import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.ViburDBCPConfig;
 import org.vibur.dbcp.ViburDBCPException;
 import org.vibur.dbcp.cache.StatementCache;
+import org.vibur.objectpool.PoolService;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.util.Objects.requireNonNull;
@@ -43,11 +45,14 @@ import static org.vibur.dbcp.util.JdbcUtils.*;
  * @author Simeon Malchev
  * @author Daniel Caldeweyher
  */
-public class ConnectionFactory implements VersionedObjectFactory<ConnHolder> {
+public class ConnectionFactory implements ViburObjectFactory {
 
     private static final Logger logger = LoggerFactory.getLogger(ConnectionFactory.class);
 
     private final ViburDBCPConfig config;
+    private final PoolService<ConnHolder> pool;
+    private final Set<String> criticalSQLStates;
+
     private final AtomicInteger version = new AtomicInteger(1);
 
     /**
@@ -56,8 +61,12 @@ public class ConnectionFactory implements VersionedObjectFactory<ConnHolder> {
      * @param config the ViburDBCPConfig from which will initialize
      * @throws ViburDBCPException if cannot successfully initialize/configure the underlying SQL system
      */
+    @SuppressWarnings("unchecked")
     public ConnectionFactory(ViburDBCPConfig config) throws ViburDBCPException {
         this.config = requireNonNull(config);
+        this.pool = (PoolService<ConnHolder>) config.getPool();
+        this.criticalSQLStates = new HashSet<>(Arrays.asList(
+                config.getCriticalSQLStates().replaceAll("\\s", "").split(",")));
 
         initLoginTimeout(config);
         initJdbcDriver(config);
@@ -113,15 +122,16 @@ public class ConnectionFactory implements VersionedObjectFactory<ConnHolder> {
         if (conn.version() != version())
             return false;
 
+        Connection rawConnection = conn.value();
         try {
             int idleLimit = config.getConnectionIdleLimitInSeconds();
             if (idleLimit >= 0) {
                 int idle = (int) MILLISECONDS.toSeconds(System.currentTimeMillis() - conn.getRestoredTime());
-                if (idle >= idleLimit && !validateConnection(config, conn.value(), config.getTestConnectionQuery()))
+                if (idle >= idleLimit && !validateConnection(config, rawConnection, config.getTestConnectionQuery()))
                     return false;
             }
             if (config.getConnectionHook() != null)
-                config.getConnectionHook().on(conn.value());
+                config.getConnectionHook().on(rawConnection);
 
             if (config.isPoolEnableConnectionTracking()) {
                 conn.setTakenTime(System.currentTimeMillis());
@@ -129,7 +139,8 @@ public class ConnectionFactory implements VersionedObjectFactory<ConnHolder> {
             }
             return true;
         } catch (SQLException e) {
-            logger.debug("Couldn't validate {}", conn.value(), e);
+            logger.debug("Couldn't validate {}", rawConnection, e);
+            processSQLExceptions(conn, Collections.<Throwable>singletonList(e));
             return false;
         }
     }
@@ -149,6 +160,7 @@ public class ConnectionFactory implements VersionedObjectFactory<ConnHolder> {
             return true;
         } catch (SQLException e) {
             logger.debug("Couldn't reset {}", rawConnection, e);
+            processSQLExceptions(conn, Collections.<Throwable>singletonList(e));
             return false;
         }
     }
@@ -175,5 +187,35 @@ public class ConnectionFactory implements VersionedObjectFactory<ConnHolder> {
     @Override
     public boolean compareAndSetVersion(int expect, int update) {
         return version.compareAndSet(expect, update);
+    }
+
+    @Override
+    public void processSQLExceptions(ConnHolder conn, List<Throwable> errors) {
+        int connVersion = conn.version();
+        SQLException criticalException = getCriticalSQLException(errors);
+        if (criticalException != null && compareAndSetVersion(connVersion, connVersion + 1)) {
+            int destroyed = pool.drainCreated(); // destroys all connections in the pool
+            logger.error("Critical SQLState {} occurred, destroyed {} connections from pool {}, current connection version is {}.",
+                    criticalException.getSQLState(), destroyed, config.getName(), version(), criticalException);
+        }
+    }
+
+    private SQLException getCriticalSQLException(List<Throwable> errors) {
+        for (Throwable error : errors) {
+            if (error instanceof SQLException) {
+                SQLException sqlException = (SQLException) error;
+                if (isCriticalSQLException(sqlException))
+                    return sqlException;
+            }
+        }
+        return null;
+    }
+
+    private boolean isCriticalSQLException(SQLException sqlException) {
+        if (sqlException == null)
+            return false;
+        if (criticalSQLStates.contains(sqlException.getSQLState()))
+            return true;
+        return isCriticalSQLException(sqlException.getNextException());
     }
 }

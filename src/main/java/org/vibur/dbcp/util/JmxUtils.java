@@ -62,7 +62,7 @@ public final class JmxUtils {
         }
     }
 
-    public static String getJmxPoolName(String poolName) {
+    private static String getJmxPoolName(String poolName) {
         return "org.vibur.dbcp:type=ViburDBCP-" + poolName;
     }
 }

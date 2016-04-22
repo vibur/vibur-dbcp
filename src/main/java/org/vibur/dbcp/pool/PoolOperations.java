@@ -19,17 +19,13 @@ package org.vibur.dbcp.pool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.ViburDBCPConfig;
-import org.vibur.dbcp.ViburDBCPDataSource;
 import org.vibur.dbcp.ViburDBCPException;
 import org.vibur.dbcp.proxy.Proxy;
 import org.vibur.objectpool.PoolService;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
@@ -52,26 +48,19 @@ public class PoolOperations {
     private static final Logger logger = LoggerFactory.getLogger(PoolOperations.class);
 
     private final ViburDBCPConfig config;
-    private final Set<String> criticalSQLStates;
-
-    private final VersionedObjectFactory<ConnHolder> connectionFactory;
     private final PoolService<ConnHolder> pool;
-    private final String name;
+    private final ViburObjectFactory viburObjectFactory;
 
     /**
      * Instantiates this PoolOperations facade.
      *
-     * @param dataSource the ViburDBCPDataSource from which we will initialize
+     * @param config the ViburDBCPConfig from which we will initialize
      */
     @SuppressWarnings("unchecked")
-    public PoolOperations(ViburDBCPDataSource dataSource) {
-        this.config = requireNonNull(dataSource);
-        this.criticalSQLStates = new HashSet<>(Arrays.asList(
-                dataSource.getCriticalSQLStates().replaceAll("\\s", "").split(",")));
-
-        this.connectionFactory = dataSource.getConnectionFactory();
-        this.pool = (PoolService<ConnHolder>) dataSource.getPool();
-        this.name = dataSource.getName();
+    public PoolOperations(ViburDBCPConfig config, ViburObjectFactory viburObjectFactory) {
+        this.config = requireNonNull(config);
+        this.pool = (PoolService<ConnHolder>) config.getPool();
+        this.viburObjectFactory = requireNonNull(viburObjectFactory);
     }
 
     public Connection getConnection(long timeout) throws SQLException {
@@ -87,7 +76,7 @@ public class PoolOperations {
             pool.take() : pool.tryTake(timeout, MILLISECONDS);
         if (conn == null) {
             if (pool.isTerminated())
-                throw new SQLException(format("Pool %s is terminated.", name), SQLSTATE_POOL_CLOSED_ERROR);
+                throw new SQLException(format("Pool %s is terminated.", config.getName()), SQLSTATE_POOL_CLOSED_ERROR);
             else
                 throw new SQLException(format("Couldn't obtain SQL connection from pool %s within %dms.",
                         getPoolName(config), timeout), SQLSTATE_TIMEOUT_ERROR, (int) timeout);
@@ -97,37 +86,9 @@ public class PoolOperations {
     }
 
     public boolean restore(ConnHolder conn, boolean aborted, List<Throwable> errors) {
-        int connVersion = conn.version();
-        boolean valid = !aborted && errors.isEmpty() && connVersion == connectionFactory.version();
+        boolean valid = !aborted && errors.isEmpty() && conn.version() == viburObjectFactory.version();
         pool.restore(conn, valid);
-
-        SQLException sqlException;
-        if ((sqlException = hasCriticalSQLException(errors)) != null
-            && connectionFactory.compareAndSetVersion(connVersion, connVersion + 1)) {
-
-            int destroyed = pool.drainCreated(); // destroys all connections in the pool
-            logger.error("Critical SQLState {} occurred, destroyed {} connections from pool {}, current connection version is {}.",
-                    sqlException.getSQLState(), destroyed, name, connectionFactory.version(), sqlException);
-        }
+        viburObjectFactory.processSQLExceptions(conn, errors);
         return valid;
-    }
-
-    private SQLException hasCriticalSQLException(List<Throwable> errors) {
-        for (Throwable error : errors) {
-            if (error instanceof SQLException) {
-                SQLException sqlException = (SQLException) error;
-                if (isCriticalSQLException(sqlException))
-                    return sqlException;
-            }
-        }
-        return null;
-    }
-
-    private boolean isCriticalSQLException(SQLException sqlException) {
-        if (sqlException == null)
-            return false;
-        if (criticalSQLStates.contains(sqlException.getSQLState()))
-            return true;
-        return isCriticalSQLException(sqlException.getNextException());
     }
 }

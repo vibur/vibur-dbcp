@@ -22,7 +22,6 @@ import org.vibur.dbcp.jmx.ViburDBCPMonitoring;
 import org.vibur.dbcp.pool.ConnHolder;
 import org.vibur.dbcp.pool.ConnectionFactory;
 import org.vibur.dbcp.pool.PoolOperations;
-import org.vibur.dbcp.pool.VersionedObjectFactory;
 import org.vibur.objectpool.ConcurrentLinkedPool;
 import org.vibur.objectpool.PoolService;
 import org.vibur.objectpool.listener.TakenListener;
@@ -226,7 +225,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
         setPool(pool);
         initPoolReducer();
 
-        setPoolOperations(new PoolOperations(this));
+        setPoolOperations(new PoolOperations(this, connectionFactory));
         initStatementCache();
 
         if (isEnableJMX())
@@ -438,9 +437,5 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
     @Override
     public boolean isWrapperFor(Class<?> iface) {
         return false;
-    }
-
-    public VersionedObjectFactory<ConnHolder> getConnectionFactory() {
-        return connectionFactory;
     }
 }
