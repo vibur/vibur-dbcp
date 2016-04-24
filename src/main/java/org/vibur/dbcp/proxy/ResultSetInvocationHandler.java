@@ -38,9 +38,9 @@ class ResultSetInvocationHandler extends ChildObjectInvocationHandler<Statement,
 
     private final AtomicLong resultSetSize = new AtomicLong(0);
 
-    public ResultSetInvocationHandler(ResultSet rawResultSet, Statement statementProxy,
-                                      Object[] executeMethodArgs, List<Object[]> queryParams,
-                                      ViburDBCPConfig config, ExceptionCollector exceptionCollector) {
+    ResultSetInvocationHandler(ResultSet rawResultSet, Statement statementProxy,
+                               Object[] executeMethodArgs, List<Object[]> queryParams,
+                               ViburDBCPConfig config, ExceptionCollector exceptionCollector) {
         super(rawResultSet, statementProxy, "getStatement", config, exceptionCollector);
         this.executeMethodArgs = executeMethodArgs;
         this.queryParams = queryParams;

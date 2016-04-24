@@ -22,8 +22,8 @@ import java.util.List;
 
 /**
  * Defines the operations for a {@code PoolObjectFactory} that is specific for Vibur DBCP. It is a stateful factory
- * which has a version associated with its state, plus facility for processing SQL exceptions which have
- * occurred on a given JDBC Connection.
+ * which has a version associated with its state, plus a facility for processing SQL exceptions that have
+ * occurred on a JDBC Connection created by the factory.
  *
  * @author Simeon Malchev
  */

@@ -41,9 +41,14 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Logger;
 
+import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
+import static org.vibur.dbcp.DataSourceLifecycle.State.NEW;
+import static org.vibur.dbcp.DataSourceLifecycle.State.TERMINATED;
+import static org.vibur.dbcp.DataSourceLifecycle.State.WORKING;
 import static org.vibur.dbcp.util.JmxUtils.registerMBean;
 import static org.vibur.dbcp.util.JmxUtils.unregisterMBean;
 import static org.vibur.dbcp.util.ViburUtils.getPoolName;
@@ -67,7 +72,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
     public static final String DEFAULT_PROPERTIES_CONFIG_FILE_NAME = "vibur-dbcp-config.properties";
     public static final String DEFAULT_XML_CONFIG_FILE_NAME = "vibur-dbcp-config.xml";
 
-    private State state = State.NEW;
+    private AtomicReference<State> state = new AtomicReference<>(NEW);
 
     private ConnectionFactory connectionFactory;
     private ThreadedPoolReducer poolReducer = null;
@@ -209,11 +214,8 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
      */
     @Override
     public void start() throws ViburDBCPException {
-        synchronized (this) {
-            if (state != State.NEW)
-                throw new IllegalStateException();
-            state = State.WORKING;
-        }
+        if (!state.compareAndSet(NEW, WORKING))
+            throw new IllegalStateException();
 
         validateConfig();
 
@@ -223,9 +225,9 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
                 isPoolEnableConnectionTracking() ? new TakenListener<ConnHolder>(getPoolInitialSize()) : null,
                 isFifo());
         setPool(pool);
-        initPoolReducer();
-
         setPoolOperations(new PoolOperations(this, connectionFactory));
+
+        initPoolReducer();
         initStatementCache();
 
         if (isEnableJMX())
@@ -235,13 +237,10 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
 
     @Override
     public void terminate() {
-        synchronized (this) {
-            if (state == State.TERMINATED) return;
-            State oldState = state;
-            state = State.TERMINATED;
-            if (oldState == State.NEW) return;
-        }
-        
+        State oldState = state.getAndSet(TERMINATED);
+        if (oldState == TERMINATED || oldState == NEW)
+            return;
+
         terminateStatementCache();
         if (poolReducer != null)
             poolReducer.terminate();
@@ -265,8 +264,16 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
     }
 
     @Override
-    public synchronized State getState() {
-        return state;
+    public State getState() {
+        return state.get();
+    }
+
+    private void ensureWorking() throws SQLException {
+        State state = this.state.get();
+        if (state != WORKING) {
+            throw new SQLException(format("%s - pool %s", state, getName()),
+                    state == NEW ? SQLSTATE_POOL_NOTSTARTED_ERROR : SQLSTATE_POOL_CLOSED_ERROR);
+        }
     }
 
     private void validateConfig() {
@@ -353,6 +360,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
 
     @Override
     public Connection getConnection() throws SQLException {
+        ensureWorking();
         return getConnection(getConnectionTimeoutInMs());
     }
 
@@ -364,6 +372,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
      * */
     @Override
     public Connection getConnection(String username, String password) throws SQLException {
+        ensureWorking();
         if (defaultCredentials(username, password))
             return getConnection();
 

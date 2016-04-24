@@ -16,6 +16,8 @@
 
 package org.vibur.dbcp.perf;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.ViburDBCPDataSource;
 import org.vibur.dbcp.ViburDBCPException;
 
@@ -28,6 +30,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author Simeon Malchev
  */
 public class ViburDBCPGetConnectionTestPerf {
+
+    private static final Logger logger = LoggerFactory.getLogger(ViburDBCPGetConnectionTestPerf.class);
 
     // pool metrics:
     private static final int INITIAL_SIZE = 50;
@@ -110,6 +114,7 @@ public class ViburDBCPGetConnectionTestPerf {
                         doWork(millis);
                         connection.close();
                     } catch (SQLException e) {
+                        logger.error(e.toString());
                         errors.incrementAndGet();
                     }
                 }

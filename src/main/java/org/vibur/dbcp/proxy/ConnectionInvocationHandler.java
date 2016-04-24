@@ -38,7 +38,7 @@ class ConnectionInvocationHandler extends AbstractInvocationHandler<Connection> 
 
     private final PoolOperations poolOperations;
 
-    public ConnectionInvocationHandler(ConnHolder conn, ViburDBCPConfig config) {
+    ConnectionInvocationHandler(ConnHolder conn, ViburDBCPConfig config) {
         super(conn.value(), config, new ExceptionCollector(config));
         this.conn = conn;
         this.config = config;

@@ -50,7 +50,6 @@ public class ConnectionFactory implements ViburObjectFactory {
     private static final Logger logger = LoggerFactory.getLogger(ConnectionFactory.class);
 
     private final ViburDBCPConfig config;
-    private final PoolService<ConnHolder> pool;
     private final Set<String> criticalSQLStates;
 
     private final AtomicInteger version = new AtomicInteger(1);
@@ -64,7 +63,6 @@ public class ConnectionFactory implements ViburObjectFactory {
     @SuppressWarnings("unchecked")
     public ConnectionFactory(ViburDBCPConfig config) throws ViburDBCPException {
         this.config = requireNonNull(config);
-        this.pool = (PoolService<ConnHolder>) config.getPool();
         this.criticalSQLStates = new HashSet<>(Arrays.asList(
                 config.getCriticalSQLStates().replaceAll("\\s", "").split(",")));
 
@@ -194,7 +192,7 @@ public class ConnectionFactory implements ViburObjectFactory {
         int connVersion = conn.version();
         SQLException criticalException = getCriticalSQLException(errors);
         if (criticalException != null && compareAndSetVersion(connVersion, connVersion + 1)) {
-            int destroyed = pool.drainCreated(); // destroys all connections in the pool
+            int destroyed = config.getPool().drainCreated(); // destroys all connections in the pool
             logger.error("Critical SQLState {} occurred, destroyed {} connections from pool {}, current connection version is {}.",
                     criticalException.getSQLState(), destroyed, config.getName(), version(), criticalException);
         }

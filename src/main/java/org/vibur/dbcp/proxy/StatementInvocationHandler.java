@@ -47,8 +47,8 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
     private final boolean logSlowQuery;
     private final List<Object[]> queryParams;
 
-    public StatementInvocationHandler(StatementHolder statement, StatementCache statementCache, Connection connProxy,
-                                      ViburDBCPConfig config, ExceptionCollector exceptionCollector) {
+    StatementInvocationHandler(StatementHolder statement, StatementCache statementCache, Connection connProxy,
+                               ViburDBCPConfig config, ExceptionCollector exceptionCollector) {
         super(statement.value(), connProxy, "getConnection", config, exceptionCollector);
         this.config = config;
         this.statement = statement;

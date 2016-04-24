@@ -40,7 +40,7 @@ class ExceptionCollector {
 
     private final Queue<Throwable> exceptions = new ConcurrentLinkedQueue<>();
 
-    public ExceptionCollector(ViburDBCPConfig config) {
+    ExceptionCollector(ViburDBCPConfig config) {
         if (config == null)
             throw new NullPointerException();
         this.config = config;
@@ -54,7 +54,7 @@ class ExceptionCollector {
      *
      * @param t the exception thrown
      */
-    public void addException(Throwable t) {
+    void addException(Throwable t) {
         if (config.getExceptionListener() != null)
             config.getExceptionListener().on(t);
 
@@ -69,7 +69,7 @@ class ExceptionCollector {
      *
      * @return see above
      */
-    public List<Throwable> getExceptions() {
+    List<Throwable> getExceptions() {
         return exceptions.isEmpty() ? Collections.<Throwable>emptyList() : new LinkedList<>(exceptions);
     }
 }

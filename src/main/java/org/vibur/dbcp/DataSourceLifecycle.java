@@ -27,9 +27,24 @@ public interface DataSourceLifecycle extends AutoCloseable {
      * The possible states in which the DataSource can be. The transition of the states is NEW-&gt;WORKING-&gt;TERMINATED.
      */
     enum State {
-        NEW,
-        WORKING,
-        TERMINATED
+        NEW {
+            @Override
+            public String toString() {
+                return "Vibur DBCP is not started yet";
+            }
+        },
+        WORKING {
+            @Override
+            public String toString() {
+                return "Vibur DBCP is working";
+            }
+        },
+        TERMINATED {
+            @Override
+            public String toString() {
+                return "Vibur DBCP is terminated";
+            }
+        }
     }
 
     /**

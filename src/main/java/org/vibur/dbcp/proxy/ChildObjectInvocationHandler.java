@@ -30,8 +30,8 @@ class ChildObjectInvocationHandler<P, T> extends AbstractInvocationHandler<T> {
     private final P parentProxy;
     private final String getParentMethod;
 
-    public ChildObjectInvocationHandler(T connectionChild, P parentProxy, String getParentMethod,
-                                        ViburDBCPConfig config, ExceptionCollector exceptionCollector) {
+    ChildObjectInvocationHandler(T connectionChild, P parentProxy, String getParentMethod,
+                                 ViburDBCPConfig config, ExceptionCollector exceptionCollector) {
         super(connectionChild, config, exceptionCollector);
         if (parentProxy == null || getParentMethod == null)
             throw new NullPointerException();
