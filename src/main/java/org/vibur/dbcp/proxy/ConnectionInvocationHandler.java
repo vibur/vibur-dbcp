@@ -22,7 +22,6 @@ import org.vibur.dbcp.cache.StatementCache;
 import org.vibur.dbcp.cache.StatementHolder;
 import org.vibur.dbcp.pool.ConnHolder;
 import org.vibur.dbcp.pool.PoolOperations;
-import org.vibur.dbcp.util.collector.ExceptionCollectorImpl;
 
 import java.lang.reflect.Method;
 import java.sql.Connection;
@@ -40,7 +39,7 @@ class ConnectionInvocationHandler extends AbstractInvocationHandler<Connection> 
     private final PoolOperations poolOperations;
 
     public ConnectionInvocationHandler(ConnHolder conn, ViburDBCPConfig config) {
-        super(conn.value(), config, new ExceptionCollectorImpl(config));
+        super(conn.value(), config, new ExceptionCollector(config));
         this.conn = conn;
         this.config = config;
         this.poolOperations = config.getPoolOperations();

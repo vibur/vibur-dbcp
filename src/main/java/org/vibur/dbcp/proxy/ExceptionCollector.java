@@ -14,21 +14,37 @@
  * limitations under the License.
  */
 
-package org.vibur.dbcp.util.collector;
+package org.vibur.dbcp.proxy;
 
+import org.vibur.dbcp.ViburDBCPConfig;
+
+import java.sql.SQLTransientConnectionException;
+import java.sql.SQLTransientException;
+import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
- * JDBC proxy objects exceptions collector - operations definitions.
- *
- * <p>The purpose of this collector is to receive notifications for all exceptions thrown by the
+ * The purpose of this collector is to receive notifications for all exceptions thrown by the
  * operations invoked on a JDBC Connection object or any of its direct or indirect derivative objects
  * (such as Statement, ResultSet, or database Metadata objects), and to accumulate a list of all
  * non-transient exceptions.
  *
  * @author Simeon Malchev
  */
-public interface ExceptionCollector {
+class ExceptionCollector {
+
+    private final ViburDBCPConfig config;
+
+    private final Queue<Throwable> exceptions = new ConcurrentLinkedQueue<>();
+
+    public ExceptionCollector(ViburDBCPConfig config) {
+        if (config == null)
+            throw new NullPointerException();
+        this.config = config;
+    }
 
     /**
      * This method will be called by Vibur DBCP when an operation invoked on a JDBC Connection object or any of its
@@ -38,7 +54,13 @@ public interface ExceptionCollector {
      *
      * @param t the exception thrown
      */
-    void addException(Throwable t);
+    public void addException(Throwable t) {
+        if (config.getExceptionListener() != null)
+            config.getExceptionListener().on(t);
+
+        if (!(t instanceof SQLTransientException) || t instanceof SQLTransientConnectionException)
+            exceptions.add(t); // the above SQL transient exceptions are not of interest and are ignored
+    }
 
     /**
      * Returns a list of all exceptions that were filtered and accumulated by the {@link #addException(Throwable)}
@@ -47,5 +69,7 @@ public interface ExceptionCollector {
      *
      * @return see above
      */
-    List<Throwable> getExceptions();
+    public List<Throwable> getExceptions() {
+        return exceptions.isEmpty() ? Collections.<Throwable>emptyList() : new LinkedList<>(exceptions);
+    }
 }

@@ -21,7 +21,6 @@ import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.ViburDBCPConfig;
 import org.vibur.dbcp.cache.StatementCache;
 import org.vibur.dbcp.cache.StatementHolder;
-import org.vibur.dbcp.util.collector.ExceptionCollector;
 
 import java.lang.reflect.Method;
 import java.sql.Connection;

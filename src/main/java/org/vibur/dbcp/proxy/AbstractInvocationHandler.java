@@ -20,7 +20,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.ViburDBCPConfig;
 import org.vibur.dbcp.ViburDBCPException;
-import org.vibur.dbcp.util.collector.ExceptionCollector;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;

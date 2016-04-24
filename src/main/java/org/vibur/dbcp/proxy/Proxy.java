@@ -19,7 +19,6 @@ package org.vibur.dbcp.proxy;
 import org.vibur.dbcp.ViburDBCPConfig;
 import org.vibur.dbcp.cache.StatementHolder;
 import org.vibur.dbcp.pool.ConnHolder;
-import org.vibur.dbcp.util.collector.ExceptionCollector;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;

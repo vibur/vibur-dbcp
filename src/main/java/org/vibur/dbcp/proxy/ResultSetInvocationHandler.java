@@ -17,7 +17,6 @@
 package org.vibur.dbcp.proxy;
 
 import org.vibur.dbcp.ViburDBCPConfig;
-import org.vibur.dbcp.util.collector.ExceptionCollector;
 
 import java.lang.reflect.Method;
 import java.sql.ResultSet;
