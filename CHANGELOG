@@ -5,8 +5,9 @@ Version 9.0 (26/04/2016) - recommended
   close the underlying physical connection when closing a proxy connection after pool termination.
 * Improved the SQL exception messages and SQLState when the connection pool is terminated.
 * Implemented unregistering of the connection pool from JMX when the pool is terminated.
-* Added support for using Connection.setNetworkTimeout() for the case when validating the JDBC
-  connections with a custom SQL query.
+* Added useNetworkTimeout and networkTimeoutExecutor configuration options in order to provide support for setting
+  the socket level read-timeouts via using the Connection.setNetworkTimeout() method, for the case when validating
+  the JDBC Connection with a custom SQL query; i.e., different than isValid.
 * Some refactoring and javadoc updates. In particular, have extracted all low-level JDBC operations into the
   JdbcUtils class.
 
