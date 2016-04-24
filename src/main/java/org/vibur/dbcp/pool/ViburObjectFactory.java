@@ -27,7 +27,7 @@ import java.util.List;
  *
  * @author Simeon Malchev
  */
-public interface ViburObjectFactory extends PoolObjectFactory<ConnHolder> {
+interface ViburObjectFactory extends PoolObjectFactory<ConnHolder> {
 
     /**
      * Gets the current version value.
