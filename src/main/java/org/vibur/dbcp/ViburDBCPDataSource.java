@@ -97,7 +97,6 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
      * @throws ViburDBCPException if cannot configure successfully
      */
     public ViburDBCPDataSource(String configFileName) throws ViburDBCPException {
-        this();
         URL config;
         if (configFileName != null) {
             config = getURL(configFileName);
@@ -116,6 +115,16 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
         configureFromURL(config);
     }
 
+    /**
+     * Initialization via the given properties.
+     *
+     * @param properties the given properties
+     * @throws ViburDBCPException if cannot configure successfully
+     */
+    public ViburDBCPDataSource(Properties properties) throws ViburDBCPException {
+        configureFromProperties(properties);
+    }
+
     private URL getURL(String configFileName) {
         URL config = Thread.currentThread().getContextClassLoader().getResource(configFileName);
         if (config == null) {
@@ -124,17 +133,6 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
                 config = ClassLoader.getSystemResource(configFileName);
         }
         return config;
-    }
-
-    /**
-     * Initialization via the given properties.
-     *
-     * @param properties the given properties
-     * @throws ViburDBCPException if cannot configure successfully
-     */
-    public ViburDBCPDataSource(Properties properties) throws ViburDBCPException {
-        this();
-        configureFromProperties(properties);
     }
 
     private void configureFromURL(URL config) throws ViburDBCPException {
