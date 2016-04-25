@@ -30,19 +30,19 @@ public interface DataSourceLifecycle extends AutoCloseable {
         NEW {
             @Override
             public String toString() {
-                return "Vibur DBCP is not started yet";
+                return "Vibur DBCP is not started.";
             }
         },
         WORKING {
             @Override
             public String toString() {
-                return "Vibur DBCP is working";
+                return "Vibur DBCP is working.";
             }
         },
         TERMINATED {
             @Override
             public String toString() {
-                return "Vibur DBCP is terminated";
+                return "Vibur DBCP is terminated.";
             }
         }
     }

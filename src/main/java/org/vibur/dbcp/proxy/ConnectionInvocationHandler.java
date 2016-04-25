@@ -34,15 +34,14 @@ import java.sql.Statement;
 class ConnectionInvocationHandler extends AbstractInvocationHandler<Connection> {
 
     private final ConnHolder conn;
+    private final PoolOperations poolOperations;
     private final ViburDBCPConfig config;
 
-    private final PoolOperations poolOperations;
-
-    ConnectionInvocationHandler(ConnHolder conn, ViburDBCPConfig config) {
+    ConnectionInvocationHandler(ConnHolder conn, PoolOperations poolOperations, ViburDBCPConfig config) {
         super(conn.value(), config, new ExceptionCollector(config));
         this.conn = conn;
+        this.poolOperations = poolOperations;
         this.config = config;
-        this.poolOperations = config.getPoolOperations();
     }
 
     @Override

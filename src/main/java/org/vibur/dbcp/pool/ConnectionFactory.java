@@ -22,14 +22,11 @@ import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.ViburDBCPConfig;
 import org.vibur.dbcp.ViburDBCPException;
 import org.vibur.dbcp.cache.StatementCache;
-import org.vibur.objectpool.PoolService;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.vibur.dbcp.ViburDBCPConfig.SQLSTATE_CONN_INIT_ERROR;
 import static org.vibur.dbcp.util.JdbcUtils.*;
@@ -50,8 +47,6 @@ public class ConnectionFactory implements ViburObjectFactory {
     private static final Logger logger = LoggerFactory.getLogger(ConnectionFactory.class);
 
     private final ViburDBCPConfig config;
-    private final Set<String> criticalSQLStates;
-
     private final AtomicInteger version = new AtomicInteger(1);
 
     /**
@@ -62,10 +57,7 @@ public class ConnectionFactory implements ViburObjectFactory {
      */
     @SuppressWarnings("unchecked")
     public ConnectionFactory(ViburDBCPConfig config) throws ViburDBCPException {
-        this.config = requireNonNull(config);
-        this.criticalSQLStates = new HashSet<>(Arrays.asList(
-                config.getCriticalSQLStates().replaceAll("\\s", "").split(",")));
-
+        this.config = config;
         initLoginTimeout(config);
         initJdbcDriver(config);
     }
@@ -138,7 +130,6 @@ public class ConnectionFactory implements ViburObjectFactory {
             return true;
         } catch (SQLException e) {
             logger.debug("Couldn't validate {}", rawConnection, e);
-            processSQLExceptions(conn, Collections.<Throwable>singletonList(e));
             return false;
         }
     }
@@ -158,7 +149,6 @@ public class ConnectionFactory implements ViburObjectFactory {
             return true;
         } catch (SQLException e) {
             logger.debug("Couldn't reset {}", rawConnection, e);
-            processSQLExceptions(conn, Collections.<Throwable>singletonList(e));
             return false;
         }
     }
@@ -185,35 +175,5 @@ public class ConnectionFactory implements ViburObjectFactory {
     @Override
     public boolean compareAndSetVersion(int expect, int update) {
         return version.compareAndSet(expect, update);
-    }
-
-    @Override
-    public void processSQLExceptions(ConnHolder conn, List<Throwable> errors) {
-        int connVersion = conn.version();
-        SQLException criticalException = getCriticalSQLException(errors);
-        if (criticalException != null && compareAndSetVersion(connVersion, connVersion + 1)) {
-            int destroyed = config.getPool().drainCreated(); // destroys all connections in the pool
-            logger.error("Critical SQLState {} occurred, destroyed {} connections from pool {}, current connection version is {}.",
-                    criticalException.getSQLState(), destroyed, config.getName(), version(), criticalException);
-        }
-    }
-
-    private SQLException getCriticalSQLException(List<Throwable> errors) {
-        for (Throwable error : errors) {
-            if (error instanceof SQLException) {
-                SQLException sqlException = (SQLException) error;
-                if (isCriticalSQLException(sqlException))
-                    return sqlException;
-            }
-        }
-        return null;
-    }
-
-    private boolean isCriticalSQLException(SQLException sqlException) {
-        if (sqlException == null)
-            return false;
-        if (criticalSQLStates.contains(sqlException.getSQLState()))
-            return true;
-        return isCriticalSQLException(sqlException.getNextException());
     }
 }

@@ -55,7 +55,7 @@ public class StatementCache {
         return new ConcurrentLinkedHashMap.Builder<ConnMethod, StatementHolder>()
                 .initialCapacity(maxSize)
                 .maximumWeightedCapacity(maxSize)
-                .listener(requireNonNull(getListener()))
+                .listener(getListener())
                 .build();
     }
 

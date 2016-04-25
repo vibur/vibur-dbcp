@@ -20,7 +20,6 @@ package org.vibur.dbcp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.cache.StatementCache;
-import org.vibur.dbcp.pool.PoolOperations;
 import org.vibur.dbcp.util.event.BaseViburLogger;
 import org.vibur.dbcp.util.event.ConnectionHook;
 import org.vibur.dbcp.util.event.ExceptionListener;
@@ -285,10 +284,9 @@ public class ViburDBCPConfig {
      */
     private ExceptionListener exceptionListener = null;
 
-    private boolean fifo = false;
 
+    private boolean fifo = false;
     private BasePool pool;
-    private PoolOperations poolOperations;
 
 
     //////////////////////// Getters & Setters ////////////////////////
@@ -668,14 +666,6 @@ public class ViburDBCPConfig {
 
     public void setPool(BasePool pool) {
         this.pool = pool;
-    }
-
-    public PoolOperations getPoolOperations() {
-        return poolOperations;
-    }
-
-    public void setPoolOperations(PoolOperations poolOperations) {
-        this.poolOperations = poolOperations;
     }
 
     @Override

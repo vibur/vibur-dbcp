@@ -18,12 +18,9 @@ package org.vibur.dbcp.pool;
 
 import org.vibur.objectpool.PoolObjectFactory;
 
-import java.util.List;
-
 /**
  * Defines the operations for a {@code PoolObjectFactory} that is specific for Vibur DBCP. It is a stateful factory
- * which has a version associated with its state, plus a facility for processing SQL exceptions that have
- * occurred on a JDBC Connection created by the factory.
+ * that has a version associated with its state.
  *
  * @author Simeon Malchev
  */
@@ -46,12 +43,4 @@ interface ViburObjectFactory extends PoolObjectFactory<ConnHolder> {
      * the actual value was not equal to the expected value.
      */
     boolean compareAndSetVersion(int expect, int update);
-
-    /**
-     * Processes SQL exceptions that have occurred on the given JDBC Connection (wrapped in a {@code ConnHolder}).
-     *
-     * @param conn the given {@code ConnHolder}
-     * @param errors the list of SQL exceptions that have occurred on the Connection; might be an empty list but not a {@code null}
-     */
-    void processSQLExceptions(ConnHolder conn, List<Throwable> errors);
 }

@@ -46,9 +46,7 @@ import java.util.logging.Logger;
 
 import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
-import static org.vibur.dbcp.DataSourceLifecycle.State.NEW;
-import static org.vibur.dbcp.DataSourceLifecycle.State.TERMINATED;
-import static org.vibur.dbcp.DataSourceLifecycle.State.WORKING;
+import static org.vibur.dbcp.DataSourceLifecycle.State.*;
 import static org.vibur.dbcp.util.JmxUtils.registerMBean;
 import static org.vibur.dbcp.util.JmxUtils.unregisterMBean;
 import static org.vibur.dbcp.util.ViburUtils.getPoolName;
@@ -75,6 +73,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
     private AtomicReference<State> state = new AtomicReference<>(NEW);
 
     private ConnectionFactory connectionFactory;
+    private PoolOperations poolOperations;
     private ThreadedPoolReducer poolReducer = null;
 
     private PrintWriter logWriter;
@@ -220,13 +219,13 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
         validateConfig();
 
         connectionFactory = new ConnectionFactory(this);
-        PoolService<ConnHolder> pool = new ConcurrentLinkedPool<>(connectionFactory,
+        PoolService<ConnHolder> poolService = new ConcurrentLinkedPool<>(connectionFactory,
                 getPoolInitialSize(), getPoolMaxSize(), isPoolFair(),
                 isPoolEnableConnectionTracking() ? new TakenListener<ConnHolder>(getPoolInitialSize()) : null,
                 isFifo());
-        setPool(pool);
-        setPoolOperations(new PoolOperations(this, connectionFactory));
+        poolOperations = new PoolOperations(connectionFactory, poolService, this);
 
+        setPool(poolService);
         initPoolReducer();
         initStatementCache();
 
@@ -268,10 +267,10 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
         return state.get();
     }
 
-    private void ensureWorking() throws SQLException {
-        State state = this.state.get();
+    private void ensureIsWorking() throws SQLException {
+        State state = getState();
         if (state != WORKING) {
-            throw new SQLException(format("%s - pool %s", state, getName()),
+            throw new SQLException(format("Pool %s, %s", getName(), state),
                     state == NEW ? SQLSTATE_POOL_NOTSTARTED_ERROR : SQLSTATE_POOL_CLOSED_ERROR);
         }
     }
@@ -360,7 +359,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
 
     @Override
     public Connection getConnection() throws SQLException {
-        ensureWorking();
+        ensureIsWorking();
         return getConnection(getConnectionTimeoutInMs());
     }
 
@@ -372,7 +371,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
      * */
     @Override
     public Connection getConnection(String username, String password) throws SQLException {
-        ensureWorking();
+        ensureIsWorking();
         if (defaultCredentials(username, password))
             return getConnection();
 
@@ -399,7 +398,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
 
         Connection connProxy = null;
         try {
-            return connProxy = getPoolOperations().getConnection(timeout);
+            return connProxy = poolOperations.getConnection(timeout);
         } finally {
             if (logSlowConn)
                 logGetConnection(timeout, startTime, connProxy);

@@ -49,7 +49,7 @@ abstract class AbstractInvocationHandler<T> implements TargetInvoker {
     private final AtomicBoolean logicallyClosed = new AtomicBoolean(false);
 
     AbstractInvocationHandler(T target, ViburDBCPConfig config, ExceptionCollector exceptionCollector) {
-        if (target == null || config == null || exceptionCollector == null)
+        if (target == null || exceptionCollector == null)
             throw new NullPointerException();
         this.target = target;
         this.config = config;
