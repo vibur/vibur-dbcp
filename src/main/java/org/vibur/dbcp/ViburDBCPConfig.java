@@ -82,11 +82,11 @@ public class ViburDBCPConfig {
     public static final String IS_VALID_QUERY = "isValid";
 
     /** Used to test the validity of a JDBC Connection. If the {@link #connectionIdleLimitInSeconds} is set to
-     * a non-negative number, the {@link #testConnectionQuery} should be set to a valid SQL query, for example
+     * a non-negative number, the {@code #testConnectionQuery} should be set to a valid SQL query, for example
      * {@code SELECT 1}, or to {@code isValid} in which case the {@link java.sql.Connection#isValid} method
      * will be used.
      *
-     * <p>Similarly to the spec for {@link java.sql.Connection#isValid}, if a custom {@link #testConnectionQuery}
+     * <p>Similarly to the spec for {@link java.sql.Connection#isValid}, if a custom {@code #testConnectionQuery}
      * is specified, it will be executed in the context of the current transaction.
      *
      * <p>Note that if the driver is JDBC 4 compliant, using the default {@code isValid} value is
@@ -196,7 +196,7 @@ public class ViburDBCPConfig {
     /** {@code getConnection} method calls taking longer than or equal to this time limit are logged at WARN level.
      * A value of {@code 0} will log all such calls. A {@code negative number} disables it.
      *
-     * <p>If the value of {@link #logConnectionLongerThanMs} is greater than {@code connectionTimeoutInMs},
+     * <p>If the value of {@code #logConnectionLongerThanMs} is greater than {@code connectionTimeoutInMs},
      * then {@code logConnectionLongerThanMs} will be set to the value of {@code connectionTimeoutInMs}. */
     private long logConnectionLongerThanMs = 3000;
     /** Will apply only if {@link #logConnectionLongerThanMs} is enabled, and if set to {@code true},
