@@ -70,7 +70,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
     public static final String DEFAULT_PROPERTIES_CONFIG_FILE_NAME = "vibur-dbcp-config.properties";
     public static final String DEFAULT_XML_CONFIG_FILE_NAME = "vibur-dbcp-config.xml";
 
-    private AtomicReference<State> state = new AtomicReference<>(NEW);
+    private final AtomicReference<State> state = new AtomicReference<>(NEW);
 
     private ConnectionFactory connectionFactory;
     private PoolOperations poolOperations;
