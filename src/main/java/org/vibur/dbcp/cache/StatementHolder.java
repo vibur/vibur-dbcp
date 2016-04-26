@@ -17,7 +17,7 @@
 package org.vibur.dbcp.cache;
 
 import java.sql.Statement;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * A thin wrapper around the raw JDBC {@code Statement} object which allows us to augment it with useful "state"
@@ -35,14 +35,16 @@ public class StatementHolder {
     /**
      * The 3 different states in which a StatementHolder instance can be, when it is used as a cached value:
      */
-    public static final int AVAILABLE = 0;
-    public static final int IN_USE    = 1;
-    public static final int EVICTED   = 2;
+    public enum State {
+        AVAILABLE,
+        IN_USE,
+        EVICTED
+    }
 
     private final Statement value; // the underlying raw JDBC Statement
-    private final AtomicInteger state; // a null value means that this StatementHolder instance is not included in the cache
+    private final AtomicReference<State> state; // a null value means that this StatementHolder instance is not included in the cache
 
-    public StatementHolder(Statement value, AtomicInteger state) {
+    public StatementHolder(Statement value, AtomicReference<State> state) {
         if (value == null)
             throw new NullPointerException();
         this.value = value;
@@ -53,7 +55,7 @@ public class StatementHolder {
         return value;
     }
 
-    public AtomicInteger state() {
+    public AtomicReference<State> state() {
         return state;
     }
 }

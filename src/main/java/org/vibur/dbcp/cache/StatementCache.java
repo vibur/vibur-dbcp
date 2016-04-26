@@ -27,10 +27,10 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static java.util.Objects.requireNonNull;
-import static org.vibur.dbcp.cache.StatementHolder.*;
+import static org.vibur.dbcp.cache.StatementHolder.State.*;
 import static org.vibur.dbcp.util.JdbcUtils.clearWarnings;
 import static org.vibur.dbcp.util.JdbcUtils.quietClose;
 import static org.vibur.objectpool.util.ArgumentUtils.forbidIllegalArgument;
@@ -95,7 +95,7 @@ public class StatementCache {
 
         Statement rawStatement = (Statement) invoker.targetInvoke(key.getMethod(), key.getArgs());
         if (statement == null) { // there was no entry for the key, so we'll try to put a new one
-            statement = new StatementHolder(rawStatement, new AtomicInteger(IN_USE));
+            statement = new StatementHolder(rawStatement, new AtomicReference<>(IN_USE));
             if (statementCache.putIfAbsent(key, statement) == null)
                 return statement; // the new entry was successfully put in the cache
         }

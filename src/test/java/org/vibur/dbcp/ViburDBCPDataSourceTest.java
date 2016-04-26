@@ -36,8 +36,8 @@ import java.util.concurrent.ConcurrentMap;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
-import static org.vibur.dbcp.cache.StatementHolder.AVAILABLE;
-import static org.vibur.dbcp.cache.StatementHolder.EVICTED;
+import static org.vibur.dbcp.cache.StatementHolder.State.AVAILABLE;
+import static org.vibur.dbcp.cache.StatementHolder.State.EVICTED;
 import static org.vibur.dbcp.util.StatementCacheUtils.mockStatementCache;
 
 /**
