@@ -18,14 +18,13 @@ package org.vibur.dbcp;
 
 import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.cache.StatementCache;
-import org.vibur.dbcp.jmx.ViburDBCPMonitoring;
 import org.vibur.dbcp.pool.ConnHolder;
 import org.vibur.dbcp.pool.ConnectionFactory;
 import org.vibur.dbcp.pool.PoolOperations;
 import org.vibur.objectpool.ConcurrentLinkedPool;
 import org.vibur.objectpool.PoolService;
-import org.vibur.objectpool.listener.TakenListener;
-import org.vibur.objectpool.reducer.ThreadedPoolReducer;
+import org.vibur.objectpool.util.TakenListener;
+import org.vibur.objectpool.util.ThreadedPoolReducer;
 
 import javax.sql.DataSource;
 import java.io.IOException;
@@ -51,7 +50,7 @@ import static org.vibur.dbcp.util.JmxUtils.registerMBean;
 import static org.vibur.dbcp.util.JmxUtils.unregisterMBean;
 import static org.vibur.dbcp.util.ViburUtils.getPoolName;
 import static org.vibur.dbcp.util.ViburUtils.unwrapSQLException;
-import static org.vibur.objectpool.util.ArgumentUtils.forbidIllegalArgument;
+import static org.vibur.objectpool.util.ArgumentValidation.forbidIllegalArgument;
 
 /**
  * The main DataSource which needs to be configured/instantiated by the calling application and from

@@ -18,7 +18,7 @@ package org.vibur.dbcp.util;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.vibur.dbcp.jmx.ViburDBCPMonitoringMBean;
+import org.vibur.dbcp.ViburDBCPMonitoringMBean;
 
 import javax.management.JMException;
 import javax.management.MBeanServer;

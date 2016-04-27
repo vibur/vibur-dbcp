@@ -1,8 +1,8 @@
-Version 9.0 (26/04/2016) - recommended
+Version 9.0 (30/04/2016) - recommended
 ======================================
 * Migrated the source code base to Java 1.7 and implemented AutoCloseable for ViburDBCPDataSource.
-* This version of Vibur DBCP depends on version 9.0 of Vibur Object Pool, which contains a fix for issue #2 -
-  close the underlying physical connection when closing a proxy connection after pool termination.
+* This version of Vibur DBCP depends on version 9.0 of Vibur Object Pool, which contains some packages refactoring and
+  fix for issue #2 - close the underlying physical connection when closing a proxy connection after pool termination.
 * Improved the SQLException messages and SQLState values when the connection pool is terminated or not started yet.
 * Implemented unregistering of the connection pool from JMX when the pool is terminated.
 * Added useNetworkTimeout and networkTimeoutExecutor configuration options in order to provide support for setting
@@ -26,8 +26,8 @@ Version 7.0 (10/01/2016)
 * Exception logging improvements and logging level changes.
 * Dependencies versions updates and small refactoring.
 
-Version 6.1 (05/01/2016) - bug fixing release
-=============================================
+Version 6.1 (05/01/2016)
+========================
 * Fixed a bug introduced in version 6.0 where the ExceptionCollector object was shared between all JDBC Connection
   objects in the pool. As a side effect of this bug, when an Exception is thrown on a particular JDBC Connection
   object, this will later cause the next taken from the pool JDBC Connection to be physically closed when the

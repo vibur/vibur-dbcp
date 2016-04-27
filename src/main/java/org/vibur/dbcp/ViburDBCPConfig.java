@@ -20,10 +20,11 @@ package org.vibur.dbcp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.cache.StatementCache;
-import org.vibur.dbcp.util.event.BaseViburLogger;
-import org.vibur.dbcp.util.event.ConnectionHook;
-import org.vibur.dbcp.util.event.ExceptionListener;
-import org.vibur.dbcp.util.event.ViburLogger;
+import org.vibur.dbcp.event.BaseViburLogger;
+import org.vibur.dbcp.event.ConnectionHook;
+import org.vibur.dbcp.event.ExceptionListener;
+import org.vibur.dbcp.event.ViburLogger;
+import org.vibur.dbcp.pool.PoolReducer;
 import org.vibur.objectpool.BasePool;
 
 import javax.sql.DataSource;
@@ -144,9 +145,9 @@ public class ViburDBCPConfig {
 
     /** The fully qualified pool reducer class name. This pool reducer class will be instantiated via reflection,
      * and will be instantiated only if {@link #reducerTimeIntervalInSeconds} is greater than {@code 0}.
-     * It must implements the ThreadedPoolReducer interface and must also have a public constructor accepting a
-     * single argument of type ViburDBCPConfig. */
-    private String poolReducerClass = "org.vibur.dbcp.pool.PoolReducer";
+     * It must implements the {@link org.vibur.objectpool.util.ThreadedPoolReducer} interface and must also have
+     * a public constructor accepting a single argument of type {@code ViburDBCPConfig}. */
+    private String poolReducerClass = PoolReducer.class.getName();
 
     /** For more details on the next 2 parameters see {@link org.vibur.objectpool.reducer.SamplingPoolReducer}.
      */

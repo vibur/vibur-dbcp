@@ -33,7 +33,7 @@ import static java.util.Objects.requireNonNull;
 import static org.vibur.dbcp.cache.StatementHolder.State.*;
 import static org.vibur.dbcp.util.JdbcUtils.clearWarnings;
 import static org.vibur.dbcp.util.JdbcUtils.quietClose;
-import static org.vibur.objectpool.util.ArgumentUtils.forbidIllegalArgument;
+import static org.vibur.objectpool.util.ArgumentValidation.forbidIllegalArgument;
 
 /**
  * Implements and encapsulates all JDBC Statement caching functionality and logic.
