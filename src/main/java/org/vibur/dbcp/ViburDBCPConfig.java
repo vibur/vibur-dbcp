@@ -33,6 +33,8 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static java.lang.Boolean.TRUE;
+
 /**
  * Specifies all {@link ViburDBCPDataSource} configuration options.
  *
@@ -286,7 +288,7 @@ public class ViburDBCPConfig {
     private ExceptionListener exceptionListener = null;
 
 
-    private boolean fifo = false;
+    private boolean poolFifo = false;
     private BasePool pool;
 
 
@@ -653,12 +655,12 @@ public class ViburDBCPConfig {
         this.exceptionListener = exceptionListener;
     }
 
-    public boolean isFifo() {
-        return fifo;
+    public boolean isPoolFifo() {
+        return poolFifo;
     }
 
-    public void setFifo(boolean fifo) {
-        this.fifo = fifo;
+    public void setPoolFifo(boolean poolFifo) {
+        this.poolFifo = poolFifo;
     }
 
     public BasePool getPool() {
@@ -693,12 +695,12 @@ public class ViburDBCPConfig {
         String defaultName;
         do {
             defaultName = "p" + Integer.toString(idGenerator.getAndIncrement());
-        } while (names.putIfAbsent(defaultName, Boolean.TRUE) != null);
+        } while (names.putIfAbsent(defaultName, TRUE) != null);
         return defaultName;
     }
 
     private boolean registerName(String name) {
-        if (names.putIfAbsent(name, Boolean.TRUE) != null)
+        if (name == null || name.isEmpty() || names.putIfAbsent(name, TRUE) != null)
             return false;
 
         unregisterName();

@@ -34,35 +34,29 @@ public final class JmxUtils {
 
     private JmxUtils() {}
 
-    public static void registerMBean(ViburDBCPMonitoringMBean mBean, String poolName) {
-        String jmxPoolName = getJmxPoolName(poolName);
+    public static void registerMBean(ViburDBCPMonitoringMBean mBean, String jmxName) {
         try {
             MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
-            ObjectName name = new ObjectName(jmxPoolName);
-            if (!mbs.isRegistered(name))
-                mbs.registerMBean(mBean, name);
+            ObjectName objectName = new ObjectName(jmxName);
+            if (!mbs.isRegistered(objectName))
+                mbs.registerMBean(mBean, objectName);
             else
-                logger.warn(jmxPoolName + " is already registered.");
+                logger.warn(jmxName + " is already registered.");
         } catch (JMException e) {
-            logger.warn("Unable to register mBean {}", jmxPoolName, e);
+            logger.warn("Unable to register mBean {}", jmxName, e);
         }
     }
 
-    public static void unregisterMBean(String poolName) {
-        String jmxPoolName = getJmxPoolName(poolName);
+    public static void unregisterMBean(String jmxName) {
         try {
             MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
-            ObjectName name = new ObjectName(jmxPoolName);
-            if (mbs.isRegistered(name))
-                mbs.unregisterMBean(name);
+            ObjectName objectName = new ObjectName(jmxName);
+            if (mbs.isRegistered(objectName))
+                mbs.unregisterMBean(objectName);
             else
-                logger.warn(jmxPoolName + " is not registered.");
+                logger.warn(jmxName + " is not registered.");
         } catch (JMException e) {
-            logger.warn("Unable to unregister mBean {}", jmxPoolName, e);
+            logger.warn("Unable to unregister mBean {}", jmxName, e);
         }
-    }
-
-    private static String getJmxPoolName(String poolName) {
-        return "org.vibur.dbcp:type=ViburDBCP-" + poolName;
     }
 }

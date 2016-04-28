@@ -43,7 +43,12 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Logger;
 
+import static java.lang.Boolean.parseBoolean;
+import static java.lang.Float.parseFloat;
+import static java.lang.Integer.parseInt;
+import static java.lang.Long.parseLong;
 import static java.lang.String.format;
+import static java.sql.Connection.*;
 import static java.util.Objects.requireNonNull;
 import static org.vibur.dbcp.DataSourceLifecycle.State.*;
 import static org.vibur.dbcp.util.JmxUtils.registerMBean;
@@ -175,13 +180,13 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
                 Field field = ViburDBCPConfig.class.getDeclaredField(key);
                 Class<?> type = field.getType();
                 if (type == int.class || type == Integer.class)
-                    set(field, Integer.parseInt(val));
+                    set(field, parseInt(val));
                 else if (type == long.class || type == Long.class)
-                    set(field, Long.parseLong(val));
+                    set(field, parseLong(val));
                 else if (type == float.class || type == Float.class)
-                    set(field, Float.parseFloat(val));
+                    set(field, parseFloat(val));
                 else if (type == boolean.class || type == Boolean.class)
-                    set(field, Boolean.parseBoolean(val));
+                    set(field, parseBoolean(val));
                 else if (type == String.class)
                     set(field, val);
                 else
@@ -219,7 +224,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
         PoolService<ConnHolder> poolService = new ConcurrentLinkedPool<>(connectionFactory,
                 getPoolInitialSize(), getPoolMaxSize(), isPoolFair(),
                 isPoolEnableConnectionTracking() ? new TakenListener<ConnHolder>(getPoolInitialSize()) : null,
-                isFifo());
+                isPoolFifo());
         poolOperations = new PoolOperations(connectionFactory, poolService, this);
 
         setPool(poolService);
@@ -227,7 +232,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
         initStatementCache();
 
         if (isEnableJMX())
-            registerMBean(new ViburDBCPMonitoring(this), getName());
+            registerMBean(new ViburDBCPMonitoring(this), getJmxName());
         logger.info("Started {}", this);
     }
 
@@ -244,7 +249,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
             getPool().terminate();
 
         if (isEnableJMX())
-            unregisterMBean(getName());
+            unregisterMBean(getJmxName());
         unregisterName();
         logger.info("Terminated {}", this);
     }
@@ -304,19 +309,19 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
             String defaultTransactionIsolation = getDefaultTransactionIsolation().toUpperCase();
             switch (defaultTransactionIsolation) {
                 case "NONE" :
-                    setDefaultTransactionIsolationValue(Connection.TRANSACTION_NONE);
+                    setDefaultTransactionIsolationValue(TRANSACTION_NONE);
                     break;
                 case "READ_COMMITTED" :
-                    setDefaultTransactionIsolationValue(Connection.TRANSACTION_READ_COMMITTED);
+                    setDefaultTransactionIsolationValue(TRANSACTION_READ_COMMITTED);
                     break;
                 case "REPEATABLE_READ" :
-                    setDefaultTransactionIsolationValue(Connection.TRANSACTION_REPEATABLE_READ);
+                    setDefaultTransactionIsolationValue(TRANSACTION_REPEATABLE_READ);
                     break;
                 case "READ_UNCOMMITTED" :
-                    setDefaultTransactionIsolationValue(Connection.TRANSACTION_READ_UNCOMMITTED);
+                    setDefaultTransactionIsolationValue(TRANSACTION_READ_UNCOMMITTED);
                     break;
                 case "SERIALIZABLE" :
-                    setDefaultTransactionIsolationValue(Connection.TRANSACTION_SERIALIZABLE);
+                    setDefaultTransactionIsolationValue(TRANSACTION_SERIALIZABLE);
                     break;
                 default:
                     logger.warn("Unknown defaultTransactionIsolation {}. Will use the driver's default.",
@@ -442,5 +447,9 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
     @Override
     public boolean isWrapperFor(Class<?> iface) {
         return false;
+    }
+
+    public String getJmxName() {
+        return "org.vibur.dbcp:type=ViburDBCP-" + getName();
     }
 }
