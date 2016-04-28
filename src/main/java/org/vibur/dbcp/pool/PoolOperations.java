@@ -20,7 +20,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.ViburDBCPConfig;
 import org.vibur.dbcp.ViburDBCPException;
-import org.vibur.dbcp.proxy.Proxy;
 import org.vibur.objectpool.PoolService;
 
 import java.sql.Connection;
@@ -33,6 +32,7 @@ import java.util.Set;
 import static java.lang.String.format;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.vibur.dbcp.ViburDBCPConfig.SQLSTATE_TIMEOUT_ERROR;
+import static org.vibur.dbcp.proxy.Proxy.newProxyConnection;
 import static org.vibur.dbcp.util.ViburUtils.getPoolName;
 import static org.vibur.dbcp.util.ViburUtils.unwrapSQLException;
 
@@ -85,7 +85,7 @@ public class PoolOperations {
                     getPoolName(config), timeout), SQLSTATE_TIMEOUT_ERROR, (int) timeout);
         }
         logger.trace("Getting {}", conn.value());
-        return Proxy.newConnection(conn, this, config);
+        return newProxyConnection(conn, this, config);
     }
 
     public boolean restore(ConnHolder conn, boolean aborted, List<Throwable> errors) {

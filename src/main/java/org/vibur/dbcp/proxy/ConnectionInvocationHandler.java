@@ -28,6 +28,8 @@ import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.Statement;
 
+import static org.vibur.dbcp.proxy.Proxy.*;
+
 /**
  * @author Simeon Malchev
  */
@@ -63,19 +65,19 @@ class ConnectionInvocationHandler extends AbstractInvocationHandler<Connection> 
         // on their results the return value to be the current JDBC Connection proxy.
         if (methodName == "createStatement") { // *3
             StatementHolder statement = getUncachedStatement(method, args);
-            return Proxy.newStatement(statement, proxy, config, getExceptionCollector());
+            return newProxyStatement(statement, proxy, config, getExceptionCollector());
         }
         if (methodName == "prepareStatement") { // *6
             StatementHolder pStatement = getCachedStatement(method, args);
-            return Proxy.newPreparedStatement(pStatement, proxy, config, getExceptionCollector());
+            return newProxyPreparedStatement(pStatement, proxy, config, getExceptionCollector());
         }
         if (methodName == "prepareCall") { // *3
             StatementHolder cStatement = getCachedStatement(method, args);
-            return Proxy.newCallableStatement(cStatement, proxy, config, getExceptionCollector());
+            return newProxyCallableStatement(cStatement, proxy, config, getExceptionCollector());
         }
         if (methodName == "getMetaData") { // *1
             DatabaseMetaData rawDatabaseMetaData = (DatabaseMetaData) targetInvoke(method, args);
-            return Proxy.newDatabaseMetaData(rawDatabaseMetaData, proxy, config, getExceptionCollector());
+            return newProxyDatabaseMetaData(rawDatabaseMetaData, proxy, config, getExceptionCollector());
         }
 
         return super.doInvoke(proxy, method, args);

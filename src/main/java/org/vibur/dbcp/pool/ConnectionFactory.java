@@ -77,7 +77,7 @@ public class ConnectionFactory implements ViburObjectFactory {
         Connection rawConnection = null;
         while (rawConnection == null) {
             try {
-                rawConnection = createConnection(config, userName, password);
+                rawConnection = createConnection(userName, password, config);
             } catch (SQLException e) {
                 logger.debug("Couldn't create a java.sql.Connection, attempt {}", attempt, e);
                 if (attempt++ >= config.getAcquireRetryAttempts())
@@ -92,8 +92,8 @@ public class ConnectionFactory implements ViburObjectFactory {
         try {
             if (config.getInitConnectionHook() != null)
                 config.getInitConnectionHook().on(rawConnection);
-            ensureConnectionInitialized(rawConnection);
-            setDefaultValues(config, rawConnection);
+            ensureInitialized(rawConnection);
+            setDefaultValues(rawConnection, config);
         } catch (SQLException e) {
             quietClose(rawConnection);
             throw new ViburDBCPException(e);
@@ -102,8 +102,8 @@ public class ConnectionFactory implements ViburObjectFactory {
         return new ConnHolder(rawConnection, version(), System.currentTimeMillis());
     }
 
-    private void ensureConnectionInitialized(Connection rawConnection) throws SQLException {
-        if (!validateConnection(config, rawConnection, config.getInitSQL()))
+    private void ensureInitialized(Connection rawConnection) throws SQLException {
+        if (!validateConnection(rawConnection, config.getInitSQL(), config))
             throw new SQLException("Couldn't initialize " + rawConnection, SQLSTATE_CONN_INIT_ERROR);
     }
 
@@ -117,7 +117,7 @@ public class ConnectionFactory implements ViburObjectFactory {
             int idleLimit = config.getConnectionIdleLimitInSeconds();
             if (idleLimit >= 0) {
                 int idle = (int) MILLISECONDS.toSeconds(System.currentTimeMillis() - conn.getRestoredTime());
-                if (idle >= idleLimit && !validateConnection(config, rawConnection, config.getTestConnectionQuery()))
+                if (idle >= idleLimit && !validateConnection(rawConnection, config.getTestConnectionQuery(), config))
                     return false;
             }
             if (config.getConnectionHook() != null)
@@ -143,7 +143,7 @@ public class ConnectionFactory implements ViburObjectFactory {
             if (config.isClearSQLWarnings())
                 clearWarnings(rawConnection);
             if (config.isResetDefaultsAfterUse())
-                setDefaultValues(config, rawConnection);
+                setDefaultValues(rawConnection, config);
 
             conn.setRestoredTime(System.currentTimeMillis());
             return true;

@@ -26,6 +26,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.concurrent.Executor;
 
 import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -71,13 +72,13 @@ public final class JdbcUtils {
      * This method creates the physical connection to the database via using the DriverManager or the configured
      * external DataSource.
      *
-     * @param config the ViburDBCPConfig
      * @param userName the user name to use when connecting to the database
      * @param password the password to use when connecting to the database
+     * @param config the ViburDBCPConfig
      * @return a newly established raw JDBC Connection to the database
      * @throws SQLException if the DriverManager or the DataSource throws an SQLException
      */
-    public static Connection createConnection(ViburDBCPConfig config, String userName, String password) throws SQLException {
+    public static Connection createConnection(String userName, String password, ViburDBCPConfig config) throws SQLException {
         Connection rawConnection;
         DataSource externalDataSource = config.getExternalDataSource();
         if (externalDataSource == null) {
@@ -97,7 +98,7 @@ public final class JdbcUtils {
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
-    public static void setDefaultValues(ViburDBCPConfig config, Connection rawConnection) throws SQLException {
+    public static void setDefaultValues(Connection rawConnection, ViburDBCPConfig config) throws SQLException {
         if (config.getDefaultAutoCommit() != null)
             rawConnection.setAutoCommit(config.getDefaultAutoCommit());
         if (config.getDefaultReadOnly() != null)
@@ -108,17 +109,17 @@ public final class JdbcUtils {
             rawConnection.setCatalog(config.getDefaultCatalog());
     }
 
-    public static boolean validateConnection(ViburDBCPConfig config, Connection rawConnection, String query) throws SQLException {
+    public static boolean validateConnection(Connection rawConnection, String query, ViburDBCPConfig config) throws SQLException {
         if (query == null)
             return true;
 
         if (query.equals(IS_VALID_QUERY))
             return rawConnection.isValid(config.getValidateTimeoutInSeconds());
-        return executeValidationQuery(config, rawConnection, query);
+        return executeValidationQuery(rawConnection, query, config);
     }
 
-    private static boolean executeValidationQuery(ViburDBCPConfig config, Connection rawConnection, String query) throws SQLException {
-        int oldTimeout = setNetworkTimeoutIfDifferent(config, rawConnection);
+    private static boolean executeValidationQuery(Connection rawConnection, String query, ViburDBCPConfig config) throws SQLException {
+        int oldTimeout = setNetworkTimeoutIfDifferent(rawConnection, config);
 
         Statement rawStatement = null;
         try {
@@ -129,11 +130,11 @@ public final class JdbcUtils {
             quietClose(rawStatement);
         }
 
-        resetNetworkTimeout(config, rawConnection, oldTimeout);
+        resetNetworkTimeout(rawConnection, config.getNetworkTimeoutExecutor(), oldTimeout);
         return true;
     }
 
-    private static int setNetworkTimeoutIfDifferent(ViburDBCPConfig config, Connection rawConnection) throws SQLException {
+    private static int setNetworkTimeoutIfDifferent(Connection rawConnection, ViburDBCPConfig config) throws SQLException {
         if (config.isUseNetworkTimeout()) {
             int newTimeout = (int) SECONDS.toMillis(config.getValidateTimeoutInSeconds());
             int oldTimeout = rawConnection.getNetworkTimeout();
@@ -145,9 +146,9 @@ public final class JdbcUtils {
         return -1;
     }
 
-    private static void resetNetworkTimeout(ViburDBCPConfig config, Connection rawConnection, int oldTimeout) throws SQLException {
+    private static void resetNetworkTimeout(Connection rawConnection, Executor executor, int oldTimeout) throws SQLException {
         if (oldTimeout >= 0)
-            rawConnection.setNetworkTimeout(config.getNetworkTimeoutExecutor(), oldTimeout);
+            rawConnection.setNetworkTimeout(executor, oldTimeout);
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////

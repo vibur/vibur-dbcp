@@ -26,6 +26,8 @@ import java.lang.reflect.InvocationHandler;
 import java.sql.*;
 import java.util.List;
 
+import static java.lang.reflect.Proxy.getProxyClass;
+
 /**
  * @author Simeon Malchev
  */
@@ -33,42 +35,42 @@ public final class Proxy {
 
     private Proxy() {}
 
-    public static Connection newConnection(ConnHolder conn, PoolOperations poolOperations, ViburDBCPConfig config) {
+    public static Connection newProxyConnection(ConnHolder conn, PoolOperations poolOperations, ViburDBCPConfig config) {
         InvocationHandler handler = new ConnectionInvocationHandler(conn, poolOperations, config);
         return (Connection) newProxy(connectionCtor, handler);
     }
 
-    static Statement newStatement(StatementHolder statement, Connection connProxy,
-                                  ViburDBCPConfig config, ExceptionCollector exceptionCollector) {
+    static Statement newProxyStatement(StatementHolder statement, Connection connProxy,
+                                       ViburDBCPConfig config, ExceptionCollector exceptionCollector) {
         InvocationHandler handler = new StatementInvocationHandler(
                 statement, null, connProxy, config, exceptionCollector);
         return (Statement) newProxy(statementCtor, handler);
     }
 
-    static PreparedStatement newPreparedStatement(StatementHolder pStatement, Connection connProxy,
-                                                  ViburDBCPConfig config, ExceptionCollector exceptionCollector) {
+    static PreparedStatement newProxyPreparedStatement(StatementHolder pStatement, Connection connProxy,
+                                                       ViburDBCPConfig config, ExceptionCollector exceptionCollector) {
         InvocationHandler handler = new StatementInvocationHandler(
                 pStatement, config.getStatementCache(), connProxy, config, exceptionCollector);
         return (PreparedStatement) newProxy(pStatementCtor, handler);
     }
 
-    static CallableStatement newCallableStatement(StatementHolder cStatement, Connection connProxy,
-                                                  ViburDBCPConfig config, ExceptionCollector exceptionCollector) {
+    static CallableStatement newProxyCallableStatement(StatementHolder cStatement, Connection connProxy,
+                                                       ViburDBCPConfig config, ExceptionCollector exceptionCollector) {
         InvocationHandler handler = new StatementInvocationHandler(
                 cStatement, config.getStatementCache(), connProxy, config, exceptionCollector);
         return (CallableStatement) newProxy(cStatementCtor, handler);
     }
 
-    static DatabaseMetaData newDatabaseMetaData(DatabaseMetaData rawMetaData, Connection connProxy,
-                                                ViburDBCPConfig config, ExceptionCollector exceptionCollector) {
+    static DatabaseMetaData newProxyDatabaseMetaData(DatabaseMetaData rawMetaData, Connection connProxy,
+                                                     ViburDBCPConfig config, ExceptionCollector exceptionCollector) {
         InvocationHandler handler = new ChildObjectInvocationHandler<>(
                 rawMetaData, connProxy, "getConnection", config, exceptionCollector);
         return (DatabaseMetaData) newProxy(metadataCtor, handler);
     }
 
-    static ResultSet newResultSet(ResultSet rawResultSet, Statement statementProxy,
-                                  Object[] executeMethodArgs, List<Object[]> queryParams,
-                                  ViburDBCPConfig config, ExceptionCollector exceptionCollector) {
+    static ResultSet newProxyResultSet(ResultSet rawResultSet, Statement statementProxy,
+                                       Object[] executeMethodArgs, List<Object[]> queryParams,
+                                       ViburDBCPConfig config, ExceptionCollector exceptionCollector) {
         InvocationHandler handler = new ResultSetInvocationHandler(
                 rawResultSet, statementProxy, executeMethodArgs, queryParams, config, exceptionCollector);
         return (ResultSet) newProxy(resultSetCtor, handler);
@@ -94,19 +96,13 @@ public final class Proxy {
     // static initializer for all constructors:
     static {
         try {
-            connectionCtor = java.lang.reflect.Proxy.getProxyClass(classLoader, Connection.class)
-                    .getConstructor(InvocationHandler.class);
-            statementCtor = java.lang.reflect.Proxy.getProxyClass(classLoader, Statement.class)
-                    .getConstructor(InvocationHandler.class);
-            pStatementCtor = java.lang.reflect.Proxy.getProxyClass(classLoader, PreparedStatement.class)
-                    .getConstructor(InvocationHandler.class);
-            cStatementCtor = java.lang.reflect.Proxy.getProxyClass(classLoader, CallableStatement.class)
-                    .getConstructor(InvocationHandler.class);
-            metadataCtor = java.lang.reflect.Proxy.getProxyClass(classLoader, DatabaseMetaData.class)
-                    .getConstructor(InvocationHandler.class);
-            resultSetCtor = java.lang.reflect.Proxy.getProxyClass(classLoader, ResultSet.class)
-                    .getConstructor(InvocationHandler.class);
-        } catch (ReflectiveOperationException e) {
+            connectionCtor = getProxyClass(classLoader, Connection.class).getConstructor(InvocationHandler.class);
+            statementCtor  = getProxyClass(classLoader, Statement.class).getConstructor(InvocationHandler.class);
+            pStatementCtor = getProxyClass(classLoader, PreparedStatement.class).getConstructor(InvocationHandler.class);
+            cStatementCtor = getProxyClass(classLoader, CallableStatement.class).getConstructor(InvocationHandler.class);
+            metadataCtor   = getProxyClass(classLoader, DatabaseMetaData.class).getConstructor(InvocationHandler.class);
+            resultSetCtor  = getProxyClass(classLoader, ResultSet.class).getConstructor(InvocationHandler.class);
+        } catch (NoSuchMethodException e) {
             throw new Error(e);
         }
     }

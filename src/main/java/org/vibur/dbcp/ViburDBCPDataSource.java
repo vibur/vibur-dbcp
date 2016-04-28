@@ -174,7 +174,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
             String val = (String) entry.getValue();
             try {
                 if (!fields.contains(key)) {
-                    logger.warn("Unknown configuration property: {}", key);
+                    logger.warn("Unknown configuration property {}", key);
                     continue;
                 }
                 Field field = ViburDBCPConfig.class.getDeclaredField(key);
@@ -190,13 +190,9 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
                 else if (type == String.class)
                     set(field, val);
                 else
-                    throw new ViburDBCPException("Unexpected type for configuration property: " + key);
-            } catch (NoSuchFieldException e) {
-                throw new ViburDBCPException("Error calling getDeclaredField() for: " + key);
-            } catch (NumberFormatException e) {
-                throw new ViburDBCPException("Wrong value for configuration property: " + key, e);
-            } catch (IllegalAccessException e) {
-                throw new ViburDBCPException(key, e);
+                    throw new ViburDBCPException("Unexpected type for configuration property " + key);
+            } catch (NumberFormatException | ReflectiveOperationException e) {
+                throw new ViburDBCPException(format("Error setting configuration property %s, value = %s", key, val), e);
             }
         }
     }

@@ -29,6 +29,7 @@ import java.sql.Statement;
 import java.util.LinkedList;
 import java.util.List;
 
+import static org.vibur.dbcp.proxy.Proxy.newProxyResultSet;
 import static org.vibur.dbcp.util.QueryUtils.formatSql;
 import static org.vibur.dbcp.util.QueryUtils.getSqlQuery;
 import static org.vibur.dbcp.util.ViburUtils.getPoolName;
@@ -131,7 +132,7 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
 
     private ResultSet newProxiedResultSet(Statement proxy, Method method, Object[] args) throws Throwable {
         ResultSet rawResultSet = (ResultSet) targetInvoke(method, args);
-        return Proxy.newResultSet(rawResultSet, proxy, args, queryParams, config, getExceptionCollector());
+        return newProxyResultSet(rawResultSet, proxy, args, queryParams, config, getExceptionCollector());
     }
 
     private void logQuery(Statement proxy, Object[] args, long startTime) {
