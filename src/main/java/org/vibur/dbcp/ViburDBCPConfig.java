@@ -289,7 +289,7 @@ public class ViburDBCPConfig {
 
 
     private boolean poolFifo = false;
-    private BasePool pool;
+    private BasePool pool = null;
 
 
     //////////////////////// Getters & Setters ////////////////////////
