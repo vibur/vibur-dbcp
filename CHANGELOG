@@ -1,15 +1,18 @@
 Version 9.0 (30/04/2016) - recommended
 ======================================
 * Migrated the source code base to Java 1.7 and implemented AutoCloseable for ViburDBCPDataSource.
-* This version of Vibur DBCP depends on version 9.0 of Vibur Object Pool, which contains some packages refactoring and
-  fix for issue #2 - close the underlying physical connection when closing a proxy connection after pool termination.
-* Improved the SQLException messages and SQLState values when the connection pool is terminated or not started yet.
+* This version of Vibur DBCP depends on version 9.0 of Vibur Object Pool, which contains a fix for issue #2
+  (close the underlying physical connection when closing a proxy connection after pool termination), and a new
+  configuration option that allows to choose the underlying data structure used by the pool to be either
+  FIFO (the old default) or LIFO (the new default).
+* Changed the default value of the connectionIdleLimitInSeconds configuration option from 15 to 5 seconds.
+* Improved the SQLException messages and SQLState values when the accessed connection pool is terminated or not
+  started yet.
 * Implemented unregistering of the connection pool from JMX when the pool is terminated.
 * Added useNetworkTimeout and networkTimeoutExecutor configuration options in order to provide support for setting
   the socket level read-timeouts via using the Connection.setNetworkTimeout() method, for the case when the JDBC
   Connection is validated with a custom SQL query; i.e., different than isValid.
-* Some refactoring and javadoc updates. In particular, have extracted all low-level JDBC operations into the
-  JdbcUtils class.
+* Various other small fixes, refactoring and javadoc updates.
 
 Version 8.0 (02/02/2016) - recommended
 ======================================
