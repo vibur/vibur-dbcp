@@ -1,6 +1,6 @@
 <img align="left" src="http://www.vibur.org/img/vibur-130x130.png" alt="Vibur logo"> 
-Vibur DBCP is concurrent, fast, and fully-featured JDBC connection pool. It provides advanced performance 
-monitoring capabilities (including slow SQL queries detection and logging), a non-starvation guarantee for 
+Vibur DBCP is concurrent, fast, and fully-featured JDBC connection pool, which provides advanced performance 
+monitoring capabilities, including slow SQL queries detection and logging, a non-starvation guarantee for 
 application threads, statement caching, and Hibernate integration, among other features.
 
 The project [home page](http://www.vibur.org/) contains a full list of its features, including various configuration
