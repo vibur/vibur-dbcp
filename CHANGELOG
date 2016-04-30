@@ -1,6 +1,5 @@
 Version 9.0 (30/04/2016) - recommended
 ======================================
-* Migrated the source code base to Java 1.7 and implemented AutoCloseable for ViburDBCPDataSource.
 * This version of Vibur DBCP depends on version 9.0 of Vibur Object Pool, which contains a fix for issue #2
   (close the underlying physical connection when closing a proxy connection after pool termination), and a new
   configuration option that allows to choose the underlying data structure used by the pool to be either
@@ -12,7 +11,8 @@ Version 9.0 (30/04/2016) - recommended
 * Added useNetworkTimeout and networkTimeoutExecutor configuration options in order to provide support for setting
   the socket level read-timeouts via using the Connection.setNetworkTimeout() method, for the case when the JDBC
   Connection is validated with a custom SQL query; i.e., different than isValid.
-* Various other small fixes, refactoring and javadoc updates.
+* Migrated the source code base to Java 1.7 and implemented AutoCloseable for ViburDBCPDataSource.
+  Various other small fixes, refactoring and javadoc updates.
 
 Version 8.0 (02/02/2016) - recommended
 ======================================
