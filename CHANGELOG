@@ -14,8 +14,8 @@ Version 9.0 (30/04/2016) - recommended
 * Migrated the source code base to Java 1.7 and implemented AutoCloseable for ViburDBCPDataSource.
   Various other small fixes, refactoring and javadoc updates.
 
-Version 8.0 (02/02/2016) - recommended
-======================================
+Version 8.0 (02/02/2016) - bug fixing release
+=============================================
 * Fixed issue https://github.com/vibur/vibur-dbcp/issues/7 - statement/resource leak when statement cache is disabled.
   This was a REGRESSION BUG introduced in version 5.0 and existing until 7.0 inclusive.
   This release is distributed as a new major version to better convey the importance to upgrade the Vibur DBCP
