@@ -180,7 +180,7 @@
                         <Bundle-Name>${project.artifactId}</Bundle-Name>
                         <Export-Package>
                             org.vibur.dbcp,
-                            org.vibur.dbcp.util
+                            org.vibur.dbcp.event
                         </Export-Package>
                         <Import-Package>
                             javax.sql,
