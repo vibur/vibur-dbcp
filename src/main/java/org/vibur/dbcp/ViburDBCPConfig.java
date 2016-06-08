@@ -121,7 +121,7 @@ public class ViburDBCPConfig {
      * for the needs of the application JDBC driver. For example, some JDBC drivers may require a synchronous
      * {@code Executor}.
      */
-     private Executor networkTimeoutExecutor = null;
+    private Executor networkTimeoutExecutor = null;
 
 
     /** The pool initial size, i.e. the initial number of JDBC Connections allocated in this pool. */
