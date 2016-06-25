@@ -50,9 +50,9 @@ import static java.lang.Long.parseLong;
 import static java.lang.String.format;
 import static java.sql.Connection.*;
 import static java.util.Objects.requireNonNull;
-import static org.vibur.dbcp.DataSourceLifecycle.State.*;
-import static org.vibur.dbcp.util.JmxUtils.registerMBean;
-import static org.vibur.dbcp.util.JmxUtils.unregisterMBean;
+import static org.vibur.dbcp.ViburDBCPMonitoring.registerMBean;
+import static org.vibur.dbcp.ViburDBCPMonitoring.unregisterMBean;
+import static org.vibur.dbcp.ViburDataSource.State.*;
 import static org.vibur.dbcp.util.ViburUtils.getPoolName;
 import static org.vibur.dbcp.util.ViburUtils.unwrapSQLException;
 import static org.vibur.objectpool.util.ArgumentValidation.forbidIllegalArgument;
@@ -60,14 +60,14 @@ import static org.vibur.objectpool.util.ArgumentValidation.forbidIllegalArgument
 /**
  * The main DataSource which needs to be configured/instantiated by the calling application and from
  * which the JDBC Connections will be obtained via calling the {@link #getConnection()} method. The
- * lifecycle operations of this DataSource are defined by the {@link DataSourceLifecycle} interface.
+ * lifecycle operations of this DataSource are defined by the {@link ViburDataSource} interface.
  *
  * @see DataSource
  * @see org.vibur.dbcp.pool.ConnectionFactory
  *
  * @author Simeon Malchev
  */
-public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, DataSourceLifecycle {
+public class ViburDBCPDataSource extends ViburDBCPConfig implements ViburDataSource {
 
     private static final org.slf4j.Logger logger = LoggerFactory.getLogger(ViburDBCPDataSource.class);
 
@@ -80,7 +80,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
     private PoolOperations poolOperations;
     private ThreadedPoolReducer poolReducer = null;
 
-    private PrintWriter logWriter;
+    private PrintWriter logWriter = null;
 
     /**
      * Default constructor for programmatic configuration via the {@code ViburDBCPConfig}
@@ -228,7 +228,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
         initStatementCache();
 
         if (isEnableJMX())
-            registerMBean(new ViburDBCPMonitoring(this), getJmxName());
+            registerMBean(this);
         logger.info("Started {}", this);
     }
 
@@ -245,7 +245,7 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
             getPool().terminate();
 
         if (isEnableJMX())
-            unregisterMBean(getJmxName());
+            unregisterMBean(this);
         unregisterName();
         logger.info("Terminated {}", this);
     }
@@ -363,16 +363,16 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
 
     /**
      * {@inheritDoc}
-     *
+     * <p>
      * This method will return a <b>raw (non-pooled)</b> JDBC Connection when called with credentials different
      * than the configured default credentials.
      * */
     @Override
     public Connection getConnection(String username, String password) throws SQLException {
-        ensureIsWorking();
         if (defaultCredentials(username, password))
             return getConnection();
 
+        ensureIsWorking();
         logger.warn("Calling getConnection() with different than the default credentials; will create and return a non-pooled Connection.");
         try {
             return connectionFactory.create(username, password).value();
@@ -443,9 +443,5 @@ public class ViburDBCPDataSource extends ViburDBCPConfig implements DataSource, 
     @Override
     public boolean isWrapperFor(Class<?> iface) {
         return false;
-    }
-
-    public String getJmxName() {
-        return "org.vibur.dbcp:type=ViburDBCP-" + getName();
     }
 }

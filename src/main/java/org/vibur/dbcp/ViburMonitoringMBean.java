@@ -21,7 +21,7 @@ package org.vibur.dbcp;
  *
  * @author Simeon Malchev
  */
-public interface ViburDBCPMonitoringMBean {
+public interface ViburMonitoringMBean {
 
     //////////// Database connectivity ////////////
 

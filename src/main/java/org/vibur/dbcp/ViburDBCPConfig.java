@@ -423,6 +423,10 @@ public class ViburDBCPConfig {
             logger.warn("DataSource name {} is not unique, using {} instead", name, this.name);
     }
 
+    public String getJmxName() {
+        return "org.vibur.dbcp:type=ViburDBCP-" + name;
+    }
+
     public boolean isEnableJMX() {
         return enableJMX;
     }
@@ -676,6 +680,7 @@ public class ViburDBCPConfig {
         return getClass().getSimpleName() +
             " {driverClassName='" + driverClassName + '\'' +
             ", jdbcUrl='" + jdbcUrl + '\'' +
+            ", username='" + username + '\'' +
             ", externalDataSource=" + externalDataSource +
             ", poolInitialSize=" + poolInitialSize +
             ", poolMaxSize=" + poolMaxSize +

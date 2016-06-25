@@ -16,10 +16,16 @@
 
 package org.vibur.dbcp;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.pool.ConnHolder;
 import org.vibur.objectpool.PoolService;
 import org.vibur.objectpool.util.TakenListener;
 
+import javax.management.JMException;
+import javax.management.MBeanServer;
+import javax.management.ObjectName;
+import java.lang.management.ManagementFactory;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -30,12 +36,40 @@ import static org.vibur.dbcp.util.ViburUtils.getStackTraceAsString;
 /**
  * @author Simeon Malchev
  */
-public class ViburDBCPMonitoring implements ViburDBCPMonitoringMBean {
+public final class ViburDBCPMonitoring implements ViburMonitoringMBean {
+
+    private static final Logger logger = LoggerFactory.getLogger(ViburDBCPMonitoring.class);
 
     private final ViburDBCPConfig config;
 
-    public ViburDBCPMonitoring(ViburDBCPConfig config) throws ViburDBCPException {
+    private ViburDBCPMonitoring(ViburDBCPConfig config) {
         this.config = config;
+    }
+
+    static void registerMBean(ViburDBCPConfig config) {
+        try {
+            MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+            ObjectName objectName = new ObjectName(config.getJmxName());
+            if (!mbs.isRegistered(objectName))
+                mbs.registerMBean(new ViburDBCPMonitoring(config), objectName);
+            else
+                logger.warn(config.getJmxName() + " is already registered.");
+        } catch (JMException e) {
+            logger.warn("Unable to register mBean {}", config.getJmxName(), e);
+        }
+    }
+
+    static void unregisterMBean(ViburDBCPConfig config) {
+        try {
+            MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+            ObjectName objectName = new ObjectName(config.getJmxName());
+            if (mbs.isRegistered(objectName))
+                mbs.unregisterMBean(objectName);
+            else
+                logger.warn(config.getJmxName() + " is not registered.");
+        } catch (JMException e) {
+            logger.warn("Unable to unregister mBean {}", config.getJmxName(), e);
+        }
     }
 
     @Override
