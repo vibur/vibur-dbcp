@@ -22,9 +22,9 @@ import java.sql.SQLException;
 /**
  * An application programming hook for JDBC Connection tune-up.
  *
- * @see org.vibur.dbcp.ViburDBCPConfig#initConnectionHook
- * @see org.vibur.dbcp.ViburDBCPConfig#connectionHook
- * @see org.vibur.dbcp.ViburDBCPConfig#closeConnectionHook
+ * @see org.vibur.dbcp.ViburConfig#initConnectionHook
+ * @see org.vibur.dbcp.ViburConfig#connectionHook
+ * @see org.vibur.dbcp.ViburConfig#closeConnectionHook
  *
  * @author Simeon Malchev
  */

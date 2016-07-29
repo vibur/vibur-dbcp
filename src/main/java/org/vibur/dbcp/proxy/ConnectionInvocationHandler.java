@@ -16,7 +16,7 @@
 
 package org.vibur.dbcp.proxy;
 
-import org.vibur.dbcp.ViburDBCPConfig;
+import org.vibur.dbcp.ViburConfig;
 import org.vibur.dbcp.cache.ConnMethod;
 import org.vibur.dbcp.cache.StatementCache;
 import org.vibur.dbcp.cache.StatementHolder;
@@ -33,13 +33,13 @@ import static org.vibur.dbcp.proxy.Proxy.*;
 /**
  * @author Simeon Malchev
  */
-class ConnectionInvocationHandler extends AbstractInvocationHandler<Connection> {
+public class ConnectionInvocationHandler extends AbstractInvocationHandler<Connection> {
 
     private final ConnHolder conn;
     private final PoolOperations poolOperations;
-    private final ViburDBCPConfig config;
+    private final ViburConfig config;
 
-    ConnectionInvocationHandler(ConnHolder conn, PoolOperations poolOperations, ViburDBCPConfig config) {
+    ConnectionInvocationHandler(ConnHolder conn, PoolOperations poolOperations, ViburConfig config) {
         super(conn.value(), config, new ExceptionCollector(config));
         this.conn = conn;
         this.poolOperations = poolOperations;
@@ -50,14 +50,14 @@ class ConnectionInvocationHandler extends AbstractInvocationHandler<Connection> 
     Object doInvoke(Connection proxy, Method method, Object[] args) throws Throwable {
         String methodName = method.getName();
 
-        boolean aborted = methodName == "abort";
-        if (aborted || methodName == "close")
-            return processCloseOrAbort(aborted, method, args);
+        if (methodName == "close")
+            return processClose();
         if (methodName == "isClosed")
             return isClosed();
-
         if (methodName == "isValid")
             return isClosed() ? false : targetInvoke(method, args);
+        if (methodName == "abort")
+            return processAbort(method, args);
 
         ensureNotClosed(); // all other Connection interface methods cannot work if the JDBC Connection is closed
 
@@ -95,7 +95,7 @@ class ConnectionInvocationHandler extends AbstractInvocationHandler<Connection> 
     private StatementHolder getCachedStatement(Method method, Object[] args) throws Throwable {
         StatementCache statementCache = config.getStatementCache();
         if (statementCache != null)
-            return statementCache.retrieve(new ConnMethod(getTarget(), method, args), this);
+            return statementCache.computeIfAbsent(new ConnMethod(getTarget(), method, args), this);
 
         return getUncachedStatement(method, args);
     }
@@ -105,13 +105,28 @@ class ConnectionInvocationHandler extends AbstractInvocationHandler<Connection> 
         return new StatementHolder(rawStatement, null);
     }
 
-    private Object processCloseOrAbort(boolean aborted, Method method, Object[] args) throws Throwable {
+    private Object processClose() {
+        if (!getAndSetClosed())
+            restoreToPool(true);
+        return null;
+    }
+
+    private Object processAbort(Method method, Object[] args) throws Throwable {
         if (getAndSetClosed())
             return null;
         try {
-            return aborted ? targetInvoke(method, args) : null; // calls to close() are not passed, to abort() are passed
+            return targetInvoke(method, args);
         } finally {
-            poolOperations.restore(conn, aborted, getExceptionCollector().getExceptions());
+            restoreToPool(false);
         }
+    }
+
+    private void restoreToPool(boolean valid) {
+        poolOperations.restore(conn, valid, getExceptionCollector().getExceptions());
+    }
+
+    public void invalidate() {
+        getAndSetClosed();
+        restoreToPool(false);
     }
 }

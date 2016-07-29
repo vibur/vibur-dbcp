@@ -48,6 +48,8 @@ public interface ViburMonitoringMBean {
 
     void setInitSQL(String initSQL);
 
+    boolean isUseNetworkTimeout();
+
 
     //////////// Pool parameters and PoolReducer parameters ////////////
 
@@ -66,6 +68,8 @@ public interface ViburMonitoringMBean {
     int getReducerTimeIntervalInSeconds();
 
     int getReducerSamples();
+
+    boolean isAllowConnectionAfterTermination();
 
 
     //////////// JDBC Connection acquiring timeout and retries, and Driver/DataSource login timeout ////////////

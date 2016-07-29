@@ -17,9 +17,12 @@
 package org.vibur.dbcp;
 
 import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.SQLException;
 
 /**
- * Defines the {@link ViburDBCPDataSource} lifecycle operations and states.
+ * Defines the {@link ViburDBCPDataSource} lifecycle operations and states. Also, defines specific to Vibur
+ * DataSource operations such as retrieving of a non-pooled connection and severing of a connection.
  *
  * @author Simeon Malchev
  */
@@ -55,9 +58,9 @@ public interface ViburDataSource extends DataSource, AutoCloseable {
      * via calling this method. Any necessary validation of the configuration will be performed
      * as part of this call.
      *
-     * @throws IllegalStateException if not in a {@code NEW} state when started
-     * @throws IllegalArgumentException if a configuration error is found during start
-     * @throws ViburDBCPException if cannot start this DataSource successfully
+     * @throws ViburDBCPException if not in a {@code NEW} state when started;
+     *      if a configuration error is found during start;
+     *      if cannot start this DataSource successfully for any other reason
      */
     void start();
 
@@ -68,8 +71,43 @@ public interface ViburDataSource extends DataSource, AutoCloseable {
 
     /**
      * Returns this DataSource current state.
-     *
-     * @return see above
      */
     State getState();
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * Returns a <b>raw (non-pooled)</b> JDBC Connection using the default username and password.
+     *
+     * @throws SQLException if an error occurs while creating the connection
+     */
+    Connection getNonPooledConnection() throws SQLException;
+
+    /**
+     * Returns a <b>raw (non-pooled)</b> JDBC Connection using the supplied username and password.
+     *
+     * @param username the database username
+     * @param password the database password
+     * @throws SQLException if an error occurs while creating the connection
+     */
+    Connection getNonPooledConnection(String username, String password) throws SQLException;
+
+    /**
+     * Severs the supplied connection which can either be a pooled connection retrieved via calling
+     * one of the {@link #getConnection} methods or a raw non-pooled connection retrieved via calling
+     * one of the {@link #getNonPooledConnection} methods. If the supplied connection is pooled, it will
+     * be closed and removed from the pool and its underlying raw connection will be closed, too. In the
+     * case when the supplied connection is non-pooled, it will be just closed.
+     *
+     * @param connection the connection to be severed
+     * @throws SQLException if an error occurs while closing/severing the connection
+     */
+    void severConnection(Connection connection) throws SQLException;
+
+    /**
+     * A synonym for {@link #terminate()}. Overrides the {@link AutoCloseable}'s method in order to overrule
+     * the throwing of a checked {@code Exception}.
+     */
+    @Override
+    void close();
 }

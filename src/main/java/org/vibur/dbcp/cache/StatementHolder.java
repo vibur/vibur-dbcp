@@ -45,8 +45,7 @@ public class StatementHolder {
     private final AtomicReference<State> state; // a null value means that this StatementHolder instance is not included in the cache
 
     public StatementHolder(Statement value, AtomicReference<State> state) {
-        if (value == null)
-            throw new NullPointerException();
+        assert value != null;
         this.value = value;
         this.state = state;
     }

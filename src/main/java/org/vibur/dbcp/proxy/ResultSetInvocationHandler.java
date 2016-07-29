@@ -16,7 +16,7 @@
 
 package org.vibur.dbcp.proxy;
 
-import org.vibur.dbcp.ViburDBCPConfig;
+import org.vibur.dbcp.ViburConfig;
 
 import java.lang.reflect.Method;
 import java.sql.ResultSet;
@@ -34,13 +34,13 @@ class ResultSetInvocationHandler extends ChildObjectInvocationHandler<Statement,
 
     private final Object[] executeMethodArgs;
     private final List<Object[]> queryParams;
-    private final ViburDBCPConfig config;
+    private final ViburConfig config;
 
     private final AtomicLong resultSetSize = new AtomicLong(0);
 
     ResultSetInvocationHandler(ResultSet rawResultSet, Statement statementProxy,
                                Object[] executeMethodArgs, List<Object[]> queryParams,
-                               ViburDBCPConfig config, ExceptionCollector exceptionCollector) {
+                               ViburConfig config, ExceptionCollector exceptionCollector) {
         super(rawResultSet, statementProxy, "getStatement", config, exceptionCollector);
         this.executeMethodArgs = executeMethodArgs;
         this.queryParams = queryParams;
@@ -53,6 +53,8 @@ class ResultSetInvocationHandler extends ChildObjectInvocationHandler<Statement,
 
         if (methodName == "close")
             return processClose(method, args);
+        if (methodName == "isClosed")
+            return isClosed();
 
         ensureNotClosed();
 
@@ -68,6 +70,8 @@ class ResultSetInvocationHandler extends ChildObjectInvocationHandler<Statement,
     }
 
     private Object processClose(Method method, Object[] args) throws Throwable {
+        if (getAndSetClosed())
+            return null;
         logResultSetSize();
         return targetInvoke(method, args);
     }

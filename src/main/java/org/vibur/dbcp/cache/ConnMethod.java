@@ -33,13 +33,13 @@ import static java.lang.String.format;
  */
 public class ConnMethod {
 
-    private final Connection target;
+    private final Connection target; // the underlying raw JDBC Connection
     private final Method method;
     private final Object[] args;
 
     public ConnMethod(Connection target, Method method, Object[] args) {
-        if (target == null || method == null)
-            throw new NullPointerException();
+        assert target != null;
+        assert method != null;
         this.target = target;
         this.method = method;
         this.args = args;

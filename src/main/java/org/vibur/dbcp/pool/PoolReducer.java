@@ -18,7 +18,7 @@ package org.vibur.dbcp.pool;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.vibur.dbcp.ViburDBCPConfig;
+import org.vibur.dbcp.ViburConfig;
 import org.vibur.dbcp.ViburDBCPException;
 import org.vibur.objectpool.util.SamplingPoolReducer;
 
@@ -37,9 +37,9 @@ public class PoolReducer extends SamplingPoolReducer {
 
     private static final Logger logger = LoggerFactory.getLogger(PoolReducer.class);
 
-    private final ViburDBCPConfig config;
+    private final ViburConfig config;
 
-    public PoolReducer(ViburDBCPConfig config) {
+    public PoolReducer(ViburConfig config) {
         super(config.getPool(), config.getReducerTimeIntervalInSeconds(), SECONDS, config.getReducerSamples());
         this.config = config;
     }

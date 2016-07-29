@@ -36,22 +36,22 @@ import static org.vibur.dbcp.util.ViburUtils.getStackTraceAsString;
 /**
  * @author Simeon Malchev
  */
-public final class ViburDBCPMonitoring implements ViburMonitoringMBean {
+public final class ViburMonitoring implements ViburMonitoringMBean {
 
-    private static final Logger logger = LoggerFactory.getLogger(ViburDBCPMonitoring.class);
+    private static final Logger logger = LoggerFactory.getLogger(ViburMonitoring.class);
 
-    private final ViburDBCPConfig config;
+    private final ViburConfig config;
 
-    private ViburDBCPMonitoring(ViburDBCPConfig config) {
+    private ViburMonitoring(ViburConfig config) {
         this.config = config;
     }
 
-    static void registerMBean(ViburDBCPConfig config) {
+    static void registerMBean(ViburConfig config) {
         try {
             MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
             ObjectName objectName = new ObjectName(config.getJmxName());
             if (!mbs.isRegistered(objectName))
-                mbs.registerMBean(new ViburDBCPMonitoring(config), objectName);
+                mbs.registerMBean(new ViburMonitoring(config), objectName);
             else
                 logger.warn(config.getJmxName() + " is already registered.");
         } catch (JMException e) {
@@ -59,7 +59,7 @@ public final class ViburDBCPMonitoring implements ViburMonitoringMBean {
         }
     }
 
-    static void unregisterMBean(ViburDBCPConfig config) {
+    static void unregisterMBean(ViburConfig config) {
         try {
             MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
             ObjectName objectName = new ObjectName(config.getJmxName());
@@ -123,6 +123,11 @@ public final class ViburDBCPMonitoring implements ViburMonitoringMBean {
     }
 
     @Override
+    public boolean isUseNetworkTimeout() {
+        return config.isUseNetworkTimeout();
+    }
+
+    @Override
     public int getPoolInitialSize() {
         return config.getPoolInitialSize();
     }
@@ -160,6 +165,11 @@ public final class ViburDBCPMonitoring implements ViburMonitoringMBean {
     @Override
     public int getReducerSamples() {
         return config.getReducerSamples();
+    }
+
+    @Override
+    public boolean isAllowConnectionAfterTermination() {
+        return config.isAllowConnectionAfterTermination();
     }
 
     @Override

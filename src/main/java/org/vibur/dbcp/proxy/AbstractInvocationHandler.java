@@ -18,7 +18,7 @@ package org.vibur.dbcp.proxy;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.vibur.dbcp.ViburDBCPConfig;
+import org.vibur.dbcp.ViburConfig;
 import org.vibur.dbcp.ViburDBCPException;
 
 import java.lang.reflect.InvocationTargetException;
@@ -27,8 +27,8 @@ import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static org.vibur.dbcp.ViburDBCPConfig.SQLSTATE_OBJECT_CLOSED_ERROR;
-import static org.vibur.dbcp.ViburDBCPConfig.SQLSTATE_WRAPPER_ERROR;
+import static org.vibur.dbcp.ViburConfig.SQLSTATE_OBJECT_CLOSED_ERROR;
+import static org.vibur.dbcp.ViburConfig.SQLSTATE_WRAPPER_ERROR;
 import static org.vibur.dbcp.util.ViburUtils.getPoolName;
 
 /**
@@ -43,14 +43,14 @@ abstract class AbstractInvocationHandler<T> implements TargetInvoker {
      *  For example, the underlying JDBC Connection, the underlying JDBC Statement, etc. */
     private final T target;
 
-    private final ViburDBCPConfig config;
+    private final ViburConfig config;
     private final ExceptionCollector exceptionCollector;
 
-    private final AtomicBoolean logicallyClosed = new AtomicBoolean(false);
+    private final AtomicBoolean closed = new AtomicBoolean(false);
 
-    AbstractInvocationHandler(T target, ViburDBCPConfig config, ExceptionCollector exceptionCollector) {
-        if (target == null || exceptionCollector == null)
-            throw new NullPointerException();
+    AbstractInvocationHandler(T target, ViburConfig config, ExceptionCollector exceptionCollector) {
+        assert target != null;
+        assert exceptionCollector != null;
         this.target = target;
         this.config = config;
         this.exceptionCollector = exceptionCollector;
@@ -126,11 +126,11 @@ abstract class AbstractInvocationHandler<T> implements TargetInvoker {
     }
 
     boolean isClosed() {
-        return logicallyClosed.get();
+        return closed.get();
     }
 
     boolean getAndSetClosed() {
-        return logicallyClosed.getAndSet(true);
+        return closed.getAndSet(true);
     }
 
     void ensureNotClosed() throws SQLException {

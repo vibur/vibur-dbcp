@@ -18,7 +18,7 @@ package org.vibur.dbcp.util;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.vibur.dbcp.ViburDBCPConfig;
+import org.vibur.dbcp.ViburConfig;
 import org.vibur.dbcp.ViburDBCPException;
 
 import javax.sql.DataSource;
@@ -30,7 +30,7 @@ import java.util.concurrent.Executor;
 
 import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.TimeUnit.SECONDS;
-import static org.vibur.dbcp.ViburDBCPConfig.IS_VALID_QUERY;
+import static org.vibur.dbcp.ViburConfig.IS_VALID_QUERY;
 
 /**
  * This class encapsulates all low-level JDBC operations invoked on raw JDBC objects such as
@@ -45,7 +45,7 @@ public final class JdbcUtils {
 
     private JdbcUtils() {}
 
-    public static void initLoginTimeout(ViburDBCPConfig config) throws ViburDBCPException {
+    public static void initLoginTimeout(ViburConfig config) throws ViburDBCPException {
         int loginTimeout = config.getLoginTimeoutInSeconds();
         if (config.getExternalDataSource() == null)
             DriverManager.setLoginTimeout(loginTimeout);
@@ -58,7 +58,7 @@ public final class JdbcUtils {
         }
     }
 
-    public static void initJdbcDriver(ViburDBCPConfig config) throws ViburDBCPException {
+    public static void initJdbcDriver(ViburConfig config) throws ViburDBCPException {
         if (config.getDriverClassName() != null) {
             try {
                 Class.forName(config.getDriverClassName()).newInstance();
@@ -74,11 +74,11 @@ public final class JdbcUtils {
      *
      * @param userName the user name to use when connecting to the database
      * @param password the password to use when connecting to the database
-     * @param config the ViburDBCPConfig
+     * @param config the ViburConfig
      * @return a newly established raw JDBC Connection to the database
      * @throws SQLException if the DriverManager or the DataSource throws an SQLException
      */
-    public static Connection createConnection(String userName, String password, ViburDBCPConfig config) throws SQLException {
+    public static Connection createConnection(String userName, String password, ViburConfig config) throws SQLException {
         Connection rawConnection;
         DataSource externalDataSource = config.getExternalDataSource();
         if (externalDataSource == null) {
@@ -98,7 +98,7 @@ public final class JdbcUtils {
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
-    public static void setDefaultValues(Connection rawConnection, ViburDBCPConfig config) throws SQLException {
+    public static void setDefaultValues(Connection rawConnection, ViburConfig config) throws SQLException {
         if (config.getDefaultAutoCommit() != null)
             rawConnection.setAutoCommit(config.getDefaultAutoCommit());
         if (config.getDefaultReadOnly() != null)
@@ -109,7 +109,7 @@ public final class JdbcUtils {
             rawConnection.setCatalog(config.getDefaultCatalog());
     }
 
-    public static boolean validateConnection(Connection rawConnection, String query, ViburDBCPConfig config) throws SQLException {
+    public static boolean validateConnection(Connection rawConnection, String query, ViburConfig config) throws SQLException {
         if (query == null)
             return true;
 
@@ -118,7 +118,7 @@ public final class JdbcUtils {
         return executeValidationQuery(rawConnection, query, config);
     }
 
-    private static boolean executeValidationQuery(Connection rawConnection, String query, ViburDBCPConfig config) throws SQLException {
+    private static boolean executeValidationQuery(Connection rawConnection, String query, ViburConfig config) throws SQLException {
         int oldTimeout = setNetworkTimeoutIfDifferent(rawConnection, config);
 
         Statement rawStatement = null;
@@ -134,7 +134,7 @@ public final class JdbcUtils {
         return true;
     }
 
-    private static int setNetworkTimeoutIfDifferent(Connection rawConnection, ViburDBCPConfig config) throws SQLException {
+    private static int setNetworkTimeoutIfDifferent(Connection rawConnection, ViburConfig config) throws SQLException {
         if (config.isUseNetworkTimeout()) {
             int newTimeout = (int) SECONDS.toMillis(config.getValidateTimeoutInSeconds());
             int oldTimeout = rawConnection.getNetworkTimeout();

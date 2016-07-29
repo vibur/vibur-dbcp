@@ -27,6 +27,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static java.util.Objects.requireNonNull;
@@ -45,6 +46,7 @@ public class StatementCache {
     private static final Logger logger = LoggerFactory.getLogger(StatementCache.class);
 
     private final ConcurrentMap<ConnMethod, StatementHolder> statementCache;
+    private final AtomicBoolean closed = new AtomicBoolean(false);
 
     public StatementCache(int maxSize) {
         forbidIllegalArgument(maxSize <= 0);
@@ -86,7 +88,10 @@ public class StatementCache {
      * @return a retrieved from the cache or newly created StatementHolder object wrapping the raw JDBC Statement object
      * @throws Throwable if the invoked underlying prepareXYZ method throws an exception
      */
-    public StatementHolder retrieve(ConnMethod key, TargetInvoker invoker) throws Throwable {
+    public StatementHolder computeIfAbsent(ConnMethod key, TargetInvoker invoker) throws Throwable {
+        if (isClosed())
+            return null;
+
         StatementHolder statement = statementCache.get(key);
         if (statement != null && statement.state().compareAndSet(AVAILABLE, IN_USE)) {
             logger.trace("Using cached statement for {}", key);
@@ -105,32 +110,48 @@ public class StatementCache {
     public void restore(StatementHolder statement, boolean clearWarnings) {
         if (statement.state() == null) // this statement is not in the cache
             return;
+        if (isClosed()) {
+            remove(statement.value());
+            statement.state().set(EVICTED);
+        }
 
         Statement rawStatement = statement.value();
         try {
             if (clearWarnings)
                 clearWarnings(rawStatement);
-            if (!statement.state().compareAndSet(IN_USE, AVAILABLE)) // just mark it as AVAILABLE if its state was IN_USE
-                quietClose(rawStatement); // and close it if it was already EVICTED (while its state was IN_USE)
+            if (!statement.state().compareAndSet(IN_USE, AVAILABLE)) // just mark it as AVAILABLE if it was IN_USE
+                quietClose(rawStatement); // and close it if it was already EVICTED while it was IN_USE
         } catch (SQLException e) {
             logger.debug("Couldn't clear warnings on {}", rawStatement, e);
-            remove(rawStatement, false);
-            quietClose(rawStatement);
+            remove(rawStatement);
+            quietClose(rawStatement); // close it always, disregards whether it was EVICTED or IN_USE
+            statement.state().set(EVICTED);
         }
     }
 
-    public boolean remove(Statement rawStatement, boolean close) {
+    /**
+     * Removes an entry from the cache (if such) for the given {@code rawStatement}. Does <b>not</b> close
+     * the removed statement.
+     *
+     * @param rawStatement the statement to be removed
+     * @return true if success, false otherwise
+     */
+    public boolean remove(Statement rawStatement) {
         for (Map.Entry<ConnMethod, StatementHolder> entry : statementCache.entrySet()) {
             StatementHolder value = entry.getValue();
-            if (value.value() == rawStatement) { // comparing with == as these JDBC Statements are cached objects
-                if (close)
-                    quietClose(rawStatement);
+            if (value.value() == rawStatement) // comparing with == as these JDBC Statements are cached objects
                 return statementCache.remove(entry.getKey(), value);
-            }
         }
         return false;
     }
 
+    /**
+     * Removes all entries from the cache (if any) for the given {@code rawConnection}. Closes
+     * all removed statements.
+     *
+     * @param rawConnection the connection for which the entries to be removed
+     * @return the number of removed entries
+     */
     public int removeAll(Connection rawConnection) {
         int removed = 0;
         for (Map.Entry<ConnMethod, StatementHolder> entry : statementCache.entrySet()) {
@@ -144,11 +165,18 @@ public class StatementCache {
         return removed;
     }
 
-    public void clear() {
+    public void close() {
+        if (closed.getAndSet(true))
+            return;
+
         for (Map.Entry<ConnMethod, StatementHolder> entry : statementCache.entrySet()) {
             StatementHolder value = entry.getValue();
             statementCache.remove(entry.getKey(), value);
             quietClose(value.value());
         }
+    }
+
+    public boolean isClosed() {
+        return closed.get();
     }
 }

@@ -19,16 +19,15 @@ package org.vibur.dbcp.pool;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.vibur.dbcp.ViburDBCPConfig;
+import org.vibur.dbcp.ViburConfig;
 import org.vibur.dbcp.ViburDBCPException;
-import org.vibur.dbcp.cache.StatementCache;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static org.vibur.dbcp.ViburDBCPConfig.SQLSTATE_CONN_INIT_ERROR;
+import static org.vibur.dbcp.ViburConfig.SQLSTATE_CONN_INIT_ERROR;
 import static org.vibur.dbcp.util.JdbcUtils.*;
 
 /**
@@ -46,17 +45,16 @@ public class ConnectionFactory implements ViburObjectFactory {
 
     private static final Logger logger = LoggerFactory.getLogger(ConnectionFactory.class);
 
-    private final ViburDBCPConfig config;
+    private final ViburConfig config;
     private final AtomicInteger version = new AtomicInteger(1);
 
     /**
      * Instantiates this object factory.
      *
-     * @param config the ViburDBCPConfig from which will initialize
+     * @param config the ViburConfig from which will initialize
      * @throws ViburDBCPException if cannot successfully initialize/configure the underlying SQL system
      */
-    @SuppressWarnings("unchecked")
-    public ConnectionFactory(ViburDBCPConfig config) throws ViburDBCPException {
+    public ConnectionFactory(ViburConfig config) throws ViburDBCPException {
         this.config = config;
         initLoginTimeout(config);
         initJdbcDriver(config);
@@ -162,9 +160,8 @@ public class ConnectionFactory implements ViburObjectFactory {
     }
 
     private void closeStatements(Connection rawConnection) {
-        StatementCache statementCache = config.getStatementCache();
-        if (statementCache != null)
-            statementCache.removeAll(rawConnection);
+        if (config.getStatementCache() != null)
+            config.getStatementCache().removeAll(rawConnection);
     }
 
     @Override

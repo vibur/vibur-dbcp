@@ -16,6 +16,8 @@
 
 package org.vibur.dbcp.event;
 
+import org.vibur.dbcp.ViburConfig;
+
 import java.sql.Connection;
 import java.util.List;
 
@@ -30,7 +32,7 @@ public interface ViburLogger {
 
     /**
      * This method will be called by Vibur DBCP when a call to getConnection() has taken longer than what is
-     * specified by {@link org.vibur.dbcp.ViburDBCPConfig#logConnectionLongerThanMs}.
+     * specified by {@link ViburConfig#logConnectionLongerThanMs}.
      *
      * @param poolName the pool name
      * @param connProxy the current connection proxy - can be {@code null} which means that the
@@ -39,29 +41,29 @@ public interface ViburLogger {
      * @param timeout the time limit which has applied to the {@code getConnection()} call
      * @param timeTaken the time taken by the {@code getConnection()} method to complete
      * @param stackTrace the stack trace of the {@code getConnection()} method call (or null), depending on
-     *                   {@link org.vibur.dbcp.ViburDBCPConfig#logStackTraceForLongConnection}
+     *                   {@link ViburConfig#logStackTraceForLongConnection}
      */
     void logGetConnection(String poolName, Connection connProxy, long timeout, long timeTaken,
                           StackTraceElement[] stackTrace);
 
     /**
      * This method will be called by Vibur DBCP when an SQL query execution has taken longer than what is
-     * specified by {@link org.vibur.dbcp.ViburDBCPConfig#logQueryExecutionLongerThanMs}.
+     * specified by {@link ViburConfig#logQueryExecutionLongerThanMs}.
      *
      * @param poolName the pool name
      * @param sqlQuery the executed SQL query
      * @param queryParams the executed SQL query params
      * @param timeTaken the time by the executed SQL query to complete, also see the comments for
-     *                  {@link org.vibur.dbcp.ViburDBCPConfig#logQueryExecutionLongerThanMs}
+     *                  {@link ViburConfig#logQueryExecutionLongerThanMs}
      * @param stackTrace the stack trace of the method call (or null) via which the executed SQL query was initiated,
-     *                   depending on {@link org.vibur.dbcp.ViburDBCPConfig#logStackTraceForLongQueryExecution}
+     *                   depending on {@link ViburConfig#logStackTraceForLongQueryExecution}
      */
     void logQuery(String poolName, String sqlQuery, List<Object[]> queryParams, long timeTaken,
                   StackTraceElement[] stackTrace);
 
     /**
      * This method will be called by Vibur DBCP when an SQL query has retrieved a ResultSet larger than what is
-     * specified by {@link org.vibur.dbcp.ViburDBCPConfig#logLargeResultSet}.
+     * specified by {@link ViburConfig#logLargeResultSet}.
      *
      * @param poolName the pool name
      * @param sqlQuery the executed SQL query
@@ -69,7 +71,7 @@ public interface ViburLogger {
      * @param resultSetSize the retrieved ResultSet size
      * @param stackTrace the stack trace of the method call (or null) via which the SQL query that has
      *                   retrieved the large ResultSet was initiated, depending on
-     *                   {@link org.vibur.dbcp.ViburDBCPConfig#logStackTraceForLargeResultSet}
+     *                   {@link ViburConfig#logStackTraceForLargeResultSet}
      */
     void logResultSetSize(String poolName, String sqlQuery, List<Object[]> queryParams, long resultSetSize,
                           StackTraceElement[] stackTrace);

@@ -18,7 +18,7 @@ package org.vibur.dbcp.pool;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.vibur.dbcp.ViburDBCPConfig;
+import org.vibur.dbcp.ViburConfig;
 import org.vibur.dbcp.ViburDBCPException;
 import org.vibur.objectpool.PoolService;
 
@@ -31,7 +31,8 @@ import java.util.Set;
 
 import static java.lang.String.format;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static org.vibur.dbcp.ViburDBCPConfig.SQLSTATE_TIMEOUT_ERROR;
+import static org.vibur.dbcp.ViburConfig.SQLSTATE_POOL_CLOSED_ERROR;
+import static org.vibur.dbcp.ViburConfig.SQLSTATE_TIMEOUT_ERROR;
 import static org.vibur.dbcp.proxy.Proxy.newProxyConnection;
 import static org.vibur.dbcp.util.ViburUtils.getPoolName;
 import static org.vibur.dbcp.util.ViburUtils.unwrapSQLException;
@@ -47,7 +48,7 @@ public class PoolOperations {
 
     private static final Logger logger = LoggerFactory.getLogger(PoolOperations.class);
 
-    private final ViburDBCPConfig config;
+    private final ViburConfig config;
     private final PoolService<ConnHolder> poolService;
     private final ViburObjectFactory connectionFactory;
 
@@ -58,10 +59,9 @@ public class PoolOperations {
      *
      * @param connectionFactory the object pool connection factory
      * @param poolService the object pool instance
-     * @param config the ViburDBCPConfig from which we will initialize
+     * @param config the ViburConfig from which we will initialize
      */
-    public PoolOperations(ViburObjectFactory connectionFactory, PoolService<ConnHolder> poolService,
-                          ViburDBCPConfig config) {
+    public PoolOperations(ViburObjectFactory connectionFactory, PoolService<ConnHolder> poolService, ViburConfig config) {
         this.config = config;
         this.poolService = poolService;
         this.connectionFactory = connectionFactory;
@@ -80,19 +80,24 @@ public class PoolOperations {
     private Connection doGetConnection(long timeout) throws SQLException, ViburDBCPException {
         ConnHolder conn = timeout == 0 ?
                 poolService.take() : poolService.tryTake(timeout, MILLISECONDS);
-        if (conn == null) {
-            throw new SQLException(format("Couldn't obtain SQL connection from pool %s within %dms.",
-                    getPoolName(config), timeout), SQLSTATE_TIMEOUT_ERROR, (int) timeout);
+        if (conn != null) {
+            logger.trace("Getting {}", conn.value());
+            return newProxyConnection(conn, this, config);
         }
-        logger.trace("Getting {}", conn.value());
-        return newProxyConnection(conn, this, config);
+
+        if (!poolService.isTerminated())
+            throw new SQLException(format("Pool %s, couldn't obtain SQL connection within %dms.",
+                    getPoolName(config), timeout), SQLSTATE_TIMEOUT_ERROR, (int) timeout);
+        throw new SQLException(format("Pool %s, the poolService is terminated.", config.getName()), SQLSTATE_POOL_CLOSED_ERROR);
     }
 
-    public boolean restore(ConnHolder conn, boolean aborted, List<Throwable> errors) {
-        boolean valid = !aborted && errors.isEmpty() && conn.version() == connectionFactory.version();
-        poolService.restore(conn, valid);
+    public void restore(ConnHolder conn, boolean valid, List<Throwable> errors) {
+        boolean reusable = valid && errors.isEmpty() && conn.version() == connectionFactory.version();
+        if (!conn.valid().compareAndSet(true, reusable))
+            return;
+
+        poolService.restore(conn, reusable);
         processSQLExceptions(conn, errors);
-        return valid;
     }
 
     /**

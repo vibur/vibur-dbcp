@@ -16,7 +16,7 @@
 
 package org.vibur.dbcp.proxy;
 
-import org.vibur.dbcp.ViburDBCPConfig;
+import org.vibur.dbcp.ViburConfig;
 
 import java.sql.SQLTransientConnectionException;
 import java.sql.SQLTransientException;
@@ -36,11 +36,11 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  */
 class ExceptionCollector {
 
-    private final ViburDBCPConfig config;
+    private final ViburConfig config;
 
     private final Queue<Throwable> exceptions = new ConcurrentLinkedQueue<>();
 
-    ExceptionCollector(ViburDBCPConfig config) {
+    ExceptionCollector(ViburConfig config) {
         this.config = config;
     }
 
@@ -64,8 +64,6 @@ class ExceptionCollector {
      * Returns a list of all exceptions that were filtered and accumulated by the {@link #addException(Throwable)}
      * method. This method will be called by Vibur DBCP when a JDBC Connection proxy has been closed, in order to
      * determine whether the underlying (raw) JDBC Connection needs to be physically closed or not.
-     *
-     * @return see above
      */
     List<Throwable> getExceptions() {
         return exceptions.isEmpty() ? Collections.<Throwable>emptyList() : new LinkedList<>(exceptions);

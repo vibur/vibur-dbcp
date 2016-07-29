@@ -18,7 +18,7 @@ package org.vibur.dbcp.proxy;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.vibur.dbcp.ViburDBCPConfig;
+import org.vibur.dbcp.ViburConfig;
 import org.vibur.dbcp.cache.StatementCache;
 import org.vibur.dbcp.cache.StatementHolder;
 
@@ -43,13 +43,13 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
 
     private final StatementHolder statement;
     private final StatementCache statementCache;
-    private final ViburDBCPConfig config;
+    private final ViburConfig config;
 
     private final boolean logSlowQuery;
     private final List<Object[]> queryParams;
 
     StatementInvocationHandler(StatementHolder statement, StatementCache statementCache, Connection connProxy,
-                               ViburDBCPConfig config, ExceptionCollector exceptionCollector) {
+                               ViburConfig config, ExceptionCollector exceptionCollector) {
         super(statement.value(), connProxy, "getConnection", config, exceptionCollector);
         this.config = config;
         this.statement = statement;
@@ -97,7 +97,7 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
 
     private Object processCancel(Method method, Object[] args) throws Throwable {
         if (statementCache != null)
-            statementCache.remove(getTarget(), false); // because cancelled Statements are not longer valid
+            statementCache.remove(getTarget()); // because cancelled Statements are not longer valid
         return targetInvoke(method, args);
     }
 

@@ -17,6 +17,7 @@
 package org.vibur.dbcp.pool;
 
 import java.sql.Connection;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * The stateful object which is held in the object pool. It is just a thin wrapper around the
@@ -29,14 +30,14 @@ public class ConnHolder {
 
     private final Connection value; // the underlying raw JDBC Connection
     private final int version;
+    private final AtomicBoolean valid = new AtomicBoolean(true);
 
     private long takenTime = -1L;
     private long restoredTime;
     private StackTraceElement[] stackTrace = null;
 
-    public ConnHolder(Connection value, int version, long currentTime) {
-        if (value == null)
-            throw new NullPointerException();
+    ConnHolder(Connection value, int version, long currentTime) {
+        assert value != null;
         this.value = value;
         this.version = version;
         this.restoredTime = currentTime;
@@ -48,6 +49,10 @@ public class ConnHolder {
 
     public int version() {
         return version;
+    }
+
+    public AtomicBoolean valid() {
+        return valid;
     }
 
     public long getTakenTime() {

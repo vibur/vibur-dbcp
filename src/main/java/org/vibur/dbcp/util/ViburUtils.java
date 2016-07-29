@@ -18,7 +18,7 @@ package org.vibur.dbcp.util;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.vibur.dbcp.ViburDBCPConfig;
+import org.vibur.dbcp.ViburConfig;
 import org.vibur.dbcp.ViburDBCPException;
 import org.vibur.objectpool.BasePool;
 
@@ -36,7 +36,7 @@ public final class ViburUtils {
 
     private ViburUtils() {}
 
-    public static String getPoolName(ViburDBCPConfig config) {
+    public static String getPoolName(ViburConfig config) {
         BasePool pool = config.getPool();
         return format("%s (%d/%d)", config.getName(), pool.taken(), pool.remainingCreated());
     }
