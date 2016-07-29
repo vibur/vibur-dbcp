@@ -95,7 +95,7 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
     private StatementHolder getCachedStatement(Method method, Object[] args) throws Throwable {
         StatementCache statementCache = config.getStatementCache();
         if (statementCache != null)
-            return statementCache.computeIfAbsent(new ConnMethod(getTarget(), method, args), this);
+            return statementCache.take(new ConnMethod(getTarget(), method, args), this);
 
         return getUncachedStatement(method, args);
     }

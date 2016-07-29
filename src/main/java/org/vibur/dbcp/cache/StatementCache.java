@@ -88,7 +88,7 @@ public class StatementCache {
      * @return a retrieved from the cache or newly created StatementHolder object wrapping the raw JDBC Statement object
      * @throws Throwable if the invoked underlying prepareXYZ method throws an exception
      */
-    public StatementHolder computeIfAbsent(ConnMethod key, TargetInvoker invoker) throws Throwable {
+    public StatementHolder take(ConnMethod key, TargetInvoker invoker) throws Throwable {
         if (isClosed())
             return null;
 
