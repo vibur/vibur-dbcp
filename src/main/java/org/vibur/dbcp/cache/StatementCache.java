@@ -165,6 +165,9 @@ public class StatementCache {
         return removed;
     }
 
+    /**
+     * Closes this StatementCache and removes all entries from it.
+     */
     public void close() {
         if (closed.getAndSet(true))
             return;
