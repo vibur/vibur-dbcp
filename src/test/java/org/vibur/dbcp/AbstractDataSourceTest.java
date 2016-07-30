@@ -63,7 +63,7 @@ public abstract class AbstractDataSourceTest {
     @After
     public void terminateDataSource() {
         if (dataSource != null) {
-            dataSource.terminate();
+            dataSource.close();
             dataSource = null;
         }
     }

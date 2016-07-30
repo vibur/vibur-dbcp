@@ -80,7 +80,7 @@ public class ViburDBCPGetConnectionTestPerf {
         System.out.println(String.format("Total execution time %d ms, unsuccessful takes %d.",
             (System.currentTimeMillis() - start), errors.get()));
 
-        ds.terminate();
+        ds.close();
     }
 
     private static class Worker implements Runnable {

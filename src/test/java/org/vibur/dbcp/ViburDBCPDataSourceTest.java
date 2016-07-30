@@ -16,7 +16,9 @@
 
 package org.vibur.dbcp;
 
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
@@ -27,6 +29,7 @@ import org.vibur.dbcp.cache.StatementHolder;
 
 import javax.sql.DataSource;
 import java.io.IOException;
+import java.lang.reflect.Proxy;
 import java.sql.*;
 import java.util.Arrays;
 import java.util.Collections;
@@ -52,6 +55,9 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
     private ArgumentCaptor<ConnMethod> key1, key2;
     @Captor
     private ArgumentCaptor<StatementHolder> val1, val2;
+
+    @Rule
+    public final ExpectedException exception = ExpectedException.none();
 
     @Test
     public void testSelectStatementNoStatementsCache() throws SQLException, IOException {
@@ -196,7 +202,7 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
         ViburDBCPDataSource ds = createDataSourceNoStatementsCache();
 
         Connection connection = ds.getConnection();
-        ds.terminate();
+        ds.close();
 
         Connection internalConnection = connection.unwrap(Connection.class);
         assertFalse(connection.isClosed());
@@ -205,6 +211,61 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
         connection.close();
         assertTrue(connection.isClosed());
         assertTrue(internalConnection.isClosed());
+    }
+
+    @Test
+    public void testGetConnectionAfterPoolTermination() throws SQLException {
+        ViburDBCPDataSource ds = createDataSourceNoStatementsCache();
+        ds.setAllowConnectionAfterTermination(true);
+        ds.close();
+
+        Connection connection = ds.getConnection();
+        assertFalse(connection.isClosed());
+        assertFalse(Proxy.isProxyClass(connection.getClass())); // i.e., that is a native Connection
+        connection.close();
+    }
+
+    @Test
+    public void testGetConnectionAfterPoolTerminationFail() throws SQLException {
+        ViburDBCPDataSource ds = createDataSourceNoStatementsCache();
+        ds.close();
+
+        exception.expect(SQLException.class);
+        ds.getConnection();
+    }
+
+    @Test
+    public void testGetNonPooledConnection() throws SQLException {
+        ViburDBCPDataSource ds = createDataSourceNoStatementsCache();
+        Connection connection = ds.getNonPooledConnection();
+        assertFalse(connection.isClosed());
+        assertFalse(Proxy.isProxyClass(connection.getClass())); // i.e., that is a native Connection
+        connection.close();
+    }
+
+    @Test
+    public void testSeverPooledConnection() throws SQLException {
+        ViburDBCPDataSource ds = createDataSourceNoStatementsCache();
+        Connection connection = ds.getConnection();
+        Connection internalConnection = connection.unwrap(Connection.class);
+        int createdTotal = ds.getPool().createdTotal();
+
+        assertFalse(connection.isClosed());
+        assertFalse(internalConnection.isClosed());
+        ds.severConnection(connection);
+        assertTrue(connection.isClosed());
+        assertTrue(internalConnection.isClosed());
+        assertEquals(createdTotal - 1, ds.getPool().createdTotal());
+    }
+
+    @Test
+    public void testSeverNonPooledConnection() throws SQLException {
+        ViburDBCPDataSource ds = createDataSourceNoStatementsCache();
+        Connection connection = ds.getNonPooledConnection();
+
+        assertFalse(connection.isClosed());
+        ds.severConnection(connection);
+        assertTrue(connection.isClosed());
     }
 
     private void doTestSelectStatement(DataSource ds) throws SQLException {
