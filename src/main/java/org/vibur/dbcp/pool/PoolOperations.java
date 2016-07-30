@@ -93,9 +93,6 @@ public class PoolOperations {
 
     public void restore(ConnHolder conn, boolean valid, List<Throwable> errors) {
         boolean reusable = valid && errors.isEmpty() && conn.version() == connectionFactory.version();
-        if (!conn.valid().compareAndSet(true, reusable))
-            return;
-
         poolService.restore(conn, reusable);
         processSQLExceptions(conn, errors);
     }

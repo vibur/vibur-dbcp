@@ -98,6 +98,10 @@ public interface ViburDataSource extends DataSource, AutoCloseable {
      * one of the {@link #getNonPooledConnection} methods. If the supplied connection is pooled, it will
      * be closed and removed from the pool and its underlying raw connection will be closed, too. In the
      * case when the supplied connection is non-pooled, it will be just closed.
+     * <p>
+     * Calling this method on a pooled or non-pooled connection that is already closed is a no-op.
+     * When the {@code severConnection} method returns, the connection on which it is called will
+     * be marked as closed.
      *
      * @param connection the connection to be severed
      * @throws SQLException if an error occurs while closing/severing the connection

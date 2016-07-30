@@ -122,7 +122,7 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
     }
 
     public void invalidate() {
-        close();
-        poolOperations.restore(conn, false, getExceptionCollector().getExceptions());
+        if (close())
+            poolOperations.restore(conn, false, getExceptionCollector().getExceptions());
     }
 }

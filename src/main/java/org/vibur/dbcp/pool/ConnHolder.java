@@ -30,7 +30,6 @@ public class ConnHolder {
 
     private final Connection value; // the underlying raw JDBC Connection
     private final int version;
-    private final AtomicBoolean valid = new AtomicBoolean(true);
 
     private long takenTime = -1L;
     private long restoredTime;
@@ -51,15 +50,11 @@ public class ConnHolder {
         return version;
     }
 
-    public AtomicBoolean valid() {
-        return valid;
-    }
-
     public long getTakenTime() {
         return takenTime;
     }
 
-    public void setTakenTime(long takenTime) {
+    void setTakenTime(long takenTime) {
         this.takenTime = takenTime;
     }
 
@@ -67,7 +62,7 @@ public class ConnHolder {
         return restoredTime;
     }
 
-    public void setRestoredTime(long restoredTime) {
+    void setRestoredTime(long restoredTime) {
         this.restoredTime = restoredTime;
     }
 
@@ -75,7 +70,7 @@ public class ConnHolder {
         return stackTrace;
     }
 
-    public void setStackTrace(StackTraceElement[] stackTrace) {
+    void setStackTrace(StackTraceElement[] stackTrace) {
         this.stackTrace = stackTrace;
     }
 }
