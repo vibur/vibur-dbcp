@@ -86,7 +86,7 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
     }
 
     private Object processClose(Method method, Object[] args) throws Throwable {
-        if (getAndSetClosed())
+        if (!close())
             return null;
         if (statementCache == null)
             return targetInvoke(method, args);

@@ -106,27 +106,23 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
     }
 
     private Object processClose() {
-        if (!getAndSetClosed())
-            restoreToPool(true);
+        if (close())
+            poolOperations.restore(conn, true, getExceptionCollector().getExceptions());
         return null;
     }
 
     private Object processAbort(Method method, Object[] args) throws Throwable {
-        if (getAndSetClosed())
+        if (!close())
             return null;
         try {
             return targetInvoke(method, args);
         } finally {
-            restoreToPool(false);
+            poolOperations.restore(conn, false, getExceptionCollector().getExceptions());
         }
     }
 
-    private void restoreToPool(boolean valid) {
-        poolOperations.restore(conn, valid, getExceptionCollector().getExceptions());
-    }
-
     public void invalidate() {
-        getAndSetClosed();
-        restoreToPool(false);
+        close();
+        poolOperations.restore(conn, false, getExceptionCollector().getExceptions());
     }
 }

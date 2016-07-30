@@ -125,12 +125,12 @@ abstract class AbstractInvocationHandler<T> implements TargetInvoker {
                     getPoolName(config), method, Arrays.toString(args), target, t);
     }
 
-    boolean isClosed() {
-        return closed.get();
+    boolean close() {
+        return !closed.getAndSet(true);
     }
 
-    boolean getAndSetClosed() {
-        return closed.getAndSet(true);
+    boolean isClosed() {
+        return closed.get();
     }
 
     void ensureNotClosed() throws SQLException {

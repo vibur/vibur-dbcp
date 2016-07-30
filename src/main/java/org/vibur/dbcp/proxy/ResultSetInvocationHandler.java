@@ -70,7 +70,7 @@ class ResultSetInvocationHandler extends ChildObjectInvocationHandler<Statement,
     }
 
     private Object processClose(Method method, Object[] args) throws Throwable {
-        if (getAndSetClosed())
+        if (!close())
             return null;
         logResultSetSize();
         return targetInvoke(method, args);
