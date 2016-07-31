@@ -125,6 +125,10 @@ abstract class AbstractInvocationHandler<T> implements TargetInvoker {
                     getPoolName(config), method, Arrays.toString(args), target, t);
     }
 
+    /**
+     * Logically closes this invocation handler. Returns true only once when the handler state transitions
+     * from open to close.
+     */
     boolean close() {
         return !closed.getAndSet(true);
     }
