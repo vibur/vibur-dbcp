@@ -362,7 +362,7 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
         }
 
         assert getState() == TERMINATED;
-        logger.debug("Calling getConnection() after the pool was closed; will create and return a non-pooled Connection.");
+        logger.info("Calling getConnection() after the pool was closed; will create and return a non-pooled Connection.");
         return getNonPooledConnection();
     }
 
