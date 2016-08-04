@@ -65,14 +65,21 @@ public interface ViburDataSource extends DataSource, AutoCloseable {
     void start();
 
     /**
+     * Returns this DataSource current state.
+     */
+    State getState();
+
+    /**
      * Terminates this DataSource. Once terminated the DataSource cannot be more revived.
      */
     void terminate();
 
     /**
-     * Returns this DataSource current state.
+     * A synonym for {@link #terminate()}. Overrides the {@link AutoCloseable}'s method in order to overrule
+     * the throwing of a checked {@code Exception}.
      */
-    State getState();
+    @Override
+    void close();
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -107,11 +114,4 @@ public interface ViburDataSource extends DataSource, AutoCloseable {
      * @throws SQLException if an error occurs while closing/severing the connection
      */
     void severConnection(Connection connection) throws SQLException;
-
-    /**
-     * A synonym for {@link #terminate()}. Overrides the {@link AutoCloseable}'s method in order to overrule
-     * the throwing of a checked {@code Exception}.
-     */
-    @Override
-    void close();
 }

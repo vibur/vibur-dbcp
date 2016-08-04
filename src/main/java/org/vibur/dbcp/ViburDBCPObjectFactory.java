@@ -44,7 +44,7 @@ public class ViburDBCPObjectFactory implements ObjectFactory {
             RefAddr refAddr = enumeration.nextElement();
             String pName = refAddr.getType();
             String pValue = (String) refAddr.getContent();
-            props.put(pName, pValue);
+            props.setProperty(pName, pValue);
         }
 
         ViburDBCPDataSource dataSource = new ViburDBCPDataSource(props);
