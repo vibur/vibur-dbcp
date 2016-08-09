@@ -56,7 +56,7 @@ public class PoolReducer extends SamplingPoolReducer {
     }
 
     @Override
-    public String toString() {
+    protected String getThreadName() {
         return getClass().getSimpleName() + " for pool " + config.getName();
     }
 }
