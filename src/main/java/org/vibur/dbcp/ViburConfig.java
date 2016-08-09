@@ -45,6 +45,9 @@ public class ViburConfig {
 
     private static final Logger logger = LoggerFactory.getLogger(ViburConfig.class);
 
+    public static final String DEFAULT_PROPERTIES_CONFIG_FILE_NAME = "vibur-dbcp-config.properties";
+    public static final String DEFAULT_XML_CONFIG_FILE_NAME = "vibur-dbcp-config.xml";
+
     public static final String SQLSTATE_POOL_NOTSTARTED_ERROR = "VI000";
     public static final String SQLSTATE_POOL_CLOSED_ERROR     = "VI001";
     public static final String SQLSTATE_TIMEOUT_ERROR         = "VI002";

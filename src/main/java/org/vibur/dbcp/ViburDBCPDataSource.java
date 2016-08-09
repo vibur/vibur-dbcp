@@ -74,9 +74,6 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
 
     private static final org.slf4j.Logger logger = LoggerFactory.getLogger(ViburDBCPDataSource.class);
 
-    public static final String DEFAULT_PROPERTIES_CONFIG_FILE_NAME = "vibur-dbcp-config.properties";
-    public static final String DEFAULT_XML_CONFIG_FILE_NAME = "vibur-dbcp-config.xml";
-
     private final AtomicReference<State> state = new AtomicReference<>(NEW);
 
     private ConnectionFactory connectionFactory;
