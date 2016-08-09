@@ -691,18 +691,18 @@ public class ViburConfig {
 
     @Override
     public String toString() {
-        return getClass().getSimpleName() +
-            " {driverClassName='" + driverClassName + '\'' +
-            ", jdbcUrl='" + jdbcUrl + '\'' +
-            ", username='" + username + '\'' +
-            ", externalDataSource=" + externalDataSource +
-            ", poolInitialSize=" + poolInitialSize +
-            ", poolMaxSize=" + poolMaxSize +
-            ", poolFair=" + poolFair +
-            ", pool=" + pool +
-            ", name='" + name + '\'' +
-            ", statementCacheMaxSize=" + statementCacheMaxSize +
-            '}';
+        return new StringBuilder(512).append(super.toString())
+            .append("[driverClassName = ").append(driverClassName)
+            .append(", jdbcUrl = ").append(jdbcUrl)
+            .append(", username = ").append(username)
+            .append(", externalDataSource = ").append(externalDataSource)
+            .append(", poolInitialSize = ").append(poolInitialSize)
+            .append(", poolMaxSize = ").append(poolMaxSize)
+            .append(", poolFair = ").append(poolFair)
+            .append(", pool = ").append(pool)
+            .append(", name = ").append(name)
+            .append(", statementCacheMaxSize = ").append(statementCacheMaxSize)
+            .append(']').toString();
     }
 
 

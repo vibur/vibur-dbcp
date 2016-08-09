@@ -83,7 +83,7 @@ abstract class AbstractInvocationHandler<T> implements TargetInvoker {
                     getPoolName(config), method, Arrays.toString(args), target, e);
             Throwable cause = e.getCause();
             if (cause instanceof SQLException)
-                throw cause; // throw the original SQLException which have caused the ViburDBCPException
+                throw cause; // throw the original SQLException that caused the ViburDBCPException
             throw e; // not expected to happen
         }
     }
