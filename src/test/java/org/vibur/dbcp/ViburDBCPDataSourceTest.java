@@ -74,9 +74,9 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
     @Test
     public void testSelectStatementWithStatementsCache() throws SQLException, IOException {
         ViburDBCPDataSource ds = createDataSourceWithStatementsCache();
-        try (Connection connection = ds.getConnection()) {
-            ConcurrentMap<ConnMethod, StatementHolder> mockedStatementCache = mockStatementCache(ds);
+        ConcurrentMap<ConnMethod, StatementHolder> mockedStatementCache = mockStatementCache(ds);
 
+        try (Connection connection = ds.getConnection()) {
             executeAndVerifySelectStatement(connection);
             executeAndVerifySelectStatement(connection);
 
@@ -99,9 +99,9 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
     @Test
     public void testPreparedSelectStatementWithStatementsCache() throws SQLException, IOException {
         ViburDBCPDataSource ds = createDataSourceWithStatementsCache();
-        try (Connection connection = ds.getConnection()) {
-            ConcurrentMap<ConnMethod, StatementHolder> mockedStatementCache = mockStatementCache(ds);
+        ConcurrentMap<ConnMethod, StatementHolder> mockedStatementCache = mockStatementCache(ds);
 
+        try (Connection connection = ds.getConnection()) {
             executeAndVerifyPreparedSelectStatement(connection);
             executeAndVerifyPreparedSelectStatement(connection);
 
@@ -121,9 +121,9 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
     @Test
     public void testTwoPreparedSelectStatementsWithStatementsCache() throws SQLException, IOException {
         ViburDBCPDataSource ds = createDataSourceWithStatementsCache();
-        try (Connection connection = ds.getConnection()) {
-            ConcurrentMap<ConnMethod, StatementHolder> mockedStatementCache = mockStatementCache(ds);
+        ConcurrentMap<ConnMethod, StatementHolder> mockedStatementCache = mockStatementCache(ds);
 
+        try (Connection connection = ds.getConnection()) {
             executeAndVerifyPreparedSelectStatement(connection);
             executeAndVerifyPreparedSelectStatementByLastName(connection);
 

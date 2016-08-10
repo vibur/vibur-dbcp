@@ -24,8 +24,12 @@ import org.vibur.dbcp.event.BaseViburLogger;
 import org.vibur.dbcp.event.ConnectionHook;
 import org.vibur.dbcp.event.ExceptionListener;
 import org.vibur.dbcp.event.ViburLogger;
+import org.vibur.dbcp.pool.ConnHolder;
+import org.vibur.dbcp.pool.PoolOperations;
 import org.vibur.dbcp.pool.PoolReducer;
-import org.vibur.objectpool.BasePool;
+import org.vibur.dbcp.pool.ViburObjectFactory;
+import org.vibur.objectpool.PoolService;
+import org.vibur.objectpool.util.ThreadedPoolReducer;
 
 import javax.sql.DataSource;
 import java.util.concurrent.ConcurrentHashMap;
@@ -139,7 +143,11 @@ public class ViburConfig {
     private boolean poolEnableConnectionTracking = false;
 
     private boolean poolFifo = false;
-    private BasePool pool = null;
+
+    private PoolService<ConnHolder> pool = null;
+    private ViburObjectFactory connectionFactory = null;
+    private ThreadedPoolReducer poolReducer = null;
+    private PoolOperations poolOperations = null;
 
     /**
      * In rare circumstances, the application may need to obtain a non-pooled connection from the pool
@@ -431,12 +439,36 @@ public class ViburConfig {
         this.poolFifo = poolFifo;
     }
 
-    public BasePool getPool() {
+    public PoolService<ConnHolder>  getPool() {
         return pool;
     }
 
-    public void setPool(BasePool pool) {
+    public void setPool(PoolService<ConnHolder> pool) {
         this.pool = pool;
+    }
+
+    public ViburObjectFactory getConnectionFactory() {
+        return connectionFactory;
+    }
+
+    public void setConnectionFactory(ViburObjectFactory connectionFactory) {
+        this.connectionFactory = connectionFactory;
+    }
+
+    public ThreadedPoolReducer getPoolReducer() {
+        return poolReducer;
+    }
+
+    public void setPoolReducer(ThreadedPoolReducer poolReducer) {
+        this.poolReducer = poolReducer;
+    }
+
+    public PoolOperations getPoolOperations() {
+        return poolOperations;
+    }
+
+    public void setPoolOperations(PoolOperations poolOperations) {
+        this.poolOperations = poolOperations;
     }
 
     public boolean isAllowConnectionAfterTermination() {

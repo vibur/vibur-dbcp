@@ -50,6 +50,7 @@ abstract class AbstractInvocationHandler<T> implements TargetInvoker {
 
     AbstractInvocationHandler(T target, ViburConfig config, ExceptionCollector exceptionCollector) {
         assert target != null;
+        assert config != null;
         assert exceptionCollector != null;
         this.target = target;
         this.config = config;

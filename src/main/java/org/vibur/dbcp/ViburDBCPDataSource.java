@@ -17,13 +17,12 @@
 package org.vibur.dbcp;
 
 import org.slf4j.LoggerFactory;
-import org.vibur.dbcp.cache.StatementCache;
+import org.vibur.dbcp.cache.ClhmStatementCache;
 import org.vibur.dbcp.pool.ConnHolder;
 import org.vibur.dbcp.pool.ConnectionFactory;
-import org.vibur.dbcp.pool.PoolOperations;
+import org.vibur.dbcp.pool.PoolOperationsImpl;
 import org.vibur.dbcp.proxy.ConnectionInvocationHandler;
 import org.vibur.objectpool.ConcurrentLinkedPool;
-import org.vibur.objectpool.PoolService;
 import org.vibur.objectpool.util.TakenListener;
 import org.vibur.objectpool.util.ThreadedPoolReducer;
 
@@ -75,12 +74,6 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
     private static final org.slf4j.Logger logger = LoggerFactory.getLogger(ViburDBCPDataSource.class);
 
     private final AtomicReference<State> state = new AtomicReference<>(NEW);
-
-    private ConnectionFactory connectionFactory;
-    private PoolOperations poolOperations;
-    private ThreadedPoolReducer poolReducer = null;
-
-    private PrintWriter logWriter = null;
 
     /**
      * Default constructor for programmatic configuration via the {@code ViburConfig}
@@ -226,14 +219,16 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
 
         validateConfig();
 
-        connectionFactory = new ConnectionFactory(this);
-        PoolService<ConnHolder> poolService = new ConcurrentLinkedPool<>(connectionFactory,
+        if (getConnectionFactory() == null)
+            setConnectionFactory(new ConnectionFactory(this));
+        if (getPool() == null)
+            setPool(new ConcurrentLinkedPool<>(getConnectionFactory(),
                 getPoolInitialSize(), getPoolMaxSize(), isPoolFair(),
                 isPoolEnableConnectionTracking() ? new TakenListener<ConnHolder>(getPoolInitialSize()) : null,
-                isPoolFifo());
-        poolOperations = new PoolOperations(connectionFactory, poolService, this);
+                isPoolFifo()));
+        if (getPoolOperations() == null)
+            setPoolOperations(new PoolOperationsImpl(getConnectionFactory(), getPool(), this));
 
-        setPool(poolService);
         initPoolReducer();
         initStatementCache();
 
@@ -250,8 +245,8 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
 
         if (getStatementCache() != null)
             getStatementCache().close();
-        if (poolReducer != null)
-            poolReducer.terminate();
+        if (getPoolReducer() != null)
+            getPoolReducer().terminate();
         if (getPool() != null)
             getPool().terminate();
 
@@ -277,9 +272,9 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
         forbidIllegalArgument(getAcquireRetryAttempts() < 0);
         forbidIllegalArgument(getConnectionTimeoutInMs() < 0);
         forbidIllegalArgument(getLoginTimeoutInSeconds() < 0);
-        forbidIllegalArgument(getStatementCacheMaxSize() < 0);
-        forbidIllegalArgument(getReducerTimeIntervalInSeconds() < 0);
-        forbidIllegalArgument(getReducerTimeIntervalInSeconds() == 0 && getPoolReducerClass() == null);
+        forbidIllegalArgument(getStatementCacheMaxSize() < 0 && getStatementCache() == null);
+        forbidIllegalArgument(getReducerTimeIntervalInSeconds() < 0 && getPoolReducer() == null);
+        forbidIllegalArgument(getReducerTimeIntervalInSeconds() > 0 && getPoolReducerClass() == null && getPoolReducer() == null);
         forbidIllegalArgument(getReducerSamples() <= 0);
         forbidIllegalArgument(getConnectionIdleLimitInSeconds() >= 0 && getTestConnectionQuery() == null);
         forbidIllegalArgument(getValidateTimeoutInSeconds() < 0);
@@ -325,14 +320,14 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
     }
 
     private void initPoolReducer() throws ViburDBCPException {
-        if (getReducerTimeIntervalInSeconds() > 0) {
+        if (getReducerTimeIntervalInSeconds() > 0 && getPoolReducer() == null) {
             try {
                 Object reducer = Class.forName(getPoolReducerClass()).getConstructor(ViburConfig.class)
                         .newInstance(this);
                 if (!(reducer instanceof ThreadedPoolReducer))
                     throw new ViburDBCPException(getPoolReducerClass() + " is not an instance of ThreadedPoolReducer");
-                poolReducer = (ThreadedPoolReducer) reducer;
-                poolReducer.start();
+                setPoolReducer((ThreadedPoolReducer) reducer);
+                getPoolReducer().start();
             } catch (ReflectiveOperationException e) {
                 throw new ViburDBCPException(e);
             }
@@ -341,8 +336,8 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
 
     private void initStatementCache() {
         int statementCacheMaxSize = getStatementCacheMaxSize();
-        if (statementCacheMaxSize > 0)
-            setStatementCache(new StatementCache(statementCacheMaxSize));
+        if (statementCacheMaxSize > 0 && getStatementCache() == null)
+            setStatementCache(new ClhmStatementCache(statementCacheMaxSize));
     }
 
     @Override
@@ -385,7 +380,7 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
 
         Connection connProxy = null;
         try {
-            return connProxy = poolOperations.getConnection(timeout);
+            return connProxy = getPoolOperations().getProxyConnection(timeout);
         } finally {
             if (logSlowConn)
                 logGetConnection(timeout, startTime, connProxy);
@@ -401,7 +396,7 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
     public Connection getNonPooledConnection(String username, String password) throws SQLException {
         validatePoolState(true);
         try {
-            return connectionFactory.create(username, password).value();
+            return getConnectionFactory().create(username, password).value();
         } catch (ViburDBCPException e) {
             return unwrapSQLException(e);
         }
@@ -451,12 +446,12 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
 
     @Override
     public PrintWriter getLogWriter() throws SQLException {
-        return logWriter;
+        throw new SQLFeatureNotSupportedException();
     }
 
     @Override
     public void setLogWriter(PrintWriter out) throws SQLException {
-        this.logWriter = out;
+        throw new SQLFeatureNotSupportedException();
     }
 
     @Override
@@ -475,12 +470,15 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <T> T unwrap(Class<T> iface) throws SQLException {
+        if (isWrapperFor(iface))
+            return (T) getExternalDataSource();
         throw new SQLException("not a wrapper for " + iface, SQLSTATE_WRAPPER_ERROR);
     }
 
     @Override
     public boolean isWrapperFor(Class<?> iface) {
-        return false;
+        return iface.isInstance(getExternalDataSource());
     }
 }

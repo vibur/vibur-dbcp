@@ -19,12 +19,23 @@ package org.vibur.dbcp.pool;
 import org.vibur.objectpool.PoolObjectFactory;
 
 /**
- * Defines the operations for a {@code PoolObjectFactory} that is specific for Vibur DBCP. It is a stateful factory
- * that has a version associated with its state.
+ * Defines the operations that are specific to Vibur {@link ConnectionFactory}. These are the factory's
+ * version manipulation methods and the create connection with credentials method.
  *
  * @author Simeon Malchev
  */
-interface ViburObjectFactory extends PoolObjectFactory<ConnHolder> {
+public interface ViburObjectFactory extends PoolObjectFactory<ConnHolder> {
+
+    /**
+     * Creates a new ConnHolder object using the given credentials. This object is presumed to be ready (and valid)
+     * for immediate use. This method <b>never</b> return {@code null}.
+
+     * @param userName the username to use when connecting to the database
+     * @param password the password to use when connecting to the database
+     */
+    ConnHolder create(String userName, String password);
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
 
     /**
      * Gets the current version value.

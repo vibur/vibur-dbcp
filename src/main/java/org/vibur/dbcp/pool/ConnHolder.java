@@ -17,7 +17,6 @@
 package org.vibur.dbcp.pool;
 
 import java.sql.Connection;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * The stateful object which is held in the object pool. It is just a thin wrapper around the

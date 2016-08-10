@@ -34,7 +34,7 @@ import static org.vibur.dbcp.util.JdbcUtils.*;
  * The object factory which controls the lifecycle of the underlying JDBC Connections: creates them,
  * validates them if needed, and destroys them. Used by {@link org.vibur.dbcp.ViburDBCPDataSource}.
  *
- * <p>This {@code ConnectionFactory} is a {@code VersionedObject} which creates versioned JDBC Connection
+ * <p>This {@code ConnectionFactory} is a versioned factory which creates versioned JDBC Connection
  * wrappers {@code ConnHolder(s)}. The version of each {@code ConnHolder} created by the factory is the same
  * as the version of the factory at the moment of the object creation.
  *
@@ -70,6 +70,7 @@ public class ConnectionFactory implements ViburObjectFactory {
         return create(config.getUsername(), config.getPassword());
     }
 
+    @Override
     public ConnHolder create(String userName, String password) throws ViburDBCPException {
         int attempt = 0;
         Connection rawConnection = null;

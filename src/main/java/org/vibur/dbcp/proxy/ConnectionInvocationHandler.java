@@ -21,7 +21,6 @@ import org.vibur.dbcp.cache.ConnMethod;
 import org.vibur.dbcp.cache.StatementCache;
 import org.vibur.dbcp.cache.StatementHolder;
 import org.vibur.dbcp.pool.ConnHolder;
-import org.vibur.dbcp.pool.PoolOperations;
 
 import java.lang.reflect.Method;
 import java.sql.Connection;
@@ -36,13 +35,13 @@ import static org.vibur.dbcp.proxy.Proxy.*;
 public class ConnectionInvocationHandler extends AbstractInvocationHandler<Connection> {
 
     private final ConnHolder conn;
-    private final PoolOperations poolOperations;
+    private final StatementCache statementCache;
     private final ViburConfig config;
 
-    ConnectionInvocationHandler(ConnHolder conn, PoolOperations poolOperations, ViburConfig config) {
+    ConnectionInvocationHandler(ConnHolder conn, ViburConfig config) {
         super(conn.value(), config, new ExceptionCollector(config));
         this.conn = conn;
-        this.poolOperations = poolOperations;
+        this.statementCache = config.getStatementCache();
         this.config = config;
     }
 
@@ -93,7 +92,6 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
      * @throws Throwable if the invoked underlying prepareXYZ method throws an exception
      */
     private StatementHolder getCachedStatement(Method method, Object[] args) throws Throwable {
-        StatementCache statementCache = config.getStatementCache();
         if (statementCache != null)
             return statementCache.take(new ConnMethod(getTarget(), method, args), this);
 
@@ -107,7 +105,7 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
 
     private Object processClose() {
         if (close())
-            poolOperations.restore(conn, true, getExceptionCollector().getExceptions());
+            config.getPoolOperations().restore(conn, true, getExceptionCollector().getExceptions());
         return null;
     }
 
@@ -117,12 +115,12 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
         try {
             return targetInvoke(method, args);
         } finally {
-            poolOperations.restore(conn, false, getExceptionCollector().getExceptions());
+            config.getPoolOperations().restore(conn, false, getExceptionCollector().getExceptions());
         }
     }
 
     public void invalidate() {
         if (close())
-            poolOperations.restore(conn, false, getExceptionCollector().getExceptions());
+            config.getPoolOperations().restore(conn, false, getExceptionCollector().getExceptions());
     }
 }
