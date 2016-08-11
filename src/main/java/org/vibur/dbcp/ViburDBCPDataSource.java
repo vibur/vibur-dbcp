@@ -20,9 +20,11 @@ import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.cache.ClhmStatementCache;
 import org.vibur.dbcp.pool.ConnHolder;
 import org.vibur.dbcp.pool.ConnectionFactory;
-import org.vibur.dbcp.pool.PoolOperationsImpl;
+import org.vibur.dbcp.pool.PoolOperations;
+import org.vibur.dbcp.pool.ViburObjectFactory;
 import org.vibur.dbcp.proxy.ConnectionInvocationHandler;
 import org.vibur.objectpool.ConcurrentLinkedPool;
+import org.vibur.objectpool.PoolService;
 import org.vibur.objectpool.util.TakenListener;
 import org.vibur.objectpool.util.ThreadedPoolReducer;
 
@@ -74,6 +76,8 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
     private static final org.slf4j.Logger logger = LoggerFactory.getLogger(ViburDBCPDataSource.class);
 
     private final AtomicReference<State> state = new AtomicReference<>(NEW);
+
+    private PoolOperations poolOperations;
 
     /**
      * Default constructor for programmatic configuration via the {@code ViburConfig}
@@ -219,15 +223,18 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
 
         validateConfig();
 
-        if (getConnectionFactory() == null)
-            setConnectionFactory(new ConnectionFactory(this));
-        if (getPool() == null)
-            setPool(new ConcurrentLinkedPool<>(getConnectionFactory(),
-                getPoolInitialSize(), getPoolMaxSize(), isPoolFair(),
-                isPoolEnableConnectionTracking() ? new TakenListener<ConnHolder>(getPoolInitialSize()) : null,
-                isPoolFifo()));
-        if (getPoolOperations() == null)
-            setPoolOperations(new PoolOperationsImpl(getConnectionFactory(), getPool(), this));
+        ViburObjectFactory connectionFactory = getConnectionFactory();
+        if (connectionFactory == null)
+            setConnectionFactory(connectionFactory = new ConnectionFactory(this));
+        PoolService<ConnHolder> pool = getPool();
+        if (pool == null) {
+            pool = new ConcurrentLinkedPool<>(connectionFactory,
+                    getPoolInitialSize(), getPoolMaxSize(), isPoolFair(),
+                    isPoolEnableConnectionTracking() ? new TakenListener<ConnHolder>(getPoolInitialSize()) : null,
+                    isPoolFifo());
+            setPool(pool);
+        }
+        poolOperations = new PoolOperations(connectionFactory, pool, this);
 
         initPoolReducer();
         initStatementCache();
@@ -320,14 +327,16 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
     }
 
     private void initPoolReducer() throws ViburDBCPException {
-        if (getReducerTimeIntervalInSeconds() > 0 && getPoolReducer() == null) {
+        ThreadedPoolReducer poolReducer = getPoolReducer();
+        if (getReducerTimeIntervalInSeconds() > 0 && poolReducer == null) {
             try {
                 Object reducer = Class.forName(getPoolReducerClass()).getConstructor(ViburConfig.class)
                         .newInstance(this);
                 if (!(reducer instanceof ThreadedPoolReducer))
-                    throw new ViburDBCPException(getPoolReducerClass() + " is not an instance of ThreadedPoolReducer");
-                setPoolReducer((ThreadedPoolReducer) reducer);
-                getPoolReducer().start();
+                    throw new ViburDBCPException(getPoolReducerClass() + " is not an instance of " + ThreadedPoolReducer.class.getName());
+                poolReducer = (ThreadedPoolReducer) reducer;
+                setPoolReducer(poolReducer);
+                poolReducer.start();
             } catch (ReflectiveOperationException e) {
                 throw new ViburDBCPException(e);
             }
@@ -380,7 +389,7 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
 
         Connection connProxy = null;
         try {
-            return connProxy = getPoolOperations().getProxyConnection(timeout);
+            return connProxy = poolOperations.getProxyConnection(timeout);
         } finally {
             if (logSlowConn)
                 logGetConnection(timeout, startTime, connProxy);

@@ -25,7 +25,6 @@ import org.vibur.dbcp.event.ConnectionHook;
 import org.vibur.dbcp.event.ExceptionListener;
 import org.vibur.dbcp.event.ViburLogger;
 import org.vibur.dbcp.pool.ConnHolder;
-import org.vibur.dbcp.pool.PoolOperations;
 import org.vibur.dbcp.pool.PoolReducer;
 import org.vibur.dbcp.pool.ViburObjectFactory;
 import org.vibur.objectpool.PoolService;
@@ -147,7 +146,6 @@ public class ViburConfig {
     private PoolService<ConnHolder> pool = null;
     private ViburObjectFactory connectionFactory = null;
     private ThreadedPoolReducer poolReducer = null;
-    private PoolOperations poolOperations = null;
 
     /**
      * In rare circumstances, the application may need to obtain a non-pooled connection from the pool
@@ -461,14 +459,6 @@ public class ViburConfig {
 
     public void setPoolReducer(ThreadedPoolReducer poolReducer) {
         this.poolReducer = poolReducer;
-    }
-
-    public PoolOperations getPoolOperations() {
-        return poolOperations;
-    }
-
-    public void setPoolOperations(PoolOperations poolOperations) {
-        this.poolOperations = poolOperations;
     }
 
     public boolean isAllowConnectionAfterTermination() {
