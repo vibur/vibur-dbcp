@@ -28,15 +28,19 @@ import org.vibur.dbcp.pool.ConnHolder;
 import org.vibur.dbcp.pool.PoolReducer;
 import org.vibur.dbcp.pool.ViburObjectFactory;
 import org.vibur.objectpool.PoolService;
+import org.vibur.objectpool.util.TakenListener;
 import org.vibur.objectpool.util.ThreadedPoolReducer;
 
 import javax.sql.DataSource;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.lang.Boolean.TRUE;
+import static org.vibur.dbcp.util.ViburUtils.getStackTraceAsString;
 
 /**
  * Specifies all {@link ViburDBCPDataSource} configuration options.
@@ -44,7 +48,7 @@ import static java.lang.Boolean.TRUE;
  * @author Simeon Malchev
  * @author Daniel Caldeweyher
  */
-public class ViburConfig {
+public abstract class ViburConfig {
 
     private static final Logger logger = LoggerFactory.getLogger(ViburConfig.class);
 
@@ -59,6 +63,8 @@ public class ViburConfig {
     public static final String SQLSTATE_WRAPPER_ERROR         = "VI005";
 
     static final int STATEMENT_CACHE_MAX_SIZE = 2000;
+
+    ViburConfig() { }
 
     /** Database driver class name. This is <b>an optional</b> parameter if the driver is JDBC 4 complaint. If specified,
      * a call to {@code Class.forName(driverClassName).newInstance()} will be issued during the Vibur DBCP initialization.
@@ -712,6 +718,34 @@ public class ViburConfig {
 
     public void setExceptionListener(ExceptionListener exceptionListener) {
         this.exceptionListener = exceptionListener;
+    }
+
+    public String takenConnectionsToString() {
+        if (!isPoolEnableConnectionTracking())
+            return "poolEnableConnectionTracking is disabled.";
+
+        TakenListener<ConnHolder> listener = (TakenListener<ConnHolder>) getPool().listener();
+        ConnHolder[] connHolders = listener.getTaken(new ConnHolder[0]);
+        long now = System.currentTimeMillis();
+
+        Arrays.sort(connHolders, new Comparator<ConnHolder>() { // sort newest on top
+            @Override
+            public int compare(ConnHolder h1, ConnHolder h2) {
+                long diff = h2.getTakenTime() - h1.getTakenTime();
+                return diff < 0 ? -1 : diff > 0 ? 1 : 0;
+            }
+        });
+
+        StringBuilder builder = new StringBuilder(8192);
+        for (ConnHolder connHolder : connHolders) {
+            long takenTime = connHolder.getTakenTime();
+            builder.append(connHolder.value())
+                    .append(", taken at millis = ").append(takenTime)
+                    .append(", held for ").append(now - takenTime)
+                    .append("ms, by thread ").append(connHolder.getThreadName()).append('\n')
+                    .append(getStackTraceAsString(connHolder.getStackTrace())).append('\n');
+        }
+        return builder.toString();
     }
 
     @Override

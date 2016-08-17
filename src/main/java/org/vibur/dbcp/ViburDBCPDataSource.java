@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.cache.ClhmStatementCache;
 import org.vibur.dbcp.pool.ConnHolder;
 import org.vibur.dbcp.pool.ConnectionFactory;
-import org.vibur.dbcp.pool.PoolOperations;
+import org.vibur.dbcp.util.PoolOperations;
 import org.vibur.dbcp.pool.ViburObjectFactory;
 import org.vibur.dbcp.proxy.ConnectionInvocationHandler;
 import org.vibur.objectpool.ConcurrentLinkedPool;
@@ -95,7 +95,7 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
      * will be loaded, in this order.
      *
      * @param configFileName the properties config file name
-     * @throws ViburDBCPException if cannot configure successfully
+     * @throws ViburDBCPException if cannot configure this DataSource successfully
      */
     public ViburDBCPDataSource(String configFileName) throws ViburDBCPException {
         URL config;
@@ -120,7 +120,7 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
      * Initialization via the given properties.
      *
      * @param properties the given properties
-     * @throws ViburDBCPException if cannot configure successfully
+     * @throws ViburDBCPException if cannot configure this DataSource successfully
      */
     public ViburDBCPDataSource(Properties properties) throws ViburDBCPException {
         configureFromProperties(properties);

@@ -26,10 +26,7 @@ import javax.management.JMException;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 import java.lang.management.ManagementFactory;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 import static org.vibur.dbcp.util.ViburUtils.getStackTraceAsString;
 
@@ -308,28 +305,7 @@ public final class ViburMonitoring implements ViburMonitoringMBean {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public String showTakenConnections() {
-        if (!config.isPoolEnableConnectionTracking())
-            return "poolEnableConnectionTracking is disabled.";
-
-        PoolService<ConnHolder> poolService = (PoolService<ConnHolder>) config.getPool();
-        List<ConnHolder> connHolders = ((TakenListener<ConnHolder>) poolService.listener()).getTaken();
-        Collections.sort(connHolders, new Comparator<ConnHolder>() { // sort newest on top
-            @Override
-            public int compare(ConnHolder h1, ConnHolder h2) {
-                long diff = h2.getTakenTime() - h1.getTakenTime();
-                return diff < 0 ? -1 : diff > 0 ? 1 : 0;
-            }
-        });
-
-        StringBuilder builder = new StringBuilder(4096);
-        for (ConnHolder connHolder : connHolders) {
-            builder.append(connHolder.value())
-                .append(", taken at: ").append(new Date(connHolder.getTakenTime()))
-                .append(", millis = ").append(connHolder.getTakenTime()).append('\n')
-                .append(getStackTraceAsString(connHolder.getStackTrace())).append('\n');
-        }
-        return builder.toString();
+        return config.takenConnectionsToString();
     }
 }

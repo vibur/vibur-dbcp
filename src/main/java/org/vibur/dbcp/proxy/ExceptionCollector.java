@@ -41,7 +41,6 @@ class ExceptionCollector {
     private final Queue<Throwable> exceptions = new ConcurrentLinkedQueue<>();
 
     ExceptionCollector(ViburConfig config) {
-        assert config != null;
         this.config = config;
     }
 

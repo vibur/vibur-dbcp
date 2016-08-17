@@ -21,7 +21,7 @@ import org.vibur.dbcp.cache.ConnMethod;
 import org.vibur.dbcp.cache.StatementCache;
 import org.vibur.dbcp.cache.StatementHolder;
 import org.vibur.dbcp.pool.ConnHolder;
-import org.vibur.dbcp.pool.PoolOperations;
+import org.vibur.dbcp.util.PoolOperations;
 
 import java.lang.reflect.Method;
 import java.sql.Connection;

@@ -33,6 +33,7 @@ public class ConnHolder {
     private long takenTime = -1L;
     private long restoredTime;
     private StackTraceElement[] stackTrace = null;
+    private String threadName;
 
     ConnHolder(Connection value, int version, long currentTime) {
         assert value != null;
@@ -71,5 +72,13 @@ public class ConnHolder {
 
     void setStackTrace(StackTraceElement[] stackTrace) {
         this.stackTrace = stackTrace;
+    }
+
+    public String getThreadName() {
+        return threadName;
+    }
+
+    void setThreadName(String threadName) {
+        this.threadName = threadName;
     }
 }

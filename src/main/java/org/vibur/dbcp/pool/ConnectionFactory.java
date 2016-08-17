@@ -63,7 +63,7 @@ public class ConnectionFactory implements ViburObjectFactory {
     /**
      * {@inheritDoc}
      *
-     * @throws org.vibur.dbcp.ViburDBCPException if cannot create the underlying JDBC Connection.
+     * @throws org.vibur.dbcp.ViburDBCPException if cannot create or initialize the raw JDBC Connection(s)
      */
     @Override
     public ConnHolder create() throws ViburDBCPException {
@@ -125,6 +125,7 @@ public class ConnectionFactory implements ViburObjectFactory {
             if (config.isPoolEnableConnectionTracking()) {
                 conn.setTakenTime(System.currentTimeMillis());
                 conn.setStackTrace(new Throwable().getStackTrace());
+                conn.setThreadName(Thread.currentThread().getName());
             }
             return true;
         } catch (SQLException e) {
