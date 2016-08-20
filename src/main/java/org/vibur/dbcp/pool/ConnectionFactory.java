@@ -138,7 +138,6 @@ public class ConnectionFactory implements ViburObjectFactory {
     public boolean readyToRestore(ConnHolder conn) {
         conn.setThread(null);
         conn.setLocation(null);
-        
         Connection rawConnection = conn.value();
         try {
             if (config.getCloseConnectionHook() != null)
