@@ -32,8 +32,9 @@ public class ConnHolder {
 
     private long takenTime = -1L;
     private long restoredTime;
-    private StackTraceElement[] stackTrace = null;
-    private String threadName;
+
+    private Thread thread;
+    private Throwable location;
 
     ConnHolder(Connection value, int version, long currentTime) {
         assert value != null;
@@ -66,19 +67,19 @@ public class ConnHolder {
         this.restoredTime = restoredTime;
     }
 
-    public StackTraceElement[] getStackTrace() {
-        return stackTrace;
+    public Thread getThread() {
+        return thread;
     }
 
-    void setStackTrace(StackTraceElement[] stackTrace) {
-        this.stackTrace = stackTrace;
+    void setThread(Thread thread) {
+        this.thread = thread;
     }
 
-    public String getThreadName() {
-        return threadName;
+    public Throwable getLocation() {
+        return location;
     }
 
-    void setThreadName(String threadName) {
-        this.threadName = threadName;
+    void setLocation(Throwable location) {
+        this.location = location;
     }
 }

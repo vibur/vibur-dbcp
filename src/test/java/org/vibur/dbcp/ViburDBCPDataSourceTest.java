@@ -281,8 +281,8 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
     }
 
     private void executeAndVerifySelectStatement(Connection connection) throws SQLException {
-        try (Statement statement = connection.createStatement()) {
-            ResultSet resultSet = statement.executeQuery("select * from actor where first_name = 'CHRISTIAN'");
+        try (Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery("select * from actor where first_name = 'CHRISTIAN'")) {
 
             Set<String> expectedLastNames = new HashSet<>(Arrays.asList("GABLE", "AKROYD", "NEESON"));
             int size = 0;
@@ -308,6 +308,8 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
                 assertTrue(lastNames.remove(lastName));
             }
             assertEquals(3, size);
+
+            resultSet.close();
         }
     }
 
@@ -324,6 +326,8 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
                 assertTrue(firstNames.remove(firstName));
             }
             assertEquals(1, size);
+
+            resultSet.close();
         }
     }
 }

@@ -34,6 +34,7 @@ import org.vibur.objectpool.util.ThreadedPoolReducer;
 import javax.sql.DataSource;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Executor;
@@ -725,25 +726,32 @@ public abstract class ViburConfig {
             return "poolEnableConnectionTracking is disabled.";
 
         TakenListener<ConnHolder> listener = (TakenListener<ConnHolder>) getPool().listener();
-        ConnHolder[] connHolders = listener.getTaken(new ConnHolder[0]);
-        long now = System.currentTimeMillis();
+        ConnHolder[] connHolders = listener.getTaken(new ConnHolder[getPoolMaxSize()]);
 
-        Arrays.sort(connHolders, new Comparator<ConnHolder>() { // sort newest on top
+        int size = 0;
+        while (size < connHolders.length && connHolders[size] != null)
+            size++;
+        if (size == 0)
+            return "";
+        Arrays.sort(connHolders, 0, size, new Comparator<ConnHolder>() { // sort newest on top
             @Override
             public int compare(ConnHolder h1, ConnHolder h2) {
-                long diff = h2.getTakenTime() - h1.getTakenTime();
+                long diff = h1.getTakenTime() - h2.getTakenTime();
                 return diff < 0 ? -1 : diff > 0 ? 1 : 0;
             }
         });
 
+        long now = System.currentTimeMillis();
         StringBuilder builder = new StringBuilder(8192);
-        for (ConnHolder connHolder : connHolders) {
+        for (int i = 0; i < size; i++) {
+            ConnHolder connHolder = connHolders[i];
             long takenTime = connHolder.getTakenTime();
+            Thread thread = connHolder.getThread();
             builder.append(connHolder.value())
-                    .append(", taken at millis = ").append(takenTime)
+                    .append(", taken at ").append(new Date(takenTime)).append(", as millis = ").append(takenTime)
                     .append(", held for ").append(now - takenTime)
-                    .append("ms, by thread ").append(connHolder.getThreadName()).append('\n')
-                    .append(getStackTraceAsString(connHolder.getStackTrace())).append('\n');
+                    .append("ms, by thread ").append(thread.getName()).append(", state ").append(thread.getState())
+                    .append('\n').append(getStackTraceAsString(connHolder.getLocation().getStackTrace())).append('\n');
         }
         return builder.toString();
     }

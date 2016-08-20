@@ -33,9 +33,9 @@ public class ConnectionProxyTest extends AbstractDataSourceTest {
     public void testSameConnection() throws SQLException, IOException {
         DataSource ds = createDataSourceNoStatementsCache();
         try (Connection connection = ds.getConnection();
-            Statement statement = connection.createStatement();
-            PreparedStatement pStatement = connection.prepareStatement("select count(*) from actor");
-            CallableStatement cStatement = connection.prepareCall("select count(*) from actor")) {
+             Statement statement = connection.createStatement();
+             PreparedStatement pStatement = connection.prepareStatement("select count(*) from actor");
+             CallableStatement cStatement = connection.prepareCall("select count(*) from actor")) {
 
             assertSame(connection, statement.getConnection());
             assertSame(connection, pStatement.getConnection());

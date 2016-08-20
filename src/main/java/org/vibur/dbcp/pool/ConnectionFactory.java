@@ -124,8 +124,8 @@ public class ConnectionFactory implements ViburObjectFactory {
 
             if (config.isPoolEnableConnectionTracking()) {
                 conn.setTakenTime(System.currentTimeMillis());
-                conn.setStackTrace(new Throwable().getStackTrace());
-                conn.setThreadName(Thread.currentThread().getName());
+                conn.setThread(Thread.currentThread());
+                conn.setLocation(new Throwable());
             }
             return true;
         } catch (SQLException e) {
@@ -136,6 +136,9 @@ public class ConnectionFactory implements ViburObjectFactory {
 
     @Override
     public boolean readyToRestore(ConnHolder conn) {
+        conn.setThread(null);
+        conn.setLocation(null);
+        
         Connection rawConnection = conn.value();
         try {
             if (config.getCloseConnectionHook() != null)
