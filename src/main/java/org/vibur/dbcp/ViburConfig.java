@@ -184,11 +184,12 @@ public abstract class ViburConfig {
     private int reducerSamples = 20;
 
 
-    /** The time to wait before a call to {@code getConnection()} times out and returns an error, for the case when
-     * there is an available and valid connection in the pool. {@code 0} means forever.
+    /** The time to wait before a call to {@code getConnection()} times out and throws an {@code SQLException},
+     * for the case when there is an available and valid connection in the pool. {@code 0} means forever.
      *
-     * <p>If there is not an available and valid connection in the pool, the total maximum time which the
-     * call to {@code getConnection()} may take before it times out and returns an error can be calculated as:
+     * <p>If there is not an available and valid connection in the pool, and if the maximum number of allowed
+     * connections is not yet reached, the total maximum time that the call to {@code getConnection()} can take
+     * before it times out and throws an {@code SQLException} is defined as:
      * <pre>
      * maxTimeoutInMs = connectionTimeoutInMs
      *     + (acquireRetryAttempts + 1) * loginTimeoutInSeconds * 1000
