@@ -174,7 +174,7 @@ public abstract class ViburConfig {
      * a public constructor accepting a single argument of type {@code ViburConfig}. */
     private String poolReducerClass = PoolReducer.class.getName();
 
-    /** For more details on the next 2 parameters see {@link org.vibur.objectpool.reducer.SamplingPoolReducer}.
+    /** For more details on the next 2 parameters see {@link org.vibur.objectpool.util.SamplingPoolReducer}.
      */
     /** The time period after which the {@code poolReducer} will try to possibly reduce the number of created
      * but unused JDBC Connections in this pool. {@code 0} disables it. */
