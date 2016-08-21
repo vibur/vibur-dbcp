@@ -98,7 +98,8 @@ public class ConnectionFactory implements ViburObjectFactory {
             throw new ViburDBCPException(e);
         }
         logger.debug("Created {}", rawConnection);
-        return new ConnHolder(rawConnection, version(), System.currentTimeMillis());
+        return new ConnHolder(rawConnection, version(),
+                config.getConnectionIdleLimitInSeconds() >= 0 ? System.currentTimeMillis() : 0);
     }
 
     private void ensureInitialized(Connection rawConnection) throws SQLException {
@@ -136,8 +137,11 @@ public class ConnectionFactory implements ViburObjectFactory {
 
     @Override
     public boolean readyToRestore(ConnHolder conn) {
-        conn.setThread(null);
-        conn.setLocation(null);
+        if (config.isPoolEnableConnectionTracking()) {
+            conn.setThread(null);   // don't keep the objects references
+            conn.setLocation(null);
+        }
+
         Connection rawConnection = conn.value();
         try {
             if (config.getCloseConnectionHook() != null)
@@ -147,7 +151,8 @@ public class ConnectionFactory implements ViburObjectFactory {
             if (config.isResetDefaultsAfterUse())
                 setDefaultValues(rawConnection, config);
 
-            conn.setRestoredTime(System.currentTimeMillis());
+            if (config.getConnectionIdleLimitInSeconds() >= 0)
+                conn.setRestoredTime(System.currentTimeMillis());
             return true;
         } catch (SQLException e) {
             logger.debug("Couldn't reset {}", rawConnection, e);
