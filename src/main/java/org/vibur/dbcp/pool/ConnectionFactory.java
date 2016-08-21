@@ -35,7 +35,7 @@ import static org.vibur.dbcp.util.JdbcUtils.*;
  * validates them if needed, and destroys them. Used by {@link org.vibur.dbcp.ViburDBCPDataSource}.
  *
  * <p>This {@code ConnectionFactory} is a versioned factory which creates versioned JDBC Connection
- * wrappers {@code ConnHolder(s)}. The version of each {@code ConnHolder} created by the factory is the same
+ * wrappers {@code ConnHolder(s)}. The version of each {@link ConnHolder} created by the factory is the same
  * as the version of the factory at the moment of the object creation.
  *
  * @author Simeon Malchev
