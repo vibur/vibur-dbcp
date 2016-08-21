@@ -124,16 +124,14 @@ public abstract class ViburConfig {
      * timeout value will be restored.
      *
      * <p>Note that it is responsibility of the application developer to make sure that the used by the application
-     * JDBC driver supports {@code setNetworkTimeout}.
-     */
+     * JDBC driver supports {@code setNetworkTimeout}. */
     private boolean useNetworkTimeout = false;
     /** This option applies only if {@code useNetworkTimeout} is enabled. This is the {@code Executor} that will
      * be passed to the call of {@link java.sql.Connection#setNetworkTimeout}.
      *
      * <p>Note that it is responsibility of the application developer to supply {@link Executor} that is suitable
      * for the needs of the application JDBC driver. For example, some JDBC drivers may require a synchronous
-     * {@code Executor}.
-     */
+     * {@code Executor}. */
     private Executor networkTimeoutExecutor = null;
 
 
@@ -157,8 +155,7 @@ public abstract class ViburConfig {
     /**
      * In rare circumstances, the application may need to obtain a non-pooled connection from the pool
      * after the pool has been terminated. This may happen as part of some post-caching or application
-     * shutdown execution path.
-     */
+     * shutdown execution path. */
     private boolean allowConnectionAfterTermination = false;
 
 
@@ -303,14 +300,12 @@ public abstract class ViburConfig {
     /** Provides access to the functionality for logging of long lasting getConnection() calls, slow SQL queries,
      * and large ResultSets. Setting this parameter to a sub-class of {@link BaseViburLogger} will allow the
      * application to intercept all such logging events, and to accumulate statistics of the count and execution time
-     * of the SQL queries, and similar.
-     */
+     * of the SQL queries, and similar. */
     private ViburLogger viburLogger = new BaseViburLogger();
     /**
      * Allows the application to receiving notifications for all exceptions thrown by the operations
      * invoked on a JDBC Connection object or any of its direct or indirect derivative objects, such as Statement,
-     * ResultSet, or database Metadata objects.
-     */
+     * ResultSet, or database Metadata objects. */
     private ExceptionListener exceptionListener = null;
 
 
