@@ -83,15 +83,19 @@ public class PoolOperations {
     private Connection doGetProxyConnection(long timeout) throws SQLException, ViburDBCPException {
         ConnHolder conn = timeout == 0 ?
                 poolService.take() : poolService.tryTake(timeout, MILLISECONDS);
-        if (conn != null) {
+        if (conn != null) { // we were able to obtain a connection from the pool within the given timeout
             logger.trace("Getting {}", conn.value());
             return newProxyConnection(conn, this, config);
         }
 
-        if (!poolService.isTerminated())
-            throw new SQLException(format("Pool %s, couldn't obtain SQL connection within %dms.",
-                    getPoolName(config), timeout), SQLSTATE_TIMEOUT_ERROR, (int) timeout);
-        throw new SQLException(format("Pool %s, the poolService is terminated.", config.getName()), SQLSTATE_POOL_CLOSED_ERROR);
+        if (poolService.isTerminated())
+            throw new SQLException(format("Pool %s, the poolService is terminated.", config.getName()), SQLSTATE_POOL_CLOSED_ERROR);
+
+        if (config.isLogTakenConnectionsOnTimeout())
+            logger.warn("Pool {}, couldn't obtain SQL connection within {}ms, full list of taken connections begins:\n{}",
+                    getPoolName(config), timeout, config.takenConnectionsToString());
+        throw new SQLException(format("Pool %s, couldn't obtain SQL connection within %dms.",
+                getPoolName(config), timeout), SQLSTATE_TIMEOUT_ERROR, (int) timeout);
     }
 
     public void restore(ConnHolder conn, boolean valid, List<Throwable> errors) {

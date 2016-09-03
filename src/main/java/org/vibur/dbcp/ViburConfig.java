@@ -98,11 +98,11 @@ public abstract class ViburConfig {
     public static final String IS_VALID_QUERY = "isValid";
 
     /** Used to test the validity of a JDBC Connection. If the {@link #connectionIdleLimitInSeconds} is set to
-     * a non-negative number, the {@code #testConnectionQuery} should be set to a valid SQL query, for example
+     * a non-negative number, the {@link #testConnectionQuery} should be set to a valid SQL query, for example
      * {@code SELECT 1}, or to {@code isValid} in which case the {@link java.sql.Connection#isValid} method
      * will be used.
      *
-     * <p>Similarly to the spec for {@link java.sql.Connection#isValid}, if a custom {@code #testConnectionQuery}
+     * <p>Similarly to the spec for {@link java.sql.Connection#isValid}, if a custom {@link #testConnectionQuery}
      * is specified, it will be executed in the context of the current transaction.
      *
      * <p>Note that if the driver is JDBC 4 compliant, using the default {@code isValid} value is
@@ -143,7 +143,8 @@ public abstract class ViburConfig {
      * methods will be selected to obtain a connection from it in FIFO order, and no thread will be starved out from
      * accessing the pool's underlying resources. */
     private boolean poolFair = true;
-    /** If {@code true}, the pool will keep information for the current stack trace of every taken connection. */
+    /** If {@code true}, the pool will keep information for the current stack trace of every taken connection.
+     * See also {@link #logTakenConnectionsOnTimeout}. */
     private boolean poolEnableConnectionTracking = false;
 
     private boolean poolFifo = false;
@@ -223,15 +224,15 @@ public abstract class ViburConfig {
     /** {@code getConnection} method calls taking longer than or equal to this time limit are logged at WARN level.
      * A value of {@code 0} will log all such calls. A {@code negative number} disables it.
      *
-     * <p>If the value of {@code #logConnectionLongerThanMs} is greater than {@code connectionTimeoutInMs},
+     * <p>If the value of {@link #logConnectionLongerThanMs} is greater than {@code connectionTimeoutInMs},
      * then {@code logConnectionLongerThanMs} will be set to the value of {@code connectionTimeoutInMs}. */
     private long logConnectionLongerThanMs = 3000;
     /** Will apply only if {@link #logConnectionLongerThanMs} is enabled, and if set to {@code true},
      * will log at WARN level the current {@code getConnection} call stack trace. */
     private boolean logStackTraceForLongConnection = false;
-    /** The underlying SQL queries (including their concrete parameters) from a JDBC Statement {@code execute...}
-     * calls taking longer than or equal to this time limit are logged at WARN level. A value of {@code 0} will
-     * log all such calls. A {@code negative number} disables it.
+    /** The underlying SQL queries (including their concrete parameters if {@link #includeQueryParameters} is set to
+     * {@code true}) from a JDBC Statement {@code execute...} calls taking longer than or equal to this time limit
+     * are logged at WARN level. A value of {@code 0} will log all such calls. A {@code negative number} disables it.
      *
      * <p><b>Note that</b> while a JDBC Statement {@code execute...} call duration is roughly equivalent to
      * the execution time of the underlying SQL query, the overall call duration may also include some Java GC
@@ -241,11 +242,12 @@ public abstract class ViburConfig {
     /** Will apply only if {@link #logQueryExecutionLongerThanMs} is enabled, and if set to {@code true},
      * will log at WARN level the current JDBC Statement {@code execute...} call stack trace. */
     private boolean logStackTraceForLongQueryExecution = false;
-    /** The underlying SQL queries (including their concrete parameters) from a JDBC Statement {@code execute...}
-     * calls that generate ResultSets with length greater than or equal to this limit are logged at
-     * WARN level. A {@code negative number} disables it. Retrieving of a large ResultSet may have negative effect
-     * on the application performance and may sometimes be an indication of a very subtle application bug, where
-     * the whole ResultSet is retrieved, but only the first few records of it are subsequently read and processed.
+    /** The underlying SQL queries (including their concrete parameters if {@link #includeQueryParameters} is set to
+     * {@code true}) from a JDBC Statement {@code execute...} calls that generate ResultSets with length greater than
+     * or equal to this limit are logged at WARN level. A {@code negative number} disables it. Retrieving of a large
+     * ResultSet may have negative effect on the application performance and may sometimes be an indication of a very
+     * subtle application bug, where the whole ResultSet is retrieved, but only the first few records of it are
+     * subsequently read and processed.
      *
      * <p>The logging is done at the moment when the application issues a call to the {@code ResultSet.close()}
      * method. Applications that rely on the <i>implicit</i> closure of the {@code ResultSet} when the generated it
@@ -261,6 +263,26 @@ public abstract class ViburConfig {
     /** Will apply only if {@link #logLargeResultSet} is enabled, and if set to {@code true},
      * will log at WARN level the current {@code ResultSet.close()} call stack trace. */
     private boolean logStackTraceForLargeResultSet = false;
+
+    /** Enables or disables inclusion of the concrete SQL query parameters for {@link #logStackTraceForLongConnection}
+     * and {@link #logLargeResultSet}. Disabling the parameters inclusion can be useful if there are particular
+     * compliance requirements or if the parameters are already included in the logged messages as part of the
+     * {@code toString()} conversion of the {@code PreparedStatements}; the last is a JDBC driver specific feature.
+     */
+    private boolean includeQueryParameters = true;
+
+    /** If set to {@code true}, and if the {@link #connectionTimeoutInMs} is reached and the call to
+     * {@code getConnection()} fails with throwing an {@code SQLException}, will log at WARN level information
+     * about all currently taken connections, including the stack traces of the threads that have taken them, plus
+     * the threads names and states.
+     *
+     * <p> This options implies that the {@link #poolEnableConnectionTracking} option is enabled, and if the last
+     * is not explicitly enabled it will be implicitly enabled as part of the processing of this option.
+     *
+     * <p><b>Note that</b> this option should be used for troubleshooting purposes only, as it may generate a very
+     * large log output. The exact format of the logged message is controlled by {@link #takenConnectionsToString()}.
+     */
+    private boolean logTakenConnectionsOnTimeout = false;
 
 
     /** If set to {@code true}, will reset the connection default values below, always after the
@@ -619,6 +641,22 @@ public abstract class ViburConfig {
 
     public void setLogStackTraceForLargeResultSet(boolean logStackTraceForLargeResultSet) {
         this.logStackTraceForLargeResultSet = logStackTraceForLargeResultSet;
+    }
+
+    public boolean isIncludeQueryParameters() {
+        return includeQueryParameters;
+    }
+
+    public void setIncludeQueryParameters(boolean includeQueryParameters) {
+        this.includeQueryParameters = includeQueryParameters;
+    }
+
+    public boolean isLogTakenConnectionsOnTimeout() {
+        return logTakenConnectionsOnTimeout;
+    }
+
+    public void setLogTakenConnectionsOnTimeout(boolean logTakenConnectionsOnTimeout) {
+        this.logTakenConnectionsOnTimeout = logTakenConnectionsOnTimeout;
     }
 
     public boolean isResetDefaultsAfterUse() {

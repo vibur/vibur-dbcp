@@ -18,17 +18,11 @@ package org.vibur.dbcp;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.vibur.dbcp.pool.ConnHolder;
-import org.vibur.objectpool.PoolService;
-import org.vibur.objectpool.util.TakenListener;
 
 import javax.management.JMException;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 import java.lang.management.ManagementFactory;
-import java.util.*;
-
-import static org.vibur.dbcp.util.ViburUtils.getStackTraceAsString;
 
 /**
  * @author Simeon Malchev
@@ -272,6 +266,21 @@ public final class ViburMonitoring implements ViburMonitoringMBean {
     @Override
     public void setLogStackTraceForLargeResultSet(boolean logStackTraceForLargeResultSet) {
         config.setLogStackTraceForLargeResultSet(logStackTraceForLargeResultSet);
+    }
+
+    @Override
+    public boolean isIncludeQueryParameters() {
+        return config.isIncludeQueryParameters();
+    }
+
+    @Override
+    public void setIncludeQueryParameters(boolean includeQueryParameters) {
+        config.setIncludeQueryParameters(includeQueryParameters);
+    }
+
+    @Override
+    public boolean isLogTakenConnectionsOnTimeout() {
+        return config.isLogTakenConnectionsOnTimeout();
     }
 
     @Override

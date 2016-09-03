@@ -20,9 +20,9 @@ import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.cache.ClhmStatementCache;
 import org.vibur.dbcp.pool.ConnHolder;
 import org.vibur.dbcp.pool.ConnectionFactory;
-import org.vibur.dbcp.util.PoolOperations;
 import org.vibur.dbcp.pool.ViburObjectFactory;
 import org.vibur.dbcp.proxy.ConnectionInvocationHandler;
+import org.vibur.dbcp.util.PoolOperations;
 import org.vibur.objectpool.ConcurrentLinkedPool;
 import org.vibur.objectpool.PoolService;
 import org.vibur.objectpool.util.TakenListener;
@@ -299,6 +299,10 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
         if (getStatementCacheMaxSize() > STATEMENT_CACHE_MAX_SIZE) {
             logger.warn("Setting statementCacheMaxSize to {}", STATEMENT_CACHE_MAX_SIZE);
             setStatementCacheMaxSize(STATEMENT_CACHE_MAX_SIZE);
+        }
+        if (isLogTakenConnectionsOnTimeout() && !isPoolEnableConnectionTracking()) {
+            logger.warn("Setting poolEnableConnectionTracking to true");
+            setPoolEnableConnectionTracking(true);
         }
 
         if (getDefaultTransactionIsolation() != null) {

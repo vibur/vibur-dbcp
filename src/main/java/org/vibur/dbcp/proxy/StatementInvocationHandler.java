@@ -46,6 +46,7 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
     private final ViburConfig config;
 
     private final boolean logSlowQuery;
+    private final boolean logQueryParams;
     private final List<Object[]> queryParams;
 
     StatementInvocationHandler(StatementHolder statement, StatementCache statementCache, Connection connProxy,
@@ -55,7 +56,9 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
         this.statement = statement;
         this.statementCache = statementCache;
         this.logSlowQuery = config.getLogQueryExecutionLongerThanMs() >= 0;
-        this.queryParams = logSlowQuery ? new LinkedList<Object[]>() : null;
+        boolean logLargeResult = config.getLogLargeResultSet() >= 0;
+        this.logQueryParams = config.isIncludeQueryParameters() && (logSlowQuery || logLargeResult);
+        this.queryParams = logQueryParams ? new LinkedList<Object[]>() : null;
     }
 
     @Override
@@ -85,6 +88,17 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
         return super.doInvoke(proxy, method, args);
     }
 
+    @Override
+    void logTargetInvokeFailure(Method method, Object[] args, Throwable t) {
+        if (method.getName().startsWith("execute")) {
+            if (logger.isDebugEnabled())
+                logger.debug("SQL query execution from pool {}:\n{}\n-- threw:",
+                        getPoolName(config), formatSql(getSqlQuery(getTarget(), args), queryParams), t);
+        }
+        else
+            super.logTargetInvokeFailure(method, args, t);
+    }
+
     private Object processClose(Method method, Object[] args) throws Throwable {
         if (!close())
             return null;
@@ -102,12 +116,8 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
     }
 
     private Object processSet(Method method, Object[] args) throws Throwable {
-        if (logSlowQuery && args != null && args.length >= 2) {
-            Object[] params = new Object[args.length + 1];
-            params[0] = method.getName();
-            System.arraycopy(args, 0, params, 1, args.length);
-            queryParams.add(params);
-        }
+        if (logQueryParams && args != null && args.length >= 2)
+            addQueryParams(method, args);
         return targetInvoke(method, args); // the real "set..." call
     }
 
@@ -135,22 +145,18 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
         return newProxyResultSet(rawResultSet, proxy, args, queryParams, config, getExceptionCollector());
     }
 
+    private void addQueryParams(Method method, Object[] args) {
+        Object[] params = new Object[args.length + 1];
+        params[0] = method.getName();
+        System.arraycopy(args, 0, params, 1, args.length);
+        queryParams.add(params);
+    }
+
     private void logQuery(Statement proxy, Object[] args, long startTime) {
         long timeTaken = System.currentTimeMillis() - startTime;
         if (timeTaken >= config.getLogQueryExecutionLongerThanMs())
             config.getViburLogger().logQuery(
                     getPoolName(config), getSqlQuery(proxy, args), queryParams, timeTaken,
                     config.isLogStackTraceForLongQueryExecution() ? new Throwable().getStackTrace() : null);
-    }
-
-    @Override
-    void logInvokeFailure(Method method, Object[] args, Throwable t) {
-        if (method.getName().startsWith("execute")) {
-            if (logger.isDebugEnabled())
-                logger.debug("SQL query execution from pool {}:\n{}\n-- threw:",
-                        getPoolName(config), formatSql(getSqlQuery(getTarget(), args), queryParams), t);
-        }
-        else
-            super.logInvokeFailure(method, args, t);
     }
 }

@@ -112,7 +112,7 @@ abstract class AbstractInvocationHandler<T> implements TargetInvoker {
             Throwable cause = e.getCause();
             if (cause == null)
                 cause = e;
-            logInvokeFailure(method, args, cause);
+            logTargetInvokeFailure(method, args, cause);
             exceptionCollector.addException(cause);
             if (cause instanceof SQLException || cause instanceof RuntimeException || cause instanceof Error)
                 throw cause;
@@ -120,7 +120,7 @@ abstract class AbstractInvocationHandler<T> implements TargetInvoker {
         }
     }
 
-    void logInvokeFailure(Method method, Object[] args, Throwable t) {
+    void logTargetInvokeFailure(Method method, Object[] args, Throwable t) {
         if (logger.isDebugEnabled())
             logger.debug("Pool {}, the invocation of {} with args {} on {} threw:",
                     getPoolName(config), method, Arrays.toString(args), target, t);

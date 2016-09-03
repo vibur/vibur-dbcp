@@ -36,6 +36,7 @@ class ResultSetInvocationHandler extends ChildObjectInvocationHandler<Statement,
     private final List<Object[]> queryParams;
     private final ViburConfig config;
 
+    private final boolean logLargeResult;
     private final AtomicLong resultSetSize = new AtomicLong(0);
 
     ResultSetInvocationHandler(ResultSet rawResultSet, Statement statementProxy,
@@ -45,6 +46,7 @@ class ResultSetInvocationHandler extends ChildObjectInvocationHandler<Statement,
         this.executeMethodArgs = executeMethodArgs;
         this.queryParams = queryParams;
         this.config = config;
+        this.logLargeResult = config.getLogLargeResultSet() >= 0;
     }
 
     @Override
@@ -72,13 +74,14 @@ class ResultSetInvocationHandler extends ChildObjectInvocationHandler<Statement,
     private Object processClose(Method method, Object[] args) throws Throwable {
         if (!close())
             return null;
-        logResultSetSize();
+        if (logLargeResult)
+            logResultSetSize();
         return targetInvoke(method, args);
     }
 
     private void logResultSetSize() {
         long size = resultSetSize.get() - 1;
-        if (config.getLogLargeResultSet() >= 0 && config.getLogLargeResultSet() <= size)
+        if (config.getLogLargeResultSet() <= size)
             config.getViburLogger().logResultSetSize(
                     getPoolName(config), getSqlQuery(getParentProxy(), executeMethodArgs), queryParams, size,
                     config.isLogStackTraceForLargeResultSet() ? new Throwable().getStackTrace() : null);

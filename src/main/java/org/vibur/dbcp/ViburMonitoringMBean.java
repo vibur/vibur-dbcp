@@ -122,6 +122,12 @@ public interface ViburMonitoringMBean {
 
     void setLogStackTraceForLargeResultSet(boolean logStackTraceForLargeResultSet);
 
+    boolean isIncludeQueryParameters();
+
+    void setIncludeQueryParameters(boolean includeQueryParameters);
+
+    boolean isLogTakenConnectionsOnTimeout();
+
     //////////// JDBC Connection default states ////////////
 
     boolean isResetDefaultsAfterUse();
