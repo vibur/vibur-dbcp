@@ -1,5 +1,5 @@
 /**
- * Copyright 2015 Simeon Malchev
+ * Copyright 2016 Simeon Malchev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,25 +14,26 @@
  * limitations under the License.
  */
 
-package org.vibur.dbcp.proxy;
+package org.vibur.dbcp.event;
 
 import java.lang.reflect.Method;
+import java.sql.SQLException;
 
 /**
+ * An application programming hook allowing us to intercept all method calls on all proxied JDBC interfaces.
+ *
  * @author Simeon Malchev
  */
-public interface TargetInvoker {
+public interface InvocationHook {
 
     /**
-     * Dispatches the method call to the real underlying (proxied) object and implements the logic for
-     * handling the {@code InvocationTargetException} that may be thrown when invoking the underlying method.
-     * The real underlying object is "an abstraction" that is known to the implementing class only; it is not
-     * specified as part of the {@code TargetInvoker} interface.
+     * An application hook that will be invoked when a method on any of the proxied JDBC interfaces is invoked.
+     * The execution of this method should take as short time as possible.
      *
+     * @param proxy the proxy instance that the method was invoked on
      * @param method the invoked method
      * @param args the method arguments
-     * @return the result of the method invocation
-     * @throws Throwable if the underlying method call throws a Throwable
+     * @throws SQLException to indicate that an error has occured
      */
-    Object targetInvoke(Method method, Object[] args) throws Throwable;
+    void invoke(Object proxy, Method method, Object[] args) throws SQLException;
 }

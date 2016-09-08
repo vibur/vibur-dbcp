@@ -31,9 +31,10 @@ import java.sql.SQLException;
 public interface ConnectionHook {
 
     /**
-     * An application hook which will be called at a specific point of the JDBC Connection lifecycle. The invocation
+     * An application hook that will be invoked at a specific point of the JDBC Connection lifecycle. The invocation
      * of this method will typically happen when a particular method of the {@link javax.sql.DataSource} or
-     * {@link Connection} interface has been called by the application, and should take as short time as possible.
+     * {@link Connection} interface has been invoked by the application and its execution should take as short time
+     * as possible.
      *
      * <p>This application hook serves as an extension point to the internal workings of the connection pool and has
      * access to the <b>raw (original)</b> JDBC Connection object, not the proxied such. In order to avoid interfering

@@ -20,7 +20,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.ViburConfig;
 import org.vibur.dbcp.ViburDBCPException;
+import org.vibur.dbcp.event.InvocationHook;
 
+import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.sql.SQLException;
@@ -35,7 +37,7 @@ import static org.vibur.dbcp.util.ViburUtils.getPoolName;
  * @author Simeon Malchev
  * @param <T> the type of the object that we are dynamically proxy-ing
 */
-abstract class AbstractInvocationHandler<T> implements TargetInvoker {
+abstract class AbstractInvocationHandler<T> implements InvocationHandler, TargetInvoker {
 
     private static final Logger logger = LoggerFactory.getLogger(AbstractInvocationHandler.class);
 
@@ -43,6 +45,7 @@ abstract class AbstractInvocationHandler<T> implements TargetInvoker {
      *  For example, the underlying JDBC Connection, the underlying JDBC Statement, etc. */
     private final T target;
 
+    private final InvocationHook invocationHook;
     private final ViburConfig config;
     private final ExceptionCollector exceptionCollector;
 
@@ -53,6 +56,7 @@ abstract class AbstractInvocationHandler<T> implements TargetInvoker {
         assert config != null;
         assert exceptionCollector != null;
         this.target = target;
+        this.invocationHook = config.getInvocationHook();
         this.config = config;
         this.exceptionCollector = exceptionCollector;
     }
@@ -62,6 +66,9 @@ abstract class AbstractInvocationHandler<T> implements TargetInvoker {
     public final Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         if (logger.isTraceEnabled())
             logger.trace("Calling {} with args {} on {}", method, args, target);
+
+        if (invocationHook != null)
+            invocationHook.invoke(proxy, method, args);
 
         String methodName = method.getName();
 
@@ -94,7 +101,7 @@ abstract class AbstractInvocationHandler<T> implements TargetInvoker {
      * in the {@code AbstractInvocationHandler} subclasses, and will be the place to implement the specific to these
      * subclasses logic for methods invocation handling.
      *
-     * @param proxy see {@link java.lang.reflect.InvocationHandler#invoke(Object, Method, Object[])}
+     * @param proxy see {@link java.lang.reflect.InvocationHandler#invoke}
      * @param method as above
      * @param args as above
      * @return as above
