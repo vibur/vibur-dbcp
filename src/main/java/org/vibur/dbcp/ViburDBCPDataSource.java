@@ -487,7 +487,7 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
     public <T> T unwrap(Class<T> iface) throws SQLException {
         if (isWrapperFor(iface))
             return (T) getExternalDataSource();
-        throw new SQLException("not a wrapper for " + iface, SQLSTATE_WRAPPER_ERROR);
+        throw new SQLException("Not a wrapper for " + iface, SQLSTATE_WRAPPER_ERROR);
     }
 
     @Override

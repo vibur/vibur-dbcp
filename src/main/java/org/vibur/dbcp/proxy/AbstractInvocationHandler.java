@@ -161,7 +161,7 @@ abstract class AbstractInvocationHandler<T> implements InvocationHandler, Target
     private T unwrap(Class<T> iface) throws SQLException {
         if (isWrapperFor(iface))
             return target;
-        throw new SQLException("not a wrapper for " + iface, SQLSTATE_WRAPPER_ERROR);
+        throw new SQLException("Not a wrapper for " + iface, SQLSTATE_WRAPPER_ERROR);
     }
 
     private boolean isWrapperFor(Class<?> iface) {
