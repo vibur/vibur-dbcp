@@ -510,7 +510,7 @@ public abstract class ViburConfig {
             return;
         }
         if (!defaultName.equals(this.name) || defaultName.equals(name)) {
-            logger.error("Pool name has been already set, existing name = {}, incoming name = {}", this.name, name);
+            logger.error("Pool name already set or duplicated, existing name = {}, incoming name = {}", this.name, name);
             return;
         }
         this.name = name;
