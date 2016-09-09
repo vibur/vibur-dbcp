@@ -300,7 +300,7 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
             setStatementCacheMaxSize(STATEMENT_CACHE_MAX_SIZE);
         }
         if (isLogTakenConnectionsOnTimeout() && !isPoolEnableConnectionTracking()) {
-            logger.warn("Setting poolEnableConnectionTracking to true");
+            logger.debug("Setting poolEnableConnectionTracking to true");
             setPoolEnableConnectionTracking(true);
         }
 

@@ -98,8 +98,8 @@ public class ConnectionFactory implements ViburObjectFactory {
             throw new ViburDBCPException(e);
         }
         logger.debug("Created {}", rawConnection);
-        return new ConnHolder(rawConnection, version(),
-                config.getConnectionIdleLimitInSeconds() >= 0 ? System.currentTimeMillis() : 0);
+        return adapt(new ConnHolder(rawConnection, version(),
+                config.getConnectionIdleLimitInSeconds() >= 0 ? System.currentTimeMillis() : 0));
     }
 
     private void ensureInitialized(Connection rawConnection) throws SQLException {
@@ -123,16 +123,21 @@ public class ConnectionFactory implements ViburObjectFactory {
             if (config.getConnectionHook() != null)
                 config.getConnectionHook().on(rawConnection);
 
-            if (config.isPoolEnableConnectionTracking()) {
-                conn.setTakenTime(System.currentTimeMillis());
-                conn.setThread(Thread.currentThread());
-                conn.setLocation(new Throwable());
-            }
+            adapt(conn);
             return true;
         } catch (SQLException e) {
             logger.debug("Couldn't validate {}", rawConnection, e);
             return false;
         }
+    }
+
+    private ConnHolder adapt(ConnHolder conn) {
+        if (config.isPoolEnableConnectionTracking()) {
+            conn.setTakenTime(System.currentTimeMillis());
+            conn.setThread(Thread.currentThread());
+            conn.setLocation(new Throwable());
+        }
+        return conn;
     }
 
     @Override
