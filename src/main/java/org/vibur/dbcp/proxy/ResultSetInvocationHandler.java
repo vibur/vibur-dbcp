@@ -58,7 +58,7 @@ class ResultSetInvocationHandler extends ChildObjectInvocationHandler<Statement,
         if (methodName == "isClosed")
             return isClosed();
 
-        ensureNotClosed();
+        databaseAccessDoorway(proxy, method, args);
 
         if (methodName == "next")
             return processNext(method, args);

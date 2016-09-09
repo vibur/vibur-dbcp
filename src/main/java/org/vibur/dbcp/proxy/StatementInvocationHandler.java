@@ -70,7 +70,7 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
         if (methodName == "isClosed")
             return isClosed();
 
-        ensureNotClosed(); // all other Statement interface methods cannot work if the JDBC Statement is closed
+        databaseAccessDoorway(proxy, method, args);
 
         if (methodName.startsWith("set")) // this intercepts all "set..." JDBC Prepared/Callable Statement methods
             return processSet(method, args);

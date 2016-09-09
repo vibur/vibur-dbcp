@@ -61,7 +61,7 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
         if (methodName == "abort")
             return processAbort(method, args);
 
-        ensureNotClosed(); // all other Connection interface methods cannot work if the JDBC Connection is closed
+        databaseAccessDoorway(proxy, method, args);
 
         // Methods which results have to be proxied so that when getConnection() is called
         // on their results the return value to be the current JDBC Connection proxy.

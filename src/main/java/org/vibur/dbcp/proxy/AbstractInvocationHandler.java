@@ -66,8 +66,6 @@ abstract class AbstractInvocationHandler<T> implements InvocationHandler, Target
     public final Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         if (logger.isTraceEnabled())
             logger.trace("Calling {} with args {} on {}", method, args, target);
-        if (invocationHook != null)
-            invocationHook.invoke(proxy, method, args);
 
         String methodName = method.getName();
 
@@ -144,9 +142,11 @@ abstract class AbstractInvocationHandler<T> implements InvocationHandler, Target
         return closed.get();
     }
 
-    void ensureNotClosed() throws SQLException {
+    void databaseAccessDoorway(T proxy, Method method, Object[] args) throws SQLException {
         if (isClosed())
             throw new SQLException(target.getClass().getName() + " is closed.", SQLSTATE_OBJECT_CLOSED_ERROR);
+        if (invocationHook != null)
+            invocationHook.invoke(proxy, method, args);
     }
 
     ExceptionCollector getExceptionCollector() {
