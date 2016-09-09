@@ -259,7 +259,6 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
 
         if (isEnableJMX())
             unregisterMBean(this);
-        unregisterName();
         logger.info("Terminated {}", this);
     }
 
