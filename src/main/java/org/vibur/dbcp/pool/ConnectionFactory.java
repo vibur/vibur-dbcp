@@ -98,7 +98,7 @@ public class ConnectionFactory implements ViburObjectFactory {
             throw new ViburDBCPException(e);
         }
         logger.debug("Created {}", rawConnection);
-        return adapt(new ConnHolder(rawConnection, version(),
+        return prepareTracking(new ConnHolder(rawConnection, version(),
                 config.getConnectionIdleLimitInSeconds() >= 0 ? System.currentTimeMillis() : 0));
     }
 
@@ -123,7 +123,7 @@ public class ConnectionFactory implements ViburObjectFactory {
             if (config.getConnectionHook() != null)
                 config.getConnectionHook().on(rawConnection);
 
-            adapt(conn);
+            prepareTracking(conn);
             return true;
         } catch (SQLException e) {
             logger.debug("Couldn't validate {}", rawConnection, e);
@@ -131,21 +131,9 @@ public class ConnectionFactory implements ViburObjectFactory {
         }
     }
 
-    private ConnHolder adapt(ConnHolder conn) {
-        if (config.isPoolEnableConnectionTracking()) {
-            conn.setTakenTime(System.currentTimeMillis());
-            conn.setThread(Thread.currentThread());
-            conn.setLocation(new Throwable());
-        }
-        return conn;
-    }
-
     @Override
     public boolean readyToRestore(ConnHolder conn) {
-        if (config.isPoolEnableConnectionTracking()) {
-            conn.setThread(null);   // don't keep the objects references
-            conn.setLocation(null);
-        }
+        clearTracking(conn); // don't keep the objects references
 
         Connection rawConnection = conn.value();
         try {
@@ -163,6 +151,23 @@ public class ConnectionFactory implements ViburObjectFactory {
             logger.debug("Couldn't reset {}", rawConnection, e);
             return false;
         }
+    }
+
+    private ConnHolder prepareTracking(ConnHolder conn) {
+        if (config.isPoolEnableConnectionTracking()) {
+            conn.setTakenTime(System.currentTimeMillis());
+            conn.setThread(Thread.currentThread());
+            conn.setLocation(new Throwable());
+        }
+        return conn;
+    }
+
+    private ConnHolder clearTracking(ConnHolder conn) {
+        if (config.isPoolEnableConnectionTracking()) {
+            conn.setThread(null);
+            conn.setLocation(null);
+        }
+        return conn;
     }
 
     @Override
