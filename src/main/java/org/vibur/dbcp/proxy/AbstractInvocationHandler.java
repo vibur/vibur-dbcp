@@ -66,7 +66,6 @@ abstract class AbstractInvocationHandler<T> implements InvocationHandler, Target
     public final Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         if (logger.isTraceEnabled())
             logger.trace("Calling {} with args {} on {}", method, args, target);
-
         if (invocationHook != null)
             invocationHook.invoke(proxy, method, args);
 

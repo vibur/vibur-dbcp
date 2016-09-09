@@ -36,12 +36,9 @@ import javax.sql.DataSource;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static java.lang.Boolean.TRUE;
 import static org.vibur.dbcp.util.ViburUtils.getStackTraceAsString;
 
 /**
@@ -161,10 +158,13 @@ public abstract class ViburConfig {
     private boolean allowConnectionAfterTermination = false;
 
 
+    private static final AtomicInteger idGenerator = new AtomicInteger(1);
+    private final String defaultName = "p" + Integer.toString(idGenerator.getAndIncrement());
+
     /** The DataSource/pool name, mostly useful for JMX identification and similar. This {@code name} must be unique
      * among all names for all configured DataSources. The default name is "p" + an auto generated integer id.
      * If the configured {@code name} is not unique then the default one will be used instead. */
-    private String name = registerDefaultName();
+    private String name = defaultName;
 
     /** Enables or disables the DataSource JMX exposure. */
     private boolean enableJMX = true;
@@ -505,8 +505,15 @@ public abstract class ViburConfig {
     }
 
     public void setName(String name) {
-        if (!registerName(name))
-            logger.warn("DataSource name {} is not unique, using {} instead", name, this.name);
+        if (name == null || (name = name.trim()).length() == 0) {
+            logger.error("Invalid pool name {}", name);
+            return;
+        }
+        if (!defaultName.equals(this.name) || defaultName.equals(name)) {
+            logger.error("Pool name has been already set, existing name = {}, incoming name = {}", this.name, name);
+            return;
+        }
+        this.name = name;
     }
 
     public String getJmxName() {
@@ -818,32 +825,5 @@ public abstract class ViburConfig {
             .append(", name = ").append(name)
             .append(", statementCacheMaxSize = ").append(statementCacheMaxSize)
             .append(']').toString();
-    }
-
-
-    //////////////////////// pool name management ////////////////////////
-
-    private static final AtomicInteger idGenerator = new AtomicInteger(1);
-    private static final ConcurrentMap<String, Boolean> names = new ConcurrentHashMap<>();
-
-    private String registerDefaultName() {
-        String defaultName;
-        do {
-            defaultName = "p" + Integer.toString(idGenerator.getAndIncrement());
-        } while (names.putIfAbsent(defaultName, TRUE) != null);
-        return defaultName;
-    }
-
-    private boolean registerName(String name) {
-        if (name == null || name.isEmpty() || names.putIfAbsent(name, TRUE) != null)
-            return false;
-
-        unregisterName();
-        this.name = name;
-        return true;
-    }
-
-    void unregisterName() {
-        names.remove(name);
     }
 }
