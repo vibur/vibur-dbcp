@@ -22,13 +22,10 @@ import org.vibur.dbcp.ViburConfig;
 import org.vibur.dbcp.ViburDBCPException;
 
 import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
+import java.util.Properties;
 import java.util.concurrent.Executor;
 
-import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.vibur.dbcp.ViburConfig.IS_VALID_QUERY;
 
@@ -45,6 +42,68 @@ public final class JdbcUtils {
 
     private JdbcUtils() {}
 
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    public interface Connector {
+
+        /**
+         * Creates the physical (raw) JDBC connection to the database via using the configured Driver or
+         * external DataSource.
+         *
+         * @throws SQLException if the underlying SQL operation throws such
+         */
+        Connection connect() throws SQLException;
+    }
+
+    public static class DriverConnector implements Connector {
+        private final Driver driver;
+        private final String jdbcUrl;
+        private final Properties driverProperties;
+
+        public DriverConnector(ViburConfig config) {
+            this.driver = config.getDriver();
+            this.jdbcUrl = config.getJdbcUrl();
+            this.driverProperties = config.getDriverProperties();
+        }
+
+        @Override
+        public Connection connect() throws SQLException {
+            return driver.connect(jdbcUrl, driverProperties);
+        }
+    }
+
+    public static class DataSourceDefaultConnector implements Connector {
+        private final DataSource externalDataSource;
+
+        public DataSourceDefaultConnector(ViburConfig config) {
+            this.externalDataSource = config.getExternalDataSource();
+        }
+
+        @Override
+        public Connection connect() throws SQLException {
+            return externalDataSource.getConnection();
+        }
+    }
+
+    public static class DataSourceCredentialsConnector implements Connector {
+        private final DataSource externalDataSource;
+        private final String username;
+        private final String password;
+
+        public DataSourceCredentialsConnector(ViburConfig config) {
+            this.externalDataSource = config.getExternalDataSource();
+            this.username = config.getUsername();
+            this.password = config.getPassword();
+        }
+
+        @Override
+        public Connection connect() throws SQLException {
+            return externalDataSource.getConnection(username, password);
+        }
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
     public static void initLoginTimeout(ViburConfig config) throws ViburDBCPException {
         int loginTimeout = config.getLoginTimeoutInSeconds();
         if (config.getExternalDataSource() == null)
@@ -56,44 +115,6 @@ public final class JdbcUtils {
                 throw new ViburDBCPException(e);
             }
         }
-    }
-
-    public static void initJdbcDriver(ViburConfig config) throws ViburDBCPException {
-        if (config.getDriverClassName() != null) {
-            try {
-                Class.forName(config.getDriverClassName()).newInstance();
-            } catch (ReflectiveOperationException e) {
-                throw new ViburDBCPException(e);
-            }
-        }
-    }
-
-    /**
-     * This method creates the physical connection to the database via using the DriverManager or the configured
-     * external DataSource.
-     *
-     * @param userName the user name to use when connecting to the database
-     * @param password the password to use when connecting to the database
-     * @param config the ViburConfig
-     * @return a newly established raw JDBC Connection to the database
-     * @throws SQLException if the DriverManager or the DataSource throws an SQLException
-     */
-    public static Connection createConnection(String userName, String password, ViburConfig config) throws SQLException {
-        Connection rawConnection;
-        DataSource externalDataSource = config.getExternalDataSource();
-        if (externalDataSource == null) {
-            if (userName != null)
-                rawConnection = DriverManager.getConnection(config.getJdbcUrl(), userName, password);
-            else
-                rawConnection = DriverManager.getConnection(config.getJdbcUrl());
-        }
-        else {
-            if (userName != null)
-                rawConnection = externalDataSource.getConnection(userName, password);
-            else
-                rawConnection = externalDataSource.getConnection();
-        }
-        return requireNonNull(rawConnection);
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////

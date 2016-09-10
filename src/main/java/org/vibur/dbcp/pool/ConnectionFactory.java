@@ -21,11 +21,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.ViburConfig;
 import org.vibur.dbcp.ViburDBCPException;
+import org.vibur.dbcp.util.JdbcUtils;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.vibur.dbcp.ViburConfig.SQLSTATE_CONN_INIT_ERROR;
 import static org.vibur.dbcp.util.JdbcUtils.*;
@@ -45,6 +47,7 @@ public class ConnectionFactory implements ViburObjectFactory {
 
     private static final Logger logger = LoggerFactory.getLogger(ConnectionFactory.class);
 
+    private final JdbcUtils.Connector connector;
     private final ViburConfig config;
     private final AtomicInteger version = new AtomicInteger(1);
 
@@ -55,9 +58,9 @@ public class ConnectionFactory implements ViburObjectFactory {
      * @throws ViburDBCPException if cannot successfully initialize/configure the underlying SQL system
      */
     public ConnectionFactory(ViburConfig config) throws ViburDBCPException {
+        this.connector = config.getConnector();
         this.config = config;
         initLoginTimeout(config);
-        initJdbcDriver(config);
     }
 
     /**
@@ -71,12 +74,12 @@ public class ConnectionFactory implements ViburObjectFactory {
     }
 
     @Override
-    public ConnHolder create(String userName, String password) throws ViburDBCPException {
+    public ConnHolder create(String username, String password) throws ViburDBCPException {
         int attempt = 0;
         Connection rawConnection = null;
         while (rawConnection == null) {
             try {
-                rawConnection = createConnection(userName, password, config);
+                rawConnection = requireNonNull(connector.connect());
             } catch (SQLException e) {
                 logger.debug("Couldn't create a java.sql.Connection, attempt {}", attempt, e);
                 if (attempt++ >= config.getAcquireRetryAttempts())

@@ -20,22 +20,21 @@ package org.vibur.dbcp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.cache.StatementCache;
-import org.vibur.dbcp.event.BaseViburLogger;
-import org.vibur.dbcp.event.ConnectionHook;
-import org.vibur.dbcp.event.ExceptionListener;
-import org.vibur.dbcp.event.InvocationHook;
-import org.vibur.dbcp.event.ViburLogger;
+import org.vibur.dbcp.event.*;
 import org.vibur.dbcp.pool.ConnHolder;
 import org.vibur.dbcp.pool.PoolReducer;
 import org.vibur.dbcp.pool.ViburObjectFactory;
+import org.vibur.dbcp.util.JdbcUtils;
 import org.vibur.objectpool.PoolService;
 import org.vibur.objectpool.util.TakenListener;
 import org.vibur.objectpool.util.ThreadedPoolReducer;
 
 import javax.sql.DataSource;
+import java.sql.Driver;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.Properties;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -65,8 +64,18 @@ public abstract class ViburConfig {
 
     ViburConfig() { }
 
-    /** Database driver class name. This is <b>an optional</b> parameter if the driver is JDBC 4 complaint. If specified,
-     * a call to {@code Class.forName(driverClassName).newInstance()} will be issued during the Vibur DBCP initialization.
+    /** The user name to use when connecting to the database. */
+    private String username;
+    /** The password to use when connecting to the database. */
+    private String password;
+
+    /** The preferred way to configure/inject the JDBC Driver through which the Connections will be generated. */
+    private Driver driver = null;
+    /** The driver properties that will be used in the call to {@link java.sql.Driver#connect}. */
+    private Properties driverProperties = null;
+    /** The database driver class name. This is <b>an optional</b> parameter if the {@link #driver} parameter above is
+     * specified of if the driver is JDBC 4 complaint. If configured, a call to
+     * {@code Class.forName(driverClassName).newInstance()} will be issued during the Vibur DBCP initialization.
      * This is needed when Vibur DBCP is used in an OSGi container and may also be helpful if Vibur DBCP is used in an
      * Apache Tomcat web application which has its JDBC driver JAR file packaged in the app WEB-INF/lib directory.
      * If this property is not specified, then Vibur DBCP will depend on the JavaSE Service Provider mechanism to find
@@ -74,13 +83,12 @@ public abstract class ViburConfig {
     private String driverClassName = null;
     /** The database JDBC Connection string. */
     private String jdbcUrl;
-    /** The user name to use when connecting to the database. */
-    private String username;
-    /** The password to use when connecting to the database. */
-    private String password;
+
     /** If specified, this {@code externalDataSource} will be used as an alternative way to obtain the raw
-     * connections for the pool instead of calling {@link java.sql.DriverManager#getConnection(String)}. */
+     * connections for the pool instead of relaying on {@link java.sql.Driver}. */
     private DataSource externalDataSource = null;
+
+    private JdbcUtils.Connector connector = null;
 
 
     /** If the connection has stayed in the pool for at least {@code connectionIdleLimitInSeconds},
@@ -340,22 +348,6 @@ public abstract class ViburConfig {
 
     //////////////////////// Getters & Setters ////////////////////////
 
-    public String getDriverClassName() {
-        return driverClassName;
-    }
-
-    public void setDriverClassName(String driverClassName) {
-        this.driverClassName = driverClassName;
-    }
-
-    public String getJdbcUrl() {
-        return jdbcUrl;
-    }
-
-    public void setJdbcUrl(String jdbcUrl) {
-        this.jdbcUrl = jdbcUrl;
-    }
-
     public String getUsername() {
         return username;
     }
@@ -372,12 +364,52 @@ public abstract class ViburConfig {
         this.password = password;
     }
 
+    public Driver getDriver() {
+        return driver;
+    }
+
+    public void setDriver(Driver driver) {
+        this.driver = driver;
+    }
+
+    public Properties getDriverProperties() {
+        return driverProperties;
+    }
+
+    public void setDriverProperties(Properties driverProperties) {
+        this.driverProperties = driverProperties;
+    }
+
+    public String getDriverClassName() {
+        return driverClassName;
+    }
+
+    public void setDriverClassName(String driverClassName) {
+        this.driverClassName = driverClassName;
+    }
+
+    public String getJdbcUrl() {
+        return jdbcUrl;
+    }
+
+    public void setJdbcUrl(String jdbcUrl) {
+        this.jdbcUrl = jdbcUrl;
+    }
+
     public DataSource getExternalDataSource() {
         return externalDataSource;
     }
 
     public void setExternalDataSource(DataSource externalDataSource) {
         this.externalDataSource = externalDataSource;
+    }
+
+    public JdbcUtils.Connector getConnector() {
+        return connector;
+    }
+
+    public void setConnector(JdbcUtils.Connector connector) {
+        this.connector = connector;
     }
 
     public int getConnectionIdleLimitInSeconds() {

@@ -22,6 +22,7 @@ import org.vibur.dbcp.pool.ConnHolder;
 import org.vibur.dbcp.pool.ConnectionFactory;
 import org.vibur.dbcp.pool.ViburObjectFactory;
 import org.vibur.dbcp.proxy.ConnectionInvocationHandler;
+import org.vibur.dbcp.util.JdbcUtils;
 import org.vibur.dbcp.util.PoolOperations;
 import org.vibur.objectpool.ConcurrentLinkedPool;
 import org.vibur.objectpool.PoolService;
@@ -36,9 +37,7 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Proxy;
 import java.net.URL;
 import java.net.URLConnection;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.sql.SQLFeatureNotSupportedException;
+import java.sql.*;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
@@ -223,6 +222,10 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
 
         validateConfig();
 
+        if (getExternalDataSource() == null)
+            initDriverAndProperties();
+        setConnector(buildConnector());
+
         ViburObjectFactory connectionFactory = getConnectionFactory();
         if (connectionFactory == null)
             setConnectionFactory(connectionFactory = new ConnectionFactory(this));
@@ -329,18 +332,42 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
         }
     }
 
+    private void initDriverAndProperties() {
+        if (getDriver() == null) {
+            try {
+                if (getDriverClassName() != null)
+                    setDriver((Driver) Class.forName(getDriverClassName()).newInstance());
+                else
+                    setDriver(DriverManager.getDriver(getJdbcUrl()));
+            } catch (ReflectiveOperationException | ClassCastException | SQLException e) {
+                throw new ViburDBCPException(e);
+            }
+        }
+
+        Properties driverProperties = getDriverProperties();
+        if (driverProperties == null)
+            setDriverProperties(driverProperties = new Properties());
+        driverProperties.setProperty("user", driverProperties.getProperty("user", getUsername()));
+        driverProperties.setProperty("password", driverProperties.getProperty("password", getPassword()));
+    }
+
+    private JdbcUtils.Connector buildConnector() {
+        if (getExternalDataSource() == null)
+            return new JdbcUtils.DriverConnector(this);
+        if (getUsername() != null)
+            return new JdbcUtils.DataSourceCredentialsConnector(this);
+        return new JdbcUtils.DataSourceDefaultConnector(this);
+    }
+
     private void initPoolReducer() throws ViburDBCPException {
         ThreadedPoolReducer poolReducer = getPoolReducer();
         if (getReducerTimeIntervalInSeconds() > 0 && poolReducer == null) {
             try {
-                Object reducer = Class.forName(getPoolReducerClass()).getConstructor(ViburConfig.class)
-                        .newInstance(this);
-                if (!(reducer instanceof ThreadedPoolReducer))
-                    throw new ViburDBCPException(getPoolReducerClass() + " is not an instance of " + ThreadedPoolReducer.class.getName());
-                poolReducer = (ThreadedPoolReducer) reducer;
+                poolReducer = (ThreadedPoolReducer) Class.forName(getPoolReducerClass())
+                        .getConstructor(ViburConfig.class).newInstance(this);
                 setPoolReducer(poolReducer);
                 poolReducer.start();
-            } catch (ReflectiveOperationException e) {
+            } catch (ReflectiveOperationException | ClassCastException e) {
                 throw new ViburDBCPException(e);
             }
         }
