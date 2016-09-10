@@ -159,8 +159,7 @@ public abstract class ViburConfig {
     private ViburObjectFactory connectionFactory = null;
     private ThreadedPoolReducer poolReducer = null;
 
-    /**
-     * In rare circumstances, the application may need to obtain a non-pooled connection from the pool
+    /** In rare circumstances, the application may need to obtain a non-pooled connection from the pool
      * after the pool has been terminated. This may happen as part of some post-caching or application
      * shutdown execution path. */
     private boolean allowConnectionAfterTermination = false;
@@ -266,7 +265,7 @@ public abstract class ViburConfig {
      * has issued to the {@code ResultSet.next()} method. In most of the cases this is a very accurate and
      * non-intrusive method to calculate the ResultSet size, particularly in the case of a Hibernate
      * or Spring Framework JDBC application. However, this calculation mechanism may give inaccurate results
-     * for some advanced application cases which navigate through the {@code ResultSet} with methods such as
+     * for some advanced applications that navigate through the {@code ResultSet} using methods such as
      * {@code first()}, {@code last()}, or {@code afterLast()}. */
     private long logLargeResultSet = 500;
     /** Will apply only if {@link #logLargeResultSet} is enabled, and if set to {@code true},
@@ -339,8 +338,7 @@ public abstract class ViburConfig {
      * application to intercept all such logging events, and to accumulate statistics of the count and execution time
      * of the SQL queries, and similar. */
     private ViburLogger viburLogger = new BaseViburLogger();
-    /**
-     * Allows the application to receiving notifications for all exceptions thrown by the operations
+    /** Allows the application to receiving notifications for all exceptions thrown by the operations
      * invoked on a JDBC Connection object or any of its direct or indirect derivative objects, such as Statement,
      * ResultSet, or database Metadata objects. */
     private ExceptionListener exceptionListener = null;
