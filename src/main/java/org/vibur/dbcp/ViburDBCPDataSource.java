@@ -518,6 +518,6 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
 
     @Override
     public boolean isWrapperFor(Class<?> iface) {
-        return iface.isInstance(getExternalDataSource());
+        return isAllowUnwrapping() && iface.isInstance(getExternalDataSource());
     }
 }

@@ -164,6 +164,12 @@ public abstract class ViburConfig {
      * shutdown execution path. */
     private boolean allowConnectionAfterTermination = false;
 
+    /** Controls whether the pool's {@code DataSource} and the created from it JDBC objects ({@code Connection},
+     * {@code Statement}, etc) support unwrapping/exposing of the underlying (proxied) JDBC objects. If disabled,
+     * the call to {@link java.sql.Wrapper#isWrapperFor} on any of these objects will always return {@code false}.
+     */
+    private boolean allowUnwrapping = true;
+
 
     private static final AtomicInteger idGenerator = new AtomicInteger(1);
     private final String defaultName = "p" + Integer.toString(idGenerator.getAndIncrement());
@@ -530,17 +536,30 @@ public abstract class ViburConfig {
         this.allowConnectionAfterTermination = allowConnectionAfterTermination;
     }
 
+    public boolean isAllowUnwrapping() {
+        return allowUnwrapping;
+    }
+
+    public void setAllowUnwrapping(boolean allowUnwrapping) {
+        this.allowUnwrapping = allowUnwrapping;
+    }
+
     public String getName() {
         return name;
     }
 
+    /**
+     * NOTE: the pool name can be set only once; pool renaming is not supported.
+     *
+     * @param name the pool name to use
+     */
     public void setName(String name) {
         if (name == null || (name = name.trim()).length() == 0) {
             logger.error("Invalid pool name {}", name);
             return;
         }
         if (!defaultName.equals(this.name) || defaultName.equals(name)) {
-            logger.error("Pool name already set or duplicated, existing name = {}, incoming name = {}", this.name, name);
+            logger.error("Pool name is already set or duplicated, existing name = {}, incoming name = {}", this.name, name);
             return;
         }
         this.name = name;

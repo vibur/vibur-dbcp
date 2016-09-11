@@ -164,6 +164,6 @@ abstract class AbstractInvocationHandler<T> implements InvocationHandler, Target
     }
 
     private boolean isWrapperFor(Class<?> iface) {
-        return iface.isInstance(target);
+        return config.isAllowUnwrapping() && iface.isInstance(target);
     }
 }

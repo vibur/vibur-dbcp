@@ -136,7 +136,7 @@ public class ConnectionFactory implements ViburObjectFactory {
 
     @Override
     public boolean readyToRestore(ConnHolder conn) {
-        clearTracking(conn); // don't keep the objects references
+        clearTracking(conn); // don't keep the Thread and Throwable objects references
 
         Connection rawConnection = conn.value();
         try {
@@ -165,12 +165,11 @@ public class ConnectionFactory implements ViburObjectFactory {
         return conn;
     }
 
-    private ConnHolder clearTracking(ConnHolder conn) {
+    private void clearTracking(ConnHolder conn) {
         if (config.isPoolEnableConnectionTracking()) {
             conn.setThread(null);
             conn.setLocation(null);
         }
-        return conn;
     }
 
     @Override

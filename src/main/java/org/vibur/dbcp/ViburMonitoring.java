@@ -164,6 +164,11 @@ public final class ViburMonitoring implements ViburMonitoringMBean {
     }
 
     @Override
+    public boolean isAllowUnwrapping() {
+        return config.isAllowUnwrapping();
+    }
+
+    @Override
     public long getConnectionTimeoutInMs() {
         return config.getConnectionTimeoutInMs();
     }

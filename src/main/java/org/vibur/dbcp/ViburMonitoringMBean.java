@@ -71,6 +71,8 @@ public interface ViburMonitoringMBean {
 
     boolean isAllowConnectionAfterTermination();
 
+    boolean isAllowUnwrapping();
+
 
     //////////// JDBC Connection acquiring timeout and retries, and Driver/DataSource login timeout ////////////
 
