@@ -6,10 +6,10 @@ Version 10.0 (15/09/2016) - RECOMMENDED
 * Added allowUnwrapping configuration option - controls the behaviour of the unwrap() method on all JDBC objects.
 * Added includeQueryParameters configuration option - enables or disables the inclusion of the SQL query parameters
   in the generated logs.
-* Added logTakenConnectionsOnTimeout configuration option - allows in case of Connections exhaustion to log all
-  currently taken Connections, optionally including the full stacktrace for each taken Connection.
-* Added invocationHook configuration option - a programming hook that allows interception of all method calls
-  on all proxied JDBC interfaces.
+* Added logTakenConnectionsOnTimeout configuration option - allows in case of Connections exhaustion the application
+  to log all currently taken Connections with optionally including the full stacktrace for each taken Connection.
+* Added invocationHook configuration option - a programming hook that allows the application to intercept all method
+  calls on all proxied JDBC interfaces.
 * Made the PoolService, ConnectionFactory, and PoolReducer optionally configurable/injectable in ViburConfig.
 * Various other small fixes and performance improvements.
 
