@@ -1,11 +1,25 @@
-Version 10.0 (31/07/2016) - RECOMMENDED
+Version 10.0 (15/09/2016) - RECOMMENDED
 =======================================
+* Added driver and driverProperties configuration options to ViburConfig. These options allow for direct
+  configuration/injection of the used by the application JDBC Driver and subsequently allow to bypass calling
+  the DriverManager.
+* Added allowUnwrapping configuration option - controls the behaviour of the unwrap() method on all JDBC objects.
+* Added includeQueryParameters configuration option - enables or disables the inclusion of the SQL query parameters
+  in the generated logs.
+* Added logTakenConnectionsOnTimeout configuration option - allows in case of Connections exhaustion to log all
+  currently taken Connections, optionally including the full stacktrace for each taken Connection.
+* Added invocationHook configuration option - a programming hook that allows interception of all method calls
+  on all proxied JDBC interfaces.
+* Made the PoolService, ConnectionFactory, and PoolReducer optionally configurable/injectable in ViburConfig.
+* Various other small fixes and performance improvements.
+
+Version 10.0 (31/07/2016)
+=========================
 * Added getNonPooledConnection() and severConnection() methods in the ViburDataSource interface. These methods
   are an extension to the standard DataSource interface methods and allow for creation of a non-pooled/raw JDBC
   Connection on demand or for severing of a pooled or non-pooled Connection.
-* Added allowConnectionAfterTermination configuration option to the ViburConfig class. This option allows the
-  application in the circumstances when this is needed, to obtain a non-pooled connection from the pool after
-  the pool has been terminated.
+* Added allowConnectionAfterTermination configuration option to ViburConfig. This option allows the
+  application to obtain a non-pooled Connection from the pool after the pool termination.
 * Various refactoring, importantly renamed some classes in the org.vibur.dbcp package to remove the middle DBCP
   name part. Have also renamed DataSourceLifecycle to ViburDataSource.
 * Implemented close()/isClosed() methods in the StatementCache class.
@@ -14,7 +28,7 @@ Version 10.0 (31/07/2016) - RECOMMENDED
 Version 9.0 (02/05/2016)
 ========================
 * This version of Vibur DBCP depends on version 9.0 of Vibur Object Pool, which contains a fix for issue #2
-  (close the underlying physical connection when closing a proxy connection after pool termination), and a new
+  (close the underlying physical Connection when closing a proxy Connection after pool termination), and a new
   configuration option that allows to choose the underlying data structure used by the pool to be either
   FIFO (the old default) or LIFO (the new default).
 * Changed the default value of the connectionIdleLimitInSeconds configuration option from 15 to 5 seconds.
@@ -91,7 +105,7 @@ Version 3.0 (03/06/2015)
 ========================
 * Implemented logLargeResultSet config option. This option allows SQL queries that have retrieved larger
   than a given limit ResultSet to be logged, including their concrete parameters, and optionally with
-  the full stack trace of their execution. This option accompanies the logQueryExecutionLongerThanMs option,
+  the full stacktrace of their execution. This option accompanies the logQueryExecutionLongerThanMs option,
   that logs SQL queries which execution has taken longer than a given time limit, and the
   logConnectionLongerThanMs option, that logs calls to the getConnection() method which have taken longer
   than a specified time.
@@ -139,8 +153,8 @@ Version 1.1.0 (02/06/2014)
 
 Version 1.0.0 (02/02/2014)
 ==========================
-* Implemented a pool drain (destroying all connections) after a critical SQL server error.
-* Allowed for creation of the initial connections in the pool from an existing/external DataSource.
+* Implemented a pool drain (destroying all Connections) after a critical SQL server error.
+* Allowed for creation of the initial Connections in the pool from an existing/external DataSource.
 * Made poolReducer optional - config value of 0 disables it.
 * driverClassName config property was removed as it is not required when using Java 1.6+.
 * Implemented Hibernate4 integration (as a separate project).
@@ -174,7 +188,7 @@ Version 0.8.0 (28/09/2013)
 Version 0.7.2 (14/09/2013)
 ==========================
 * JMX implementation
-* Validation of connection on take only if it has stayed idle in the pool for at least
+* Validation of Connection on take only if it has stayed idle in the pool for at least
   connectionIdleLimitInSeconds time.
 * Documentation update.
 * Adopted changes from vibur-object-pool 0.8.8 version, particularly the PoolReducer changes.
