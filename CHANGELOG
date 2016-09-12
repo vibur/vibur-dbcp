@@ -1,4 +1,4 @@
-Version 10.0 (15/09/2016) - RECOMMENDED
+Version 11.0 (15/09/2016) - RECOMMENDED
 =======================================
 * Added driver and driverProperties configuration options to ViburConfig. These options allow for direct
   configuration/injection of the used by the application JDBC Driver and subsequently allow to bypass calling
