@@ -40,11 +40,11 @@ class ChildObjectInvocationHandler<P, T> extends AbstractInvocationHandler<T> {
     }
 
     @Override
-    Object doInvoke(T proxy, Method method, Object[] args) throws Throwable {
+    Object restrictedInvocations(T proxy, Method method, Object[] args) throws Throwable {
         if (method.getName() == getParentMethod)
             return parentProxy;
 
-        return super.doInvoke(proxy, method, args);
+        return super.restrictedInvocations(proxy, method, args);
     }
 
     P getParentProxy() {

@@ -49,7 +49,7 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
     }
 
     @Override
-    Object doInvoke(Connection proxy, Method method, Object[] args) throws Throwable {
+    Object unrestrictedInvocations(Connection proxy, Method method, Object[] args) throws Throwable {
         String methodName = method.getName();
 
         if (methodName == "close")
@@ -61,7 +61,12 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
         if (methodName == "abort")
             return processAbort(method, args);
 
-        databaseAccessDoorway(proxy, method, args);
+        return super.unrestrictedInvocations(proxy, method, args);
+    }
+
+    @Override
+    Object restrictedInvocations(Connection proxy, Method method, Object[] args) throws Throwable {
+        String methodName = method.getName();
 
         // Methods which results have to be proxied so that when getConnection() is called
         // on their results the return value to be the current JDBC Connection proxy.
@@ -82,7 +87,7 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
             return newProxyDatabaseMetaData(rawDatabaseMetaData, proxy, config, getExceptionCollector());
         }
 
-        return super.doInvoke(proxy, method, args);
+        return super.restrictedInvocations(proxy, method, args);
     }
 
     /**

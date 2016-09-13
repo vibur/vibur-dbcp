@@ -41,6 +41,8 @@ abstract class AbstractInvocationHandler<T> implements InvocationHandler, Target
 
     private static final Logger logger = LoggerFactory.getLogger(AbstractInvocationHandler.class);
 
+    private static final Object NO_RESULT = new Object();
+
     /** The real (raw) object that we are dynamically proxy-ing.
      *  For example, the underlying JDBC Connection, the underlying JDBC Statement, etc. */
     private final T target;
@@ -62,27 +64,21 @@ abstract class AbstractInvocationHandler<T> implements InvocationHandler, Target
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public final Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+    public final Object invoke(Object objProxy, Method method, Object[] args) throws Throwable {
         if (logger.isTraceEnabled())
             logger.trace("Calling {} with args {} on {}", method, args, target);
 
-        String methodName = method.getName();
+        @SuppressWarnings("unchecked")
+        T proxy = (T) objProxy;
 
-        if (methodName == "equals") // comparing with == as the Method names are interned Strings
-            return proxy == args[0];
-        if (methodName == "hashCode")
-            return System.identityHashCode(proxy);
-        if (methodName == "toString")
-            return "Proxy for: " + target;
+        Object unrestrictedResult;
+        if ((unrestrictedResult = unrestrictedInvocations(proxy, method, args)) != NO_RESULT)
+            return unrestrictedResult;
 
-        if (methodName == "unwrap")
-            return unwrap((Class<T>) args[0]);
-        if (methodName == "isWrapperFor")
-            return isWrapperFor((Class<?>) args[0]);
+        databaseAccessDoorway(proxy, method, args);
 
         try {
-            return doInvoke((T) proxy, method, args);
+            return restrictedInvocations(proxy, method, args);
         } catch (ViburDBCPException e) {
             logger.error("Pool {}, the invocation of {} with args {} on {} threw:",
                     getPoolName(config), method, Arrays.toString(args), target, e);
@@ -94,9 +90,10 @@ abstract class AbstractInvocationHandler<T> implements InvocationHandler, Target
     }
 
     /**
-     * By default, forwards the call to the original method of the proxied object. This method will be overridden
-     * in the {@code AbstractInvocationHandler} subclasses, and will be the place to implement the specific to these
-     * subclasses logic for methods invocation handling.
+     * Handles all unrestricted method invocations that we can process before passing through the
+     * {@link #databaseAccessDoorway}. This method will be overridden in the {@code AbstractInvocationHandler}
+     * subclasses, and will be the place to implement the specific to these subclasses logic for unrestricted methods
+     * invocation handling.
      *
      * @param proxy see {@link java.lang.reflect.InvocationHandler#invoke}
      * @param method as above
@@ -104,7 +101,47 @@ abstract class AbstractInvocationHandler<T> implements InvocationHandler, Target
      * @return as above
      * @throws Throwable as above
      */
-    Object doInvoke(T proxy, Method method, Object[] args) throws Throwable {
+    Object unrestrictedInvocations(T proxy, Method method, Object[] args) throws Throwable {
+        String methodName = method.getName();
+
+        if (methodName == "equals") // comparing with == as the Method names are interned Strings
+            return proxy == args[0];
+        if (methodName == "hashCode")
+            return System.identityHashCode(proxy);
+        if (methodName == "toString")
+            return "Proxy for: " + target;
+
+        if (methodName == "unwrap") {
+            @SuppressWarnings("unchecked")
+            Class<T> iface = (Class<T>) args[0];
+            return unwrap(iface);
+        }
+        if (methodName == "isWrapperFor")
+            return isWrapperFor((Class<?>) args[0]);
+
+        return NO_RESULT;
+    }
+
+    private void databaseAccessDoorway(T proxy, Method method, Object[] args) throws SQLException {
+        if (isClosed())
+            throw new SQLException(target.getClass().getName() + " is closed.", SQLSTATE_OBJECT_CLOSED_ERROR);
+        if (invocationHook != null)
+            invocationHook.invoke(proxy, method, args);
+    }
+
+    /**
+     * Handles all restricted method invocations after we have passed through the {@link #databaseAccessDoorway}.
+     * By default, forwards the call to the original method of the proxied object. This method will be overridden
+     * in the {@code AbstractInvocationHandler} subclasses, and will be the place to implement the specific to these
+     * subclasses logic for restricted methods invocation handling.
+     *
+     * @param proxy see {@link java.lang.reflect.InvocationHandler#invoke}
+     * @param method as above
+     * @param args as above
+     * @return as above
+     * @throws Throwable as above
+     */
+    Object restrictedInvocations(T proxy, Method method, Object[] args) throws Throwable {
         return targetInvoke(method, args);
     }
 
@@ -140,13 +177,6 @@ abstract class AbstractInvocationHandler<T> implements InvocationHandler, Target
 
     boolean isClosed() {
         return closed.get();
-    }
-
-    void databaseAccessDoorway(T proxy, Method method, Object[] args) throws SQLException {
-        if (isClosed())
-            throw new SQLException(target.getClass().getName() + " is closed.", SQLSTATE_OBJECT_CLOSED_ERROR);
-        if (invocationHook != null)
-            invocationHook.invoke(proxy, method, args);
     }
 
     ExceptionCollector getExceptionCollector() {
