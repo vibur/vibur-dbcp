@@ -110,6 +110,7 @@ abstract class AbstractInvocationHandler<T> implements InvocationHandler, Target
             return System.identityHashCode(proxy);
         if (methodName == "toString")
             return "Vibur proxy for: " + target;
+        // getClass(), notify(), notifyAll(), and wait() method calls are not intercepted by the dynamic proxies
 
         if (methodName == "unwrap") {
             @SuppressWarnings("unchecked")
