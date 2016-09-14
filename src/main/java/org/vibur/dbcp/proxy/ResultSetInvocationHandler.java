@@ -50,7 +50,7 @@ class ResultSetInvocationHandler extends ChildObjectInvocationHandler<Statement,
     }
 
     @Override
-    Object unrestrictedInvocations(ResultSet proxy, Method method, Object[] args) throws Throwable {
+    Object unrestrictedInvoke(ResultSet proxy, Method method, Object[] args) throws Throwable {
         String methodName = method.getName();
 
         if (methodName == "close")
@@ -58,17 +58,17 @@ class ResultSetInvocationHandler extends ChildObjectInvocationHandler<Statement,
         if (methodName == "isClosed")
             return isClosed();
 
-        return super.unrestrictedInvocations(proxy, method, args);
+        return super.unrestrictedInvoke(proxy, method, args);
     }
 
     @Override
-    Object restrictedInvocations(ResultSet proxy, Method method, Object[] args) throws Throwable {
+    Object restrictedInvoke(ResultSet proxy, Method method, Object[] args) throws Throwable {
         String methodName = method.getName();
 
         if (methodName == "next")
             return processNext(method, args);
 
-        return super.restrictedInvocations(proxy, method, args);
+        return super.restrictedInvoke(proxy, method, args);
     }
 
     private Object processNext(Method method, Object[] args) throws Throwable {

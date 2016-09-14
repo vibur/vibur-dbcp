@@ -281,7 +281,7 @@ public abstract class ViburConfig {
     /** Enables or disables inclusion of the concrete SQL query parameters for {@link #logStackTraceForLongConnection}
      * and {@link #logLargeResultSet}. Disabling the parameters inclusion can be useful if there are particular
      * compliance requirements or if the parameters are already included in the logged messages as part of the
-     * {@code toString()} conversion of the {@code PreparedStatements}; the last is a JDBC driver specific feature.
+     * {@code toString()} implementation of the {@code PreparedStatements}; the last is a JDBC driver specific feature.
      */
     private boolean includeQueryParameters = true;
 

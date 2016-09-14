@@ -35,7 +35,7 @@ import static org.vibur.dbcp.util.ViburUtils.getPoolName;
 
 /**
  * @author Simeon Malchev
- * @param <T> the type of the object that we are dynamically proxy-ing
+ * @param <T> the type of the object that we are dynamically proxying
 */
 abstract class AbstractInvocationHandler<T> implements InvocationHandler, TargetInvoker {
 
@@ -43,7 +43,7 @@ abstract class AbstractInvocationHandler<T> implements InvocationHandler, Target
 
     private static final Object NO_RESULT = new Object();
 
-    /** The real (raw) object that we are dynamically proxy-ing.
+    /** The real (raw) object that we are dynamically proxying.
      *  For example, the underlying JDBC Connection, the underlying JDBC Statement, etc. */
     private final T target;
 
@@ -66,19 +66,18 @@ abstract class AbstractInvocationHandler<T> implements InvocationHandler, Target
     @Override
     public final Object invoke(Object objProxy, Method method, Object[] args) throws Throwable {
         if (logger.isTraceEnabled())
-            logger.trace("Calling {} with args {} on {}", method, args, target);
-
+            logger.trace("Calling {} with args {} on {}", method, Arrays.toString(args), target);
         @SuppressWarnings("unchecked")
         T proxy = (T) objProxy;
 
-        Object unrestrictedResult;
-        if ((unrestrictedResult = unrestrictedInvocations(proxy, method, args)) != NO_RESULT)
+        Object unrestrictedResult = unrestrictedInvoke(proxy, method, args); // (1)
+        if (unrestrictedResult != NO_RESULT)
             return unrestrictedResult;
 
-        databaseAccessDoorway(proxy, method, args);
+        restrictedAccessDoorway(proxy, method, args); // (2)
 
         try {
-            return restrictedInvocations(proxy, method, args);
+            return restrictedInvoke(proxy, method, args); // (3)
         } catch (ViburDBCPException e) {
             logger.error("Pool {}, the invocation of {} with args {} on {} threw:",
                     getPoolName(config), method, Arrays.toString(args), target, e);
@@ -91,9 +90,10 @@ abstract class AbstractInvocationHandler<T> implements InvocationHandler, Target
 
     /**
      * Handles all unrestricted method invocations that we can process before passing through the
-     * {@link #databaseAccessDoorway}. This method will be overridden in the {@code AbstractInvocationHandler}
-     * subclasses, and will be the place to implement the specific to these subclasses logic for unrestricted methods
-     * invocation handling.
+     * {@link #restrictedAccessDoorway}. This method will be overridden in the {@code AbstractInvocationHandler}
+     * subclasses, and will be the place to implement the specific to these subclasses logic for unrestricted method
+     * invocations handling. When the invoked {@code method} is not an unrestricted method the default implementation
+     * returns {@link #NO_RESULT} to indicate this.
      *
      * @param proxy see {@link java.lang.reflect.InvocationHandler#invoke}
      * @param method as above
@@ -101,7 +101,7 @@ abstract class AbstractInvocationHandler<T> implements InvocationHandler, Target
      * @return as above
      * @throws Throwable as above
      */
-    Object unrestrictedInvocations(T proxy, Method method, Object[] args) throws Throwable {
+    Object unrestrictedInvoke(T proxy, Method method, Object[] args) throws Throwable {
         String methodName = method.getName();
 
         if (methodName == "equals") // comparing with == as the Method names are interned Strings
@@ -122,7 +122,7 @@ abstract class AbstractInvocationHandler<T> implements InvocationHandler, Target
         return NO_RESULT;
     }
 
-    private void databaseAccessDoorway(T proxy, Method method, Object[] args) throws SQLException {
+    private void restrictedAccessDoorway(T proxy, Method method, Object[] args) throws SQLException {
         if (isClosed())
             throw new SQLException(target.getClass().getName() + " is closed.", SQLSTATE_OBJECT_CLOSED_ERROR);
         if (invocationHook != null)
@@ -130,10 +130,11 @@ abstract class AbstractInvocationHandler<T> implements InvocationHandler, Target
     }
 
     /**
-     * Handles all restricted method invocations after we have passed through the {@link #databaseAccessDoorway}.
-     * By default, forwards the call to the original method of the proxied object. This method will be overridden
-     * in the {@code AbstractInvocationHandler} subclasses, and will be the place to implement the specific to these
-     * subclasses logic for restricted methods invocation handling.
+     * Handles all restricted method invocations that occur after (and if) we have passed through the
+     * {@link #restrictedAccessDoorway}. This method will be overridden in the {@code AbstractInvocationHandler}
+     * subclasses, and will be the place to implement the specific to these subclasses logic for restricted method
+     * invocations handling. The default implementation simply forwards the call to the original method of the
+     * proxied object.
      *
      * @param proxy see {@link java.lang.reflect.InvocationHandler#invoke}
      * @param method as above
@@ -141,7 +142,7 @@ abstract class AbstractInvocationHandler<T> implements InvocationHandler, Target
      * @return as above
      * @throws Throwable as above
      */
-    Object restrictedInvocations(T proxy, Method method, Object[] args) throws Throwable {
+    Object restrictedInvoke(T proxy, Method method, Object[] args) throws Throwable {
         return targetInvoke(method, args);
     }
 

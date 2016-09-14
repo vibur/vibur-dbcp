@@ -62,7 +62,7 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
     }
 
     @Override
-    Object unrestrictedInvocations(Statement proxy, Method method, Object[] args) throws Throwable {
+    Object unrestrictedInvoke(Statement proxy, Method method, Object[] args) throws Throwable {
         String methodName = method.getName();
 
         if (methodName == "close")
@@ -70,11 +70,11 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
         if (methodName == "isClosed")
             return isClosed();
 
-        return super.unrestrictedInvocations(proxy, method, args);
+        return super.unrestrictedInvoke(proxy, method, args);
     }
 
     @Override
-    Object restrictedInvocations(Statement proxy, Method method, Object[] args) throws Throwable {
+    Object restrictedInvoke(Statement proxy, Method method, Object[] args) throws Throwable {
         String methodName = method.getName();
 
         if (methodName.startsWith("set")) // this intercepts all "set..." JDBC Prepared/Callable Statement methods
@@ -90,7 +90,7 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
         if (methodName == "cancel")
             return processCancel(method, args);
 
-        return super.restrictedInvocations(proxy, method, args);
+        return super.restrictedInvoke(proxy, method, args);
     }
 
     @Override

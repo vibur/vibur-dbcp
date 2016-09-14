@@ -23,7 +23,7 @@ import java.lang.reflect.Method;
 /**
  * @author Simeon Malchev
  * @param <P> the type of the parent object from which the {@code T} object was derived
- * @param <T> the type of the object that we are dynamically proxy-ing
+ * @param <T> the type of the object that we are dynamically proxying
  */
 class ChildObjectInvocationHandler<P, T> extends AbstractInvocationHandler<T> {
 
@@ -40,11 +40,11 @@ class ChildObjectInvocationHandler<P, T> extends AbstractInvocationHandler<T> {
     }
 
     @Override
-    Object restrictedInvocations(T proxy, Method method, Object[] args) throws Throwable {
+    Object restrictedInvoke(T proxy, Method method, Object[] args) throws Throwable {
         if (method.getName() == getParentMethod)
             return parentProxy;
 
-        return super.restrictedInvocations(proxy, method, args);
+        return super.restrictedInvoke(proxy, method, args);
     }
 
     P getParentProxy() {
