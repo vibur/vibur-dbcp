@@ -334,8 +334,10 @@ public abstract class ViburConfig {
     private ConnectionHook closeConnectionHook = null;
 
 
-    /** A programming {@linkplain InvocationHook#invoke hook} intercepting all method calls on all proxied
-     * JDBC interfaces. Its execution should take as short time as possible. */
+    /** A programming {@linkplain InvocationHook#invoke hook} intercepting (almost) all method calls on all proxied
+     * JDBC interfaces. Methods inherited from the {@link Object} class, methods related to the "closed" state of
+     * the JDBC objects (e.g., close(), isClosed()), as well as methods from the {@link java.sql.Wrapper} interface
+     * are not intercepted. The hook execution should take as short time as possible. */
     private InvocationHook invocationHook = null;
 
 

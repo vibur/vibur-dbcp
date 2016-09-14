@@ -74,7 +74,7 @@ abstract class AbstractInvocationHandler<T> implements InvocationHandler, Target
         if (unrestrictedResult != NO_RESULT)
             return unrestrictedResult;
 
-        restrictedAccessDoorway(proxy, method, args); // (2)
+        restrictedAccessEntry(proxy, method, args); // (2)
 
         try {
             return restrictedInvoke(proxy, method, args); // (3)
@@ -90,7 +90,7 @@ abstract class AbstractInvocationHandler<T> implements InvocationHandler, Target
 
     /**
      * Handles all unrestricted method invocations that we can process before passing through the
-     * {@link #restrictedAccessDoorway}. This method will be overridden in the {@code AbstractInvocationHandler}
+     * {@link #restrictedAccessEntry}. This method will be overridden in the {@code AbstractInvocationHandler}
      * subclasses, and will be the place to implement the specific to these subclasses logic for unrestricted method
      * invocations handling. When the invoked {@code method} is not an unrestricted method the default implementation
      * returns {@link #NO_RESULT} to indicate this.
@@ -109,7 +109,7 @@ abstract class AbstractInvocationHandler<T> implements InvocationHandler, Target
         if (methodName == "hashCode")
             return System.identityHashCode(proxy);
         if (methodName == "toString")
-            return "Proxy for: " + target;
+            return "Vibur proxy for: " + target;
 
         if (methodName == "unwrap") {
             @SuppressWarnings("unchecked")
@@ -122,7 +122,7 @@ abstract class AbstractInvocationHandler<T> implements InvocationHandler, Target
         return NO_RESULT;
     }
 
-    private void restrictedAccessDoorway(T proxy, Method method, Object[] args) throws SQLException {
+    private void restrictedAccessEntry(T proxy, Method method, Object[] args) throws SQLException {
         if (isClosed())
             throw new SQLException(target.getClass().getName() + " is closed.", SQLSTATE_OBJECT_CLOSED_ERROR);
         if (invocationHook != null)
@@ -131,7 +131,7 @@ abstract class AbstractInvocationHandler<T> implements InvocationHandler, Target
 
     /**
      * Handles all restricted method invocations that occur after (and if) we have passed through the
-     * {@link #restrictedAccessDoorway}. This method will be overridden in the {@code AbstractInvocationHandler}
+     * {@link #restrictedAccessEntry}. This method will be overridden in the {@code AbstractInvocationHandler}
      * subclasses, and will be the place to implement the specific to these subclasses logic for restricted method
      * invocations handling. The default implementation simply forwards the call to the original method of the
      * proxied object.
