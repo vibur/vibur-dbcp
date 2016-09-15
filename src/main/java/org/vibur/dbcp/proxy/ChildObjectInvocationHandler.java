@@ -22,17 +22,17 @@ import java.lang.reflect.Method;
 
 /**
  * @author Simeon Malchev
- * @param <P> the type of the parent object from which the {@code T} object was derived
- * @param <T> the type of the object that we are dynamically proxying
+ * @param <P> the type of the parent object from which the child {@code T} object was derived
+ * @param <T> the type of the child object that we are dynamically proxying
  */
 class ChildObjectInvocationHandler<P, T> extends AbstractInvocationHandler<T> {
 
     private final P parentProxy;
     private final String getParentMethod;
 
-    ChildObjectInvocationHandler(T connectionChild, P parentProxy, String getParentMethod,
+    ChildObjectInvocationHandler(T targetChild, P parentProxy, String getParentMethod,
                                  ViburConfig config, ExceptionCollector exceptionCollector) {
-        super(connectionChild, config, exceptionCollector);
+        super(targetChild, config, exceptionCollector);
         assert parentProxy != null;
         assert getParentMethod != null;
         this.parentProxy = parentProxy;
@@ -47,7 +47,7 @@ class ChildObjectInvocationHandler<P, T> extends AbstractInvocationHandler<T> {
         return super.restrictedInvoke(proxy, method, args);
     }
 
-    P getParentProxy() {
+    final P getParentProxy() {
         return parentProxy;
     }
 }

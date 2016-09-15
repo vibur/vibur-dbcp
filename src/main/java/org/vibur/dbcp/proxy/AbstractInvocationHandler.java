@@ -173,7 +173,7 @@ abstract class AbstractInvocationHandler<T> implements InvocationHandler, Target
      * Logically closes this invocation handler. Returns true only once when the handler state transitions
      * from open to close.
      */
-    boolean close() {
+    final boolean close() {
         return !closed.getAndSet(true);
     }
 
@@ -181,11 +181,11 @@ abstract class AbstractInvocationHandler<T> implements InvocationHandler, Target
         return closed.get();
     }
 
-    ExceptionCollector getExceptionCollector() {
+    final ExceptionCollector getExceptionCollector() {
         return exceptionCollector;
     }
 
-    T getTarget() {
+    final T getTarget() {
         return target;
     }
 
