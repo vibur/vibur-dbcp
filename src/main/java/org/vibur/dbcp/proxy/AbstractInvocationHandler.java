@@ -177,7 +177,7 @@ abstract class AbstractInvocationHandler<T> implements InvocationHandler, Target
         return !closed.getAndSet(true);
     }
 
-    boolean isClosed() {
+    final boolean isClosed() {
         return closed.get();
     }
 

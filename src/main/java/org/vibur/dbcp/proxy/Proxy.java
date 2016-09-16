@@ -63,8 +63,8 @@ public final class Proxy {
 
     static DatabaseMetaData newProxyDatabaseMetaData(DatabaseMetaData rawMetaData, Connection connProxy,
                                                      ViburConfig config, ExceptionCollector exceptionCollector) {
-        InvocationHandler handler = new DatabaseMetaDataInvocationHandler(
-                rawMetaData, connProxy, config, exceptionCollector);
+        InvocationHandler handler = new ChildObjectInvocationHandler<>(
+                rawMetaData, connProxy, "getConnection", config, exceptionCollector);
         return (DatabaseMetaData) newProxy(metadataCtor, handler);
     }
 
