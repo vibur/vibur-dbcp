@@ -11,7 +11,8 @@ Version 11.0 (15/09/2016) - RECOMMENDED
 * Added invocationHook configuration option - a programming hook that allows the application to intercept all method
   calls on all proxied JDBC interfaces.
 * Made the PoolService, ConnectionFactory, and PoolReducer optionally configurable/injectable in ViburConfig.
-* Various other small fixes and performance improvements.
+* Various other small fixes and performance improvements. Particularly, have refactored the invocation handlers
+  classes hierarchy.
 
 Version 10.0 (31/07/2016)
 =========================
@@ -91,7 +92,7 @@ Version 5.0 (24/10/2015)
   See http://www.vibur.org/#hibernate-integration-artifacts for more details.
 * Implemented support for different usernames/passwords when calling DataSource.getConnection(username, password).
   See https://github.com/vibur/vibur-dbcp/issues/2#issuecomment-150200148 for more details.
-* Some refactoring and javadoc updates. In particular, have extracted and encapsulated all JDBC Statement caching
+* Some refactoring and javadoc updates. Particularly, have extracted and encapsulated all JDBC Statement caching
   logic in the StatementCache class.
 
 Version 4.0 (08/08/2015)
