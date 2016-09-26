@@ -18,8 +18,8 @@ package org.vibur.dbcp;
 
 /**
  * The base exception thrown by Vibur DBCP when an underlying error has occurred. This error could be a configuration
- * error, an initialization error, or an SQL error. Note that this is a RuntimeException however all methods which
- * throw this exception will explicitly declare it.
+ * error, an initialization error, or an SQL error. Note that this is a {@code RuntimeException}; however, all methods
+ * that throw this exception will explicitly declare it.
  *
  * @author Simeon Malchev
  */

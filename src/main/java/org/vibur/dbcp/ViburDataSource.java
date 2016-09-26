@@ -62,7 +62,7 @@ public interface ViburDataSource extends DataSource, AutoCloseable {
      *      if a configuration error is found during start;
      *      if cannot start this DataSource successfully for any other reason
      */
-    void start();
+    void start() throws ViburDBCPException;
 
     /**
      * Returns this DataSource current state.

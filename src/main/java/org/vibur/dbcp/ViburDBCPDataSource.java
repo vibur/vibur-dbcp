@@ -186,9 +186,9 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
                 else if (type == String.class)
                     set(field, val);
                 else
-                    throw new ViburDBCPException("Unexpected type for configuration property " + key);
+                    throw new ViburDBCPException(format("Unexpected type for configuration property %s/%s", key, val));
             } catch (NumberFormatException | ReflectiveOperationException e) {
-                throw new ViburDBCPException(format("Error setting configuration property %s, value = %s", key, val), e);
+                throw new ViburDBCPException(format("Error setting configuration property %s/%s", key, val), e);
             }
         }
     }
@@ -205,7 +205,8 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
      *      if a configuration error is found during start;
      *      if cannot start this DataSource successfully, that is, if cannot successfully
      *      initialize/configure the underlying SQL system, if cannot create the underlying SQL connections,
-     *      if cannot create the configured pool reducer, or if cannot initialize JMX
+     *      if cannot initialize the configured/needed JDBC Driver, if cannot create the configured pool reducer,
+     *      or if cannot initialize JMX
      */
     @Override
     public void start() throws ViburDBCPException {
