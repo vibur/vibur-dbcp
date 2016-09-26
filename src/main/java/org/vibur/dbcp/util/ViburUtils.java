@@ -60,6 +60,6 @@ public final class ViburUtils {
         if (cause instanceof SQLException)
             throw (SQLException) cause;
         logger.error("Unexpected exception cause", e);
-        throw e; // should not normally happen
+        throw e; // not expected to happen
     }
 }

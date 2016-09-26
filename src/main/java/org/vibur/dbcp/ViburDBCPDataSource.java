@@ -332,7 +332,7 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
         }
     }
 
-    private void initDriverAndProperties() {
+    private void initDriverAndProperties() throws ViburDBCPException {
         if (getDriver() == null) {
             try {
                 if (getDriverClassName() != null)

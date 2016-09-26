@@ -75,17 +75,7 @@ abstract class AbstractInvocationHandler<T> implements InvocationHandler, Target
             return unrestrictedResult;
 
         restrictedAccessEntry(proxy, method, args); // (2)
-
-        try {
-            return restrictedInvoke(proxy, method, args); // (3)
-        } catch (ViburDBCPException e) {
-            logger.error("Pool {}, the invocation of {} with args {} on {} threw:",
-                    getPoolName(config), method, Arrays.toString(args), target, e);
-            Throwable cause = e.getCause();
-            if (cause instanceof SQLException)
-                throw cause; // throw the original SQLException that caused the ViburDBCPException
-            throw e; // not expected to happen
-        }
+        return restrictedInvoke(proxy, method, args); // (3)
     }
 
     /**
@@ -159,7 +149,8 @@ abstract class AbstractInvocationHandler<T> implements InvocationHandler, Target
             exceptionCollector.addException(cause);
             if (cause instanceof SQLException || cause instanceof RuntimeException || cause instanceof Error)
                 throw cause;
-            throw new ViburDBCPException(cause); // not expected to happen
+            logger.error("Unexpected exception cause", e);
+            throw e; // not expected to happen
         }
     }
 
