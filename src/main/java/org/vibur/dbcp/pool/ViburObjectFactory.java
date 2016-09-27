@@ -28,9 +28,17 @@ import org.vibur.objectpool.PoolObjectFactory;
 public interface ViburObjectFactory extends PoolObjectFactory<ConnHolder> {
 
     /**
+     * {@inheritDoc}
+     *
+     * @throws org.vibur.dbcp.ViburDBCPException if cannot create or initialize the raw JDBC Connection
+     */
+    @Override
+    ConnHolder create() throws ViburDBCPException;
+
+    /**
      * Creates a new {@link ConnHolder} object using the given credentials. This object is presumed to be
      * ready (and valid) for immediate use. This method <b>never</b> return {@code null}.
-
+     *
      * @param userName the username to use when connecting to the database
      * @param password the password to use when connecting to the database
      * @throws ViburDBCPException if cannot create or initialize the raw JDBC Connection(s)

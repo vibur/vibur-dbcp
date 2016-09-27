@@ -27,6 +27,7 @@ import org.vibur.objectpool.PoolService;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.SQLTimeoutException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -94,7 +95,7 @@ public class PoolOperations {
         if (config.isLogTakenConnectionsOnTimeout() && logger.isWarnEnabled())
             logger.warn("Pool {}, couldn't obtain SQL connection within {}ms, full list of taken connections begins:\n{}",
                     getPoolName(config), timeout, config.takenConnectionsToString());
-        throw new SQLException(format("Pool %s, couldn't obtain SQL connection within %dms.",
+        throw new SQLTimeoutException(format("Pool %s, couldn't obtain SQL connection within %dms.",
                 getPoolName(config), timeout), SQLSTATE_TIMEOUT_ERROR, (int) timeout);
     }
 

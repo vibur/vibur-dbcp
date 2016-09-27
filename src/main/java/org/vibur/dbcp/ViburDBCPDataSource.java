@@ -403,7 +403,7 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
      * <p>
      * This method will return a <b>raw (non-pooled)</b> JDBC Connection when called with credentials different
      * than the configured default credentials.
-     * */
+     */
     @Override
     public Connection getConnection(String username, String password) throws SQLException {
         if (defaultCredentials(username, password))

@@ -63,11 +63,6 @@ public class ConnectionFactory implements ViburObjectFactory {
         initLoginTimeout(config);
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * @throws org.vibur.dbcp.ViburDBCPException if cannot create or initialize the raw JDBC Connection(s)
-     */
     @Override
     public ConnHolder create() throws ViburDBCPException {
         return create(config.getUsername(), config.getPassword());
