@@ -214,6 +214,9 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
             doStart();
         } catch (IllegalStateException | IllegalArgumentException | NullPointerException e) {
             throw new ViburDBCPException(e);
+        } catch (ViburDBCPException e) {
+            terminate();
+            throw e;
         }
     }
 
