@@ -290,7 +290,7 @@ public abstract class ViburConfig {
      * about all currently taken connections, including the stack traces of the threads that have taken them, plus
      * the threads names and states.
      *
-     * <p> This options implies that the {@link #poolEnableConnectionTracking} option is enabled, and if the last
+     * <p>This options implies that the {@link #poolEnableConnectionTracking} option is enabled, and if the last
      * is not explicitly enabled it will be implicitly enabled as part of the processing of this option.
      *
      * <p><b>Note that</b> this option should be used for troubleshooting purposes only, as it may generate a very
