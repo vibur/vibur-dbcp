@@ -57,7 +57,7 @@ public final class ViburMonitoring implements ViburMonitoringMBean {
             if (mbs.isRegistered(objectName))
                 mbs.unregisterMBean(objectName);
             else
-                logger.warn(config.getJmxName() + " is not registered.");
+                logger.debug(config.getJmxName() + " is not registered.");
         } catch (JMException e) {
             logger.warn("Unable to unregister mBean {}", config.getJmxName(), e);
         }
