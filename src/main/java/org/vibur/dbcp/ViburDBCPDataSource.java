@@ -215,8 +215,9 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
         } catch (IllegalStateException e) {
             throw new ViburDBCPException(e);
         } catch (IllegalArgumentException | NullPointerException | ViburDBCPException e) {
+            logger.warn("Cannot start {} due to:", this, e);
             terminate();
-            throw e;
+            throw e instanceof ViburDBCPException ? e : new ViburDBCPException(e);
         }
     }
 
