@@ -34,6 +34,7 @@ import java.io.InputStream;
 import java.io.PrintWriter;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.net.URL;
 import java.net.URLConnection;
@@ -170,7 +171,7 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
             String val = (String) entry.getValue();
             try {
                 if (!fields.contains(key)) {
-                    logger.warn("Unknown configuration property {}", key);
+                    logger.warn("Ignoring unknown configuration property {}", key);
                     continue;
                 }
                 Field field = ViburConfig.class.getDeclaredField(key);
@@ -187,15 +188,17 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
                     set(field, val);
                 else
                     throw new ViburDBCPException(format("Unexpected type for configuration property %s/%s", key, val));
-            } catch (NumberFormatException | ReflectiveOperationException e) {
+            } catch (IllegalArgumentException | ReflectiveOperationException e) {
                 throw new ViburDBCPException(format("Error setting configuration property %s/%s", key, val), e);
             }
         }
     }
 
-    private void set(Field field, Object value) throws IllegalAccessException {
-        field.setAccessible(true);
-        field.set(this, value);
+    private void set(Field field, Object value) throws IllegalArgumentException, ReflectiveOperationException {
+        String filedName = field.getName();
+        String methodSetter = "set" + filedName.substring(0, 1).toUpperCase() + filedName.substring(1);
+        Method setter = ViburConfig.class.getDeclaredMethod(methodSetter, field.getType());
+        setter.invoke(this, value);
     }
 
     /**
