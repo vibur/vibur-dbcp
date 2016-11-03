@@ -844,9 +844,8 @@ public abstract class ViburConfig {
             if (invocationHooks == EMPTY_LIST)
                 invocationHooks = new ArrayList<>();
             invocationHooks.add((Hook.MethodInvocation) hook);
-        }
-
-        throw new ViburDBCPException("Unexpected hook type " + hook);
+        } else
+            throw new ViburDBCPException("Unexpected hook type " + hook);
     }
 
     public String takenConnectionsToString() {
