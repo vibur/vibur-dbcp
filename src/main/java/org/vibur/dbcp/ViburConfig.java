@@ -28,8 +28,8 @@ import org.vibur.dbcp.pool.PoolReducer;
 import org.vibur.dbcp.pool.ViburObjectFactory;
 import org.vibur.dbcp.util.JdbcUtils;
 import org.vibur.objectpool.PoolService;
-import org.vibur.objectpool.util.CLDConcurrentCollection;
 import org.vibur.objectpool.util.ConcurrentCollection;
+import org.vibur.objectpool.util.ConcurrentLinkedDequeCollection;
 import org.vibur.objectpool.util.TakenListener;
 import org.vibur.objectpool.util.ThreadedPoolReducer;
 
@@ -156,7 +156,7 @@ public abstract class ViburConfig {
     private boolean poolEnableConnectionTracking = false;
 
     private PoolService<ConnHolder> pool = null;
-    private ConcurrentCollection<ConnHolder> concurrentCollection = new CLDConcurrentCollection<>();
+    private ConcurrentCollection<ConnHolder> concurrentCollection = new ConcurrentLinkedDequeCollection<>();
     private ViburObjectFactory connectionFactory = null;
     private ThreadedPoolReducer poolReducer = null;
 
