@@ -14,59 +14,60 @@
  * limitations under the License.
  */
 
-package org.vibur.dbcp.event;
+package org.vibur.dbcp.pool;
 
 import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.SQLException;
 
 /**
- * A markup interface for application programming hooks for JDBC Connection tune-up and method invocation interception.
+ * An interface that holds all application programming hook interfaces for JDBC Connection tune-up and method 
+ * invocation interception.
  * 
  * <p>These application hooks serve as extension points to the inner workings of the connection pool and have
  * access to the <b>raw (original)</b> JDBC Connection object, not the proxied such. In order to avoid interference
- * with the way the connection pool manages its underlying connections, the application <b>must not</b> keep or store
+ * with how the connection pool manages its underlying connections, the application <b>must not</b> keep or store
  * in one or another form a reference to the {@code rawConnection} object.
  * 
  * @author Simeon Malchev
  */
 public interface Hook {
 
-    interface InitConnection extends Hook {
+    interface InitConnection {
         /**
          * A programming hook that will be invoked only once when the raw JDBC Connection is first created. 
          * Its execution should take as short time as possible.
          *
          * @param rawConnection the just created raw JDBC connection
          * @param takenNanos the time taken to establish this connection in nanoseconds
-         * @throws SQLException to indicate that an error has occurred
+         * @throws SQLException to indicate that a SQL error has occurred
          */
         void on(Connection rawConnection, long takenNanos) throws SQLException;
     }
 
-    interface GetConnection extends Hook {
+    interface GetConnection {
         /**
          * A programming hook that will be invoked on the raw JDBC Connection as part of the 
          * {@link javax.sql.DataSource#getConnection()} flow. Its execution should take as short time as possible.
          *
          * @param rawConnection the retrieved from the pool raw JDBC connection
-         * @throws SQLException to indicate that an error has occurred
+         * @throws SQLException to indicate that a SQL error has occurred
          */
         void on(Connection rawConnection) throws SQLException;
     }
 
-    interface CloseConnection extends Hook {
+    interface CloseConnection {
         /**
          * A programming hook that will be invoked on the raw JDBC Connection as part of the 
          * {@link Connection#close()} flow. Its execution should take as short time as possible.
          *
          * @param rawConnection the raw JDBC connection that will be returned to the pool
-         * @throws SQLException to indicate that an error has occurred
+         * @throws SQLException to indicate that a SQL error has occurred
          */
         void on(Connection rawConnection) throws SQLException;
     }
 
-    interface DestroyConnection extends Hook {
+    interface DestroyConnection {
         /**
          * A programming hook that will be invoked only once when the raw JDBC Connection is closed/destroyed. 
          * Its execution should take as short time as possible.
@@ -78,7 +79,7 @@ public interface Hook {
     }
 
 
-    interface MethodInvocation extends Hook {
+    interface MethodInvocation {
         /**
          * An application hook that will be invoked when a method on any of the proxied JDBC interfaces is invoked.
          * The execution of this method should take as short time as possible.
@@ -86,7 +87,7 @@ public interface Hook {
          * @param proxy the proxy instance that the method was invoked on
          * @param method the invoked method
          * @param args the method arguments
-         * @throws SQLException to indicate that an error has occurred
+         * @throws SQLException to indicate that a SQL error has occurred
          */
         void on(Object proxy, Method method, Object[] args) throws SQLException;
     }

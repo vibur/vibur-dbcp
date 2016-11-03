@@ -20,10 +20,10 @@ package org.vibur.dbcp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.cache.StatementCache;
-import org.vibur.dbcp.event.BaseViburLogger;
-import org.vibur.dbcp.event.Hook;
-import org.vibur.dbcp.event.ViburLogger;
+import org.vibur.dbcp.logger.BaseViburLogger;
+import org.vibur.dbcp.logger.ViburLogger;
 import org.vibur.dbcp.pool.ConnHolder;
+import org.vibur.dbcp.pool.HooksHolder;
 import org.vibur.dbcp.pool.PoolReducer;
 import org.vibur.dbcp.pool.ViburObjectFactory;
 import org.vibur.dbcp.util.JdbcUtils;
@@ -35,11 +35,13 @@ import org.vibur.objectpool.util.ThreadedPoolReducer;
 
 import javax.sql.DataSource;
 import java.sql.Driver;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.Properties;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static java.util.Collections.EMPTY_LIST;
 import static org.vibur.dbcp.util.ViburUtils.getStackTraceAsString;
 
 /**
@@ -321,33 +323,13 @@ public abstract class ViburConfig {
      * Callable Statement before returning it to the statement cache. */
     private boolean clearSQLWarnings = false;
 
-
-    /** A list of programming {@linkplain Hook.InitConnection#on hooks} that will be invoked only once when
-     * the raw JDBC Connection is first created. Their execution should take as short time as possible. */
-    @SuppressWarnings("unchecked")
-    private List<Hook.InitConnection> initConnectionHooks = EMPTY_LIST;
-    /** A list of programming {@linkplain Hook.GetConnection#on hooks} that will be invoked on the raw JDBC
-     * Connection as part of the {@link DataSource#getConnection()} flow. Their execution should take as short time as
-     * possible. */
-    @SuppressWarnings("unchecked")
-    private List<Hook.GetConnection> connectionHooks = EMPTY_LIST;
-    /** A list of programming {@linkplain Hook.CloseConnection#on hooks} that will be invoked on the raw JDBC
-     * Connection as part of the {@link java.sql.Connection#close()} flow. Their execution should take as short time as
-     * possible. */
-    @SuppressWarnings("unchecked")
-    private List<Hook.CloseConnection> closeConnectionHooks = EMPTY_LIST;
-    /** A list of programming {@linkplain Hook.DestroyConnection#on hooks} that will be invoked only once when
-     * the raw JDBC Connection is closed/destroyed. Their execution should take as short time as possible. */
-    @SuppressWarnings("unchecked")
-    private List<Hook.DestroyConnection> destroyConnectionHooks = EMPTY_LIST;
-
-    /** A list of programming {@linkplain Hook.MethodInvocation#on hooks} intercepting (almost) all method calls on all
-     * proxied JDBC interfaces. Methods inherited from the {@link Object} class, methods related to the "closed" state
-     * of the JDBC objects (e.g., close(), isClosed()), as well as methods from the {@link java.sql.Wrapper} interface
-     * are not intercepted. The hooks execution should take as short time as possible. */
-    @SuppressWarnings("unchecked")
-    private List<Hook.MethodInvocation> invocationHooks = EMPTY_LIST;
-
+    /** These are all programming hooks.
+     *
+     * <p>Note that the underlying data structures used to store the Hook instances <b>are not</b>
+     * thread-safe for modifications; the hooks must be registered only once at pool creation/setup time,
+     * before the pool is started.
+     */
+    private HooksHolder hooks = new HooksHolder();
 
     /** Provides access to the functionality for logging of long lasting getConnection() calls, slow SQL queries,
      * and large ResultSets. Setting this parameter to a sub-class of {@link BaseViburLogger} will allow the
@@ -783,24 +765,8 @@ public abstract class ViburConfig {
         this.clearSQLWarnings = clearSQLWarnings;
     }
 
-    public List<Hook.InitConnection> getInitConnectionHooks() {
-        return initConnectionHooks;
-    }
-
-    public List<Hook.GetConnection> getConnectionHooks() {
-        return connectionHooks;
-    }
-
-    public List<Hook.CloseConnection> getCloseConnectionHooks() {
-        return closeConnectionHooks;
-    }
-
-    public List<Hook.DestroyConnection> getDestroyConnectionHooks() {
-        return destroyConnectionHooks;
-    }
-
-    public List<Hook.MethodInvocation> getInvocationHooks() {
-        return invocationHooks;
+    public HooksHolder getHooks() {
+        return hooks;
     }
 
     public ViburLogger getViburLogger() {
@@ -809,40 +775,6 @@ public abstract class ViburConfig {
 
     public void setViburLogger(ViburLogger viburLogger) {
         this.viburLogger = viburLogger;
-    }
-
-    /**
-     * Registers a programming {@link Hook}. The hook must implement one of the Hook sub-interfaces.
-     *
-     * <p>The underlying data structures used to store the registered Hook instances are <b>not</b> thread-safe
-     * and the hooks must be registered only once at pool creation/setup time.
-     *
-     * @param hook the hook to register
-     * @throws ViburDBCPException if the {@code hook} does not implement any of the Hook sub-interfaces
-     */
-    public void registerHook(Hook hook) throws ViburDBCPException {
-        if (hook instanceof Hook.InitConnection) {
-            if (initConnectionHooks == EMPTY_LIST)
-                initConnectionHooks = new ArrayList<>();
-            initConnectionHooks.add((Hook.InitConnection) hook);
-        } else if (hook instanceof Hook.GetConnection) {
-            if (connectionHooks == EMPTY_LIST)
-                connectionHooks = new ArrayList<>();
-            connectionHooks.add((Hook.GetConnection) hook);
-        } else if (hook instanceof Hook.CloseConnection) {
-            if (closeConnectionHooks == EMPTY_LIST)
-                closeConnectionHooks = new ArrayList<>();
-            closeConnectionHooks.add((Hook.CloseConnection) hook);
-        } else if (hook instanceof Hook.DestroyConnection) {
-            if (destroyConnectionHooks == EMPTY_LIST)
-                destroyConnectionHooks = new ArrayList<>();
-            destroyConnectionHooks.add((Hook.DestroyConnection) hook);
-        } else if (hook instanceof Hook.MethodInvocation) {
-            if (invocationHooks == EMPTY_LIST)
-                invocationHooks = new ArrayList<>();
-            invocationHooks.add((Hook.MethodInvocation) hook);
-        } else
-            throw new ViburDBCPException("Unexpected hook type " + hook);
     }
 
     public String takenConnectionsToString() {
