@@ -20,7 +20,9 @@ package org.vibur.dbcp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.cache.StatementCache;
-import org.vibur.dbcp.event.*;
+import org.vibur.dbcp.event.BaseViburLogger;
+import org.vibur.dbcp.event.Hook;
+import org.vibur.dbcp.event.ViburLogger;
 import org.vibur.dbcp.pool.ConnHolder;
 import org.vibur.dbcp.pool.PoolReducer;
 import org.vibur.dbcp.pool.ViburObjectFactory;
@@ -33,12 +35,7 @@ import org.vibur.objectpool.util.ThreadedPoolReducer;
 
 import javax.sql.DataSource;
 import java.sql.Driver;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicInteger;
 

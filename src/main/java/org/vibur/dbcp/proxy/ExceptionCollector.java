@@ -16,12 +16,10 @@
 
 package org.vibur.dbcp.proxy;
 
-import org.vibur.dbcp.ViburConfig;
-
 import java.sql.SQLTimeoutException;
 import java.sql.SQLTransactionRollbackException;
-import java.util.Collections;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
