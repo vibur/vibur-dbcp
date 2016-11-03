@@ -52,7 +52,7 @@ public interface ViburLogger {
      * @param poolName the pool name
      * @param sqlQuery the executed SQL query
      * @param queryParams the executed SQL query params
-     * @param timeTaken the time by the executed SQL query to complete in milliseconds, also see the comments for
+     * @param timeTaken the time taken by the executed SQL query to complete in milliseconds; also see the comments for
      *                  {@link ViburConfig#logQueryExecutionLongerThanMs}
      * @param stackTrace the stack trace of the method call (or null) via which the executed SQL query was initiated,
      *                   depending on {@link ViburConfig#logStackTraceForLongQueryExecution}

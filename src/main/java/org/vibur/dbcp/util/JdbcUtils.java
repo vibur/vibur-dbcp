@@ -189,7 +189,7 @@ public final class JdbcUtils {
         } catch (SQLException e) {
             logger.debug("Couldn't close {}", rawConnection, e);
         } catch (RuntimeException e) {
-            logger.warn("Unexpected exception thrown by the JDBC driver for {}", rawConnection, e);
+            logger.warn("Ignoring unexpected exception thrown by the JDBC driver for {}", rawConnection, e);
         }
     }
 
@@ -200,7 +200,7 @@ public final class JdbcUtils {
         } catch (SQLException e) {
             logger.debug("Couldn't close {}", rawStatement, e);
         } catch (RuntimeException e) {
-            logger.warn("Unexpected exception thrown by the JDBC driver for {}", rawStatement, e);
+            logger.warn("Ignoring unexpected exception thrown by the JDBC driver for {}", rawStatement, e);
         }
     }
 }
