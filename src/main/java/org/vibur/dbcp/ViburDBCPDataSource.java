@@ -215,10 +215,11 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
     public void start() throws ViburDBCPException {
         try {
             doStart();
+            logger.info("Started {}", this);
         } catch (IllegalStateException e) {
             throw new ViburDBCPException(e);
         } catch (IllegalArgumentException | NullPointerException | ViburDBCPException e) {
-            logger.warn("Cannot start {} due to:", this, e);
+            logger.warn("Unable to start {} due to:", this, e);
             terminate();
             throw e instanceof ViburDBCPException ? e : new ViburDBCPException(e);
         }
@@ -228,7 +229,6 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
         if (!state.compareAndSet(NEW, WORKING))
             throw new IllegalStateException();
 
-        logger.info("Starting {}", this);
         validateConfig();
 
         if (getExternalDataSource() == null)
@@ -260,7 +260,6 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
         if (oldState == TERMINATED || oldState == NEW)
             return;
 
-        logger.info("Terminating {}", this);
         if (getStatementCache() != null)
             getStatementCache().close();
         if (getPoolReducer() != null)
@@ -270,6 +269,8 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
 
         if (isEnableJMX())
             unregisterMBean(this);
+
+        logger.info("Terminated {}", this);
     }
 
     @Override
