@@ -18,10 +18,10 @@ package org.vibur.dbcp.proxy;
 
 import org.vibur.dbcp.ViburConfig;
 
-import java.sql.SQLTransientConnectionException;
-import java.sql.SQLTransientException;
+import java.sql.SQLTimeoutException;
+import java.sql.SQLTransactionRollbackException;
 import java.util.Collections;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -36,13 +36,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  */
 class ExceptionCollector {
 
-    private final ViburConfig config;
-
     private final Queue<Throwable> exceptions = new ConcurrentLinkedQueue<>();
-
-    ExceptionCollector(ViburConfig config) {
-        this.config = config;
-    }
 
     /**
      * This method will be called by Vibur DBCP when an operation invoked on a JDBC Connection object or any of its
@@ -53,10 +47,7 @@ class ExceptionCollector {
      * @param t the exception thrown
      */
     void addException(Throwable t) {
-        if (config.getExceptionListener() != null)
-            config.getExceptionListener().on(t);
-
-        if (!(t instanceof SQLTransientException) || t instanceof SQLTransientConnectionException)
+        if (!(t instanceof SQLTimeoutException) && !(t instanceof SQLTransactionRollbackException))
             exceptions.add(t); // the above SQL transient exceptions are not of interest and are ignored
     }
 
@@ -66,6 +57,6 @@ class ExceptionCollector {
      * determine whether the underlying (raw) JDBC Connection needs to be physically closed or not.
      */
     List<Throwable> getExceptions() {
-        return exceptions.isEmpty() ? Collections.<Throwable>emptyList() : new LinkedList<>(exceptions);
+        return exceptions.isEmpty() ? Collections.<Throwable>emptyList() : new ArrayList<>(exceptions);
     }
 }

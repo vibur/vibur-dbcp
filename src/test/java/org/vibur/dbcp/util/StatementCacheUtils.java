@@ -21,7 +21,7 @@ import org.vibur.dbcp.cache.ClhmStatementCache;
 import org.vibur.dbcp.cache.ConnMethod;
 import org.vibur.dbcp.cache.StatementHolder;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentMap;
 
@@ -35,7 +35,7 @@ public class StatementCacheUtils {
 
     @SuppressWarnings("unchecked")
     public static ConcurrentMap<ConnMethod, StatementHolder> mockStatementCache(ViburDBCPDataSource ds) {
-        final List<ConcurrentMap<ConnMethod, StatementHolder>> holder = new LinkedList<>();
+        final List<ConcurrentMap<ConnMethod, StatementHolder>> holder = new ArrayList<>();
 
         ds.setStatementCache(new ClhmStatementCache(ds.getStatementCacheMaxSize()) {
             @Override

@@ -8,7 +8,7 @@ Version 11.0 (15/09/2016) - RECOMMENDED
   in the generated logs.
 * Added logTakenConnectionsOnTimeout configuration option - allows in case of Connections exhaustion the application
   to log all currently taken Connections with optionally including the full stacktrace for each taken Connection.
-* Added invocationHook configuration option - a programming hook that allows the application to intercept all method
+* Added methodInvocationHooks configuration option - a programming hook that allows the application to intercept all method
   calls on all proxied JDBC interfaces.
 * Made the PoolService, ConnectionFactory, and PoolReducer optionally configurable/injectable in ViburConfig.
 * Various other small fixes and performance improvements. Particularly, have refactored the invocation handlers

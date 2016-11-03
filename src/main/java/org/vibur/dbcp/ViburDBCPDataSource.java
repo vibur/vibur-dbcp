@@ -24,7 +24,7 @@ import org.vibur.dbcp.pool.ViburObjectFactory;
 import org.vibur.dbcp.proxy.ConnectionInvocationHandler;
 import org.vibur.dbcp.util.JdbcUtils;
 import org.vibur.dbcp.util.PoolOperations;
-import org.vibur.objectpool.ConcurrentLinkedPool;
+import org.vibur.objectpool.ConcurrentPool;
 import org.vibur.objectpool.PoolService;
 import org.vibur.objectpool.util.TakenListener;
 import org.vibur.objectpool.util.ThreadedPoolReducer;
@@ -240,10 +240,9 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
             setConnectionFactory(connectionFactory = new ConnectionFactory(this));
         PoolService<ConnHolder> pool = getPool();
         if (pool == null) {
-            pool = new ConcurrentLinkedPool<>(connectionFactory,
+            pool = new ConcurrentPool<>(getConcurrentCollection(), connectionFactory,
                     getPoolInitialSize(), getPoolMaxSize(), isPoolFair(),
-                    isPoolEnableConnectionTracking() ? new TakenListener<ConnHolder>(getPoolInitialSize()) : null,
-                    isPoolFifo());
+                    isPoolEnableConnectionTracking() ? new TakenListener<ConnHolder>(getPoolInitialSize()) : null);
             setPool(pool);
         }
         poolOperations = new PoolOperations(connectionFactory, pool, this);
@@ -430,7 +429,7 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
             return connProxy = poolOperations.getProxyConnection(timeout);
         } finally {
             if (logSlowConn)
-                logGetConnection(timeout, startTime, connProxy);
+                logGetConnection(startTime, connProxy);
         }
     }
 
@@ -484,10 +483,10 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
         return !(getPassword() != null ? !getPassword().equals(password) : password != null);
     }
 
-    private void logGetConnection(long timeout, long startTime, Connection connProxy) {
+    private void logGetConnection(long startTime, Connection connProxy) {
         long timeTaken = System.currentTimeMillis() - startTime;
         if (timeTaken >= getLogConnectionLongerThanMs())
-            getViburLogger().logGetConnection(getPoolName(this), connProxy, timeout, timeTaken,
+            getViburLogger().logGetConnection(getPoolName(this), connProxy, timeTaken,
                     isLogStackTraceForLongConnection() ? new Throwable().getStackTrace() : null);
     }
 

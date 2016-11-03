@@ -19,14 +19,14 @@ package org.vibur.dbcp.proxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.ViburConfig;
-import org.vibur.dbcp.ViburDBCPException;
-import org.vibur.dbcp.event.InvocationHook;
+import org.vibur.dbcp.event.Hook;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.vibur.dbcp.ViburConfig.SQLSTATE_OBJECT_CLOSED_ERROR;
@@ -47,7 +47,7 @@ abstract class AbstractInvocationHandler<T> implements InvocationHandler, Target
      *  For example, the underlying JDBC Connection, the underlying JDBC Statement, etc. */
     private final T target;
 
-    private final InvocationHook invocationHook;
+    private final List<Hook.MethodInvocation> invocationHooks;
     private final ViburConfig config;
     private final ExceptionCollector exceptionCollector;
 
@@ -58,7 +58,7 @@ abstract class AbstractInvocationHandler<T> implements InvocationHandler, Target
         assert config != null;
         assert exceptionCollector != null;
         this.target = target;
-        this.invocationHook = config.getInvocationHook();
+        this.invocationHooks = config.getInvocationHooks();
         this.config = config;
         this.exceptionCollector = exceptionCollector;
     }
@@ -116,8 +116,8 @@ abstract class AbstractInvocationHandler<T> implements InvocationHandler, Target
     private void restrictedAccessEntry(T proxy, Method method, Object[] args) throws SQLException {
         if (isClosed())
             throw new SQLException(target.getClass().getName() + " is closed.", SQLSTATE_OBJECT_CLOSED_ERROR);
-        if (invocationHook != null)
-            invocationHook.invoke(proxy, method, args);
+        for (Hook.MethodInvocation hook : invocationHooks)
+            hook.on(proxy, method, args);
     }
 
     /**

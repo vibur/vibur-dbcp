@@ -40,11 +40,11 @@ public class BaseViburLogger implements ViburLogger {
     private static final Logger logger = LoggerFactory.getLogger(BaseViburLogger.class);
 
     @Override
-    public void logGetConnection(String poolName, Connection connProxy, long timeout, long timeTaken,
+    public void logGetConnection(String poolName, Connection connProxy, long timeTaken,
                                  StackTraceElement[] stackTrace) {
         StringBuilder log = new StringBuilder(4096)
-                .append(format("Call to getConnection(%d) from pool %s took %d ms, connProxy = %s",
-                        timeout, poolName, timeTaken, connProxy));
+                .append(format("Call to getConnection() from pool %s took %d ms, connProxy = %s",
+                        poolName, timeTaken, connProxy));
         if (stackTrace != null)
             log.append('\n').append(getStackTraceAsString(stackTrace));
         logger.warn(log.toString());

@@ -26,18 +26,23 @@ import org.vibur.dbcp.pool.PoolReducer;
 import org.vibur.dbcp.pool.ViburObjectFactory;
 import org.vibur.dbcp.util.JdbcUtils;
 import org.vibur.objectpool.PoolService;
+import org.vibur.objectpool.util.CLDConcurrentCollection;
+import org.vibur.objectpool.util.ConcurrentCollection;
 import org.vibur.objectpool.util.TakenListener;
 import org.vibur.objectpool.util.ThreadedPoolReducer;
 
 import javax.sql.DataSource;
 import java.sql.Driver;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static java.util.Collections.EMPTY_LIST;
 import static org.vibur.dbcp.util.ViburUtils.getStackTraceAsString;
 
 /**
@@ -78,8 +83,8 @@ public abstract class ViburConfig {
      * {@code Class.forName(driverClassName).newInstance()} will be issued during the Vibur DBCP initialization.
      * This is needed when Vibur DBCP is used in an OSGi container and may also be helpful if Vibur DBCP is used in an
      * Apache Tomcat web application which has its JDBC driver JAR file packaged in the app WEB-INF/lib directory.
-     * If this property is not specified, then Vibur DBCP will depend on the JavaSE Service Provider mechanism to find
-     * the driver. */
+     * If this property is not specified, then Vibur DBCP will depend on the standard Java
+     * {@link java.util.ServiceLoader} mechanism in order to find the driver. */
     private String driverClassName = null;
     /** The database JDBC Connection string. */
     private String jdbcUrl;
@@ -145,7 +150,7 @@ public abstract class ViburConfig {
     private int poolInitialSize = 10;
     /** The pool max size, i.e. the maximum number of JDBC Connections allocated in this pool. */
     private int poolMaxSize = 100;
-    /** If `true`, guarantees that the threads invoking the pool's {@link org.vibur.objectpool.PoolService#take}
+    /** If {@code true}, guarantees that the threads invoking the pool's {@link org.vibur.objectpool.PoolService#take}
      * methods will be selected to obtain a connection from it in FIFO order, and no thread will be starved out from
      * accessing the pool's underlying resources. */
     private boolean poolFair = true;
@@ -153,9 +158,8 @@ public abstract class ViburConfig {
      * See also {@link #logTakenConnectionsOnTimeout}. */
     private boolean poolEnableConnectionTracking = false;
 
-    private boolean poolFifo = false;
-
     private PoolService<ConnHolder> pool = null;
+    private ConcurrentCollection<ConnHolder> concurrentCollection = new CLDConcurrentCollection<>();
     private ViburObjectFactory connectionFactory = null;
     private ThreadedPoolReducer poolReducer = null;
 
@@ -321,24 +325,31 @@ public abstract class ViburConfig {
     private boolean clearSQLWarnings = false;
 
 
-    /** A programming {@linkplain ConnectionHook#on hook} that will be invoked only once when
-     * the raw JDBC Connection is first created. Its execution should take as short time as possible. */
-    private ConnectionHook initConnectionHook = null;
-    /** A programming {@linkplain ConnectionHook#on hook} that will be invoked on the raw JDBC
-     * Connection as part of the {@link DataSource#getConnection()} flow. Its execution should take as short time as
+    /** A list of programming {@linkplain Hook.InitConnection#on hooks} that will be invoked only once when
+     * the raw JDBC Connection is first created. Their execution should take as short time as possible. */
+    @SuppressWarnings("unchecked")
+    private List<Hook.InitConnection> initConnectionHooks = EMPTY_LIST;
+    /** A list of programming {@linkplain Hook.GetConnection#on hooks} that will be invoked on the raw JDBC
+     * Connection as part of the {@link DataSource#getConnection()} flow. Their execution should take as short time as
      * possible. */
-    private ConnectionHook connectionHook = null;
-    /** A programming {@linkplain ConnectionHook#on hook} that will be invoked on the raw JDBC
-     * Connection as part of the {@link java.sql.Connection#close()} flow. Its execution should take as short time as
+    @SuppressWarnings("unchecked")
+    private List<Hook.GetConnection> connectionHooks = EMPTY_LIST;
+    /** A list of programming {@linkplain Hook.CloseConnection#on hooks} that will be invoked on the raw JDBC
+     * Connection as part of the {@link java.sql.Connection#close()} flow. Their execution should take as short time as
      * possible. */
-    private ConnectionHook closeConnectionHook = null;
+    @SuppressWarnings("unchecked")
+    private List<Hook.CloseConnection> closeConnectionHooks = EMPTY_LIST;
+    /** A list of programming {@linkplain Hook.DestroyConnection#on hooks} that will be invoked only once when
+     * the raw JDBC Connection is closed/destroyed. Their execution should take as short time as possible. */
+    @SuppressWarnings("unchecked")
+    private List<Hook.DestroyConnection> destroyConnectionHooks = EMPTY_LIST;
 
-
-    /** A programming {@linkplain InvocationHook#invoke hook} intercepting (almost) all method calls on all proxied
-     * JDBC interfaces. Methods inherited from the {@link Object} class, methods related to the "closed" state of
-     * the JDBC objects (e.g., close(), isClosed()), as well as methods from the {@link java.sql.Wrapper} interface
-     * are not intercepted. The hook execution should take as short time as possible. */
-    private InvocationHook invocationHook = null;
+    /** A list of programming {@linkplain Hook.MethodInvocation#on hooks} intercepting (almost) all method calls on all
+     * proxied JDBC interfaces. Methods inherited from the {@link Object} class, methods related to the "closed" state
+     * of the JDBC objects (e.g., close(), isClosed()), as well as methods from the {@link java.sql.Wrapper} interface
+     * are not intercepted. The hooks execution should take as short time as possible. */
+    @SuppressWarnings("unchecked")
+    private List<Hook.MethodInvocation> invocationHooks = EMPTY_LIST;
 
 
     /** Provides access to the functionality for logging of long lasting getConnection() calls, slow SQL queries,
@@ -346,10 +357,6 @@ public abstract class ViburConfig {
      * application to intercept all such logging events, and to accumulate statistics of the count and execution time
      * of the SQL queries and similar. */
     private ViburLogger viburLogger = new BaseViburLogger();
-    /** Allows the application to receiving notifications for all exceptions thrown by the operations
-     * invoked on a JDBC Connection object or any of its direct or indirect derivative objects, such as Statement,
-     * ResultSet, or database Metadata objects. */
-    private ExceptionListener exceptionListener = null;
 
 
     //////////////////////// Getters & Setters ////////////////////////
@@ -498,20 +505,20 @@ public abstract class ViburConfig {
         this.poolEnableConnectionTracking = poolEnableConnectionTracking;
     }
 
-    public boolean isPoolFifo() {
-        return poolFifo;
-    }
-
-    public void setPoolFifo(boolean poolFifo) {
-        this.poolFifo = poolFifo;
-    }
-
     public PoolService<ConnHolder>  getPool() {
         return pool;
     }
 
     public void setPool(PoolService<ConnHolder> pool) {
         this.pool = pool;
+    }
+
+    public ConcurrentCollection<ConnHolder> getConcurrentCollection() {
+        return concurrentCollection;
+    }
+
+    public void setConcurrentCollection(ConcurrentCollection<ConnHolder> concurrentCollection) {
+        this.concurrentCollection = concurrentCollection;
     }
 
     public ViburObjectFactory getConnectionFactory() {
@@ -551,7 +558,7 @@ public abstract class ViburConfig {
     }
 
     /**
-     * NOTE: the pool name can be set only once; pool renaming is not supported.
+     * <b>NOTE:</b> the pool name can be set only once; pool renaming is not supported.
      *
      * @param name the pool name to use
      */
@@ -779,36 +786,24 @@ public abstract class ViburConfig {
         this.clearSQLWarnings = clearSQLWarnings;
     }
 
-    public ConnectionHook getInitConnectionHook() {
-        return initConnectionHook;
+    public List<Hook.InitConnection> getInitConnectionHooks() {
+        return initConnectionHooks;
     }
 
-    public void setInitConnectionHook(ConnectionHook initConnectionHook) {
-        this.initConnectionHook = initConnectionHook;
+    public List<Hook.GetConnection> getConnectionHooks() {
+        return connectionHooks;
     }
 
-    public ConnectionHook getConnectionHook() {
-        return connectionHook;
+    public List<Hook.CloseConnection> getCloseConnectionHooks() {
+        return closeConnectionHooks;
     }
 
-    public void setConnectionHook(ConnectionHook connectionHook) {
-        this.connectionHook = connectionHook;
+    public List<Hook.DestroyConnection> getDestroyConnectionHooks() {
+        return destroyConnectionHooks;
     }
 
-    public ConnectionHook getCloseConnectionHook() {
-        return closeConnectionHook;
-    }
-
-    public void setCloseConnectionHook(ConnectionHook closeConnectionHook) {
-        this.closeConnectionHook = closeConnectionHook;
-    }
-
-    public InvocationHook getInvocationHook() {
-        return invocationHook;
-    }
-
-    public void setInvocationHook(InvocationHook invocationHook) {
-        this.invocationHook = invocationHook;
+    public List<Hook.MethodInvocation> getInvocationHooks() {
+        return invocationHooks;
     }
 
     public ViburLogger getViburLogger() {
@@ -819,12 +814,38 @@ public abstract class ViburConfig {
         this.viburLogger = viburLogger;
     }
 
-    public ExceptionListener getExceptionListener() {
-        return exceptionListener;
-    }
-
-    public void setExceptionListener(ExceptionListener exceptionListener) {
-        this.exceptionListener = exceptionListener;
+    /**
+     * Registers a programming {@link Hook}. The hook must implement one of the concrete Hook sub-interfaces.
+     *
+     * <p>The underlying data structures used to store the registered Hook instances are <b>not</b> thread-safe
+     * and the hooks must be registered only once at pool creation/setup time.
+     *
+     * @param hook the hook to register
+     * @throws ViburDBCPException if the {@code hook} does not implement any of the concrete Hook sub-interfaces
+     */
+    public void registerHook(Hook hook) throws ViburDBCPException {
+        if (hook instanceof Hook.InitConnection) {
+            if (initConnectionHooks == EMPTY_LIST)
+                initConnectionHooks = new ArrayList<>();
+            initConnectionHooks.add((Hook.InitConnection) hook);
+        } else if (hook instanceof Hook.GetConnection) {
+            if (connectionHooks == EMPTY_LIST)
+                connectionHooks = new ArrayList<>();
+            connectionHooks.add((Hook.GetConnection) hook);
+        } else if (hook instanceof Hook.CloseConnection) {
+            if (closeConnectionHooks == EMPTY_LIST)
+                closeConnectionHooks = new ArrayList<>();
+            closeConnectionHooks.add((Hook.CloseConnection) hook);
+        } else if (hook instanceof Hook.DestroyConnection) {
+            if (destroyConnectionHooks == EMPTY_LIST)
+                destroyConnectionHooks = new ArrayList<>();
+            destroyConnectionHooks.add((Hook.DestroyConnection) hook);
+        } else if (hook instanceof Hook.MethodInvocation) {
+            if (invocationHooks == EMPTY_LIST)
+                invocationHooks = new ArrayList<>();
+            invocationHooks.add((Hook.MethodInvocation) hook);
+        } else
+            throw new ViburDBCPException("Unexpected hook type " + hook);
     }
 
     public String takenConnectionsToString() {
@@ -874,6 +895,10 @@ public abstract class ViburConfig {
             .append(", poolFair = ").append(poolFair)
             .append(", pool = ").append(pool)
             .append(", name = ").append(name)
+            .append(", connectionTimeoutInMs = ").append(connectionTimeoutInMs)
+            .append(", loginTimeoutInSeconds = ").append(loginTimeoutInSeconds)
+            .append(", acquireRetryDelayInMs = ").append(acquireRetryDelayInMs)
+            .append(", acquireRetryAttempts = ").append(acquireRetryAttempts)
             .append(", statementCacheMaxSize = ").append(statementCacheMaxSize)
             .append(']').toString();
     }

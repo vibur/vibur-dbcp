@@ -26,7 +26,7 @@ import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.vibur.dbcp.proxy.Proxy.newProxyResultSet;
@@ -58,7 +58,7 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
         this.logSlowQuery = config.getLogQueryExecutionLongerThanMs() >= 0;
         boolean logLargeResult = config.getLogLargeResultSet() >= 0;
         this.logQueryParams = config.isIncludeQueryParameters() && (logSlowQuery || logLargeResult);
-        this.queryParams = logQueryParams ? new LinkedList<Object[]>() : null;
+        this.queryParams = logQueryParams ? new ArrayList<Object[]>() : null;
     }
 
     @Override
