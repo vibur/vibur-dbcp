@@ -23,7 +23,7 @@ import java.sql.SQLException;
 /**
  * A markup interface for application programming hooks for JDBC Connection tune-up and method invocation interception.
  * 
- * <p>These application hooks serves as extension points to the inner workings of the connection pool and have
+ * <p>These application hooks serve as extension points to the inner workings of the connection pool and have
  * access to the <b>raw (original)</b> JDBC Connection object, not the proxied such. In order to avoid interference
  * with the way the connection pool manages its underlying connections, the application <b>must not</b> keep or store
  * in one or another form a reference to the {@code rawConnection} object.
@@ -38,8 +38,8 @@ public interface Hook {
          * Its execution should take as short time as possible.
          *
          * @param rawConnection the just created raw JDBC connection
-         * @param takenNanos the time taken to establish this connection in nano seconds
-         * @throws SQLException to indicate that an error has occured
+         * @param takenNanos the time taken to establish this connection in nanoseconds
+         * @throws SQLException to indicate that an error has occurred
          */
         void on(Connection rawConnection, long takenNanos) throws SQLException;
     }
@@ -50,7 +50,7 @@ public interface Hook {
          * {@link javax.sql.DataSource#getConnection()} flow. Its execution should take as short time as possible.
          *
          * @param rawConnection the retrieved from the pool raw JDBC connection
-         * @throws SQLException to indicate that an error has occured
+         * @throws SQLException to indicate that an error has occurred
          */
         void on(Connection rawConnection) throws SQLException;
     }
@@ -61,7 +61,7 @@ public interface Hook {
          * {@link Connection#close()} flow. Its execution should take as short time as possible.
          *
          * @param rawConnection the raw JDBC connection that will be returned to the pool
-         * @throws SQLException to indicate that an error has occured
+         * @throws SQLException to indicate that an error has occurred
          */
         void on(Connection rawConnection) throws SQLException;
     }
@@ -72,7 +72,7 @@ public interface Hook {
          * Its execution should take as short time as possible.
          *
          * @param rawConnection the raw JDBC connection that was just closed
-         * @param takenNanos the time taken to close/destroy this connection in nano seconds
+         * @param takenNanos the time taken to close/destroy this connection in nanoseconds
          */
         void on(Connection rawConnection, long takenNanos);
     }
@@ -86,7 +86,7 @@ public interface Hook {
          * @param proxy the proxy instance that the method was invoked on
          * @param method the invoked method
          * @param args the method arguments
-         * @throws SQLException to indicate that an error has occured
+         * @throws SQLException to indicate that an error has occurred
          */
         void on(Object proxy, Method method, Object[] args) throws SQLException;
     }

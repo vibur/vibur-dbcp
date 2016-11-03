@@ -38,7 +38,7 @@ public interface ViburLogger {
      * @param connProxy the current connection proxy - can be {@code null} which means that the
      *                  {@code getConnection()} call was not able to retrieve a connection from the pool in
      *                  the specified time limit
-     * @param timeTaken the time taken by the {@code getConnection()} method to complete in milli seconds
+     * @param timeTaken the time taken by the {@code getConnection()} method to complete in milliseconds
      * @param stackTrace the stack trace of the {@code getConnection()} method call (or null), depending on
      *                   {@link ViburConfig#logStackTraceForLongConnection}
      */
@@ -52,7 +52,7 @@ public interface ViburLogger {
      * @param poolName the pool name
      * @param sqlQuery the executed SQL query
      * @param queryParams the executed SQL query params
-     * @param timeTaken the time by the executed SQL query to complete in milli seconds, also see the comments for
+     * @param timeTaken the time by the executed SQL query to complete in milliseconds, also see the comments for
      *                  {@link ViburConfig#logQueryExecutionLongerThanMs}
      * @param stackTrace the stack trace of the method call (or null) via which the executed SQL query was initiated,
      *                   depending on {@link ViburConfig#logStackTraceForLongQueryExecution}

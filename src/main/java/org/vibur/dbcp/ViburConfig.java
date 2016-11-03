@@ -815,13 +815,13 @@ public abstract class ViburConfig {
     }
 
     /**
-     * Registers a programming {@link Hook}. The hook must implement one of the concrete Hook sub-interfaces.
+     * Registers a programming {@link Hook}. The hook must implement one of the Hook sub-interfaces.
      *
      * <p>The underlying data structures used to store the registered Hook instances are <b>not</b> thread-safe
      * and the hooks must be registered only once at pool creation/setup time.
      *
      * @param hook the hook to register
-     * @throws ViburDBCPException if the {@code hook} does not implement any of the concrete Hook sub-interfaces
+     * @throws ViburDBCPException if the {@code hook} does not implement any of the Hook sub-interfaces
      */
     public void registerHook(Hook hook) throws ViburDBCPException {
         if (hook instanceof Hook.InitConnection) {
@@ -844,8 +844,9 @@ public abstract class ViburConfig {
             if (invocationHooks == EMPTY_LIST)
                 invocationHooks = new ArrayList<>();
             invocationHooks.add((Hook.MethodInvocation) hook);
-        } else
-            throw new ViburDBCPException("Unexpected hook type " + hook);
+        }
+
+        throw new ViburDBCPException("Unexpected hook type " + hook);
     }
 
     public String takenConnectionsToString() {

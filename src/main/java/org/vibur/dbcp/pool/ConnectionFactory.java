@@ -93,10 +93,8 @@ public class ConnectionFactory implements ViburObjectFactory {
         long timeTaken = initConnectionHooks.isEmpty() ? 0 : System.nanoTime() - startTime;
 
         try {
-            if (!initConnectionHooks.isEmpty()) {
-                for (Hook.InitConnection hook : initConnectionHooks)
-                    hook.on(rawConnection, timeTaken);
-            }
+            for (Hook.InitConnection hook : initConnectionHooks)
+                hook.on(rawConnection, timeTaken);
             ensureInitialized(rawConnection);
             setDefaultValues(rawConnection, config);
         } catch (SQLException e) {
