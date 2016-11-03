@@ -19,7 +19,7 @@ package org.vibur.dbcp.proxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.ViburConfig;
-import org.vibur.dbcp.pool.Hook;
+import org.vibur.dbcp.event.Hook;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;

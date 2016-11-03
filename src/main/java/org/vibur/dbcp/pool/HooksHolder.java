@@ -16,6 +16,8 @@
 
 package org.vibur.dbcp.pool;
 
+import org.vibur.dbcp.event.Hook;
+
 import javax.sql.DataSource;
 import java.util.ArrayList;
 import java.util.List;

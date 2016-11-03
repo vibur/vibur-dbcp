@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.vibur.dbcp.logger;
+package org.vibur.dbcp.event;
 
 import org.vibur.dbcp.ViburConfig;
 

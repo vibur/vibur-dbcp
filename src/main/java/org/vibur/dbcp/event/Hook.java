@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.vibur.dbcp.pool;
+package org.vibur.dbcp.event;
 
 import java.lang.reflect.Method;
 import java.sql.Connection;
