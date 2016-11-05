@@ -23,9 +23,10 @@ import org.vibur.dbcp.cache.StatementCache;
 import org.vibur.dbcp.event.BaseViburLogger;
 import org.vibur.dbcp.event.ViburLogger;
 import org.vibur.dbcp.pool.ConnHolder;
-import org.vibur.dbcp.pool.HooksHolder;
+import org.vibur.dbcp.pool.ConnHooksHolder;
 import org.vibur.dbcp.pool.PoolReducer;
 import org.vibur.dbcp.pool.ViburObjectFactory;
+import org.vibur.dbcp.proxy.MethodHooksHolder;
 import org.vibur.dbcp.util.JdbcUtils;
 import org.vibur.objectpool.PoolService;
 import org.vibur.objectpool.util.ConcurrentCollection;
@@ -323,13 +324,20 @@ public abstract class ViburConfig {
      * Callable Statement before returning it to the statement cache. */
     private boolean clearSQLWarnings = false;
 
-    /** These are all programming hooks.
+    /** These are all programming Connection hooks.
+     *
+     * <p>Note that the underlying data structures used to store the Hook instances <b>are not</b>
+     * thread-safe for modifications; the connHooks must be registered only once at pool creation/setup time,
+     * before the pool is started.
+     */
+    private ConnHooksHolder connHooks = new ConnHooksHolder();
+    /** These are all programming Method invocation hooks.
      *
      * <p>Note that the underlying data structures used to store the Hook instances <b>are not</b>
      * thread-safe for modifications; the hooks must be registered only once at pool creation/setup time,
      * before the pool is started.
      */
-    private HooksHolder hooks = new HooksHolder();
+    private MethodHooksHolder methodHooks = new MethodHooksHolder();
 
     /** Provides access to the functionality for logging of long lasting getConnection() calls, slow SQL queries,
      * and large ResultSets. Setting this parameter to a sub-class of {@link BaseViburLogger} will allow the
@@ -765,8 +773,12 @@ public abstract class ViburConfig {
         this.clearSQLWarnings = clearSQLWarnings;
     }
 
-    public HooksHolder getHooks() {
-        return hooks;
+    public ConnHooksHolder getConnHooks() {
+        return connHooks;
+    }
+
+    public MethodHooksHolder getMethodHooks() {
+        return methodHooks;
     }
 
     public ViburLogger getViburLogger() {

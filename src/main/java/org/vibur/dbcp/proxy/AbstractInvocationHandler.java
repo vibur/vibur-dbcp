@@ -47,7 +47,7 @@ abstract class AbstractInvocationHandler<T> implements InvocationHandler, Target
      *  For example, the underlying JDBC Connection, the underlying JDBC Statement, etc. */
     private final T target;
 
-    private final List<Hook.MethodInvocation> methodInvocations;
+    private final List<Hook.MethodInvocation> onInvocation;
     private final ViburConfig config;
     private final ExceptionCollector exceptionCollector;
 
@@ -58,7 +58,7 @@ abstract class AbstractInvocationHandler<T> implements InvocationHandler, Target
         assert config != null;
         assert exceptionCollector != null;
         this.target = target;
-        this.methodInvocations = config.getHooks().methodInvocation();
+        this.onInvocation = config.getMethodHooks().onInvocation();
         this.config = config;
         this.exceptionCollector = exceptionCollector;
     }
@@ -116,7 +116,7 @@ abstract class AbstractInvocationHandler<T> implements InvocationHandler, Target
     private void restrictedAccessEntry(T proxy, Method method, Object[] args) throws SQLException {
         if (isClosed())
             throw new SQLException(target.getClass().getName() + " is closed.", SQLSTATE_OBJECT_CLOSED_ERROR);
-        for (Hook.MethodInvocation hook : methodInvocations)
+        for (Hook.MethodInvocation hook : onInvocation)
             hook.on(proxy, method, args);
     }
 
