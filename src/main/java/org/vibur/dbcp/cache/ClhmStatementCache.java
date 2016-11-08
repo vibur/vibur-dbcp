@@ -70,7 +70,7 @@ public class ClhmStatementCache implements StatementCache {
      *
      * @return a new EvictionListener for the CLHM
      */
-    private EvictionListener<ConnMethod, StatementHolder> getListener() {
+    private static EvictionListener<ConnMethod, StatementHolder> getListener() {
         return new EvictionListener<ConnMethod, StatementHolder>() {
             @Override
             public void onEviction(ConnMethod key, StatementHolder value) {

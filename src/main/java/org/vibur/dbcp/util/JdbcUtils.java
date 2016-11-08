@@ -183,24 +183,21 @@ public final class JdbcUtils {
     }
 
     public static void quietClose(Connection rawConnection) {
-        try {
-            if (rawConnection != null)
-                rawConnection.close();
-        } catch (SQLException e) {
-            logger.debug("Couldn't close {}", rawConnection, e);
-        } catch (RuntimeException e) {
-            logger.warn("Ignoring unexpected exception thrown by the JDBC driver for {}", rawConnection, e);
-        }
+        doQuietClose(rawConnection);
     }
 
     public static void quietClose(Statement rawStatement) {
+        doQuietClose(rawStatement);
+    }
+
+    private static void doQuietClose(AutoCloseable closeable) {
         try {
-            if (rawStatement != null)
-                rawStatement.close();
+            if (closeable != null)
+                closeable.close();
         } catch (SQLException e) {
-            logger.debug("Couldn't close {}", rawStatement, e);
-        } catch (RuntimeException e) {
-            logger.warn("Ignoring unexpected exception thrown by the JDBC driver for {}", rawStatement, e);
+            logger.debug("Couldn't close {}", closeable, e);
+        } catch (Exception e) {
+            logger.warn("Ignoring unexpected exception thrown by the JDBC driver for {}", closeable, e);
         }
     }
 }

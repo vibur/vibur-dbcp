@@ -86,7 +86,7 @@ public class ConnectionFactory implements ViburObjectFactory {
                     throw new ViburDBCPException(e);
                 try {
                     MILLISECONDS.sleep(config.getAcquireRetryDelayInMs());
-                } catch (InterruptedException ignore) {
+                } catch (InterruptedException ignored) {
                 }
             }
         }

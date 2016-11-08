@@ -118,7 +118,7 @@ public class ViburDBCPGetConnectionTestPerf {
                         errors.incrementAndGet();
                     }
                 }
-            } catch (InterruptedException e) {
+            } catch (InterruptedException ignored) {
                 errors.incrementAndGet();
             } finally {
                 doneSignal.countDown();

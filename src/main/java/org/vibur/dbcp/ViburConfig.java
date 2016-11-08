@@ -330,14 +330,14 @@ public abstract class ViburConfig {
      * thread-safe for modifications; the connHooks must be registered only once at pool creation/setup time,
      * before the pool is started.
      */
-    private ConnHooksHolder connHooks = new ConnHooksHolder();
+    private final ConnHooksHolder connHooks = new ConnHooksHolder();
     /** These are all programming Method invocation hooks.
      *
      * <p>Note that the underlying data structures used to store the Hook instances <b>are not</b>
      * thread-safe for modifications; the hooks must be registered only once at pool creation/setup time,
      * before the pool is started.
      */
-    private MethodHooksHolder methodHooks = new MethodHooksHolder();
+    private final MethodHooksHolder methodHooks = new MethodHooksHolder();
 
     /** Provides access to the functionality for logging of long lasting getConnection() calls, slow SQL queries,
      * and large ResultSets. Setting this parameter to a sub-class of {@link BaseViburLogger} will allow the

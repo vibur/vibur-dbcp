@@ -151,12 +151,11 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
         } catch (IOException e) {
             throw new ViburDBCPException(config.toString(), e);
         } finally {
-            if (inputStream != null) {
-                try {
+            try {
+                if (inputStream != null)
                     inputStream.close();
-                } catch (IOException ignored) {
-                    logger.debug("Couldn't close configuration URL {}", config, ignored);
-                }
+            } catch (IOException e) {
+                logger.debug("Couldn't close configuration URL {}", config, e);
             }
         }
     }
