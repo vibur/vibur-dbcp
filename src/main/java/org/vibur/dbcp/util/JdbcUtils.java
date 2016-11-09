@@ -21,9 +21,7 @@ import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.ViburConfig;
 import org.vibur.dbcp.ViburDBCPException;
 
-import javax.sql.DataSource;
 import java.sql.*;
-import java.util.Properties;
 import java.util.concurrent.Executor;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
