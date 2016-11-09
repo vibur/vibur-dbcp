@@ -39,53 +39,66 @@ public interface Connector {
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
-    class Driver implements Connector {
-        private final java.sql.Driver driver;
-        private final String jdbcUrl;
-        private final Properties driverProperties;
+    class Builder {
 
-        public Driver(ViburConfig config, String username, String password) {
-            this.driver = config.getDriver();
-            this.jdbcUrl = config.getJdbcUrl();
+        private Builder() {}
 
-            this.driverProperties = new Properties(config.getDriverProperties());
-            driverProperties.setProperty("user", username);
-            driverProperties.setProperty("password", password);
+        public static Connector build(ViburConfig config, String username, String password) {
+            if (config.getExternalDataSource() == null)
+                return new Driver(config, username, password);
+            if (username != null)
+                return new DataSourceWithCredentials(config, username, password);
+            return new DataSource(config);
         }
 
-        @Override
-        public Connection connect() throws SQLException {
-            return driver.connect(jdbcUrl, driverProperties);
-        }
-    }
+        private static class Driver implements Connector {
+            private final java.sql.Driver driver;
+            private final String jdbcUrl;
+            private final Properties driverProperties;
 
-    class DataSource implements Connector {
-        private final javax.sql.DataSource externalDataSource;
+            public Driver(ViburConfig config, String username, String password) {
+                this.driver = config.getDriver();
+                this.jdbcUrl = config.getJdbcUrl();
 
-        public DataSource(ViburConfig config) {
-            this.externalDataSource = config.getExternalDataSource();
-        }
+                this.driverProperties = new Properties(config.getDriverProperties());
+                driverProperties.setProperty("user", username);
+                driverProperties.setProperty("password", password);
+            }
 
-        @Override
-        public Connection connect() throws SQLException {
-            return externalDataSource.getConnection();
-        }
-    }
-
-    class DataSourceWithCredentials implements Connector {
-        private final javax.sql.DataSource externalDataSource;
-        private final String username;
-        private final String password;
-
-        public DataSourceWithCredentials(ViburConfig config, String username, String password) {
-            this.externalDataSource = config.getExternalDataSource();
-            this.username = username;
-            this.password = password;
+            @Override
+            public Connection connect() throws SQLException {
+                return driver.connect(jdbcUrl, driverProperties);
+            }
         }
 
-        @Override
-        public Connection connect() throws SQLException {
-            return externalDataSource.getConnection(username, password);
+        private static class DataSource implements Connector {
+            private final javax.sql.DataSource externalDataSource;
+
+            public DataSource(ViburConfig config) {
+                this.externalDataSource = config.getExternalDataSource();
+            }
+
+            @Override
+            public Connection connect() throws SQLException {
+                return externalDataSource.getConnection();
+            }
+        }
+
+        private static class DataSourceWithCredentials implements Connector {
+            private final javax.sql.DataSource externalDataSource;
+            private final String username;
+            private final String password;
+
+            public DataSourceWithCredentials(ViburConfig config, String username, String password) {
+                this.externalDataSource = config.getExternalDataSource();
+                this.username = username;
+                this.password = password;
+            }
+
+            @Override
+            public Connection connect() throws SQLException {
+                return externalDataSource.getConnection(username, password);
+            }
         }
     }
 }

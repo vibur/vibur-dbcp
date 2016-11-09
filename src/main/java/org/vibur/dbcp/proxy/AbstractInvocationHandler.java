@@ -75,6 +75,7 @@ abstract class AbstractInvocationHandler<T> implements InvocationHandler, Target
             return unrestrictedResult;
 
         restrictedAccessEntry(proxy, method, args); // (2)
+
         return restrictedInvoke(proxy, method, args); // (3)
     }
 

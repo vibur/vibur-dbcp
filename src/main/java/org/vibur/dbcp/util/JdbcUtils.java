@@ -21,7 +21,10 @@ import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.ViburConfig;
 import org.vibur.dbcp.ViburDBCPException;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.concurrent.Executor;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
