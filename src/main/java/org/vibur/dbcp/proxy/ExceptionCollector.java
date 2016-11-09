@@ -16,6 +16,7 @@
 
 package org.vibur.dbcp.proxy;
 
+import java.sql.SQLException;
 import java.sql.SQLTimeoutException;
 import java.sql.SQLTransactionRollbackException;
 import java.util.ArrayList;
@@ -45,8 +46,9 @@ class ExceptionCollector {
      * @param t the exception thrown
      */
     void addException(Throwable t) {
-        if (!(t instanceof SQLTimeoutException) && !(t instanceof SQLTransactionRollbackException))
-            exceptions.add(t); // the above SQL transient exceptions are not of interest and are ignored
+        if (t instanceof SQLException
+                && !(t instanceof SQLTimeoutException) && !(t instanceof SQLTransactionRollbackException))
+            exceptions.add(t); // only SQLExceptions are stored, excluding the above two sub-types
     }
 
     /**
