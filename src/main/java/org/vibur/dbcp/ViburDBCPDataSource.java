@@ -55,7 +55,7 @@ import static java.util.Objects.requireNonNull;
 import static org.vibur.dbcp.ViburDataSource.State.*;
 import static org.vibur.dbcp.ViburMonitoring.registerMBean;
 import static org.vibur.dbcp.ViburMonitoring.unregisterMBean;
-import static org.vibur.dbcp.pool.Connector.Builder;
+import static org.vibur.dbcp.pool.Connector.Builder.buildConnector;
 import static org.vibur.dbcp.util.ViburUtils.getPoolName;
 import static org.vibur.dbcp.util.ViburUtils.unwrapSQLException;
 import static org.vibur.objectpool.util.ArgumentValidation.forbidIllegalArgument;
@@ -232,7 +232,7 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
 
         if (getExternalDataSource() == null)
             initDriverAndProperties();
-        setConnector(Builder.build(this, getUsername(), getPassword()));
+        setConnector(buildConnector(this, getUsername(), getPassword()));
 
         ViburObjectFactory connectionFactory = getConnectionFactory();
         if (connectionFactory == null)
@@ -431,7 +431,7 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
     public Connection getNonPooledConnection(String username, String password) throws SQLException {
         validatePoolState(true);
         try {
-            return getConnectionFactory().create(Builder.build(this, username, password)).value();
+            return getConnectionFactory().create(buildConnector(this, username, password)).value();
         } catch (ViburDBCPException e) {
             return unwrapSQLException(e);
         }

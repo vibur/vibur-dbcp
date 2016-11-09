@@ -43,7 +43,7 @@ public interface Connector {
 
         private Builder() {}
 
-        public static Connector build(ViburConfig config, String username, String password) {
+        public static Connector buildConnector(ViburConfig config, String username, String password) {
             if (config.getExternalDataSource() == null)
                 return new Driver(config, username, password);
             if (username != null)
