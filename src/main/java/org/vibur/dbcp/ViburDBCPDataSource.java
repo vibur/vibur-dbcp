@@ -20,9 +20,9 @@ import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.cache.ClhmStatementCache;
 import org.vibur.dbcp.pool.ConnHolder;
 import org.vibur.dbcp.pool.ConnectionFactory;
+import org.vibur.dbcp.pool.Connector;
 import org.vibur.dbcp.pool.ViburObjectFactory;
 import org.vibur.dbcp.proxy.ConnectionInvocationHandler;
-import org.vibur.dbcp.util.JdbcUtils;
 import org.vibur.dbcp.util.PoolOperations;
 import org.vibur.objectpool.ConcurrentPool;
 import org.vibur.objectpool.PoolService;
@@ -232,7 +232,7 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
 
         if (getExternalDataSource() == null)
             initDriverAndProperties();
-        setConnector(buildConnector());
+        setConnector(buildConnector(getUsername(), getPassword()));
 
         ViburObjectFactory connectionFactory = getConnectionFactory();
         if (connectionFactory == null)
@@ -351,19 +351,16 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
             }
         }
 
-        Properties driverProperties = getDriverProperties();
-        if (driverProperties == null)
-            setDriverProperties(driverProperties = new Properties());
-        driverProperties.setProperty("user", driverProperties.getProperty("user", getUsername()));
-        driverProperties.setProperty("password", driverProperties.getProperty("password", getPassword()));
+        if (getDriverProperties() == null)
+            setDriverProperties(new Properties());
     }
 
-    private JdbcUtils.Connector buildConnector() {
+    private Connector buildConnector(String username, String password) {
         if (getExternalDataSource() == null)
-            return new JdbcUtils.DriverConnector(this);
-        if (getUsername() != null)
-            return new JdbcUtils.DataSourceCredentialsConnector(this);
-        return new JdbcUtils.DataSourceDefaultConnector(this);
+            return new Connector.Driver(this, username, password);
+        if (username != null)
+            return new Connector.DataSourceWithCredentials(this, username, password);
+        return new Connector.DataSource(this);
     }
 
     private void initPoolReducer() throws ViburDBCPException {
@@ -442,7 +439,7 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
     public Connection getNonPooledConnection(String username, String password) throws SQLException {
         validatePoolState(true);
         try {
-            return getConnectionFactory().create(username, password).value();
+            return getConnectionFactory().create(buildConnector(username, password)).value();
         } catch (ViburDBCPException e) {
             return unwrapSQLException(e);
         }

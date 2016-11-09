@@ -22,7 +22,6 @@ import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.ViburConfig;
 import org.vibur.dbcp.ViburDBCPException;
 import org.vibur.dbcp.event.Hook;
-import org.vibur.dbcp.util.JdbcUtils;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -49,7 +48,6 @@ public class ConnectionFactory implements ViburObjectFactory {
 
     private static final Logger logger = LoggerFactory.getLogger(ConnectionFactory.class);
 
-    private final JdbcUtils.Connector connector;
     private final ViburConfig config;
     private final AtomicInteger version = new AtomicInteger(1);
 
@@ -60,18 +58,17 @@ public class ConnectionFactory implements ViburObjectFactory {
      * @throws ViburDBCPException if cannot successfully initialize/configure the underlying SQL system
      */
     public ConnectionFactory(ViburConfig config) throws ViburDBCPException {
-        this.connector = config.getConnector();
         this.config = config;
         initLoginTimeout(config);
     }
 
     @Override
     public ConnHolder create() throws ViburDBCPException {
-        return create(config.getUsername(), config.getPassword());
+        return create(config.getConnector());
     }
 
     @Override
-    public ConnHolder create(String username, String password) throws ViburDBCPException {
+    public ConnHolder create(Connector connector) throws ViburDBCPException {
         List<Hook.InitConnection> onInit = config.getConnHooks().onInit();
         long startTime = onInit.isEmpty() ? 0 : System.nanoTime();
 

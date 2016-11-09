@@ -42,68 +42,6 @@ public final class JdbcUtils {
 
     private JdbcUtils() {}
 
-    ///////////////////////////////////////////////////////////////////////////////////////////////
-
-    public interface Connector {
-
-        /**
-         * Creates the physical (raw) JDBC connection to the database via using the configured Driver or
-         * external DataSource.
-         *
-         * @throws SQLException if the underlying SQL operation throws such
-         */
-        Connection connect() throws SQLException;
-    }
-
-    public static class DriverConnector implements Connector {
-        private final Driver driver;
-        private final String jdbcUrl;
-        private final Properties driverProperties;
-
-        public DriverConnector(ViburConfig config) {
-            this.driver = config.getDriver();
-            this.jdbcUrl = config.getJdbcUrl();
-            this.driverProperties = config.getDriverProperties();
-        }
-
-        @Override
-        public Connection connect() throws SQLException {
-            return driver.connect(jdbcUrl, driverProperties);
-        }
-    }
-
-    public static class DataSourceDefaultConnector implements Connector {
-        private final DataSource externalDataSource;
-
-        public DataSourceDefaultConnector(ViburConfig config) {
-            this.externalDataSource = config.getExternalDataSource();
-        }
-
-        @Override
-        public Connection connect() throws SQLException {
-            return externalDataSource.getConnection();
-        }
-    }
-
-    public static class DataSourceCredentialsConnector implements Connector {
-        private final DataSource externalDataSource;
-        private final String username;
-        private final String password;
-
-        public DataSourceCredentialsConnector(ViburConfig config) {
-            this.externalDataSource = config.getExternalDataSource();
-            this.username = config.getUsername();
-            this.password = config.getPassword();
-        }
-
-        @Override
-        public Connection connect() throws SQLException {
-            return externalDataSource.getConnection(username, password);
-        }
-    }
-
-    ///////////////////////////////////////////////////////////////////////////////////////////////
-
     public static void initLoginTimeout(ViburConfig config) throws ViburDBCPException {
         int loginTimeout = config.getLoginTimeoutInSeconds();
         if (config.getExternalDataSource() == null)

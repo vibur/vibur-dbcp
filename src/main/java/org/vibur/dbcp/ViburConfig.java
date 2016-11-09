@@ -24,10 +24,10 @@ import org.vibur.dbcp.event.BaseViburLogger;
 import org.vibur.dbcp.event.ViburLogger;
 import org.vibur.dbcp.pool.ConnHolder;
 import org.vibur.dbcp.pool.ConnHooksHolder;
+import org.vibur.dbcp.pool.Connector;
 import org.vibur.dbcp.pool.PoolReducer;
 import org.vibur.dbcp.pool.ViburObjectFactory;
 import org.vibur.dbcp.proxy.MethodHooksHolder;
-import org.vibur.dbcp.util.JdbcUtils;
 import org.vibur.objectpool.PoolService;
 import org.vibur.objectpool.util.ConcurrentCollection;
 import org.vibur.objectpool.util.ConcurrentLinkedDequeCollection;
@@ -93,7 +93,8 @@ public abstract class ViburConfig {
      * connections for the pool instead of relaying on {@link java.sql.Driver}. */
     private DataSource externalDataSource = null;
 
-    private JdbcUtils.Connector connector = null;
+    /** The default Jdbc connector. */
+    private Connector connector = null;
 
 
     /** If the connection has stayed in the pool for at least {@code connectionIdleLimitInSeconds},
@@ -404,11 +405,11 @@ public abstract class ViburConfig {
         this.externalDataSource = externalDataSource;
     }
 
-    public JdbcUtils.Connector getConnector() {
+    public Connector getConnector() {
         return connector;
     }
 
-    public void setConnector(JdbcUtils.Connector connector) {
+    public void setConnector(Connector connector) {
         this.connector = connector;
     }
 
