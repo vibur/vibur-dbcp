@@ -1,5 +1,16 @@
-Version 11.0 (15/09/2016) - RECOMMENDED
+Version 12.0 (11/11/2016) - RECOMMENDED
 =======================================
+* Refactored/reimplemented the existing Connection and method invocation hooks in order to allow for multiple
+  hook callbacks to be registered (and subsequently invoked) at a single hook invocation point.
+* Adopted Vibur Object Pool 12.0, particularly allowed for third-party concurrent collections such as the
+  Conversant Disruptor to be used on the place of java.util.Queue/Deque as part of the ConcurrentPool implementation.
+* Changed the Maven dependency type for ConcurrentLinkedHashMap from compile to provided, this means that
+  applications using the Statement caching feature will now need to provide/include the Maven dependency for CLHM.
+* Removed ExceptionListener due to being underutilized.
+* Small other performance improvements and bug fixes.
+
+Version 11.0 (15/09/2016)
+=========================
 * Added driver and driverProperties configuration options to ViburConfig. These options allow for direct
   configuration/injection of the used by the application JDBC Driver and subsequently allow to bypass calling
   the DriverManager.

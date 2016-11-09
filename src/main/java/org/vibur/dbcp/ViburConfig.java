@@ -89,7 +89,7 @@ public abstract class ViburConfig {
      * connections for the pool instead of relaying on {@link java.sql.Driver}. */
     private DataSource externalDataSource = null;
 
-    /** The default Jdbc connector. */
+    /** The default Jdbc connector; uses the default username/password credentials. */
     private Connector connector = null;
 
 
