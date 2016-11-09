@@ -26,10 +26,9 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
- * The purpose of this collector is to receive notifications for all exceptions thrown by the
- * operations invoked on a JDBC Connection object or any of its direct or indirect derivative objects
- * (such as Statement, ResultSet, or database Metadata objects), and to accumulate a list of all
- * non-transient exceptions.
+ * This collector will receive notifications for all exceptions thrown by the operations invoked on a JDBC
+ * Connection object or any of its direct or indirect derivative objects (such as Statement, ResultSet,
+ * or database Metadata objects).
  *
  * @author Simeon Malchev
  */
@@ -38,10 +37,8 @@ class ExceptionCollector {
     private final Queue<Throwable> exceptions = new ConcurrentLinkedQueue<>();
 
     /**
-     * This method will be called by Vibur DBCP when an operation invoked on a JDBC Connection object or any of its
-     * direct or indirect derivative objects, such as Statement, ResultSet, or database Metadata objects, throws
-     * an Exception. If needed, this method may implement filtering logic and can store/accumulate only those
-     * Exceptions that are considered non-transient.
+     * This method will be called by when an operation invoked on a JDBC object throws an Exception.
+     * It will accumulate a list of all non-transient exceptions.
      *
      * @param t the exception thrown
      */
@@ -52,9 +49,9 @@ class ExceptionCollector {
     }
 
     /**
-     * Returns a list of all exceptions that were filtered and accumulated by the {@link #addException(Throwable)}
-     * method. This method will be called by Vibur DBCP when a JDBC Connection proxy has been closed, in order to
-     * determine whether the underlying (raw) JDBC Connection needs to be physically closed or not.
+     * Returns a list of all collected by {@link #addException} exceptions. This method will be
+     * called when a pooled Connection is closed, in order to determine whether the underlying
+     * (raw) JDBC Connection needs also to be closed or not.
      */
     List<Throwable> getExceptions() {
         return exceptions.isEmpty() ? Collections.<Throwable>emptyList() : new ArrayList<>(exceptions);
