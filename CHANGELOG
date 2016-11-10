@@ -3,11 +3,13 @@ Version 12.0 (11/11/2016) - RECOMMENDED
 * Refactored/reimplemented the existing Connection and method invocation hooks in order to allow for multiple
   hook callbacks to be registered (and subsequently invoked) at a single hook invocation point.
   Also included the timeTaken for native JDBC Connection establishing/closing to be reported back to the hook.
-  Example of the new way of adding Connection and method invocation hooks:
+  Example of how to add Connection and method invocation hooks:
     viburDataSource.getConnHooks().addOnInit(connectionInitHook);
     viburDataSource.getMethodHooks().addOnInvocation(invocationHook);
 * Adopted Vibur Object Pool 12.0, particularly allowed for third-party concurrent collections such as the
   Conversant Disruptor to be used on the place of java.util.Queue/Deque as part of the ConcurrentPool implementation.
+  Example of how to configure Conversant Disruptor after adding the required Maven dependency:
+    viburDataSource.setConcurrentCollection(new MultithreadConcurrentQueueCollection<ConnHolder>(poolMaxSize));
 * Changed the Maven dependency type for ConcurrentLinkedHashMap from compile to provided, this means that
   applications using the Statement caching feature will now need to provide/include the Maven dependency for CLHM.
 * Removed ExceptionListener due to being underutilized.
