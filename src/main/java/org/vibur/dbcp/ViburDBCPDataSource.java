@@ -168,11 +168,11 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
         for (Map.Entry<Object, Object> entry : properties.entrySet()) {
             String key = (String) entry.getKey();
             String val = (String) entry.getValue();
+            if (!fields.contains(key)) {
+                logger.warn("Ignoring unknown configuration property {}", key);
+                continue;
+            }
             try {
-                if (!fields.contains(key)) {
-                    logger.warn("Ignoring unknown configuration property {}", key);
-                    continue;
-                }
                 Field field = ViburConfig.class.getDeclaredField(key);
                 Class<?> type = field.getType();
                 if (type == int.class || type == Integer.class)
@@ -296,7 +296,6 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
         forbidIllegalArgument(isUseNetworkTimeout() && getNetworkTimeoutExecutor() == null);
         requireNonNull(getCriticalSQLStates());
         requireNonNull(getViburLogger());
-        requireNonNull(getConcurrentCollection());
 
         if (getPassword() == null) logger.warn("JDBC password is not specified.");
         if (getUsername() == null) logger.warn("JDBC username is not specified.");
