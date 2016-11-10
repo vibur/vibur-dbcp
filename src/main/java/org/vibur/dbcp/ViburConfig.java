@@ -214,7 +214,7 @@ public abstract class ViburConfig {
     private long connectionTimeoutInMs = 30000;
     /** The login timeout that will be set to the call to {@code DriverManager.setLoginTimeout()}
      * or {@code getExternalDataSource().setLoginTimeout()} during the initialization process of the DataSource. */
-    private int loginTimeoutInSeconds = 10;
+    private int loginTimeoutInSeconds = 5;
     /** After attempting to acquire a JDBC Connection and failing with an {@code SQLException},
      * wait for this long before attempting to acquire a new JDBC Connection again. */
     private long acquireRetryDelayInMs = 1000;
