@@ -289,7 +289,6 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
         forbidIllegalArgument(getConnectionTimeoutInMs() < 0);
         forbidIllegalArgument(getLoginTimeoutInSeconds() < 0);
         forbidIllegalArgument(getStatementCacheMaxSize() < 0 && getStatementCache() == null);
-        forbidIllegalArgument(getReducerTimeIntervalInSeconds() < 0 && getPoolReducer() == null);
         forbidIllegalArgument(getReducerTimeIntervalInSeconds() > 0 && getPoolReducerClass() == null && getPoolReducer() == null);
         forbidIllegalArgument(getReducerSamples() <= 0);
         forbidIllegalArgument(getConnectionIdleLimitInSeconds() >= 0 && getTestConnectionQuery() == null);
@@ -297,6 +296,7 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
         forbidIllegalArgument(isUseNetworkTimeout() && getNetworkTimeoutExecutor() == null);
         requireNonNull(getCriticalSQLStates());
         requireNonNull(getViburLogger());
+        requireNonNull(getConcurrentCollection());
 
         if (getPassword() == null) logger.warn("JDBC password is not specified.");
         if (getUsername() == null) logger.warn("JDBC username is not specified.");
