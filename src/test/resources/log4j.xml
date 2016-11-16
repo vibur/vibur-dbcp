@@ -8,12 +8,17 @@
         </layout>
     </appender>
 
-    <logger name="org.vibur.dbcp.proxy.AbstractInvocationHandler" additivity="false">
-        <level value="debug"/> <!-- set to trace to see all intercepted calls -->
-        <appender-ref ref="stdout"/>
-    </logger>
     <root>
         <priority value="debug"/>
         <appender-ref ref="stdout"/>
     </root>
+
+    <logger name="org.vibur.dbcp.proxy.AbstractInvocationHandler" additivity="false">
+        <level value="debug"/> <!-- set to trace to see all intercepted calls -->
+        <appender-ref ref="stdout"/>
+    </logger>
+    <logger name="org.vibur.dbcp.util.PoolOperations" additivity="false">
+        <level value="trace"/>
+        <appender-ref ref="stdout"/>
+    </logger>
 </log4j:configuration>

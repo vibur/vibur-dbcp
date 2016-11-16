@@ -38,7 +38,7 @@ public final class ViburUtils {
 
     public static String getPoolName(ViburConfig config) {
         BasePool pool = config.getPool();
-        return format("%s (%d/%d)", config.getName(), pool.taken(), pool.remainingCreated());
+        return format("%s@%h (%d/%d)", config.getName(), config.hashCode(), pool.taken(), pool.remainingCreated());
     }
 
     public static String getStackTraceAsString(StackTraceElement[] stackTrace) {

@@ -430,7 +430,9 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
     public Connection getNonPooledConnection(String username, String password) throws SQLException {
         validatePoolState(true);
         try {
-            return getConnectionFactory().create(buildConnector(this, username, password)).value();
+            Connection rawConnection = getConnectionFactory().create(buildConnector(this, username, password)).value();
+            logger.debug("Taking non-pooled {}", rawConnection);
+            return rawConnection;
         } catch (ViburDBCPException e) {
             return unwrapSQLException(e);
         }

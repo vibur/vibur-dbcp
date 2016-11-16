@@ -39,6 +39,7 @@ public interface ViburObjectFactory extends PoolObjectFactory<ConnHolder> {
      * Creates a new {@link ConnHolder} object using the given connector. This object is presumed to be
      * ready (and valid) for immediate use. This method <b>never</b> return {@code null}.
      *
+     * @param connector the JDBC connector; it contains the database credentials
      * @throws ViburDBCPException if cannot create or initialize the raw JDBC Connection(s)
      */
     ConnHolder create(Connector connector) throws ViburDBCPException;
