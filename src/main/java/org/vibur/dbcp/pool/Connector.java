@@ -31,7 +31,7 @@ public interface Connector {
 
     /**
      * Creates the physical (raw) JDBC connection to the database using the configured Driver or
-     * external DataSource.
+     * external DataSource, and the configured database credentials.
      *
      * @throws SQLException if the underlying SQL operation throws such
      */
