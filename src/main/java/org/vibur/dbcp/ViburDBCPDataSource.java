@@ -431,7 +431,7 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
         validatePoolState(true);
         try {
             Connection rawConnection = getConnectionFactory().create(buildConnector(this, username, password)).value();
-            logger.debug("Taking non-pooled {}", rawConnection);
+            logger.debug("Taking non-pooled rawConnection {}", rawConnection);
             return rawConnection;
         } catch (ViburDBCPException e) {
             return unwrapSQLException(e);

@@ -78,7 +78,7 @@ public class ConnectionFactory implements ViburObjectFactory {
             try {
                 rawConnection = requireNonNull(connector.connect());
             } catch (SQLException e) {
-                logger.debug("Couldn't create a java.sql.Connection, attempt {}", attempt, e);
+                logger.debug("Couldn't create rawConnection, attempt {}", attempt, e);
                 if (attempt++ >= config.getAcquireRetryAttempts())
                     throw new ViburDBCPException(e);
                 try {
@@ -98,14 +98,14 @@ public class ConnectionFactory implements ViburObjectFactory {
             quietClose(rawConnection);
             throw new ViburDBCPException(e);
         }
-        logger.debug("Created {}", rawConnection);
+        logger.debug("Created rawConnection {}", rawConnection);
         return prepareTracking(new ConnHolder(rawConnection, version(),
                 config.getConnectionIdleLimitInSeconds() >= 0 ? System.currentTimeMillis() : 0));
     }
 
     private void ensureInitialized(Connection rawConnection) throws SQLException {
         if (!validateConnection(rawConnection, config.getInitSQL(), config))
-            throw new SQLException("Couldn't initialize " + rawConnection, SQLSTATE_CONN_INIT_ERROR);
+            throw new SQLException("Couldn't initialize rawConnection " + rawConnection, SQLSTATE_CONN_INIT_ERROR);
     }
 
     @Override
@@ -127,7 +127,7 @@ public class ConnectionFactory implements ViburObjectFactory {
             prepareTracking(conn);
             return true;
         } catch (SQLException e) {
-            logger.debug("Couldn't validate {}", rawConnection, e);
+            logger.debug("Couldn't validate rawConnection {}", rawConnection, e);
             return false;
         }
     }
@@ -149,7 +149,7 @@ public class ConnectionFactory implements ViburObjectFactory {
                 conn.setRestoredTime(System.currentTimeMillis());
             return true;
         } catch (SQLException e) {
-            logger.debug("Couldn't reset {}", rawConnection, e);
+            logger.debug("Couldn't reset rawConnection {}", rawConnection, e);
             return false;
         }
     }
@@ -173,7 +173,7 @@ public class ConnectionFactory implements ViburObjectFactory {
     @Override
     public void destroy(ConnHolder conn) {
         Connection rawConnection = conn.value();
-        logger.debug("Destroying {}", rawConnection);
+        logger.debug("Destroying rawConnection {}", rawConnection);
         closeStatements(rawConnection);
 
         List<Hook.DestroyConnection> onDestroy = config.getConnHooks().onDestroy();

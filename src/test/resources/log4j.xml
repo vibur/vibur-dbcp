@@ -14,11 +14,16 @@
     </root>
 
     <logger name="org.vibur.dbcp.proxy.AbstractInvocationHandler" additivity="false">
-        <level value="debug"/> <!-- set to trace to see all intercepted calls -->
+        <level value="debug"/> <!-- set to trace to see all JDBC interfaces methods intercepted calls -->
         <appender-ref ref="stdout"/>
     </logger>
+
     <logger name="org.vibur.dbcp.util.PoolOperations" additivity="false">
-        <level value="trace"/>
+        <level value="trace"/> <!-- trace shows all take/restore operations on rawConnection from the pool -->
+        <appender-ref ref="stdout"/>
+    </logger>
+    <logger name="org.vibur.dbcp.pool.ConnectionFactory" additivity="false">
+        <level value="debug"/> <!-- debug shows all create/destroy operations on rawConnection by the factory -->
         <appender-ref ref="stdout"/>
     </logger>
 </log4j:configuration>
