@@ -812,15 +812,14 @@ public abstract class ViburConfig {
             ConnHolder connHolder = connHolders[i];
             long takenTime = connHolder.getTakenTime();
             Thread thread = connHolder.getThread();
-            builder.append(connHolder.value())
+            builder.append("\n============\n").append(connHolder.value())
                     .append(", taken at ").append(new Date(takenTime)).append(", as millis = ").append(takenTime)
                     .append(", held for ").append(now - takenTime)
                     .append("ms, by thread ").append(thread.getName()).append(", state ").append(thread.getState())
-                    .append("\nThread stack trace at the moment when getting the Connection:\n")
+                    .append("\n\nThread stack trace at the moment when getting the Connection:\n")
                     .append(getStackTraceAsString(connHolder.getLocation().getStackTrace()))
                     .append("\nThread stack trace at the current moment:\n")
-                    .append(getStackTraceAsString(thread.getStackTrace()))
-                    .append('\n');
+                    .append(getStackTraceAsString(thread.getStackTrace()));
         }
         return builder.toString();
     }

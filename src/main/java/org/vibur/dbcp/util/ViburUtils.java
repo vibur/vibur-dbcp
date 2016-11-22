@@ -45,12 +45,12 @@ public final class ViburUtils {
         int i;
         for (i = 0; i < stackTrace.length; i++) {
             if (!stackTrace[i].getClassName().startsWith("org.vibur")
-                || stackTrace[i].getClassName().endsWith("Test"))
+                || stackTrace[i].getMethodName().equals("getConnection"))
                 break;
         }
 
         StringBuilder builder = new StringBuilder(4096);
-        for ( ; i < stackTrace.length; i++)
+        for (i++ ; i < stackTrace.length; i++)
             builder.append("  at ").append(stackTrace[i]).append('\n');
         return builder.toString();
     }
