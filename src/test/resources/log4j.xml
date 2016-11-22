@@ -8,11 +8,6 @@
         </layout>
     </appender>
 
-    <root>
-        <priority value="debug"/>
-        <appender-ref ref="stdout"/>
-    </root>
-
     <logger name="org.vibur.dbcp.proxy.AbstractInvocationHandler" additivity="false">
         <level value="debug"/> <!-- set to trace to see all JDBC interfaces methods intercepted calls -->
         <appender-ref ref="stdout"/>
@@ -26,4 +21,9 @@
         <level value="debug"/> <!-- debug shows all create/destroy operations on rawConnection by the factory -->
         <appender-ref ref="stdout"/>
     </logger>
+
+    <root>
+        <priority value="debug"/>
+        <appender-ref ref="stdout"/>
+    </root>
 </log4j:configuration>

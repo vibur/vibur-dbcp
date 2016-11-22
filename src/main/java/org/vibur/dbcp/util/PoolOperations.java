@@ -93,7 +93,7 @@ public class PoolOperations {
             throw new SQLException(format("Pool %s, the poolService is terminated.", config.getName()), SQLSTATE_POOL_CLOSED_ERROR);
 
         if (config.isLogTakenConnectionsOnTimeout() && logger.isWarnEnabled())
-            logger.warn("Pool {}, couldn't obtain SQL connection within {}ms, full list of taken connections begins:\n{}",
+            logger.warn("Pool {}, couldn't obtain SQL connection within {}ms, full list of taken connections begins:\n\n{}",
                     getPoolName(config), timeout, config.takenConnectionsToString());
         throw new SQLTimeoutException(format("Pool %s, couldn't obtain SQL connection within %dms.",
                 getPoolName(config), timeout), SQLSTATE_TIMEOUT_ERROR, (int) timeout);
