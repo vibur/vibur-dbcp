@@ -1,5 +1,16 @@
-Version 12.0 (11/11/2016) - RECOMMENDED
+Version 13.0 (23/11/2016) - RECOMMENDED
 =======================================
+* Logging improvements in logTakenConnectionsOnTimeout: in case of Connections exhaustion this option will now
+  log not only the stacktrace of the threads that have taken the Connections as at the moment of their taking,
+  but also the current execution stacktrace of these threads, if the threads are still alive.
+* Various other logging improvements:
+  a) all logs created by ConnectionFactory class now contain rawConnection as part of the logged messages
+     which allows for easy filtering/grepping of such messages. These messages are logged at debug level.
+  b) added taking/restoring rawConnection messages to PoolOperations. These messages are logged at trace level.
+  c) added log message at debug level in ViburDBCPDataSource when taking non-pooled rawConnection.
+
+Version 12.0 (11/11/2016)
+=========================
 * Refactored/reimplemented the existing Connection and method invocation hooks in order to allow for multiple
   hook callbacks to be registered (and subsequently invoked) at a single hook invocation point.
   Also included the timeTaken for native JDBC Connection establishing/closing to be reported back to the hook.
