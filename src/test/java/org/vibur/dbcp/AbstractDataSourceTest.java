@@ -34,8 +34,10 @@ import java.util.Properties;
  */
 public abstract class AbstractDataSourceTest {
 
-    public static final String PROPERTIES_FILE = "src/test/resources/vibur-dbcp-test.properties";
-    public static final int POOL_INITIAL_SIZE = 2;
+    protected static final String PROPERTIES_FILE = "src/test/resources/vibur-dbcp-test.properties";
+    protected static final int POOL_INITIAL_SIZE = 2;
+    protected static final int POOL_MAX_SIZE = 10;
+    protected static final int CONNECTION_TIMEOUT_MS = 5000;
 
     private static String jdbcUrl;
     private static String username;
@@ -76,6 +78,9 @@ public abstract class AbstractDataSourceTest {
         dataSource.setPassword(password);
 
         dataSource.setPoolInitialSize(POOL_INITIAL_SIZE);
+        dataSource.setPoolMaxSize(POOL_MAX_SIZE);
+        dataSource.setConnectionTimeoutInMs(CONNECTION_TIMEOUT_MS);
+
         dataSource.setConnectionIdleLimitInSeconds(120);
 
         dataSource.setLogQueryExecutionLongerThanMs(0);
@@ -98,6 +103,9 @@ public abstract class AbstractDataSourceTest {
         dataSource.setPassword(password);
 
         dataSource.setPoolInitialSize(POOL_INITIAL_SIZE);
+        dataSource.setPoolMaxSize(POOL_MAX_SIZE);
+        dataSource.setConnectionTimeoutInMs(CONNECTION_TIMEOUT_MS);
+
         dataSource.setConnectionIdleLimitInSeconds(120);
 
         dataSource.setLogQueryExecutionLongerThanMs(0);
@@ -116,6 +124,9 @@ public abstract class AbstractDataSourceTest {
         dataSource.setPassword(password);
 
         dataSource.setPoolInitialSize(POOL_INITIAL_SIZE);
+        dataSource.setPoolMaxSize(POOL_MAX_SIZE);
+        dataSource.setConnectionTimeoutInMs(CONNECTION_TIMEOUT_MS);
+
         dataSource.setConnectionIdleLimitInSeconds(120);
 
         dataSource.setLogQueryExecutionLongerThanMs(1);
