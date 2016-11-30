@@ -92,11 +92,12 @@ public class PoolOperations {
         if (poolService.isTerminated())
             throw new SQLException(format("Pool %s, the poolService is terminated.", config.getName()), SQLSTATE_POOL_CLOSED_ERROR);
 
+        String poolName = getPoolName(config);
         if (config.isLogTakenConnectionsOnTimeout() && logger.isWarnEnabled())
             logger.warn("Pool {}, couldn't obtain SQL connection within {}ms, full list of taken connections begins:\n{}",
-                    getPoolName(config), timeout, config.takenConnectionsToString());
+                    poolName, timeout, config.takenConnectionsToString());
         throw new SQLTimeoutException(format("Pool %s, couldn't obtain SQL connection within %dms.",
-                getPoolName(config), timeout), SQLSTATE_TIMEOUT_ERROR, (int) timeout);
+                poolName, timeout), SQLSTATE_TIMEOUT_ERROR, (int) timeout);
     }
 
     public void restore(ConnHolder conn, boolean valid, List<Throwable> errors) {
