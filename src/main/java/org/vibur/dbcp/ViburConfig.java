@@ -807,7 +807,7 @@ public abstract class ViburConfig {
         });
 
         long now = System.currentTimeMillis();
-        StringBuilder builder = new StringBuilder(16384);
+        StringBuilder builder = new StringBuilder(65536);
         for (int i = 0; i < size; i++) {
             ConnHolder takenConn = takenConns[i];
             long takenTime = takenConn.getTakenTime();
