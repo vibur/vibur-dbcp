@@ -791,14 +791,14 @@ public abstract class ViburConfig {
             return "poolEnableConnectionTracking is disabled.";
 
         TakenListener<ConnHolder> listener = (TakenListener<ConnHolder>) getPool().listener();
-        ConnHolder[] connHolders = listener.getTaken(new ConnHolder[getPoolMaxSize()]);
+        ConnHolder[] takenConns = listener.getTaken(new ConnHolder[getPoolMaxSize()]);
 
         int size = 0;
-        while (size < connHolders.length && connHolders[size] != null)
+        while (size < takenConns.length && takenConns[size] != null)
             size++;
         if (size == 0)
             return "";
-        Arrays.sort(connHolders, 0, size, new Comparator<ConnHolder>() { // sort newest on top
+        Arrays.sort(takenConns, 0, size, new Comparator<ConnHolder>() { // sort newest on top
             @Override
             public int compare(ConnHolder h1, ConnHolder h2) {
                 long diff = h1.getTakenTime() - h2.getTakenTime();
@@ -809,17 +809,18 @@ public abstract class ViburConfig {
         long now = System.currentTimeMillis();
         StringBuilder builder = new StringBuilder(16384);
         for (int i = 0; i < size; i++) {
-            ConnHolder connHolder = connHolders[i];
-            long takenTime = connHolder.getTakenTime();
-            Thread thread = connHolder.getThread();
-            builder.append("\n============\n").append(connHolder.value())
+            ConnHolder takenConn = takenConns[i];
+            long takenTime = takenConn.getTakenTime();
+            Thread holdingThread = takenConn.getThread();
+            builder.append("\n============\n").append(takenConn.value())
                     .append(", taken at ").append(new Date(takenTime)).append(", as millis = ").append(takenTime)
                     .append(", held for ").append(now - takenTime)
-                    .append("ms, by thread ").append(thread.getName()).append(", state ").append(thread.getState())
+                    .append("ms, by thread ").append(holdingThread.getName())
+                    .append(", state ").append(holdingThread.getState())
                     .append("\n\nThread stack trace at the moment when getting the Connection:\n")
-                    .append(getStackTraceAsString(connHolder.getLocation().getStackTrace()))
+                    .append(getStackTraceAsString(takenConn.getLocation().getStackTrace()))
                     .append("\nThread stack trace at the current moment:\n")
-                    .append(getStackTraceAsString(thread.getStackTrace()));
+                    .append(getStackTraceAsString(holdingThread.getStackTrace()));
         }
         return builder.toString();
     }
