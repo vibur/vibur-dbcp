@@ -349,9 +349,6 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
                 throw new ViburDBCPException(e);
             }
         }
-
-        if (getDriverProperties() == null)
-            setDriverProperties(new Properties());
     }
 
     private void initPoolReducer() throws ViburDBCPException {
