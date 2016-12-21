@@ -20,8 +20,6 @@ package org.vibur.dbcp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.cache.StatementCache;
-import org.vibur.dbcp.event.BaseViburLogger;
-import org.vibur.dbcp.event.ViburLogger;
 import org.vibur.dbcp.pool.*;
 import org.vibur.dbcp.proxy.InvocationHooksHolder;
 import org.vibur.objectpool.PoolService;

@@ -16,12 +16,12 @@
 
 package org.vibur.dbcp.proxy;
 
-import org.vibur.dbcp.event.Hook;
+import org.vibur.dbcp.pool.Hook;
 
-import java.util.ArrayList;
 import java.util.List;
 
-import static java.util.Collections.EMPTY_LIST;
+import static java.util.Collections.emptyList;
+import static org.vibur.dbcp.pool.Hook.Util.addHook;
 
 /**
  * Holds all programming method invocation hooks collections.
@@ -37,35 +37,26 @@ public class InvocationHooksHolder {
      * proxied JDBC interfaces. Methods inherited from the {@link Object} class, methods related to the "closed" state
      * of the JDBC objects (e.g., close(), isClosed()), as well as methods from the {@link java.sql.Wrapper} interface
      * are not intercepted. The hooks execution should take as short time as possible. */
-    @SuppressWarnings("unchecked")
-    private List<Hook.MethodInvocation> onMethodInvocation = EMPTY_LIST;
+    private List<Hook.MethodInvocation> onMethodInvocation = emptyList();
 
     /** A list of programming {@linkplain Hook.StatementExecution#on hooks} that will be invoked after each JDBC
      * Statement "execute..." method call returns. Their execution should take as short time as possible. */
-    @SuppressWarnings("unchecked")
-    private List<Hook.StatementExecution> onStatementExecution = EMPTY_LIST;
+    private List<Hook.StatementExecution> onStatementExecution = emptyList();
 
     /** A list of programming {@linkplain Hook.ResultSetRetrieval#on hooks} that will be invoked at the end of each
      * ResultSet retrieval. Their execution should take as short time as possible. */
-    @SuppressWarnings("unchecked")
-    private List<Hook.ResultSetRetrieval> onResultSetRetrieval = EMPTY_LIST;
+    private List<Hook.ResultSetRetrieval> onResultSetRetrieval = emptyList();
 
     public void addOnMethodInvocation(Hook.MethodInvocation hook) {
-        if (onMethodInvocation == EMPTY_LIST)
-            onMethodInvocation = new ArrayList<>();
-        onMethodInvocation.add(hook);
+        onMethodInvocation = addHook(onMethodInvocation, hook);
     }
 
     public void addOnStatementExecution(Hook.StatementExecution hook) {
-        if (onStatementExecution == EMPTY_LIST)
-            onStatementExecution = new ArrayList<>();
-        onStatementExecution.add(hook);
+        onStatementExecution = addHook(onStatementExecution, hook);
     }
 
     public void addOnResultSetRetrieval(Hook.ResultSetRetrieval hook) {
-        if (onResultSetRetrieval == EMPTY_LIST)
-            onResultSetRetrieval = new ArrayList<>();
-        onResultSetRetrieval.add(hook);
+        onResultSetRetrieval = addHook(onResultSetRetrieval, hook);
     }
 
     List<Hook.MethodInvocation> onMethodInvocation() {

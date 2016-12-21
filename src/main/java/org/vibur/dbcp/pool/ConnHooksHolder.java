@@ -16,13 +16,11 @@
 
 package org.vibur.dbcp.pool;
 
-import org.vibur.dbcp.event.Hook;
-
 import javax.sql.DataSource;
-import java.util.ArrayList;
 import java.util.List;
 
-import static java.util.Collections.EMPTY_LIST;
+import static java.util.Collections.emptyList;
+import static org.vibur.dbcp.pool.Hook.Util.addHook;
 
 /**
  * Holds all programming Connection hooks collections.
@@ -36,48 +34,34 @@ public class ConnHooksHolder {
 
     /** A list of programming {@linkplain Hook.InitConnection#on hooks} that will be invoked only once when
      * the raw JDBC Connection is first created. Their execution should take as short time as possible. */
-    @SuppressWarnings("unchecked")
-    private List<Hook.InitConnection> onInit = EMPTY_LIST;
+    private List<Hook.InitConnection> onInit = emptyList();
 
-    /** A list of programming {@linkplain Hook.GetConnection#on hooks} that will be invoked on the raw JDBC
-     * Connection as part of the {@link DataSource#getConnection()} flow. Their execution should take as short time as
-     * possible. */
-    @SuppressWarnings("unchecked")
-    private List<Hook.GetConnection> onGet = EMPTY_LIST;
+    /** A list of programming {@linkplain Hook.GetConnection#on hooks} that will be invoked on the raw JDBC Connection
+     * as part of the {@link DataSource#getConnection()} flow. Their execution should take as short time as possible. */
+    private List<Hook.GetConnection> onGet = emptyList();
 
-    /** A list of programming {@linkplain Hook.CloseConnection#on hooks} that will be invoked on the raw JDBC
-     * Connection as part of the {@link java.sql.Connection#close()} flow. Their execution should take as short time as
-     * possible. */
-    @SuppressWarnings("unchecked")
-    private List<Hook.CloseConnection> onClose = EMPTY_LIST;
+    /** A list of programming {@linkplain Hook.CloseConnection#on hooks} that will be invoked on the raw JDBC Connection
+     * as part of the {@link java.sql.Connection#close()} flow. Their execution should take as short time as possible. */
+    private List<Hook.CloseConnection> onClose = emptyList();
 
     /** A list of programming {@linkplain Hook.DestroyConnection#on hooks} that will be invoked only once when
      * the raw JDBC Connection is closed/destroyed. Their execution should take as short time as possible. */
-    @SuppressWarnings("unchecked")
-    private List<Hook.DestroyConnection> onDestroy = EMPTY_LIST;
+    private List<Hook.DestroyConnection> onDestroy = emptyList();
 
     public void addOnInit(Hook.InitConnection hook) {
-        if (onInit == EMPTY_LIST)
-            onInit = new ArrayList<>();
-        onInit.add(hook);
+        onInit = addHook(onInit, hook);
     }
 
     public void addOnGet(Hook.GetConnection hook) {
-        if (onGet == EMPTY_LIST)
-            onGet = new ArrayList<>();
-        onGet.add(hook);
+        onGet = addHook(onGet, hook);
     }
 
     public void addOnClose(Hook.CloseConnection hook) {
-        if (onClose == EMPTY_LIST)
-            onClose = new ArrayList<>();
-        onClose.add(hook);
+        onClose = addHook(onClose, hook);
     }
 
     public void addOnDestroy(Hook.DestroyConnection hook) {
-        if (onDestroy == EMPTY_LIST)
-            onDestroy = new ArrayList<>();
-        onDestroy.add(hook);
+        onDestroy = addHook(onDestroy, hook);
     }
 
     List<Hook.InitConnection> onInit() {

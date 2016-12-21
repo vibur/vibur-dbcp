@@ -21,8 +21,7 @@ import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.ViburConfig;
 import org.vibur.dbcp.cache.StatementCache;
 import org.vibur.dbcp.cache.StatementHolder;
-import org.vibur.dbcp.event.Hook;
-import org.vibur.dbcp.pool.ConnHooksHolder;
+import org.vibur.dbcp.pool.Hook;
 
 import java.lang.reflect.Method;
 import java.sql.Connection;
@@ -48,7 +47,6 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
     private final ViburConfig config;
 
     private final InvocationHooksHolder invocationHooks;
-//    private final boolean logSlowQuery;
     private final boolean logQueryParams;
     private final List<Object[]> queryParams;
 
@@ -59,7 +57,6 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
         this.statementCache = statementCache;
         this.config = config;
         this.invocationHooks = config.getInvocationHooks();
-//        this.logSlowQuery = config.getLogQueryExecutionLongerThanMs() >= 0;
         this.logQueryParams = config.isIncludeQueryParameters() &&
                 (config.getLogQueryExecutionLongerThanMs() >= 0 || config.getLogLargeResultSet() >= 0);
         this.queryParams = logQueryParams ? new ArrayList<Object[]>() : null;
@@ -134,7 +131,6 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
      * Mainly exists to provide Statement.execute... methods timing logging.
      */
     private Object processExecute(Statement proxy, Method method, Object[] args) throws Throwable {
-//        long startTime = logSlowQuery ? System.currentTimeMillis() : 0L;
         List<Hook.StatementExecution> onStatementExecution = invocationHooks.onStatementExecution();
         long startTime = onStatementExecution.isEmpty() ? 0 : System.nanoTime();
 
@@ -151,8 +147,6 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
                 for (Hook.StatementExecution hook : onStatementExecution)
                     hook.on(getSqlQuery(proxy, args), queryParams, timeTaken);
             }
-//            if (logSlowQuery)
-//                logQuery(proxy, args, startTime);
         }
     }
 
@@ -167,12 +161,4 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
         System.arraycopy(args, 0, params, 1, args.length);
         queryParams.add(params);
     }
-
-//    private void logQuery(Statement proxy, Object[] args, long startTime) {
-//        long timeTaken = System.currentTimeMillis() - startTime;
-//        if (timeTaken >= config.getLogQueryExecutionLongerThanMs())
-//            config.getViburLogger().logQuery(
-//                    getPoolName(config), getSqlQuery(proxy, args), queryParams, timeTaken,
-//                    config.isLogStackTraceForLongQueryExecution() ? new Throwable().getStackTrace() : null);
-//    }
 }

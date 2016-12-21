@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.vibur.dbcp.event;
+package org.vibur.dbcp;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,26 +48,5 @@ public class BaseViburLogger implements ViburLogger {
         if (stackTrace != null)
             log.append('\n').append(getStackTraceAsString(stackTrace));
         logger.warn(log.toString());
-    }
-
-    @Override
-    public void logQuery(String poolName, String sqlQuery, List<Object[]> queryParams, long timeTaken,
-                         StackTraceElement[] stackTrace) {
-        StringBuilder message = new StringBuilder(4096).append(format("SQL query execution from pool %s took %d ms:\n%s",
-                poolName, timeTaken, formatSql(sqlQuery, queryParams)));
-        if (stackTrace != null)
-            message.append("\n").append(getStackTraceAsString(stackTrace));
-        logger.warn(message.toString());
-    }
-
-    @Override
-    public void logResultSetSize(String poolName, String sqlQuery, List<Object[]> queryParams, long resultSetSize,
-                                 StackTraceElement[] stackTrace) {
-        StringBuilder message = new StringBuilder(4096).append(
-                format("SQL query execution from pool %s retrieved a ResultSet with size %d:\n%s",
-                        poolName, resultSetSize, formatSql(sqlQuery, queryParams)));
-        if (stackTrace != null)
-            message.append("\n").append(getStackTraceAsString(stackTrace));
-        logger.warn(message.toString());
     }
 }

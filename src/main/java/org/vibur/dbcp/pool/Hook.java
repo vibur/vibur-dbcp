@@ -14,14 +14,18 @@
  * limitations under the License.
  */
 
-package org.vibur.dbcp.event;
+package org.vibur.dbcp.pool;
 
 import org.vibur.dbcp.ViburConfig;
 
 import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
+
+import static java.util.Collections.EMPTY_LIST;
+import static java.util.Objects.requireNonNull;
 
 /**
  * An interface that holds all application programming hook interfaces for JDBC Connection tune-up and method 
@@ -39,7 +43,7 @@ public interface Hook {
     ////////////////////
     // Connection hooks:
 
-    interface InitConnection {
+    interface InitConnection extends Hook {
         /**
          * A programming hook that will be invoked only once when the raw JDBC Connection is first created. 
          * Its execution should take as short time as possible.
@@ -51,7 +55,7 @@ public interface Hook {
         void on(Connection rawConnection, long takenNanos) throws SQLException;
     }
 
-    interface GetConnection {
+    interface GetConnection extends Hook {
         /**
          * A programming hook that will be invoked on the raw JDBC Connection as part of the 
          * {@link javax.sql.DataSource#getConnection()} flow. Its execution should take as short time as possible.
@@ -62,7 +66,7 @@ public interface Hook {
         void on(Connection rawConnection) throws SQLException;
     }
 
-    interface CloseConnection {
+    interface CloseConnection extends Hook {
         /**
          * A programming hook that will be invoked on the raw JDBC Connection as part of the 
          * {@link Connection#close()} flow. Its execution should take as short time as possible.
@@ -73,7 +77,7 @@ public interface Hook {
         void on(Connection rawConnection) throws SQLException;
     }
 
-    interface DestroyConnection {
+    interface DestroyConnection extends Hook {
         /**
          * A programming hook that will be invoked only once when the raw JDBC Connection is closed/destroyed. 
          * Its execution should take as short time as possible.
@@ -87,7 +91,7 @@ public interface Hook {
     ////////////////////
     // Invocation hooks:
 
-    interface MethodInvocation {
+    interface MethodInvocation extends Hook {
         /**
          * An application hook that will be invoked when a method on any of the proxied JDBC interfaces is invoked.
          * The execution of this hook should take as short time as possible.
@@ -100,7 +104,7 @@ public interface Hook {
         void on(Object proxy, Method method, Object[] args) throws SQLException;
     }
 
-    interface StatementExecution {
+    interface StatementExecution extends Hook {
         /**
          * An application hook that will be invoked after each JDBC Statement "execute..." method call returns.
          * Its execution should take as short time as possible.
@@ -114,7 +118,7 @@ public interface Hook {
         void on(String sqlQuery, List<Object[]> queryParams, long takenNanos);
     }
 
-    interface ResultSetRetrieval {
+    interface ResultSetRetrieval extends Hook {
         /**
          * An application hook that will be invoked at the end of each ResultSet retrieval. For implementation details
          * see the comments for {@link ViburConfig#logLargeResultSet}. Its execution should take as short time
@@ -126,5 +130,21 @@ public interface Hook {
          * @param resultSetSize the retrieved ResultSet size
          */
         void on(String sqlQuery, List<Object[]> queryParams, long resultSetSize);
+    }
+
+    ///////////////
+    // Hooks utils:
+
+    final class Util {
+
+        private Util() {}
+
+        public static <T extends Hook> List<T> addHook(List<T> hooks, T hook) {
+            requireNonNull(hook);
+            if (hooks == EMPTY_LIST)
+                hooks = new ArrayList<>();
+            hooks.add(hook);
+            return hooks;
+        }
     }
 }

@@ -21,7 +21,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.ViburConfig;
 import org.vibur.dbcp.ViburDBCPException;
-import org.vibur.dbcp.event.Hook;
 
 import java.sql.Connection;
 import java.sql.SQLException;

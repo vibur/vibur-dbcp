@@ -17,6 +17,7 @@
 package org.vibur.dbcp.proxy;
 
 import org.vibur.dbcp.ViburConfig;
+import org.vibur.dbcp.pool.Hook;
 
 import java.lang.reflect.Method;
 import java.sql.ResultSet;
@@ -25,7 +26,6 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static org.vibur.dbcp.util.QueryUtils.getSqlQuery;
-import static org.vibur.dbcp.util.ViburUtils.getPoolName;
 
 /**
  * @author Simeon Malchev
@@ -34,9 +34,8 @@ class ResultSetInvocationHandler extends ChildObjectInvocationHandler<Statement,
 
     private final Object[] executeMethodArgs;
     private final List<Object[]> queryParams;
-    private final ViburConfig config;
+    private final InvocationHooksHolder invocationHooks;
 
-    private final boolean logLargeResult;
     private final AtomicLong resultSetSize = new AtomicLong(0);
 
     ResultSetInvocationHandler(ResultSet rawResultSet, Statement statementProxy,
@@ -45,8 +44,7 @@ class ResultSetInvocationHandler extends ChildObjectInvocationHandler<Statement,
         super(rawResultSet, statementProxy, "getStatement", config, exceptionCollector);
         this.executeMethodArgs = executeMethodArgs;
         this.queryParams = queryParams;
-        this.config = config;
-        this.logLargeResult = config.getLogLargeResultSet() >= 0;
+        this.invocationHooks = config.getInvocationHooks();
     }
 
     @Override
@@ -79,16 +77,11 @@ class ResultSetInvocationHandler extends ChildObjectInvocationHandler<Statement,
     private Object processClose(Method method, Object[] args) throws Throwable {
         if (!close())
             return null;
-        if (logLargeResult)
-            logResultSetSize();
-        return targetInvoke(method, args);
-    }
 
-    private void logResultSetSize() {
         long size = resultSetSize.get() - 1;
-        if (config.getLogLargeResultSet() <= size)
-            config.getViburLogger().logResultSetSize(
-                    getPoolName(config), getSqlQuery(getParentProxy(), executeMethodArgs), queryParams, size,
-                    config.isLogStackTraceForLargeResultSet() ? new Throwable().getStackTrace() : null);
+        for (Hook.ResultSetRetrieval hook : invocationHooks.onResultSetRetrieval())
+            hook.on(getSqlQuery(getParentProxy(), executeMethodArgs), queryParams, size);
+
+        return targetInvoke(method, args);
     }
 }

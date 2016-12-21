@@ -182,7 +182,6 @@
                         <Export-Package>
                             org.vibur.dbcp,
                             org.vibur.dbcp.cache,
-                            org.vibur.dbcp.event,
                             org.vibur.dbcp.pool
                         </Export-Package>
                         <Import-Package>
