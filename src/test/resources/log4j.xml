@@ -13,7 +13,7 @@
         <appender-ref ref="stdout"/>
     </logger>
 
-    <logger name="org.vibur.dbcp.util.PoolOperations" additivity="false">
+    <logger name="org.vibur.dbcp.pool.PoolOperations" additivity="false">
         <level value="trace"/> <!-- trace shows all take/restore operations on rawConnection from the pool -->
         <appender-ref ref="stdout"/>
     </logger>

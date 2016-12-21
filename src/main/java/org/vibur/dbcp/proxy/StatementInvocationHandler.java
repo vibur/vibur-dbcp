@@ -21,6 +21,8 @@ import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.ViburConfig;
 import org.vibur.dbcp.cache.StatementCache;
 import org.vibur.dbcp.cache.StatementHolder;
+import org.vibur.dbcp.event.Hook;
+import org.vibur.dbcp.pool.ConnHooksHolder;
 
 import java.lang.reflect.Method;
 import java.sql.Connection;
@@ -45,19 +47,21 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
     private final StatementCache statementCache;
     private final ViburConfig config;
 
-    private final boolean logSlowQuery;
+    private final InvocationHooksHolder invocationHooks;
+//    private final boolean logSlowQuery;
     private final boolean logQueryParams;
     private final List<Object[]> queryParams;
 
     StatementInvocationHandler(StatementHolder statement, StatementCache statementCache, Connection connProxy,
                                ViburConfig config, ExceptionCollector exceptionCollector) {
         super(statement.value(), connProxy, "getConnection", config, exceptionCollector);
-        this.config = config;
         this.statement = statement;
         this.statementCache = statementCache;
-        this.logSlowQuery = config.getLogQueryExecutionLongerThanMs() >= 0;
-        boolean logLargeResult = config.getLogLargeResultSet() >= 0;
-        this.logQueryParams = config.isIncludeQueryParameters() && (logSlowQuery || logLargeResult);
+        this.config = config;
+        this.invocationHooks = config.getInvocationHooks();
+//        this.logSlowQuery = config.getLogQueryExecutionLongerThanMs() >= 0;
+        this.logQueryParams = config.isIncludeQueryParameters() &&
+                (config.getLogQueryExecutionLongerThanMs() >= 0 || config.getLogLargeResultSet() >= 0);
         this.queryParams = logQueryParams ? new ArrayList<Object[]>() : null;
     }
 
@@ -130,7 +134,9 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
      * Mainly exists to provide Statement.execute... methods timing logging.
      */
     private Object processExecute(Statement proxy, Method method, Object[] args) throws Throwable {
-        long startTime = logSlowQuery ? System.currentTimeMillis() : 0L;
+//        long startTime = logSlowQuery ? System.currentTimeMillis() : 0L;
+        List<Hook.StatementExecution> onStatementExecution = invocationHooks.onStatementExecution();
+        long startTime = onStatementExecution.isEmpty() ? 0 : System.nanoTime();
 
         try {
             // executeQuery result has to be proxied so that when getStatement() is called
@@ -140,8 +146,13 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
 
             return targetInvoke(method, args); // the real "execute..." call
         } finally {
-            if (logSlowQuery)
-                logQuery(proxy, args, startTime);
+            if (!onStatementExecution.isEmpty()) {
+                long timeTaken = System.nanoTime() - startTime;
+                for (Hook.StatementExecution hook : onStatementExecution)
+                    hook.on(getSqlQuery(proxy, args), queryParams, timeTaken);
+            }
+//            if (logSlowQuery)
+//                logQuery(proxy, args, startTime);
         }
     }
 
@@ -157,11 +168,11 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
         queryParams.add(params);
     }
 
-    private void logQuery(Statement proxy, Object[] args, long startTime) {
-        long timeTaken = System.currentTimeMillis() - startTime;
-        if (timeTaken >= config.getLogQueryExecutionLongerThanMs())
-            config.getViburLogger().logQuery(
-                    getPoolName(config), getSqlQuery(proxy, args), queryParams, timeTaken,
-                    config.isLogStackTraceForLongQueryExecution() ? new Throwable().getStackTrace() : null);
-    }
+//    private void logQuery(Statement proxy, Object[] args, long startTime) {
+//        long timeTaken = System.currentTimeMillis() - startTime;
+//        if (timeTaken >= config.getLogQueryExecutionLongerThanMs())
+//            config.getViburLogger().logQuery(
+//                    getPoolName(config), getSqlQuery(proxy, args), queryParams, timeTaken,
+//                    config.isLogStackTraceForLongQueryExecution() ? new Throwable().getStackTrace() : null);
+//    }
 }

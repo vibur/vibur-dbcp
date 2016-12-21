@@ -49,6 +49,7 @@ public class ConnectionFactory implements ViburObjectFactory {
     private static final Logger logger = LoggerFactory.getLogger(ConnectionFactory.class);
 
     private final ViburConfig config;
+    private final ConnHooksHolder connHooks;
     private final AtomicInteger version = new AtomicInteger(1);
 
     /**
@@ -59,6 +60,7 @@ public class ConnectionFactory implements ViburObjectFactory {
      */
     public ConnectionFactory(ViburConfig config) throws ViburDBCPException {
         this.config = config;
+        this.connHooks = config.getConnHooks();
         initLoginTimeout(config);
     }
 
@@ -69,7 +71,7 @@ public class ConnectionFactory implements ViburObjectFactory {
 
     @Override
     public ConnHolder create(Connector connector) throws ViburDBCPException {
-        List<Hook.InitConnection> onInit = config.getConnHooks().onInit();
+        List<Hook.InitConnection> onInit = connHooks.onInit();
         long startTime = onInit.isEmpty() ? 0 : System.nanoTime();
 
         int attempt = 0;
@@ -87,11 +89,13 @@ public class ConnectionFactory implements ViburObjectFactory {
                 }
             }
         }
-        long timeTaken = onInit.isEmpty() ? 0 : System.nanoTime() - startTime;
 
         try {
-            for (Hook.InitConnection hook : onInit)
-                hook.on(rawConnection, timeTaken);
+            if (!onInit.isEmpty()) {
+                long timeTaken = System.nanoTime() - startTime;
+                for (Hook.InitConnection hook : onInit)
+                    hook.on(rawConnection, timeTaken);
+            }
             ensureInitialized(rawConnection);
             setDefaultValues(rawConnection, config);
         } catch (SQLException e) {
@@ -121,7 +125,7 @@ public class ConnectionFactory implements ViburObjectFactory {
                 if (idle >= idleLimit && !validateConnection(rawConnection, config.getTestConnectionQuery(), config))
                     return false;
             }
-            for (Hook.GetConnection hook : config.getConnHooks().onGet())
+            for (Hook.GetConnection hook : connHooks.onGet())
                 hook.on(rawConnection);
 
             prepareTracking(conn);
@@ -138,7 +142,7 @@ public class ConnectionFactory implements ViburObjectFactory {
 
         Connection rawConnection = conn.value();
         try {
-            for (Hook.CloseConnection hook : config.getConnHooks().onClose())
+            for (Hook.CloseConnection hook : connHooks.onClose())
                 hook.on(rawConnection);
             if (config.isClearSQLWarnings())
                 clearWarnings(rawConnection);
@@ -176,7 +180,7 @@ public class ConnectionFactory implements ViburObjectFactory {
         logger.debug("Destroying rawConnection {}", rawConnection);
         closeStatements(rawConnection);
 
-        List<Hook.DestroyConnection> onDestroy = config.getConnHooks().onDestroy();
+        List<Hook.DestroyConnection> onDestroy = connHooks.onDestroy();
         long startTime = onDestroy.isEmpty() ? 0 : System.nanoTime();
 
         quietClose(rawConnection);

@@ -23,7 +23,7 @@ import org.vibur.dbcp.cache.StatementCache;
 import org.vibur.dbcp.event.BaseViburLogger;
 import org.vibur.dbcp.event.ViburLogger;
 import org.vibur.dbcp.pool.*;
-import org.vibur.dbcp.proxy.MethodHooksHolder;
+import org.vibur.dbcp.proxy.InvocationHooksHolder;
 import org.vibur.objectpool.PoolService;
 import org.vibur.objectpool.util.ConcurrentCollection;
 import org.vibur.objectpool.util.ConcurrentLinkedDequeCollection;
@@ -334,7 +334,7 @@ public abstract class ViburConfig {
      * thread-safe for modifications; the hooks must be registered only once at pool creation/setup time,
      * before the pool is started.
      */
-    private final MethodHooksHolder methodHooks = new MethodHooksHolder();
+    private final InvocationHooksHolder invocationHooks = new InvocationHooksHolder();
 
     /** Provides access to the functionality for logging of long lasting getConnection() calls, slow SQL queries,
      * and large ResultSets. Setting this parameter to a sub-class of {@link BaseViburLogger} will allow the
@@ -774,8 +774,8 @@ public abstract class ViburConfig {
         return connHooks;
     }
 
-    public MethodHooksHolder getMethodHooks() {
-        return methodHooks;
+    public InvocationHooksHolder getInvocationHooks() {
+        return invocationHooks;
     }
 
     public ViburLogger getViburLogger() {

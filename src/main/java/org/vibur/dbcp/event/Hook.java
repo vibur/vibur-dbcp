@@ -16,9 +16,12 @@
 
 package org.vibur.dbcp.event;
 
+import org.vibur.dbcp.ViburConfig;
+
 import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.List;
 
 /**
  * An interface that holds all application programming hook interfaces for JDBC Connection tune-up and method 
@@ -32,6 +35,9 @@ import java.sql.SQLException;
  * @author Simeon Malchev
  */
 public interface Hook {
+
+    ////////////////////
+    // Connection hooks:
 
     interface InitConnection {
         /**
@@ -78,11 +84,13 @@ public interface Hook {
         void on(Connection rawConnection, long takenNanos);
     }
 
+    ////////////////////
+    // Invocation hooks:
 
     interface MethodInvocation {
         /**
          * An application hook that will be invoked when a method on any of the proxied JDBC interfaces is invoked.
-         * The execution of this method should take as short time as possible.
+         * The execution of this hook should take as short time as possible.
          *
          * @param proxy the proxy instance that the method was invoked on
          * @param method the invoked method
@@ -90,5 +98,33 @@ public interface Hook {
          * @throws SQLException to indicate that a SQL error has occurred
          */
         void on(Object proxy, Method method, Object[] args) throws SQLException;
+    }
+
+    interface StatementExecution {
+        /**
+         * An application hook that will be invoked after each JDBC Statement "execute..." method call returns.
+         * Its execution should take as short time as possible.
+         *
+         * @param sqlQuery the executed SQL query or prepared/callable SQL statement
+         * @param queryParams the executed SQL query params if {@link ViburConfig#includeQueryParameters} is enabled,
+         *                    {@code null} otherwise
+         * @param takenNanos the time taken by the executed SQL query to complete in nanoseconds; also see the comments
+         *                   for {@link ViburConfig#logQueryExecutionLongerThanMs}
+         */
+        void on(String sqlQuery, List<Object[]> queryParams, long takenNanos);
+    }
+
+    interface ResultSetRetrieval {
+        /**
+         * An application hook that will be invoked at the end of each ResultSet retrieval. For implementation details
+         * see the comments for {@link ViburConfig#logLargeResultSet}. Its execution should take as short time
+         * as possible.
+         *
+         * @param sqlQuery the executed SQL query or prepared/callable SQL statement
+         * @param queryParams the executed SQL query params if {@link ViburConfig#includeQueryParameters} is enabled,
+         *                    {@code null} otherwise
+         * @param resultSetSize the retrieved ResultSet size
+         */
+        void on(String sqlQuery, List<Object[]> queryParams, long resultSetSize);
     }
 }

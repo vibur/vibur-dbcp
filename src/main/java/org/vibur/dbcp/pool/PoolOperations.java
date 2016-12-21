@@ -14,15 +14,12 @@
  * limitations under the License.
  */
 
-package org.vibur.dbcp.util;
+package org.vibur.dbcp.pool;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.ViburConfig;
 import org.vibur.dbcp.ViburDBCPException;
-import org.vibur.dbcp.pool.ConnHolder;
-import org.vibur.dbcp.pool.ConnectionFactory;
-import org.vibur.dbcp.pool.ViburObjectFactory;
 import org.vibur.objectpool.PoolService;
 
 import java.sql.Connection;

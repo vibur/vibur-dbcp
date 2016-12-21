@@ -18,11 +18,12 @@ package org.vibur.dbcp;
 
 import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.cache.ClhmStatementCache;
+import org.vibur.dbcp.event.Hook;
 import org.vibur.dbcp.pool.ConnHolder;
 import org.vibur.dbcp.pool.ConnectionFactory;
 import org.vibur.dbcp.pool.ViburObjectFactory;
 import org.vibur.dbcp.proxy.ConnectionInvocationHandler;
-import org.vibur.dbcp.util.PoolOperations;
+import org.vibur.dbcp.pool.PoolOperations;
 import org.vibur.objectpool.ConcurrentPool;
 import org.vibur.objectpool.PoolService;
 import org.vibur.objectpool.util.TakenListener;
@@ -39,6 +40,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.sql.*;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -56,7 +58,9 @@ import static org.vibur.dbcp.ViburDataSource.State.*;
 import static org.vibur.dbcp.ViburMonitoring.registerMBean;
 import static org.vibur.dbcp.ViburMonitoring.unregisterMBean;
 import static org.vibur.dbcp.pool.Connector.Builder.buildConnector;
+import static org.vibur.dbcp.util.QueryUtils.formatSql;
 import static org.vibur.dbcp.util.ViburUtils.getPoolName;
+import static org.vibur.dbcp.util.ViburUtils.getStackTraceAsString;
 import static org.vibur.dbcp.util.ViburUtils.unwrapSQLException;
 import static org.vibur.objectpool.util.ArgumentValidation.forbidIllegalArgument;
 
@@ -248,6 +252,25 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
 
         initPoolReducer();
         initStatementCache();
+
+        if (getLogQueryExecutionLongerThanMs() >= 0) {
+            getInvocationHooks().addOnStatementExecution(new Hook.StatementExecution() {
+                @Override
+                public void on(String sqlQuery, List<Object[]> queryParams, long takenNanos) {
+                    double takenMillis = takenNanos / 1000000.0;
+                    if (takenMillis < getLogQueryExecutionLongerThanMs())
+                        return;
+
+                    String poolName = getPoolName(ViburDBCPDataSource.this);
+                    StringBuilder message = new StringBuilder(4096)
+                            .append(format("SQL query execution from pool %s took %f ms:\n%s",
+                                    poolName, takenMillis, formatSql(sqlQuery, queryParams)));
+                    if (isLogStackTraceForLongQueryExecution())
+                        message.append("\n").append(getStackTraceAsString(new Throwable().getStackTrace()));
+                    logger.warn(message.toString());
+                }
+            });
+        }
 
         if (isEnableJMX())
             registerMBean(this);
