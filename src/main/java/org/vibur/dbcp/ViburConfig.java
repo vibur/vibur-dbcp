@@ -794,10 +794,9 @@ public abstract class ViburConfig {
         StringBuilder builder = new StringBuilder(65536);
         for (int i = 0; i < size; i++) {
             ConnHolder takenConn = takenConns[i];
-            long takenNanoTime = takenConn.getTakenNanoTime();
             Thread holdingThread = takenConn.getThread();
             builder.append("\n============\n").append(takenConn.value())
-                    .append(", held for ").append(NANOSECONDS.toMillis(currentNanoTime - takenNanoTime))
+                    .append(", held for ").append(NANOSECONDS.toMillis(currentNanoTime - takenConn.getTakenNanoTime()))
                     .append(" ms, by thread ").append(holdingThread.getName())
                     .append(", state ").append(holdingThread.getState())
                     .append("\n\nThread stack trace at the moment when getting the Connection:\n")
