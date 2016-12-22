@@ -31,6 +31,7 @@ import static org.vibur.dbcp.util.ViburUtils.getStackTraceAsString;
 
 /**
  * Vibur logging implementation of long lasting getConnection() calls, slow SQL queries, and large ResultSets.
+ * The implementation is based on and utilizes the respective programming hooks.
  *
  * @author Simeon Malchev
  */
