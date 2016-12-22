@@ -88,9 +88,9 @@ public class PoolOperations {
 
             String poolName = getPoolName(config);
             if (config.isLogTakenConnectionsOnTimeout() && logger.isWarnEnabled())
-                logger.warn("Pool {}, couldn't obtain SQL connection within {}ms, full list of taken connections begins:\n{}",
+                logger.warn("Pool {}, couldn't obtain SQL connection within {} ms, full list of taken connections begins:\n{}",
                         poolName, timeout, config.takenConnectionsToString());
-            throw new SQLTimeoutException(format("Pool %s, couldn't obtain SQL connection within %dms.",
+            throw new SQLTimeoutException(format("Pool %s, couldn't obtain SQL connection within %d ms.",
                     poolName, timeout), SQLSTATE_TIMEOUT_ERROR, (int) timeout);
 
         } catch (ViburDBCPException e) { // can be thrown (indirectly) by the ConnectionFactory create() methods
