@@ -32,11 +32,11 @@ import javax.sql.DataSource;
 import java.sql.Driver;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.Properties;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static java.util.concurrent.TimeUnit.NANOSECONDS;
 import static org.vibur.dbcp.util.ViburUtils.getStackTraceAsString;
 
 /**
@@ -333,12 +333,6 @@ public abstract class ViburConfig {
      * before the pool is started.
      */
     private final InvocationHooksHolder invocationHooks = new InvocationHooksHolder();
-
-    /** Provides access to the functionality for logging of long lasting getConnection() calls, slow SQL queries,
-     * and large ResultSets. Setting this parameter to a sub-class of {@link BaseViburLogger} will allow the
-     * application to intercept all such logging events, and to accumulate statistics of the count and execution time
-     * of the SQL queries and similar. */
-    private ViburLogger viburLogger = new BaseViburLogger();
 
 
     //////////////////////// Getters & Setters ////////////////////////
@@ -776,14 +770,6 @@ public abstract class ViburConfig {
         return invocationHooks;
     }
 
-    public ViburLogger getViburLogger() {
-        return viburLogger;
-    }
-
-    public void setViburLogger(ViburLogger viburLogger) {
-        this.viburLogger = viburLogger;
-    }
-
     public String takenConnectionsToString() {
         if (!isPoolEnableConnectionTracking())
             return "poolEnableConnectionTracking is disabled.";
@@ -799,21 +785,20 @@ public abstract class ViburConfig {
         Arrays.sort(takenConns, 0, size, new Comparator<ConnHolder>() { // sort newest on top
             @Override
             public int compare(ConnHolder h1, ConnHolder h2) {
-                long diff = h1.getTakenTime() - h2.getTakenTime();
+                long diff = h1.getTakenNanoTime() - h2.getTakenNanoTime();
                 return diff < 0 ? -1 : diff > 0 ? 1 : 0;
             }
         });
 
-        long now = System.currentTimeMillis();
+        long currentNanoTime = System.nanoTime();
         StringBuilder builder = new StringBuilder(65536);
         for (int i = 0; i < size; i++) {
             ConnHolder takenConn = takenConns[i];
-            long takenTime = takenConn.getTakenTime();
+            long takenNanoTime = takenConn.getTakenNanoTime();
             Thread holdingThread = takenConn.getThread();
             builder.append("\n============\n").append(takenConn.value())
-                    .append(", taken at ").append(new Date(takenTime)).append(", as millis = ").append(takenTime)
-                    .append(", held for ").append(now - takenTime)
-                    .append("ms, by thread ").append(holdingThread.getName())
+                    .append(", held for ").append(NANOSECONDS.toMillis(currentNanoTime - takenNanoTime))
+                    .append(" ms, by thread ").append(holdingThread.getName())
                     .append(", state ").append(holdingThread.getState())
                     .append("\n\nThread stack trace at the moment when getting the Connection:\n")
                     .append(getStackTraceAsString(takenConn.getLocation().getStackTrace()))

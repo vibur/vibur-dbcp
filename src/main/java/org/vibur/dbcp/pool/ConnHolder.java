@@ -21,26 +21,28 @@ import java.sql.Connection;
 /**
  * The stateful versioned object which is held in the object pool. It is just a thin wrapper around the raw
  * JDBC {@code Connection} object which allows us to augment it with useful "state" information, such as
- * the Connection last {@code takenTime} and {@code restoredTime}, and the {@link ConnectionFactory} version.
+ * the Connection last {@code takenNanoTime} and {@code restoredNanoTime}, and the {@link ConnectionFactory} version.
  *
  * @author Simeon Malchev
  */
 public class ConnHolder {
 
     private final Connection value; // the underlying raw JDBC Connection
-    private final int version; // the version of the ConnectionFactory at the moment of the ConnHolder object creation
+    private final int version; // the version of the ConnectionFactory at the moment of this ConnHolder object creation
 
-    private long restoredTime; // used when getConnectionIdleLimitInSeconds() >= 0
+    // used when there is a CloseConnection hook to measure and emit for how long the connection was held by the app
+    private long takenNanoTime;
+    private long restoredNanoTime; // used when getConnectionIdleLimitInSeconds() >= 0
 
-    private long takenTime; // these 3 fields are used when isPoolEnableConnectionTracking() is allowed
+    // these 2 fields are used when isPoolEnableConnectionTracking() is allowed
     private Thread thread;
     private Throwable location;
 
-    ConnHolder(Connection value, int version, long currentTime) {
+    ConnHolder(Connection value, int version, long currentNanoTime) {
         assert value != null;
         this.value = value;
         this.version = version;
-        this.restoredTime = currentTime;
+        this.restoredNanoTime = currentNanoTime;
     }
 
     public Connection value() {
@@ -51,21 +53,23 @@ public class ConnHolder {
         return version;
     }
 
-    public long getRestoredTime() {
-        return restoredTime;
+
+    public long getTakenNanoTime() {
+        return takenNanoTime;
     }
 
-    void setRestoredTime(long restoredTime) {
-        this.restoredTime = restoredTime;
+    void setTakenNanoTime(long takenNanoTime) {
+        this.takenNanoTime = takenNanoTime;
     }
 
-    public long getTakenTime() {
-        return takenTime;
+    long getRestoredNanoTime() {
+        return restoredNanoTime;
     }
 
-    void setTakenTime(long takenTime) {
-        this.takenTime = takenTime;
+    void setRestoredNanoTime(long restoredNanoTime) {
+        this.restoredNanoTime = restoredNanoTime;
     }
+
 
     public Thread getThread() {
         return thread;

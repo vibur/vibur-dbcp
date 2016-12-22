@@ -56,7 +56,6 @@ import static org.vibur.dbcp.ViburDataSource.State.*;
 import static org.vibur.dbcp.ViburMonitoring.registerMBean;
 import static org.vibur.dbcp.ViburMonitoring.unregisterMBean;
 import static org.vibur.dbcp.pool.Connector.Builder.buildConnector;
-import static org.vibur.dbcp.util.ViburUtils.getPoolName;
 import static org.vibur.dbcp.util.ViburUtils.unwrapSQLException;
 import static org.vibur.objectpool.util.ArgumentValidation.forbidIllegalArgument;
 
@@ -249,10 +248,7 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
         initPoolReducer();
         initStatementCache();
 
-        if (getLogQueryExecutionLongerThanMs() >= 0)
-            getInvocationHooks().addOnStatementExecution(new ViburLogger.QueryTiming(this));
-        if (getLogLargeResultSet() >= 0)
-            getInvocationHooks().addOnResultSetRetrieval(new ViburLogger.ResultSetSize(this));
+        initHooks();
 
         if (isEnableJMX())
             registerMBean(this);
@@ -300,7 +296,6 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
         forbidIllegalArgument(getValidateTimeoutInSeconds() < 0);
         forbidIllegalArgument(isUseNetworkTimeout() && getNetworkTimeoutExecutor() == null);
         requireNonNull(getCriticalSQLStates());
-        requireNonNull(getViburLogger());
 
         if (getPassword() == null) logger.warn("JDBC password is not specified.");
         if (getUsername() == null) logger.warn("JDBC username is not specified.");
@@ -376,12 +371,23 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
             setStatementCache(new ClhmStatementCache(statementCacheMaxSize));
     }
 
+    private void initHooks() {
+        if (getLogConnectionLongerThanMs() >= 0)
+            getConnHooks().addOnGet(new ViburLogger.GetConnectionTiming(this));
+
+        if (getLogQueryExecutionLongerThanMs() >= 0)
+            getInvocationHooks().addOnStatementExecution(new ViburLogger.QueryTiming(this));
+
+        if (getLogLargeResultSet() >= 0)
+            getInvocationHooks().addOnResultSetRetrieval(new ViburLogger.ResultSetSize(this));
+    }
+
     @Override
     public Connection getConnection() throws SQLException {
         State state = validatePoolState(isAllowConnectionAfterTermination());
         if (state == WORKING) {
             try {
-                return getPooledConnection(getConnectionTimeoutInMs());
+                return poolOperations.getProxyConnection(getConnectionTimeoutInMs());
             } catch (SQLException e) {
                 if (!SQLSTATE_POOL_CLOSED_ERROR.equals(e.getSQLState()) || !isAllowConnectionAfterTermination())
                     throw e;
@@ -408,19 +414,6 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
         validatePoolState(isAllowConnectionAfterTermination());
         logger.warn("Calling getConnection() with different than the default credentials; will create and return a non-pooled Connection.");
         return getNonPooledConnection(username, password);
-    }
-
-    private Connection getPooledConnection(long timeout) throws SQLException {
-        boolean logSlowConn = getLogConnectionLongerThanMs() >= 0;
-        long startTime = logSlowConn ? System.currentTimeMillis() : 0L;
-
-        Connection connProxy = null;
-        try {
-            return connProxy = poolOperations.getProxyConnection(timeout);
-        } finally {
-            if (logSlowConn)
-                logGetConnection(startTime, connProxy);
-        }
     }
 
     @Override
@@ -473,13 +466,6 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
         if (getUsername() != null ? !getUsername().equals(username) : username != null)
             return false;
         return !(getPassword() != null ? !getPassword().equals(password) : password != null);
-    }
-
-    private void logGetConnection(long startTime, Connection connProxy) {
-        long timeTaken = System.currentTimeMillis() - startTime;
-        if (timeTaken >= getLogConnectionLongerThanMs())
-            getViburLogger().logGetConnection(getPoolName(this), connProxy, timeTaken,
-                    isLogStackTraceForLongConnection() ? new Throwable().getStackTrace() : null);
     }
 
     @Override

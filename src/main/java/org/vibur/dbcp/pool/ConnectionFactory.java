@@ -29,6 +29,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.NANOSECONDS;
 import static org.vibur.dbcp.ViburConfig.SQLSTATE_CONN_INIT_ERROR;
 import static org.vibur.dbcp.util.JdbcUtils.*;
 
@@ -103,7 +104,7 @@ public class ConnectionFactory implements ViburObjectFactory {
         }
         logger.debug("Created rawConnection {}", rawConnection);
         return prepareTracking(new ConnHolder(rawConnection, version(),
-                config.getConnectionIdleLimitInSeconds() >= 0 ? System.currentTimeMillis() : 0));
+                config.getConnectionIdleLimitInSeconds() >= 0 ? System.nanoTime() : 0));
     }
 
     private void ensureInitialized(Connection rawConnection) throws SQLException {
@@ -120,12 +121,10 @@ public class ConnectionFactory implements ViburObjectFactory {
         try {
             int idleLimit = config.getConnectionIdleLimitInSeconds();
             if (idleLimit >= 0) {
-                int idle = (int) MILLISECONDS.toSeconds(System.currentTimeMillis() - conn.getRestoredTime());
+                int idle = (int) NANOSECONDS.toSeconds(System.nanoTime() - conn.getRestoredNanoTime());
                 if (idle >= idleLimit && !validateConnection(rawConnection, config.getTestConnectionQuery(), config))
                     return false;
             }
-            for (Hook.GetConnection hook : connHooks.onGet())
-                hook.on(rawConnection);
 
             prepareTracking(conn);
             return true;
@@ -137,19 +136,23 @@ public class ConnectionFactory implements ViburObjectFactory {
 
     @Override
     public boolean readyToRestore(ConnHolder conn) {
-        clearTracking(conn); // don't keep the Thread and Throwable objects references
+        clearTracking(conn); // we don't want to keep the Thread and Throwable objects references
 
         Connection rawConnection = conn.value();
         try {
-            for (Hook.CloseConnection hook : connHooks.onClose())
-                hook.on(rawConnection);
+            if (!connHooks.onClose().isEmpty()) {
+                long timeTaken = System.nanoTime() - conn.getTakenNanoTime();
+                for (Hook.CloseConnection hook : connHooks.onClose())
+                    hook.on(rawConnection, timeTaken);
+            }
+
             if (config.isClearSQLWarnings())
                 clearWarnings(rawConnection);
             if (config.isResetDefaultsAfterUse())
                 setDefaultValues(rawConnection, config);
 
             if (config.getConnectionIdleLimitInSeconds() >= 0)
-                conn.setRestoredTime(System.currentTimeMillis());
+                conn.setRestoredNanoTime(System.nanoTime());
             return true;
         } catch (SQLException e) {
             logger.debug("Couldn't reset rawConnection {}", rawConnection, e);
@@ -158,8 +161,9 @@ public class ConnectionFactory implements ViburObjectFactory {
     }
 
     private ConnHolder prepareTracking(ConnHolder conn) {
+        conn.setTakenNanoTime(System.nanoTime());
+
         if (config.isPoolEnableConnectionTracking()) {
-            conn.setTakenTime(System.currentTimeMillis());
             conn.setThread(Thread.currentThread());
             conn.setLocation(new Throwable());
         }

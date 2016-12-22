@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.pool.Hook;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.List;
 
 import static java.lang.String.format;
@@ -33,11 +34,29 @@ import static org.vibur.dbcp.util.ViburUtils.getStackTraceAsString;
  *
  * @author Simeon Malchev
  */
-// todo become class...
-interface ViburLogger {
+class ViburLogger {
 
-    // todo ... fix me
-    static final Logger logger = LoggerFactory.getLogger(ViburLogger.class);
+    private static final Logger logger = LoggerFactory.getLogger(ViburLogger.class);
+
+    static class GetConnectionTiming extends HookConfig implements Hook.GetConnection {
+        GetConnectionTiming(ViburConfig config) {
+            super(config);
+        }
+
+        @Override
+        public void on(Connection rawConnection, long takenNanos) throws SQLException {
+            double takenMillis = takenNanos / 1000000.0;
+            if (takenMillis < config.getLogConnectionLongerThanMs())
+                return;
+
+            StringBuilder log = new StringBuilder(4096)
+                    .append(format("Call to getConnection() from pool %s took %f ms, connProxy = %s",
+                            poolName, takenMillis, rawConnection));
+            if (config.isLogStackTraceForLongConnection() )
+                log.append('\n').append(getStackTraceAsString(new Throwable().getStackTrace()));
+            logger.warn(log.toString());
+        }
+    }
 
     static class QueryTiming extends HookConfig implements Hook.StatementExecution {
         QueryTiming(ViburConfig config) {
@@ -78,8 +97,7 @@ interface ViburLogger {
         }
     }
 
-    // todo ...
-    static abstract class HookConfig {
+    private static abstract class HookConfig {
         final ViburConfig config;
         final String poolName;
 
@@ -88,19 +106,4 @@ interface ViburLogger {
             this.poolName = getPoolName(config);
         }
     }
-
-    /**
-     * This method will be called by Vibur DBCP when a call to getConnection() has taken longer than what is
-     * specified by {@link ViburConfig#logConnectionLongerThanMs}.
-     *
-     * @param poolName the pool name
-     * @param connProxy the current connection proxy - can be {@code null} which means that the
-     *                  {@code getConnection()} call was not able to retrieve a connection from the pool in
-     *                  the specified time limit
-     * @param timeTaken the time taken by the {@code getConnection()} method to complete in milliseconds
-     * @param stackTrace the stack trace of the {@code getConnection()} method call (or null), depending on
-     *                   {@link ViburConfig#logStackTraceForLongConnection}
-     */
-    void logGetConnection(String poolName, Connection connProxy, long timeTaken,
-                          StackTraceElement[] stackTrace);
 }
