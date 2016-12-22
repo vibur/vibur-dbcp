@@ -121,7 +121,7 @@ public class ConnectionFactory implements ViburObjectFactory {
         try {
             int idleLimit = config.getConnectionIdleLimitInSeconds();
             if (idleLimit >= 0) {
-                int idle = (int) NANOSECONDS.toSeconds(System.nanoTime() - conn.getRestoredNanoTime());
+                long idle = NANOSECONDS.toSeconds(System.nanoTime() - conn.getRestoredNanoTime());
                 if (idle >= idleLimit && !validateConnection(rawConnection, config.getTestConnectionQuery(), config))
                     return false;
             }
