@@ -30,7 +30,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
-import static org.vibur.dbcp.ViburConfig.SQLSTATE_CONN_INIT_ERROR;
 import static org.vibur.dbcp.util.JdbcUtils.*;
 
 /**
@@ -40,6 +39,9 @@ import static org.vibur.dbcp.util.JdbcUtils.*;
  * <p>This {@code ConnectionFactory} is a versioned factory which creates versioned JDBC Connection
  * wrappers {@code ConnHolder(s)}. The version of each {@link ConnHolder} created by the factory is the same
  * as the version of the factory at the moment of the object creation.
+ *
+ * @see Hook
+ * @see ViburHook
  *
  * @author Simeon Malchev
  * @author Daniel Caldeweyher
@@ -96,8 +98,6 @@ public class ConnectionFactory implements ViburObjectFactory {
                 for (Hook.InitConnection hook : onInit)
                     hook.on(rawConnection, timeTaken);
             }
-            ensureInitialized(rawConnection);
-            setDefaultValues(rawConnection, config);
         } catch (SQLException e) {
             quietClose(rawConnection);
             throw new ViburDBCPException(e);
@@ -105,11 +105,6 @@ public class ConnectionFactory implements ViburObjectFactory {
         logger.debug("Created rawConnection {}", rawConnection);
         return prepareTracking(new ConnHolder(rawConnection, version(),
                 config.getConnectionIdleLimitInSeconds() >= 0 ? System.nanoTime() : 0));
-    }
-
-    private void ensureInitialized(Connection rawConnection) throws SQLException {
-        if (!validateConnection(rawConnection, config.getInitSQL(), config))
-            throw new SQLException("Couldn't initialize rawConnection " + rawConnection, SQLSTATE_CONN_INIT_ERROR);
     }
 
     @Override
@@ -145,11 +140,6 @@ public class ConnectionFactory implements ViburObjectFactory {
                 for (Hook.CloseConnection hook : connHooks.onClose())
                     hook.on(rawConnection, timeTaken);
             }
-
-            if (config.isClearSQLWarnings())
-                clearWarnings(rawConnection);
-            if (config.isResetDefaultsAfterUse())
-                setDefaultValues(rawConnection, config);
 
             if (config.getConnectionIdleLimitInSeconds() >= 0)
                 conn.setRestoredNanoTime(System.nanoTime());

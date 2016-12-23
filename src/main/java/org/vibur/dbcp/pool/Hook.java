@@ -29,12 +29,14 @@ import static java.util.Objects.requireNonNull;
 
 /**
  * An interface that holds all application programming hook interfaces for JDBC Connection tune-up and method 
- * invocation interception.
+ * invocation interception, and more.
  * 
  * <p>These application hooks serve as extension points to the inner workings of the connection pool and have
  * access to the <b>raw (original)</b> JDBC Connection object, not the proxied such. In order to avoid interference
  * with how the connection pool manages its underlying connections, the application <b>must not</b> keep or store
  * in one or another form a reference to the {@code rawConnection} object.
+ *
+ * @see ConnectionFactory
  * 
  * @author Simeon Malchev
  */

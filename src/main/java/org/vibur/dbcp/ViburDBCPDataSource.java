@@ -21,6 +21,7 @@ import org.vibur.dbcp.cache.ClhmStatementCache;
 import org.vibur.dbcp.pool.ConnHolder;
 import org.vibur.dbcp.pool.ConnectionFactory;
 import org.vibur.dbcp.pool.PoolOperations;
+import org.vibur.dbcp.pool.ViburHook;
 import org.vibur.dbcp.pool.ViburObjectFactory;
 import org.vibur.dbcp.proxy.ConnectionInvocationHandler;
 import org.vibur.objectpool.ConcurrentPool;
@@ -56,6 +57,7 @@ import static org.vibur.dbcp.ViburDataSource.State.*;
 import static org.vibur.dbcp.ViburMonitoring.registerMBean;
 import static org.vibur.dbcp.ViburMonitoring.unregisterMBean;
 import static org.vibur.dbcp.pool.Connector.Builder.buildConnector;
+import static org.vibur.dbcp.pool.ViburHook.initializeHooks;
 import static org.vibur.dbcp.util.ViburUtils.unwrapSQLException;
 import static org.vibur.objectpool.util.ArgumentValidation.forbidIllegalArgument;
 
@@ -83,6 +85,7 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
      * setter methods.
      */
     public ViburDBCPDataSource() {
+        initializeHooks(this);
     }
 
     /**
@@ -97,6 +100,8 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
      * @throws ViburDBCPException if cannot configure this DataSource successfully
      */
     public ViburDBCPDataSource(String configFileName) throws ViburDBCPException {
+        this();
+
         URL config;
         if (configFileName != null) {
             config = getURL(configFileName);
@@ -122,6 +127,7 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
      * @throws ViburDBCPException if cannot configure this DataSource successfully
      */
     public ViburDBCPDataSource(Properties properties) throws ViburDBCPException {
+        this();
         configureFromProperties(properties);
     }
 
@@ -248,8 +254,6 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
         initPoolReducer();
         initStatementCache();
 
-        initHooks();
-
         if (isEnableJMX())
             registerMBean(this);
     }
@@ -369,17 +373,6 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
         int statementCacheMaxSize = getStatementCacheMaxSize();
         if (statementCacheMaxSize > 0 && getStatementCache() == null)
             setStatementCache(new ClhmStatementCache(statementCacheMaxSize));
-    }
-
-    private void initHooks() {
-        if (getLogConnectionLongerThanMs() >= 0)
-            getConnHooks().addOnGet(new ViburLogger.GetConnectionTiming(this));
-
-        if (getLogQueryExecutionLongerThanMs() >= 0)
-            getInvocationHooks().addOnStatementExecution(new ViburLogger.QueryTiming(this));
-
-        if (getLogLargeResultSet() >= 0)
-            getInvocationHooks().addOnResultSetRetrieval(new ViburLogger.ResultSetSize(this));
     }
 
     @Override
