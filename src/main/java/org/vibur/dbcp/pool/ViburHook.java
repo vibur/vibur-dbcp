@@ -47,32 +47,19 @@ public class ViburHook {
 
     private static final Logger logger = LoggerFactory.getLogger(ViburHook.class);
 
-    private final ViburConfig config;
+    final ViburConfig config;
 
     private ViburHook(ViburConfig config) {
         this.config = config;
-        initHooks();
-    }
-
-    public static void initializeHooks(ViburConfig config) {
-        new ViburHook(config);
-    }
-
-    private void initHooks() {
-        config.getConnHooks().addOnInit(new ViburHook.InitConnection());
-        config.getConnHooks().addOnClose(new ViburHook.CloseConnection());
-
-        if (config.getLogConnectionLongerThanMs() >= 0)
-            config.getConnHooks().addOnGet(new ViburHook.GetConnectionTiming());
-        if (config.getLogQueryExecutionLongerThanMs() >= 0)
-            config.getInvocationHooks().addOnStatementExecution(new ViburHook.QueryTiming());
-        if (config.getLogLargeResultSet() >= 0)
-            config.getInvocationHooks().addOnResultSetRetrieval(new ViburHook.ResultSetSize());
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
-    private class InitConnection implements Hook.InitConnection {
+    public static class InitConnection extends ViburHook implements Hook.InitConnection {
+        public InitConnection(ViburConfig config) {
+            super(config);
+        }
+
         @Override
         public void on(Connection rawConnection, long takenNanos) throws SQLException {
             if (!validateConnection(rawConnection, config.getInitSQL(), config))
@@ -82,7 +69,11 @@ public class ViburHook {
         }
     }
 
-    private class CloseConnection implements Hook.CloseConnection {
+    public static class CloseConnection extends ViburHook implements Hook.CloseConnection {
+        public CloseConnection(ViburConfig config) {
+            super(config);
+        }
+
         @Override
         public void on(Connection rawConnection, long takenNanos) throws SQLException {
             if (config.isClearSQLWarnings())
@@ -94,7 +85,11 @@ public class ViburHook {
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
-    private class GetConnectionTiming implements Hook.GetConnection {
+    public static class GetConnectionTiming extends ViburHook implements Hook.GetConnection {
+        public GetConnectionTiming(ViburConfig config) {
+            super(config);
+        }
+
         @Override
         public void on(Connection rawConnection, long takenNanos) throws SQLException {
             double takenMillis = takenNanos / 1000000.0;
@@ -110,7 +105,11 @@ public class ViburHook {
         }
     }
 
-    private class QueryTiming implements Hook.StatementExecution {
+    public static class QueryTiming extends ViburHook implements Hook.StatementExecution {
+        public QueryTiming(ViburConfig config) {
+            super(config);
+        }
+
         @Override
         public void on(String sqlQuery, List<Object[]> queryParams, long takenNanos) {
             double takenMillis = takenNanos / 1000000.0;
@@ -126,7 +125,11 @@ public class ViburHook {
         }
     }
 
-    private class ResultSetSize implements Hook.ResultSetRetrieval {
+    public static class ResultSetSize extends ViburHook implements Hook.ResultSetRetrieval {
+        public ResultSetSize(ViburConfig config) {
+            super(config);
+        }
+
         @Override
         public void on(String sqlQuery, List<Object[]> queryParams, long resultSetSize) {
             if (config.getLogLargeResultSet() > resultSetSize)
