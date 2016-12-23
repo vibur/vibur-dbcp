@@ -3,7 +3,7 @@
   ~ Copyright 2013 Simeon Malchev
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
-  ~ you may not use this file except in compliance with the License.
+  ~ you may not use this file except in compliance with the License.i
   ~ You may obtain a copy of the License at
   ~
   ~     http://www.apache.org/licenses/LICENSE-2.0
@@ -20,7 +20,7 @@
 
     <groupId>org.vibur</groupId>
     <artifactId>vibur-dbcp</artifactId>
-    <version>14.0-SNAPSHOT</version>
+    <version>15.0-SNAPSHOT</version>
     <packaging>bundle</packaging>
 
     <name>Vibur Database Connections Pool</name>
@@ -81,7 +81,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <java.version>1.7</java.version>
-        <vibur.osgi.version>14.0</vibur.osgi.version>
+        <vibur.osgi.version>15.0</vibur.osgi.version>
         <slf4j.version>1.7.13</slf4j.version>
         <concurrentlinkedhashmap-lru.version>1.4.2</concurrentlinkedhashmap-lru.version>
 
@@ -101,7 +101,7 @@
         <dependency>
             <groupId>org.vibur</groupId>
             <artifactId>vibur-object-pool</artifactId>
-            <version>14.0-SNAPSHOT</version>
+            <version>15.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>

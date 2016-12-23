@@ -116,7 +116,7 @@ public class ConnectionFactory implements ViburObjectFactory {
         try {
             int idleLimit = config.getConnectionIdleLimitInSeconds();
             if (idleLimit >= 0) {
-                int idle = (int) NANOSECONDS.toSeconds(System.nanoTime() - conn.getRestoredNanoTime());
+                long idle = NANOSECONDS.toSeconds(System.nanoTime() - conn.getRestoredNanoTime());
                 if (idle >= idleLimit && !validateConnection(rawConnection, config.getTestConnectionQuery(), config))
                     return false;
             }
@@ -151,12 +151,14 @@ public class ConnectionFactory implements ViburObjectFactory {
     }
 
     private ConnHolder prepareTracking(ConnHolder conn) {
-        conn.setTakenNanoTime(System.nanoTime());
-
         if (config.isPoolEnableConnectionTracking()) {
+            conn.setTakenNanoTime(System.nanoTime());
             conn.setThread(Thread.currentThread());
             conn.setLocation(new Throwable());
         }
+        else if (!connHooks.onGet().isEmpty() || !connHooks.onClose().isEmpty())
+            conn.setTakenNanoTime(System.nanoTime());
+
         return conn;
     }
 

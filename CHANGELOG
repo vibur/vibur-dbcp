@@ -1,5 +1,21 @@
-Version 13.0 (23/11/2016) - RECOMMENDED
+Version 14.0 (22/12/2016) - RECOMMENDED
 =======================================
+* Added programming hooks for StatementExecution and ResultSetRetrieval which allow the application to receive
+  notifications for all executed queries, their parameters (if enabled), and the queries execution time or
+  the retrieved ResultSet size, respectively.
+* Extended the GetConnection and CloseConnection programming hooks with information for the time taken to get a
+  Connection from the pool or the time for which the application has held the Connection before restoring it back
+  to the pool, i.e., before calling Connection.close();
+* Reimplemented the existing functionality of ViburLogger for logging of long lasting getConnection() calls,
+  slow SQL queries, and large ResultSets through the above programming hooks. Removed ViburLogger interface and the
+  implementing it BaseViburLogger class.
+* Renamed MethodHooksHolder to InvocationHooksHolder as well as the corresponding field in ViburConfig.
+* Now all timing measurement in Vibur DBCP is done via System.nanoTime() instead of System.currentTimeMillis()
+  and all logging that contains timing is formatted in milliseconds with up to 6 digits precision.
+* Various other refactoring and source code clean-up.
+
+Version 13.0 (23/11/2016)
+=========================
 * Logging improvements in logTakenConnectionsOnTimeout: in case of Connections exhaustion this option will now
   log not only the stacktrace of the threads that have taken the Connections as at the moment of their taking,
   but also the current execution stacktrace of these threads, if the threads are still alive.
