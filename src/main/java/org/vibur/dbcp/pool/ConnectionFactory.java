@@ -41,7 +41,7 @@ import static org.vibur.dbcp.util.JdbcUtils.*;
  * as the version of the factory at the moment of the object creation.
  *
  * @see Hook
- * @see ViburHook
+ * @see DefaultHook
  *
  * @author Simeon Malchev
  * @author Daniel Caldeweyher

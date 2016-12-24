@@ -43,19 +43,19 @@ import static org.vibur.dbcp.util.ViburUtils.getStackTraceAsString;
  *
  * @author Simeon Malchev
  */
-public class ViburHook {
+public class DefaultHook {
 
-    private static final Logger logger = LoggerFactory.getLogger(ViburHook.class);
+    private static final Logger logger = LoggerFactory.getLogger(DefaultHook.class);
 
     final ViburConfig config;
 
-    private ViburHook(ViburConfig config) {
+    private DefaultHook(ViburConfig config) {
         this.config = config;
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
-    public static class InitConnection extends ViburHook implements Hook.InitConnection {
+    public static class InitConnection extends DefaultHook implements Hook.InitConnection {
         public InitConnection(ViburConfig config) {
             super(config);
         }
@@ -69,7 +69,7 @@ public class ViburHook {
         }
     }
 
-    public static class CloseConnection extends ViburHook implements Hook.CloseConnection {
+    public static class CloseConnection extends DefaultHook implements Hook.CloseConnection {
         public CloseConnection(ViburConfig config) {
             super(config);
         }
@@ -85,14 +85,14 @@ public class ViburHook {
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
-    public static class GetConnectionTiming extends ViburHook implements Hook.GetConnection {
+    public static class GetConnectionTiming extends DefaultHook implements Hook.GetConnection {
         public GetConnectionTiming(ViburConfig config) {
             super(config);
         }
 
         @Override
         public void on(Connection rawConnection, long takenNanos) throws SQLException {
-            double takenMillis = takenNanos / 1000000.0;
+            double takenMillis = takenNanos * 0.000001;
             if (takenMillis < config.getLogConnectionLongerThanMs())
                 return;
 
@@ -105,14 +105,14 @@ public class ViburHook {
         }
     }
 
-    public static class QueryTiming extends ViburHook implements Hook.StatementExecution {
+    public static class QueryTiming extends DefaultHook implements Hook.StatementExecution {
         public QueryTiming(ViburConfig config) {
             super(config);
         }
 
         @Override
         public void on(String sqlQuery, List<Object[]> queryParams, long takenNanos) {
-            double takenMillis = takenNanos / 1000000.0;
+            double takenMillis = takenNanos * 0.000001;
             if (takenMillis < config.getLogQueryExecutionLongerThanMs())
                 return;
 
@@ -125,7 +125,7 @@ public class ViburHook {
         }
     }
 
-    public static class ResultSetSize extends ViburHook implements Hook.ResultSetRetrieval {
+    public static class ResultSetSize extends DefaultHook implements Hook.ResultSetRetrieval {
         public ResultSetSize(ViburConfig config) {
             super(config);
         }

@@ -21,7 +21,7 @@ import org.vibur.dbcp.cache.ClhmStatementCache;
 import org.vibur.dbcp.pool.ConnHolder;
 import org.vibur.dbcp.pool.ConnectionFactory;
 import org.vibur.dbcp.pool.PoolOperations;
-import org.vibur.dbcp.pool.ViburHook;
+import org.vibur.dbcp.pool.DefaultHook;
 import org.vibur.dbcp.pool.ViburObjectFactory;
 import org.vibur.dbcp.proxy.ConnectionInvocationHandler;
 import org.vibur.objectpool.ConcurrentPool;
@@ -353,15 +353,15 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
     }
 
     private void initHooks() {
-        getConnHooks().addOnInit(new ViburHook.InitConnection(this));
-        getConnHooks().addOnClose(new ViburHook.CloseConnection(this));
+        getConnHooks().addOnInit(new DefaultHook.InitConnection(this));
+        getConnHooks().addOnClose(new DefaultHook.CloseConnection(this));
 
         if (getLogConnectionLongerThanMs() >= 0)
-            getConnHooks().addOnGet(new ViburHook.GetConnectionTiming(this));
+            getConnHooks().addOnGet(new DefaultHook.GetConnectionTiming(this));
         if (getLogQueryExecutionLongerThanMs() >= 0)
-            getInvocationHooks().addOnStatementExecution(new ViburHook.QueryTiming(this));
+            getInvocationHooks().addOnStatementExecution(new DefaultHook.QueryTiming(this));
         if (getLogLargeResultSet() >= 0)
-            getInvocationHooks().addOnResultSetRetrieval(new ViburHook.ResultSetSize(this));
+            getInvocationHooks().addOnResultSetRetrieval(new DefaultHook.ResultSetSize(this));
     }
 
     private void initPoolReducer() throws ViburDBCPException {
