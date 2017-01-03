@@ -84,6 +84,7 @@ public class ClhmStatementCache implements StatementCache {
     @Override
     public StatementHolder take(ConnMethod key, TargetInvoker invoker) throws Throwable {
         boolean cacheOpen = !isClosed();
+
         StatementHolder statement = cacheOpen ? statementCache.get(key) : null;
         if (statement != null && statement.state().compareAndSet(AVAILABLE, IN_USE)) {
             logger.trace("Using cached statement for {}", key);

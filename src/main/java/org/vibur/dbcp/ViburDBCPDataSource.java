@@ -18,11 +18,7 @@ package org.vibur.dbcp;
 
 import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.cache.ClhmStatementCache;
-import org.vibur.dbcp.pool.ConnHolder;
-import org.vibur.dbcp.pool.ConnectionFactory;
-import org.vibur.dbcp.pool.PoolOperations;
-import org.vibur.dbcp.pool.DefaultHook;
-import org.vibur.dbcp.pool.ViburObjectFactory;
+import org.vibur.dbcp.pool.*;
 import org.vibur.dbcp.proxy.ConnectionInvocationHandler;
 import org.vibur.objectpool.ConcurrentPool;
 import org.vibur.objectpool.PoolService;

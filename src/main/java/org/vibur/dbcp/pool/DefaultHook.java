@@ -26,12 +26,8 @@ import java.util.List;
 
 import static java.lang.String.format;
 import static org.vibur.dbcp.ViburConfig.SQLSTATE_CONN_INIT_ERROR;
-import static org.vibur.dbcp.util.JdbcUtils.clearWarnings;
-import static org.vibur.dbcp.util.JdbcUtils.setDefaultValues;
-import static org.vibur.dbcp.util.JdbcUtils.validateConnection;
-import static org.vibur.dbcp.util.ViburUtils.formatSql;
-import static org.vibur.dbcp.util.ViburUtils.getPoolName;
-import static org.vibur.dbcp.util.ViburUtils.getStackTraceAsString;
+import static org.vibur.dbcp.util.JdbcUtils.*;
+import static org.vibur.dbcp.util.ViburUtils.*;
 
 /**
  * Contains all built-in hooks implementations including hooks for logging of long lasting getConnection() calls,
