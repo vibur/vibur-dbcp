@@ -31,12 +31,12 @@ public class ConnHolder {
     private final int version; // the version of the ConnectionFactory at the moment of this ConnHolder object creation
 
     // used when there is a CloseConnection hook to measure and emit for how long the connection was held by the app
-    private long takenNanoTime;
+    private long takenNanoTime = 0;
     private long restoredNanoTime; // used when getConnectionIdleLimitInSeconds() >= 0
 
     // these 2 fields are used when isPoolEnableConnectionTracking() is allowed
-    private Thread thread;
-    private Throwable location;
+    private Thread thread = null;
+    private Throwable location = null;
 
     ConnHolder(Connection value, int version, long currentNanoTime) {
         assert value != null;
