@@ -114,7 +114,7 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
         List<Hook.StatementExecution> onStatementExecution = invocationHooks.onStatementExecution();
         long startTime = onStatementExecution.isEmpty() ? 0 : System.nanoTime();
 
-        if (statement.getSqlQuery() == null && args != null && args.length >= 1)
+        if (statement.getSqlQuery() == null && args != null && args.length >= 1) // a simple Statement "execute..." call
             statement.setSqlQuery((String) args[0]);
 
         SQLException sqlException = null;

@@ -36,8 +36,8 @@ import static java.lang.String.format;
 public class ConnMethod {
 
     private final Connection target; // the underlying raw JDBC Connection
-    private final Method method;
-    private final Object[] args;
+    private final Method method; // the invoked prepareStatement or prepareCall method
+    private final Object[] args; // the invoked method args
 
     public ConnMethod(Connection target, Method method, Object[] args) {
         assert target != null;
@@ -48,15 +48,15 @@ public class ConnMethod {
         this.args = args;
     }
 
-    public Connection target() {
+    Connection target() {
         return target;
     }
 
-    public Method method() {
+    Method method() {
         return method;
     }
 
-    public Object[] args() {
+    Object[] args() {
         return args;
     }
 

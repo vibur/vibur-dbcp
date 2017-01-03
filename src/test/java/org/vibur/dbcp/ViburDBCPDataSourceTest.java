@@ -113,7 +113,6 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
             assertEquals(1, mockedStatementCache.size());
             assertTrue(mockedStatementCache.containsKey(key1.getValue()));
             assertEquals(key1.getValue(), key2.getValue());
-            assertEquals("prepareStatement", key1.getValue().method().getName());
             assertEquals(AVAILABLE, val1.getValue().state().get());
         }
     }
@@ -137,8 +136,6 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
             assertEquals(1, mockedStatementCache.size());
             assertTrue(mockedStatementCache.containsKey(key2.getValue()));
             assertNotEquals(key1.getValue(), key2.getValue());
-            assertEquals("prepareStatement", key1.getValue().method().getName());
-            assertEquals("prepareStatement", key2.getValue().method().getName());
             assertEquals(EVICTED, val1.getValue().state().get());
             assertEquals(AVAILABLE, val2.getValue().state().get());
         }

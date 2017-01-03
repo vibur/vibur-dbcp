@@ -93,7 +93,7 @@ public class ClhmStatementCache implements StatementCache {
 
         Statement rawStatement = (Statement) invoker.targetInvoke(key.method(), key.args());
 
-        String sqlQuery = (String) key.args()[0];
+        String sqlQuery = (String) key.args()[0]; // as only prepared and callable Statements are cached the args()[0] is the query
         if (cacheOpen && statement == null) { // there was no entry for the key, so we'll try to put a new one
             statement = new StatementHolder(rawStatement, new AtomicReference<>(IN_USE), sqlQuery);
             if (statementCache.putIfAbsent(key, statement) == null)
