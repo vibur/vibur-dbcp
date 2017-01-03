@@ -120,8 +120,8 @@ public interface Hook {
          *                    {@code null} otherwise
          * @param takenNanos the time taken by the executed SQL query to complete in nanoseconds; also see the comments
          *                   for {@link ViburConfig#logQueryExecutionLongerThanMs}
-         * @param sqlException an SQL exception that might have been thrown by executed {@code sqlQuery}; {@code null}
-         *                     value means that no exception was thrown
+         * @param sqlException an SQL exception that might have been thrown by the executed {@code sqlQuery};
+         *                     {@code null} value means that no exception was thrown
          */
         void on(String sqlQuery, List<Object[]> queryParams, long takenNanos, SQLException sqlException);
     }
