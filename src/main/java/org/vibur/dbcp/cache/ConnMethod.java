@@ -23,9 +23,11 @@ import java.util.Arrays;
 import static java.lang.String.format;
 
 /**
- * Describes a {@code method} with {@code args} which has been invoked on a JDBC Connection.
+ * Describes a {@code prepareStatement} or {@code prepareCall} method with {@code args} that has been invoked on a
+ * given JDBC Connection.
  *
- * <p>Used as a caching {@code key} for Connection method invocations in {@code ConcurrentMap} cache implementation.
+ * <p>Used as a caching {@code key} for the above mentioned Connection method invocations in a {@code ConcurrentMap}
+ * cache implementation.
  *
  * @see StatementHolder
  *
@@ -40,20 +42,21 @@ public class ConnMethod {
     public ConnMethod(Connection target, Method method, Object[] args) {
         assert target != null;
         assert method != null;
+        assert args != null && args.length >= 1;
         this.target = target;
         this.method = method;
         this.args = args;
     }
 
-    public Connection getTarget() {
+    public Connection target() {
         return target;
     }
 
-    public Method getMethod() {
+    public Method method() {
         return method;
     }
 
-    public Object[] getArgs() {
+    public Object[] args() {
         return args;
     }
 

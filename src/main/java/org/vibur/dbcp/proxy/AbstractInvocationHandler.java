@@ -143,6 +143,7 @@ abstract class AbstractInvocationHandler<T> implements InvocationHandler, Target
     public final Object targetInvoke(Method method, Object[] args) throws Throwable {
         try {
             return method.invoke(target, args);  // the real method call on the real underlying (proxied) object
+
         } catch (InvocationTargetException e) {
             Throwable cause = e.getCause();
             if (cause == null)
@@ -151,12 +152,13 @@ abstract class AbstractInvocationHandler<T> implements InvocationHandler, Target
             exceptionCollector.addException(cause);
             if (cause instanceof SQLException || cause instanceof RuntimeException || cause instanceof Error)
                 throw cause;
+
             logger.error("Unexpected exception cause", e);
             throw e; // not expected to happen
         }
     }
 
-    void logTargetInvokeFailure(Method method, Object[] args, Throwable t) {
+    private void logTargetInvokeFailure(Method method, Object[] args, Throwable t) {
         if (logger.isDebugEnabled())
             logger.debug("Pool {}, the invocation of {} with args {} on {} threw:",
                     getPoolName(config), method, Arrays.toString(args), target, t);

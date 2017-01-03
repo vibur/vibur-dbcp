@@ -72,7 +72,7 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
         // Methods which results have to be proxied so that when getConnection() is called
         // on their results the return value to be the current JDBC Connection proxy.
         if (methodName == "createStatement") { // *3
-            StatementHolder statement = getUncachedStatement(method, args);
+            StatementHolder statement = getUncachedStatement(method, args, null);
             return newProxyStatement(statement, proxy, config, getExceptionCollector());
         }
         if (methodName == "prepareStatement") { // *6
@@ -104,12 +104,12 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
         if (statementCache != null)
             return statementCache.take(new ConnMethod(getTarget(), method, args), this);
 
-        return getUncachedStatement(method, args);
+        return getUncachedStatement(method, args, (String) args[0]);
     }
 
-    private StatementHolder getUncachedStatement(Method method, Object[] args) throws Throwable {
+    private StatementHolder getUncachedStatement(Method method, Object[] args, String sqlQuery) throws Throwable {
         Statement rawStatement = (Statement) targetInvoke(method, args);
-        return new StatementHolder(rawStatement, null);
+        return new StatementHolder(rawStatement, null, sqlQuery);
     }
 
     private Object processClose() {

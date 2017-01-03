@@ -83,22 +83,22 @@ public class ClhmStatementCache implements StatementCache {
 
     @Override
     public StatementHolder take(ConnMethod key, TargetInvoker invoker) throws Throwable {
-        if (isClosed())
-            return null;
-
-        StatementHolder statement = statementCache.get(key);
+        boolean cacheOpen = !isClosed();
+        StatementHolder statement = cacheOpen ? statementCache.get(key) : null;
         if (statement != null && statement.state().compareAndSet(AVAILABLE, IN_USE)) {
             logger.trace("Using cached statement for {}", key);
             return statement;
         }
 
-        Statement rawStatement = (Statement) invoker.targetInvoke(key.getMethod(), key.getArgs());
-        if (statement == null) { // there was no entry for the key, so we'll try to put a new one
-            statement = new StatementHolder(rawStatement, new AtomicReference<>(IN_USE));
+        Statement rawStatement = (Statement) invoker.targetInvoke(key.method(), key.args());
+
+        String sqlQuery = (String) key.args()[0];
+        if (cacheOpen && statement == null) { // there was no entry for the key, so we'll try to put a new one
+            statement = new StatementHolder(rawStatement, new AtomicReference<>(IN_USE), sqlQuery);
             if (statementCache.putIfAbsent(key, statement) == null)
                 return statement; // the new entry was successfully put in the cache
         }
-        return new StatementHolder(rawStatement, null);
+        return new StatementHolder(rawStatement, null, sqlQuery);
     }
 
     @Override
@@ -140,7 +140,7 @@ public class ClhmStatementCache implements StatementCache {
         for (Map.Entry<ConnMethod, StatementHolder> entry : statementCache.entrySet()) {
             ConnMethod key = entry.getKey();
             StatementHolder value = entry.getValue();
-            if (key.getTarget() == rawConnection && statementCache.remove(key, value)) {
+            if (key.target() == rawConnection && statementCache.remove(key, value)) {
                 quietClose(value.value());
                 removed++;
             }

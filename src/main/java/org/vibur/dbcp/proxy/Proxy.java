@@ -69,10 +69,10 @@ public final class Proxy {
     }
 
     static ResultSet newProxyResultSet(ResultSet rawResultSet, Statement statementProxy,
-                                       Object[] executeMethodArgs, List<Object[]> queryParams,
+                                       String sqlQuery, List<Object[]> queryParams,
                                        ViburConfig config, ExceptionCollector exceptionCollector) {
         InvocationHandler handler = new ResultSetInvocationHandler(
-                rawResultSet, statementProxy, executeMethodArgs, queryParams, config, exceptionCollector);
+                rawResultSet, statementProxy, sqlQuery, queryParams, config, exceptionCollector);
         return (ResultSet) newProxy(resultSetCtor, handler);
     }
 

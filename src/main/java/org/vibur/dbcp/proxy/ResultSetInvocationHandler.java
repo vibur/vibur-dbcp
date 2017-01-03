@@ -25,24 +25,22 @@ import java.sql.Statement;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static org.vibur.dbcp.util.QueryUtils.getSqlQuery;
-
 /**
  * @author Simeon Malchev
  */
 class ResultSetInvocationHandler extends ChildObjectInvocationHandler<Statement, ResultSet> {
 
-    private final Object[] executeMethodArgs;
+    private final String sqlQuery;
     private final List<Object[]> queryParams;
     private final InvocationHooksHolder invocationHooks;
 
     private final AtomicLong resultSetSize = new AtomicLong(0);
 
     ResultSetInvocationHandler(ResultSet rawResultSet, Statement statementProxy,
-                               Object[] executeMethodArgs, List<Object[]> queryParams,
+                               String sqlQuery, List<Object[]> queryParams,
                                ViburConfig config, ExceptionCollector exceptionCollector) {
         super(rawResultSet, statementProxy, "getStatement", config, exceptionCollector);
-        this.executeMethodArgs = executeMethodArgs;
+        this.sqlQuery = sqlQuery;
         this.queryParams = queryParams;
         this.invocationHooks = config.getInvocationHooks();
     }
@@ -80,7 +78,7 @@ class ResultSetInvocationHandler extends ChildObjectInvocationHandler<Statement,
 
         long size = resultSetSize.get() - 1;
         for (Hook.ResultSetRetrieval hook : invocationHooks.onResultSetRetrieval())
-            hook.on(getSqlQuery(getParentProxy(), executeMethodArgs), queryParams, size);
+            hook.on(sqlQuery, queryParams, size);
 
         return targetInvoke(method, args);
     }

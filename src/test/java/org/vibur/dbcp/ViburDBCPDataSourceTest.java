@@ -113,7 +113,7 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
             assertEquals(1, mockedStatementCache.size());
             assertTrue(mockedStatementCache.containsKey(key1.getValue()));
             assertEquals(key1.getValue(), key2.getValue());
-            assertEquals("prepareStatement", key1.getValue().getMethod().getName());
+            assertEquals("prepareStatement", key1.getValue().method().getName());
             assertEquals(AVAILABLE, val1.getValue().state().get());
         }
     }
@@ -137,8 +137,8 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
             assertEquals(1, mockedStatementCache.size());
             assertTrue(mockedStatementCache.containsKey(key2.getValue()));
             assertNotEquals(key1.getValue(), key2.getValue());
-            assertEquals("prepareStatement", key1.getValue().getMethod().getName());
-            assertEquals("prepareStatement", key2.getValue().getMethod().getName());
+            assertEquals("prepareStatement", key1.getValue().method().getName());
+            assertEquals("prepareStatement", key2.getValue().method().getName());
             assertEquals(EVICTED, val1.getValue().state().get());
             assertEquals(AVAILABLE, val2.getValue().state().get());
         }
@@ -285,49 +285,39 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
              ResultSet resultSet = statement.executeQuery("select * from actor where first_name = 'CHRISTIAN'")) {
 
             Set<String> expectedLastNames = new HashSet<>(Arrays.asList("GABLE", "AKROYD", "NEESON"));
-            int size = 0;
             while (resultSet.next()) {
-                ++size;
                 String lastName = resultSet.getString("last_name");
                 assertTrue(expectedLastNames.remove(lastName));
             }
-            assertEquals(3, size);
+            assertTrue(expectedLastNames.isEmpty());
         }
     }
 
     private void executeAndVerifyPreparedSelectStatement(Connection connection) throws SQLException {
         try (PreparedStatement pStatement = connection.prepareStatement("select * from actor where first_name = ?")) {
             pStatement.setString(1, "CHRISTIAN");
-            ResultSet resultSet = pStatement.executeQuery();
-
-            Set<String> lastNames = new HashSet<>(Arrays.asList("GABLE", "AKROYD", "NEESON"));
-            int size = 0;
-            while (resultSet.next()) {
-                ++size;
-                String lastName = resultSet.getString("last_name");
-                assertTrue(lastNames.remove(lastName));
+            try (ResultSet resultSet = pStatement.executeQuery()) {
+                Set<String> expectedLastNames = new HashSet<>(Arrays.asList("GABLE", "AKROYD", "NEESON"));
+                while (resultSet.next()) {
+                    String lastName = resultSet.getString("last_name");
+                    assertTrue(expectedLastNames.remove(lastName));
+                }
+                assertTrue(expectedLastNames.isEmpty());
             }
-            assertEquals(3, size);
-
-            resultSet.close();
         }
     }
 
     private void executeAndVerifyPreparedSelectStatementByLastName(Connection connection) throws SQLException {
         try (PreparedStatement pStatement = connection.prepareStatement("select * from actor where last_name = ?")) {
             pStatement.setString(1, "CROWE");
-            ResultSet resultSet = pStatement.executeQuery();
-
-            Set<String> firstNames = new HashSet<>(Collections.singletonList("SIDNEY"));
-            int size = 0;
-            while (resultSet.next()) {
-                ++size;
-                String firstName = resultSet.getString("first_name");
-                assertTrue(firstNames.remove(firstName));
+            try (ResultSet resultSet = pStatement.executeQuery()) {
+                Set<String> expectedFirstNames = new HashSet<>(Collections.singletonList("SIDNEY"));
+                while (resultSet.next()) {
+                    String firstName = resultSet.getString("first_name");
+                    assertTrue(expectedFirstNames.remove(firstName));
+                }
+                assertTrue(expectedFirstNames.isEmpty());
             }
-            assertEquals(1, size);
-
-            resultSet.close();
         }
     }
 }

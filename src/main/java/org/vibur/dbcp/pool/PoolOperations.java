@@ -37,7 +37,6 @@ import static org.vibur.dbcp.ViburConfig.SQLSTATE_POOL_CLOSED_ERROR;
 import static org.vibur.dbcp.ViburConfig.SQLSTATE_TIMEOUT_ERROR;
 import static org.vibur.dbcp.proxy.Proxy.newProxyConnection;
 import static org.vibur.dbcp.util.ViburUtils.getPoolName;
-import static org.vibur.dbcp.util.ViburUtils.unwrapSQLException;
 
 /**
  * The facade class through which the {@link ConnectionFactory}  and {@link PoolService} functions are accessed.
@@ -94,7 +93,7 @@ public class PoolOperations {
                     poolName, timeout), SQLSTATE_TIMEOUT_ERROR, (int) timeout);
 
         } catch (ViburDBCPException e) { // can be thrown (indirectly) by the ConnectionFactory create() methods
-            return unwrapSQLException(e);
+            throw e.unwrapSQLException();
         }
     }
 

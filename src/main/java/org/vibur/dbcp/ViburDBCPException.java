@@ -16,6 +16,11 @@
 
 package org.vibur.dbcp;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.sql.SQLException;
+
 /**
  * The base exception thrown by Vibur DBCP when an underlying error has occurred. This error could be a configuration
  * error, an initialization error, or an SQL error. Note that this is a {@code RuntimeException}; however, all methods
@@ -24,6 +29,8 @@ package org.vibur.dbcp;
  * @author Simeon Malchev
  */
 public class ViburDBCPException extends RuntimeException {
+
+    private static final Logger logger = LoggerFactory.getLogger(ViburDBCPException.class);
 
     public ViburDBCPException() {
         super();
@@ -39,5 +46,14 @@ public class ViburDBCPException extends RuntimeException {
 
     public ViburDBCPException(Throwable cause) {
         super(cause);
+    }
+
+    public SQLException unwrapSQLException() {
+        Throwable cause = getCause();
+        if (cause instanceof SQLException)
+            return (SQLException) cause;
+
+        logger.error("Unexpected exception cause", this);
+        throw this; // not expected to happen
     }
 }

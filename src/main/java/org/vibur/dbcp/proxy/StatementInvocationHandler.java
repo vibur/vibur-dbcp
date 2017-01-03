@@ -16,8 +16,6 @@
 
 package org.vibur.dbcp.proxy;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.ViburConfig;
 import org.vibur.dbcp.cache.StatementCache;
 import org.vibur.dbcp.cache.StatementHolder;
@@ -26,21 +24,17 @@ import org.vibur.dbcp.pool.Hook;
 import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.vibur.dbcp.proxy.Proxy.newProxyResultSet;
-import static org.vibur.dbcp.util.QueryUtils.formatSql;
-import static org.vibur.dbcp.util.QueryUtils.getSqlQuery;
-import static org.vibur.dbcp.util.ViburUtils.getPoolName;
 
 /**
  * @author Simeon Malchev
  */
 class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection, Statement> {
-
-    private static final Logger logger = LoggerFactory.getLogger(StatementInvocationHandler.class);
 
     private final StatementHolder statement;
     private final StatementCache statementCache;
@@ -86,23 +80,12 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
         // Methods which results have to be proxied so that when getStatement() is called
         // on their results the return value to be the current JDBC Statement proxy.
         if (methodName == "getResultSet" || methodName == "getGeneratedKeys") // *2
-            return newProxiedResultSet(proxy, method, args);
+            return newProxiedResultSet(proxy, method, args, statement.getSqlQuery());
 
         if (methodName == "cancel")
             return processCancel(method, args);
 
         return super.restrictedInvoke(proxy, method, args);
-    }
-
-    @Override
-    void logTargetInvokeFailure(Method method, Object[] args, Throwable t) {
-        if (method.getName().startsWith("execute")) {
-            if (logger.isDebugEnabled())
-                logger.debug("SQL query execution from pool {}:\n{}\n-- threw:",
-                        getPoolName(config), formatSql(getSqlQuery(getTarget(), args), queryParams), t);
-        }
-        else
-            super.logTargetInvokeFailure(method, args, t);
     }
 
     private Object processClose(Method method, Object[] args) throws Throwable {
@@ -127,32 +110,36 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
         return targetInvoke(method, args); // the real "set..." call
     }
 
-    /**
-     * Mainly exists to provide Statement.execute... methods timing logging.
-     */
     private Object processExecute(Statement proxy, Method method, Object[] args) throws Throwable {
         List<Hook.StatementExecution> onStatementExecution = invocationHooks.onStatementExecution();
         long startTime = onStatementExecution.isEmpty() ? 0 : System.nanoTime();
 
+        if (statement.getSqlQuery() == null && args != null && args.length >= 1)
+            statement.setSqlQuery((String) args[0]);
+
+        SQLException sqlException = null;
         try {
             // executeQuery result has to be proxied so that when getStatement() is called
             // on its result the return value to be the current JDBC Statement proxy.
             if (method.getName() == "executeQuery") // *1
-                return newProxiedResultSet(proxy, method, args);
+                return newProxiedResultSet(proxy, method, args, statement.getSqlQuery());
 
             return targetInvoke(method, args); // the real "execute..." call
+        } catch (SQLException e) {
+            sqlException = e;
+            throw e;
         } finally {
             if (!onStatementExecution.isEmpty()) {
                 long timeTaken = System.nanoTime() - startTime;
                 for (Hook.StatementExecution hook : onStatementExecution)
-                    hook.on(getSqlQuery(proxy, args), queryParams, timeTaken);
+                    hook.on(statement.getSqlQuery(), queryParams, timeTaken, sqlException);
             }
         }
     }
 
-    private ResultSet newProxiedResultSet(Statement proxy, Method method, Object[] args) throws Throwable {
+    private ResultSet newProxiedResultSet(Statement proxy, Method method, Object[] args, String sqlQuery) throws Throwable {
         ResultSet rawResultSet = (ResultSet) targetInvoke(method, args);
-        return newProxyResultSet(rawResultSet, proxy, args, queryParams, config, getExceptionCollector());
+        return newProxyResultSet(rawResultSet, proxy, sqlQuery, queryParams, config, getExceptionCollector());
     }
 
     private void addQueryParams(Method method, Object[] args) {

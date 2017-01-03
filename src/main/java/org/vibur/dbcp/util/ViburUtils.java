@@ -16,14 +16,11 @@
 
 package org.vibur.dbcp.util;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.ViburConfig;
-import org.vibur.dbcp.ViburDBCPException;
 import org.vibur.objectpool.BasePool;
 
-import java.sql.Connection;
-import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.List;
 
 import static java.lang.String.format;
 
@@ -31,8 +28,6 @@ import static java.lang.String.format;
  * @author Simeon Malchev
  */
 public final class ViburUtils {
-
-    private static final Logger logger = LoggerFactory.getLogger(ViburUtils.class);
 
     private ViburUtils() {}
 
@@ -55,11 +50,10 @@ public final class ViburUtils {
         return builder.toString();
     }
 
-    public static Connection unwrapSQLException(ViburDBCPException e) throws SQLException {
-        Throwable cause = e.getCause();
-        if (cause instanceof SQLException)
-            throw (SQLException) cause;
-        logger.error("Unexpected exception cause", e);
-        throw e; // not expected to happen
+    public static String formatSql(String sqlQuery, List<Object[]> queryParams) {
+        StringBuilder result = new StringBuilder(4096).append("-- ").append(sqlQuery);
+        if (queryParams != null && !queryParams.isEmpty())
+            result.append("\n-- Parameters:\n-- ").append(Arrays.deepToString(queryParams.toArray()));
+        return result.toString();
     }
 }

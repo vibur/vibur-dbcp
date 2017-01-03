@@ -57,7 +57,6 @@ import static org.vibur.dbcp.ViburDataSource.State.*;
 import static org.vibur.dbcp.ViburMonitoring.registerMBean;
 import static org.vibur.dbcp.ViburMonitoring.unregisterMBean;
 import static org.vibur.dbcp.pool.Connector.Builder.buildConnector;
-import static org.vibur.dbcp.util.ViburUtils.unwrapSQLException;
 import static org.vibur.objectpool.util.ArgumentValidation.forbidIllegalArgument;
 
 /**
@@ -431,7 +430,7 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
             logger.debug("Taking non-pooled rawConnection {}", rawConnection);
             return rawConnection;
         } catch (ViburDBCPException e) {
-            return unwrapSQLException(e);
+            throw e.unwrapSQLException();
         }
     }
 

@@ -29,7 +29,7 @@ import static org.vibur.dbcp.ViburConfig.SQLSTATE_CONN_INIT_ERROR;
 import static org.vibur.dbcp.util.JdbcUtils.clearWarnings;
 import static org.vibur.dbcp.util.JdbcUtils.setDefaultValues;
 import static org.vibur.dbcp.util.JdbcUtils.validateConnection;
-import static org.vibur.dbcp.util.QueryUtils.formatSql;
+import static org.vibur.dbcp.util.ViburUtils.formatSql;
 import static org.vibur.dbcp.util.ViburUtils.getPoolName;
 import static org.vibur.dbcp.util.ViburUtils.getStackTraceAsString;
 
@@ -111,17 +111,25 @@ public class DefaultHook {
         }
 
         @Override
-        public void on(String sqlQuery, List<Object[]> queryParams, long takenNanos) {
+        public void on(String sqlQuery, List<Object[]> queryParams, long takenNanos, SQLException sqlException) {
             double takenMillis = takenNanos * 0.000001;
-            if (takenMillis < config.getLogQueryExecutionLongerThanMs())
+            boolean logTime = takenMillis >= config.getLogQueryExecutionLongerThanMs();
+            boolean logException = sqlException != null && logger.isDebugEnabled();
+            if (!logTime && !logException)
                 return;
 
-            StringBuilder message = new StringBuilder(4096).append(
-                    format("SQL query execution from pool %s took %f ms:\n%s",
-                            getPoolName(config), takenMillis, formatSql(sqlQuery, queryParams)));
-            if (config.isLogStackTraceForLongQueryExecution())
-                message.append('\n').append(getStackTraceAsString(new Throwable().getStackTrace()));
-            logger.warn(message.toString());
+            String poolName = getPoolName(config);
+            String formattedSql = formatSql(sqlQuery, queryParams);
+            if (logException)
+                logger.debug("SQL query execution from pool {}:\n{}\n-- threw:", poolName, formattedSql, sqlException);
+
+            if (logTime) {
+                StringBuilder message = new StringBuilder(4096).append(
+                        format("SQL query execution from pool %s took %f ms:\n%s", poolName, takenMillis, formattedSql));
+                if (config.isLogStackTraceForLongQueryExecution())
+                    message.append('\n').append(getStackTraceAsString(new Throwable().getStackTrace()));
+                logger.warn(message.toString());
+            }
         }
     }
 

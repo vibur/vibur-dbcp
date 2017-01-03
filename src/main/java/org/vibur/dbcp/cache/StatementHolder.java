@@ -21,7 +21,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * A thin wrapper around the raw JDBC {@code Statement} object which allows us to augment it with useful "state"
- * information. The instances of this class are used as a cached {@code value} (in {@code ConcurrentMap} cache
+ * information. The instances of this class are used as a cached {@code value} (in a {@code ConcurrentMap} cache
  * implementation) for the invocations of {@code Connection.prepareStatement} and {@code Connection.prepareCall}
  * methods, and their "state" is describing whether the {@code Statement} object is currently AVAILABLE, IN_USE,
  * or EVICTED.
@@ -33,7 +33,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public class StatementHolder {
 
     /**
-     * The 3 different states in which a StatementHolder instance can be, when it is used as a cached value:
+     * The 3 different states in which a StatementHolder instance can be when it is used as a cached value:
      */
     public enum State {
         AVAILABLE,
@@ -44,10 +44,13 @@ public class StatementHolder {
     private final Statement value; // the underlying raw JDBC Statement
     private final AtomicReference<State> state; // a null value means that this StatementHolder instance is not included in the cache
 
-    public StatementHolder(Statement value, AtomicReference<State> state) {
+    private String sqlQuery;
+
+    public StatementHolder(Statement value, AtomicReference<State> state, String sqlQuery) {
         assert value != null;
         this.value = value;
         this.state = state;
+        this.sqlQuery = sqlQuery;
     }
 
     public Statement value() {
@@ -56,5 +59,13 @@ public class StatementHolder {
 
     public AtomicReference<State> state() {
         return state;
+    }
+
+    public String getSqlQuery() {
+        return sqlQuery;
+    }
+
+    public void setSqlQuery(String sqlQuery) {
+        this.sqlQuery = sqlQuery;
     }
 }
