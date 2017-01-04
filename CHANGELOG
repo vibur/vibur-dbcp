@@ -1,5 +1,17 @@
-Version 14.0 (22/12/2016) - RECOMMENDED
+Version 15.0 (04/01/2017) - RECOMMENDED
 =======================================
+* Added an sqlException param to the StatementExecution hook params.
+* Added ValidateConnection programming hook.
+* Added logAllStackTracesOnTimeout configuration option - allows in case of Connections exhaustion the application
+  to log not only the stacktraces of the threads that are holding the currently taken Connections but also the
+  stacktraces of all other threads in the JVM. This option is for troubleshooting purposes only as it may generate
+  a VERY large log output.
+* Intercepted the executed SQL query string in the Connection and Statement InvocationHandlers; doesn't longer
+  depend on the JDBC driver functionality from preparedStatement.toString().
+* Various other refactoring and improvements.
+
+Version 14.0 (22/12/2016)
+=========================
 * Added programming hooks for StatementExecution and ResultSetRetrieval which allow the application to receive
   notifications for all executed queries, their parameters (if enabled), and the queries execution time or
   the retrieved ResultSet size, respectively.
