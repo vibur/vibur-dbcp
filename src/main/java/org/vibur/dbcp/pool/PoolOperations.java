@@ -40,7 +40,7 @@ import static org.vibur.dbcp.util.ViburUtils.getPoolName;
 
 /**
  * The facade class through which the {@link ConnectionFactory}  and {@link PoolService} functions are accessed.
- * Essentially, these are operations that allows us to get and restore a JDBC connection from the pool,
+ * Essentially, these are operations that allows us to get and restore a JDBC Connection from the pool,
  * as well as to process the SQLExceptions that might have occurred on a taken JDBC Connection.
  *
  * @author Simeon Malchev
@@ -92,32 +92,29 @@ public class PoolOperations {
             throw new SQLTimeoutException(format("Pool %s, couldn't obtain SQL connection within %d ms.",
                     poolName, timeout), SQLSTATE_TIMEOUT_ERROR, (int) timeout);
 
-        } catch (ViburDBCPException e) { // can be thrown (indirectly) by the ConnectionFactory create() methods
+        } catch (ViburDBCPException e) { // can be (indirectly) thrown by the ConnectionFactory.create() methods
             throw e.unwrapSQLException();
         }
     }
 
     private ConnHolder getConnHolder(long timeout) throws SQLException {
-        ConnHolder conn = null;
         long startTime = connHooks.onGet().isEmpty() ? 0 : System.nanoTime();
 
-        try {
-            conn = timeout == 0 ? poolService.take() : poolService.tryTake(timeout, MILLISECONDS);
+        ConnHolder conn = timeout == 0 ? poolService.take() : poolService.tryTake(timeout, MILLISECONDS);
 
-        } finally {
-            Connection rawConnection = null;
-            long currentTime = 0;
-            if (conn != null) {
-                rawConnection = conn.value();
-                currentTime = conn.getTakenNanoTime();
-            }
-            else if (!connHooks.onGet().isEmpty())
-                currentTime = System.nanoTime();
-
-            long timeTaken = currentTime - startTime;
-            for (Hook.GetConnection hook : connHooks.onGet())
-                hook.on(rawConnection, timeTaken);
+        Connection rawConnection = null;
+        long currentTime = 0;
+        if (conn != null) {
+            rawConnection = conn.value();
+            currentTime = conn.getTakenNanoTime();
         }
+        else if (!connHooks.onGet().isEmpty())
+            currentTime = System.nanoTime();
+
+        long takenNanos = currentTime - startTime;
+        for (Hook.GetConnection hook : connHooks.onGet())
+            hook.on(rawConnection, takenNanos);
+
         return conn;
     }
 
@@ -131,8 +128,8 @@ public class PoolOperations {
     /**
      * Processes SQL exceptions that have occurred on the given JDBC Connection (wrapped in a {@code ConnHolder}).
      *
-     * @param conn the given Connection
-     * @param errors the list of SQL exceptions that have occurred on the Connection; might be an empty list but not a {@code null}
+     * @param conn the given connection
+     * @param errors the list of SQL exceptions that have occurred on the connection; might be an empty list but not a {@code null}
      */
     private void processSQLExceptions(ConnHolder conn, List<Throwable> errors) {
         int connVersion = conn.version();

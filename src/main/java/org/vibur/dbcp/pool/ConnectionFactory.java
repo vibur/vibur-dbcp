@@ -138,9 +138,9 @@ public class ConnectionFactory implements ViburObjectFactory {
         Connection rawConnection = conn.value();
         try {
             if (!connHooks.onClose().isEmpty()) {
-                long timeTaken = System.nanoTime() - conn.getTakenNanoTime();
+                long takenNanos = System.nanoTime() - conn.getTakenNanoTime();
                 for (Hook.CloseConnection hook : connHooks.onClose())
-                    hook.on(rawConnection, timeTaken);
+                    hook.on(rawConnection, takenNanos);
             }
 
             if (config.getConnectionIdleLimitInSeconds() >= 0)

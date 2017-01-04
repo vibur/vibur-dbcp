@@ -62,7 +62,7 @@ public abstract class DefaultHook {
         @Override
         public void on(Connection rawConnection, long takenNanos) throws SQLException {
             if (!validateConnection(rawConnection, config.getInitSQL(), config))
-                throw new SQLException("Couldn't initialize rawConnection " + rawConnection, SQLSTATE_CONN_INIT_ERROR);
+                throw new SQLException("validateConnection() returned false", SQLSTATE_CONN_INIT_ERROR);
 
             setDefaultValues(rawConnection, config);
         }
@@ -102,7 +102,7 @@ public abstract class DefaultHook {
         }
 
         @Override
-        public void on(Connection rawConnection, long takenNanos) throws SQLException {
+        public void on(Connection rawConnection, long takenNanos) {
             double takenMillis = takenNanos * 0.000001;
             if (takenMillis < config.getLogConnectionLongerThanMs())
                 return;
@@ -129,7 +129,7 @@ public abstract class DefaultHook {
         @Override
         public void on(Connection rawConnection, long idleNanos) throws SQLException {
             if (!validateConnection(rawConnection, config.getTestConnectionQuery(), config))
-                throw new SQLException("Couldn't validate rawConnection " + rawConnection, SQLSTATE_CONN_VALIDATE_ERROR);
+                throw new SQLException("validateConnection() returned false", SQLSTATE_CONN_VALIDATE_ERROR);
         }
 
         @Override
