@@ -117,10 +117,10 @@ public class ConnectionFactory implements ViburObjectFactory {
         try {
             int idleLimit = config.getConnectionIdleLimitInSeconds();
             if (idleLimit >= 0 && !connHooks.onValidate().isEmpty()) {
-                long idleNano = System.nanoTime() - conn.getRestoredNanoTime();
-                if (NANOSECONDS.toSeconds(idleNano) >= idleLimit) {
+                long idleNanos = System.nanoTime() - conn.getRestoredNanoTime();
+                if (NANOSECONDS.toSeconds(idleNanos) >= idleLimit) {
                     for (Hook.ValidateConnection hook : connHooks.onValidate())
-                        hook.on(rawConnection, idleNano);
+                        hook.on(rawConnection, idleNanos);
                 }
             }
 

@@ -36,6 +36,7 @@ import static java.util.Objects.requireNonNull;
  * with how the connection pool manages its underlying connections, the application <b>must not</b> keep or store
  * in one or another form a reference to the {@code rawConnection} object.
  *
+ * @see DefaultHook
  * @see ConnectionFactory
  * 
  * @author Simeon Malchev
@@ -164,9 +165,12 @@ public interface Hook {
             requireNonNull(hook);
             if (hook instanceof DefaultHook && !((DefaultHook) hook).isEnabled())
                 return hooks;
-            if (hooks == EMPTY_LIST)
+
+            if (hooks == EMPTY_LIST) {
                 hooks = new ArrayList<>();
-            if (!hooks.contains(hook))
+                hooks.add(hook);
+            }
+            else if (!hooks.contains(hook))
                 hooks.add(hook);
             return hooks;
         }

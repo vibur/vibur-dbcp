@@ -52,7 +52,8 @@ public abstract class DefaultHook {
 
     abstract boolean isEnabled();
 
-    ///////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////
+    // Connection hooks:
 
     public static class InitConnection extends DefaultHook implements Hook.InitConnection {
         public InitConnection(ViburConfig config) {
@@ -74,27 +75,6 @@ public abstract class DefaultHook {
                     config.getDefaultTransactionIsolationValue() != null || config.getDefaultCatalog() != null;
         }
     }
-
-    public static class CloseConnection extends DefaultHook implements Hook.CloseConnection {
-        public CloseConnection(ViburConfig config) {
-            super(config);
-        }
-
-        @Override
-        public void on(Connection rawConnection, long takenNanos) throws SQLException {
-            if (config.isClearSQLWarnings())
-                clearWarnings(rawConnection);
-            if (config.isResetDefaultsAfterUse())
-                setDefaultValues(rawConnection, config);
-        }
-
-        @Override
-        boolean isEnabled() {
-            return config.isClearSQLWarnings() || config.isResetDefaultsAfterUse();
-        }
-    }
-
-    ///////////////////////////////////////////////////////////////////////////////////////////////
 
     public static class GetConnectionTiming extends DefaultHook implements Hook.GetConnection {
         public GetConnectionTiming(ViburConfig config) {
@@ -137,6 +117,28 @@ public abstract class DefaultHook {
             return config.getConnectionIdleLimitInSeconds() >= 0 && config.getTestConnectionQuery() != null;
         }
     }
+
+    public static class CloseConnection extends DefaultHook implements Hook.CloseConnection {
+        public CloseConnection(ViburConfig config) {
+            super(config);
+        }
+
+        @Override
+        public void on(Connection rawConnection, long takenNanos) throws SQLException {
+            if (config.isClearSQLWarnings())
+                clearWarnings(rawConnection);
+            if (config.isResetDefaultsAfterUse())
+                setDefaultValues(rawConnection, config);
+        }
+
+        @Override
+        boolean isEnabled() {
+            return config.isClearSQLWarnings() || config.isResetDefaultsAfterUse();
+        }
+    }
+
+    ////////////////////
+    // Invocation hooks:
 
     public static class QueryTiming extends DefaultHook implements Hook.StatementExecution {
         public QueryTiming(ViburConfig config) {
