@@ -45,7 +45,7 @@ public class ClhmStatementCache implements StatementCache {
 
     private static final Logger logger = LoggerFactory.getLogger(ClhmStatementCache.class);
 
-    private final ConcurrentMap<ConnMethod, StatementHolder> statementCache;
+    private final ConcurrentMap<StatementMethod, StatementHolder> statementCache;
     private final AtomicBoolean closed = new AtomicBoolean(false);
 
     public ClhmStatementCache(int maxSize) {
@@ -53,8 +53,8 @@ public class ClhmStatementCache implements StatementCache {
         statementCache = requireNonNull(buildStatementCache(maxSize));
     }
 
-    protected ConcurrentMap<ConnMethod, StatementHolder> buildStatementCache(int maxSize) {
-        return new ConcurrentLinkedHashMap.Builder<ConnMethod, StatementHolder>()
+    protected ConcurrentMap<StatementMethod, StatementHolder> buildStatementCache(int maxSize) {
+        return new ConcurrentLinkedHashMap.Builder<StatementMethod, StatementHolder>()
                 .initialCapacity(maxSize)
                 .maximumWeightedCapacity(maxSize)
                 .listener(getListener())
@@ -69,10 +69,10 @@ public class ClhmStatementCache implements StatementCache {
      *
      * @return a new EvictionListener for the CLHM
      */
-    private static EvictionListener<ConnMethod, StatementHolder> getListener() {
-        return new EvictionListener<ConnMethod, StatementHolder>() {
+    private static EvictionListener<StatementMethod, StatementHolder> getListener() {
+        return new EvictionListener<StatementMethod, StatementHolder>() {
             @Override
-            public void onEviction(ConnMethod key, StatementHolder value) {
+            public void onEviction(StatementMethod statementMethod, StatementHolder value) {
                 if (value.state().getAndSet(EVICTED) == AVAILABLE)
                     quietClose(value.value());
                 logger.trace("Evicted {}", value.value());
@@ -81,25 +81,25 @@ public class ClhmStatementCache implements StatementCache {
     }
 
     @Override
-    public StatementHolder take(ConnMethod connMethod) throws Throwable {
+    public StatementHolder take(StatementMethod statementMethod) throws Throwable {
         boolean cacheOpen = !isClosed();
 
-        StatementHolder statement = cacheOpen ? statementCache.get(connMethod) : null;
+        StatementHolder statement = cacheOpen ? statementCache.get(statementMethod) : null;
         if (statement != null && statement.state().compareAndSet(AVAILABLE, IN_USE)) {
-            logger.trace("Using cached statement for {}", connMethod);
+            logger.trace("Using cached statement for {}", statementMethod);
             return statement;
         }
 
-        Statement rawStatement = connMethod.newStatement();
+        Statement rawStatement = statementMethod.newStatement();
 
         if (cacheOpen && statement == null) { // there was no entry for the key, so we'll try to put a new one
-            statement = new StatementHolder(rawStatement, new AtomicReference<>(IN_USE), connMethod.sqlQuery());
-            if (statementCache.putIfAbsent(connMethod, statement) == null)
+            statement = new StatementHolder(rawStatement, new AtomicReference<>(IN_USE), statementMethod.sqlQuery());
+            if (statementCache.putIfAbsent(statementMethod, statement) == null)
                 return statement; // the new entry was successfully put in the cache
         }
 
         // if we can't do anything better we return an uncached StatementHolder
-        return new StatementHolder(rawStatement, null, connMethod.sqlQuery());
+        return new StatementHolder(rawStatement, null, statementMethod.sqlQuery());
     }
 
     @Override
@@ -127,7 +127,7 @@ public class ClhmStatementCache implements StatementCache {
 
     @Override
     public boolean remove(Statement rawStatement) {
-        for (Map.Entry<ConnMethod, StatementHolder> entry : statementCache.entrySet()) {
+        for (Map.Entry<StatementMethod, StatementHolder> entry : statementCache.entrySet()) {
             StatementHolder value = entry.getValue();
             if (value.value() == rawStatement) // comparing with == as these JDBC Statements are cached objects
                 return statementCache.remove(entry.getKey(), value);
@@ -138,8 +138,8 @@ public class ClhmStatementCache implements StatementCache {
     @Override
     public int removeAll(Connection rawConnection) {
         int removed = 0;
-        for (Map.Entry<ConnMethod, StatementHolder> entry : statementCache.entrySet()) {
-            ConnMethod key = entry.getKey();
+        for (Map.Entry<StatementMethod, StatementHolder> entry : statementCache.entrySet()) {
+            StatementMethod key = entry.getKey();
             StatementHolder value = entry.getValue();
             if (key.target() == rawConnection && statementCache.remove(key, value)) {
                 quietClose(value.value());
@@ -157,7 +157,7 @@ public class ClhmStatementCache implements StatementCache {
         if (closed.getAndSet(true))
             return;
 
-        for (Map.Entry<ConnMethod, StatementHolder> entry : statementCache.entrySet()) {
+        for (Map.Entry<StatementMethod, StatementHolder> entry : statementCache.entrySet()) {
             StatementHolder value = entry.getValue();
             statementCache.remove(entry.getKey(), value);
             quietClose(value.value());

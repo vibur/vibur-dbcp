@@ -24,7 +24,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InOrder;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.vibur.dbcp.cache.ConnMethod;
+import org.vibur.dbcp.cache.StatementMethod;
 import org.vibur.dbcp.cache.StatementHolder;
 
 import javax.sql.DataSource;
@@ -52,7 +52,7 @@ import static org.vibur.dbcp.util.StatementCacheUtils.mockStatementCache;
 public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
 
     @Captor
-    private ArgumentCaptor<ConnMethod> key1, key2;
+    private ArgumentCaptor<StatementMethod> key1, key2;
     @Captor
     private ArgumentCaptor<StatementHolder> val1, val2;
 
@@ -74,7 +74,7 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
     @Test
     public void testSelectStatementWithStatementsCache() throws SQLException, IOException {
         ViburDBCPDataSource ds = createDataSourceWithStatementsCache();
-        ConcurrentMap<ConnMethod, StatementHolder> mockedStatementCache = mockStatementCache(ds);
+        ConcurrentMap<StatementMethod, StatementHolder> mockedStatementCache = mockStatementCache(ds);
 
         try (Connection connection = ds.getConnection()) {
             executeAndVerifySelectStatement(connection);
@@ -99,7 +99,7 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
     @Test
     public void testPreparedSelectStatementWithStatementsCache() throws SQLException, IOException {
         ViburDBCPDataSource ds = createDataSourceWithStatementsCache();
-        ConcurrentMap<ConnMethod, StatementHolder> mockedStatementCache = mockStatementCache(ds);
+        ConcurrentMap<StatementMethod, StatementHolder> mockedStatementCache = mockStatementCache(ds);
 
         try (Connection connection = ds.getConnection()) {
             executeAndVerifyPreparedSelectStatement(connection);
@@ -120,7 +120,7 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
     @Test
     public void testTwoPreparedSelectStatementsWithStatementsCache() throws SQLException, IOException {
         ViburDBCPDataSource ds = createDataSourceWithStatementsCache();
-        ConcurrentMap<ConnMethod, StatementHolder> mockedStatementCache = mockStatementCache(ds);
+        ConcurrentMap<StatementMethod, StatementHolder> mockedStatementCache = mockStatementCache(ds);
 
         try (Connection connection = ds.getConnection()) {
             executeAndVerifyPreparedSelectStatement(connection);

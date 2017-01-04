@@ -18,7 +18,7 @@ package org.vibur.dbcp.proxy;
 
 import org.vibur.dbcp.ViburConfig;
 import org.vibur.dbcp.ViburDBCPException;
-import org.vibur.dbcp.cache.ConnMethod;
+import org.vibur.dbcp.cache.StatementMethod;
 import org.vibur.dbcp.cache.StatementCache;
 import org.vibur.dbcp.cache.StatementHolder;
 import org.vibur.dbcp.pool.ConnHolder;
@@ -95,16 +95,16 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
 
     /**
      * Returns <i>a possibly</i> cached StatementHolder object for the given proxied Connection object and the
-     * invoked on it prepareXYZ Method with the given args.
+     * invoked on it "prepare..." Method with the given args.
      *
      * @param method the invoked method
      * @param args the invoked method arguments
      * @return a retrieved from the cache or newly created StatementHolder object wrapping the raw JDBC Statement object
-     * @throws Throwable if the invoked underlying prepareXYZ method throws an exception
+     * @throws Throwable if the invoked underlying "prepare..." method throws an exception
      */
     private StatementHolder getCachedStatement(Method method, Object[] args) throws Throwable {
         if (statementCache != null)
-            return statementCache.take(new ConnMethod(this, method, args));
+            return statementCache.take(new StatementMethod(this, method, args));
 
         return getUncachedStatement(method, args, (String) args[0]);
     }

@@ -36,14 +36,14 @@ import static java.lang.String.format;
  *
  * @author Simeon Malchev
  */
-public class ConnMethod {
+public class StatementMethod {
 
     private final ConnectionInvocationHandler invoker; // the InvocationHandler for the underlying raw JDBC Connection
     private final Connection target; // the underlying raw JDBC Connection
     private final Method method; // the invoked prepareStatement(...) or prepareCall(...) method
     private final Object[] args; // the invoked method args
 
-    public ConnMethod(ConnectionInvocationHandler invoker, Method method, Object[] args) {
+    public StatementMethod(ConnectionInvocationHandler invoker, Method method, Object[] args) {
         assert invoker != null;
         assert method != null;
         assert args != null && args.length >= 1;
@@ -70,7 +70,7 @@ public class ConnMethod {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        ConnMethod that = (ConnMethod) o;
+        StatementMethod that = (StatementMethod) o;
         return target == that.target // comparing with == as the JDBC Connections are pooled objects
             && method.equals(that.method)
             && Arrays.equals(args, that.args);

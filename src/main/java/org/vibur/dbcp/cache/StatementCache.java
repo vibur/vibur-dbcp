@@ -27,13 +27,13 @@ import java.sql.Statement;
 public interface StatementCache {
 
     /**
-     * Returns <i>a possibly</i> cached StatementHolder object for the given connection method key.
+     * Returns <i>a possibly</i> cached StatementHolder object for the given connection statement method.
      *
-     * @param key the connection method key
+     * @param statementMethod the statement method
      * @return a retrieved from the cache or newly created StatementHolder object wrapping the raw JDBC Statement object
-     * @throws Throwable if the invoked underlying prepareXYZ method throws an exception
+     * @throws Throwable if the invoked underlying "prepare..." method throws an exception
      */
-    StatementHolder take(ConnMethod key) throws Throwable;
+    StatementHolder take(StatementMethod statementMethod) throws Throwable;
 
     /**
      * Returns (i.e. marks as available) the given {@code StatementHolder} back to the cache.

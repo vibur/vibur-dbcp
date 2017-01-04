@@ -26,7 +26,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * methods, and their "state" is describing whether the {@code Statement} object is currently AVAILABLE, IN_USE,
  * or EVICTED.
  *
- * @see ConnMethod
+ * @see StatementMethod
  *
  * @author Simeon Malchev
  */
