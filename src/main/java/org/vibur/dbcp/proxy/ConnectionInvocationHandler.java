@@ -17,6 +17,7 @@
 package org.vibur.dbcp.proxy;
 
 import org.vibur.dbcp.ViburConfig;
+import org.vibur.dbcp.ViburDBCPException;
 import org.vibur.dbcp.cache.ConnMethod;
 import org.vibur.dbcp.cache.StatementCache;
 import org.vibur.dbcp.cache.StatementHolder;
@@ -26,6 +27,7 @@ import org.vibur.dbcp.pool.PoolOperations;
 import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
+import java.sql.PreparedStatement;
 import java.sql.Statement;
 
 import static org.vibur.dbcp.proxy.Proxy.*;
@@ -102,7 +104,7 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
      */
     private StatementHolder getCachedStatement(Method method, Object[] args) throws Throwable {
         if (statementCache != null)
-            return statementCache.take(new ConnMethod(getTarget(), method, args), this);
+            return statementCache.take(new ConnMethod(this, method, args));
 
         return getUncachedStatement(method, args, (String) args[0]);
     }
@@ -126,6 +128,13 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
         } finally {
             poolOperations.restore(conn, false, getExceptionCollector().getExceptions());
         }
+    }
+
+    public PreparedStatement newStatement(Method method, Object[] args) throws Throwable {
+        String methodName = method.getName();
+        if (methodName != "prepareStatement" && methodName != "prepareCall")
+            throw new ViburDBCPException("Unexpected method passed to newStatement " + method);
+        return (PreparedStatement) targetInvoke(method, args);
     }
 
     public void invalidate() {

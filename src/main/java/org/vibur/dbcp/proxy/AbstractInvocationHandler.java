@@ -37,7 +37,7 @@ import static org.vibur.dbcp.util.ViburUtils.getPoolName;
  * @author Simeon Malchev
  * @param <T> the type of the object that we are dynamically proxying
 */
-abstract class AbstractInvocationHandler<T> implements InvocationHandler, TargetInvoker {
+abstract class AbstractInvocationHandler<T> implements InvocationHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(AbstractInvocationHandler.class);
 
@@ -139,8 +139,7 @@ abstract class AbstractInvocationHandler<T> implements InvocationHandler, Target
         return targetInvoke(method, args);
     }
 
-    @Override
-    public final Object targetInvoke(Method method, Object[] args) throws Throwable {
+    final Object targetInvoke(Method method, Object[] args) throws Throwable {
         try {
             return method.invoke(target, args);  // the real method call on the real underlying (proxied) object
 
@@ -180,7 +179,7 @@ abstract class AbstractInvocationHandler<T> implements InvocationHandler, Target
         return exceptionCollector;
     }
 
-    final T getTarget() {
+    public final T getTarget() {
         return target;
     }
 

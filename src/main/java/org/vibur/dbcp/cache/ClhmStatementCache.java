@@ -20,7 +20,6 @@ import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap;
 import com.googlecode.concurrentlinkedhashmap.EvictionListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.vibur.dbcp.proxy.TargetInvoker;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -82,24 +81,25 @@ public class ClhmStatementCache implements StatementCache {
     }
 
     @Override
-    public StatementHolder take(ConnMethod key, TargetInvoker invoker) throws Throwable {
+    public StatementHolder take(ConnMethod connMethod) throws Throwable {
         boolean cacheOpen = !isClosed();
 
-        StatementHolder statement = cacheOpen ? statementCache.get(key) : null;
+        StatementHolder statement = cacheOpen ? statementCache.get(connMethod) : null;
         if (statement != null && statement.state().compareAndSet(AVAILABLE, IN_USE)) {
-            logger.trace("Using cached statement for {}", key);
+            logger.trace("Using cached statement for {}", connMethod);
             return statement;
         }
 
-        Statement rawStatement = (Statement) invoker.targetInvoke(key.method(), key.args());
+        Statement rawStatement = connMethod.newStatement();
 
-        String sqlQuery = (String) key.args()[0]; // as only prepared and callable Statements are cached the args()[0] is the query
         if (cacheOpen && statement == null) { // there was no entry for the key, so we'll try to put a new one
-            statement = new StatementHolder(rawStatement, new AtomicReference<>(IN_USE), sqlQuery);
-            if (statementCache.putIfAbsent(key, statement) == null)
+            statement = new StatementHolder(rawStatement, new AtomicReference<>(IN_USE), connMethod.sqlQuery());
+            if (statementCache.putIfAbsent(connMethod, statement) == null)
                 return statement; // the new entry was successfully put in the cache
         }
-        return new StatementHolder(rawStatement, null, sqlQuery);
+
+        // if we can't do anything better we return an uncached StatementHolder
+        return new StatementHolder(rawStatement, null, connMethod.sqlQuery());
     }
 
     @Override

@@ -16,8 +16,11 @@
 
 package org.vibur.dbcp.cache;
 
+import org.vibur.dbcp.proxy.ConnectionInvocationHandler;
+
 import java.lang.reflect.Method;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.util.Arrays;
 
 import static java.lang.String.format;
@@ -35,15 +38,17 @@ import static java.lang.String.format;
  */
 public class ConnMethod {
 
+    private final ConnectionInvocationHandler invoker; // the InvocationHandler for the underlying raw JDBC Connection
     private final Connection target; // the underlying raw JDBC Connection
-    private final Method method; // the invoked prepareStatement or prepareCall method
+    private final Method method; // the invoked prepareStatement(...) or prepareCall(...) method
     private final Object[] args; // the invoked method args
 
-    public ConnMethod(Connection target, Method method, Object[] args) {
-        assert target != null;
+    public ConnMethod(ConnectionInvocationHandler invoker, Method method, Object[] args) {
+        assert invoker != null;
         assert method != null;
         assert args != null && args.length >= 1;
-        this.target = target;
+        this.invoker = invoker;
+        this.target = invoker.getTarget();
         this.method = method;
         this.args = args;
     }
@@ -52,12 +57,12 @@ public class ConnMethod {
         return target;
     }
 
-    Method method() {
-        return method;
+    PreparedStatement newStatement() throws Throwable {
+        return invoker.newStatement(method, args);
     }
 
-    Object[] args() {
-        return args;
+    String sqlQuery() {
+        return (String) args[0]; // as only prepared and callable Statements are cached the args[0] is the query
     }
 
     @Override

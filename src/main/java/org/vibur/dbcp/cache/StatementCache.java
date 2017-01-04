@@ -16,8 +16,6 @@
 
 package org.vibur.dbcp.cache;
 
-import org.vibur.dbcp.proxy.TargetInvoker;
-
 import java.sql.Connection;
 import java.sql.Statement;
 
@@ -32,11 +30,10 @@ public interface StatementCache {
      * Returns <i>a possibly</i> cached StatementHolder object for the given connection method key.
      *
      * @param key the connection method key
-     * @param invoker the invoker through which to create the raw JDBC Statement object, if needed
      * @return a retrieved from the cache or newly created StatementHolder object wrapping the raw JDBC Statement object
      * @throws Throwable if the invoked underlying prepareXYZ method throws an exception
      */
-    StatementHolder take(ConnMethod key, TargetInvoker invoker) throws Throwable;
+    StatementHolder take(ConnMethod key) throws Throwable;
 
     /**
      * Returns (i.e. marks as available) the given {@code StatementHolder} back to the cache.
