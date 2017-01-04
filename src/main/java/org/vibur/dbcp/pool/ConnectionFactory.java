@@ -30,7 +30,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
-import static org.vibur.dbcp.util.JdbcUtils.*;
+import static org.vibur.dbcp.util.JdbcUtils.initLoginTimeout;
+import static org.vibur.dbcp.util.JdbcUtils.quietClose;
 
 /**
  * The object factory which controls the lifecycle of the underlying JDBC Connections: creates them,

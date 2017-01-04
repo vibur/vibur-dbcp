@@ -30,11 +30,7 @@ import org.vibur.objectpool.util.ThreadedPoolReducer;
 
 import javax.sql.DataSource;
 import java.sql.Driver;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicInteger;
 

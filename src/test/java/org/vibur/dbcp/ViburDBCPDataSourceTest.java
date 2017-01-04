@@ -24,8 +24,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InOrder;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.vibur.dbcp.cache.StatementMethod;
 import org.vibur.dbcp.cache.StatementHolder;
+import org.vibur.dbcp.cache.StatementMethod;
 
 import javax.sql.DataSource;
 import java.io.IOException;

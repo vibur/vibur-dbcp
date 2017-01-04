@@ -18,9 +18,9 @@ package org.vibur.dbcp.proxy;
 
 import org.vibur.dbcp.ViburConfig;
 import org.vibur.dbcp.ViburDBCPException;
-import org.vibur.dbcp.cache.StatementMethod;
 import org.vibur.dbcp.cache.StatementCache;
 import org.vibur.dbcp.cache.StatementHolder;
+import org.vibur.dbcp.cache.StatementMethod;
 import org.vibur.dbcp.pool.ConnHolder;
 import org.vibur.dbcp.pool.PoolOperations;
 

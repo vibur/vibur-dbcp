@@ -18,8 +18,8 @@ package org.vibur.dbcp.util;
 
 import org.vibur.dbcp.ViburDBCPDataSource;
 import org.vibur.dbcp.cache.ClhmStatementCache;
-import org.vibur.dbcp.cache.StatementMethod;
 import org.vibur.dbcp.cache.StatementHolder;
+import org.vibur.dbcp.cache.StatementMethod;
 
 import java.util.ArrayList;
 import java.util.List;
