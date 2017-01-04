@@ -56,12 +56,13 @@ public abstract class ViburConfig {
     public static final String SQLSTATE_POOL_CLOSED_ERROR     = "VI001";
     public static final String SQLSTATE_TIMEOUT_ERROR         = "VI002";
     public static final String SQLSTATE_CONN_INIT_ERROR       = "VI003";
-    public static final String SQLSTATE_OBJECT_CLOSED_ERROR   = "VI004";
-    public static final String SQLSTATE_WRAPPER_ERROR         = "VI005";
+    public static final String SQLSTATE_CONN_VALIDATE_ERROR   = "VI004";
+    public static final String SQLSTATE_OBJECT_CLOSED_ERROR   = "VI005";
+    public static final String SQLSTATE_WRAPPER_ERROR         = "VI006";
 
     static final int STATEMENT_CACHE_MAX_SIZE = 2000;
 
-    ViburConfig() { }
+    ViburConfig() {}
 
     /** The user name to use when connecting to the database. */
     private String username;

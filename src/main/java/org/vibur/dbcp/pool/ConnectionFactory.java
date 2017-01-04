@@ -115,10 +115,12 @@ public class ConnectionFactory implements ViburObjectFactory {
         Connection rawConnection = conn.value();
         try {
             int idleLimit = config.getConnectionIdleLimitInSeconds();
-            if (idleLimit >= 0) {
-                long idle = NANOSECONDS.toSeconds(System.nanoTime() - conn.getRestoredNanoTime());
-                if (idle >= idleLimit && !validateConnection(rawConnection, config.getTestConnectionQuery(), config))
-                    return false;
+            if (idleLimit >= 0 && !connHooks.onValidate().isEmpty()) {
+                long idleNano = System.nanoTime() - conn.getRestoredNanoTime();
+                if (NANOSECONDS.toSeconds(idleNano) >= idleLimit) {
+                    for (Hook.ValidateConnection hook : connHooks.onValidate())
+                        hook.on(rawConnection, idleNano);
+                }
             }
 
             prepareTracking(conn);

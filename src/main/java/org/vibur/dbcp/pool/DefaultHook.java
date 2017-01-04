@@ -26,6 +26,7 @@ import java.util.List;
 
 import static java.lang.String.format;
 import static org.vibur.dbcp.ViburConfig.SQLSTATE_CONN_INIT_ERROR;
+import static org.vibur.dbcp.ViburConfig.SQLSTATE_CONN_VALIDATE_ERROR;
 import static org.vibur.dbcp.util.JdbcUtils.*;
 import static org.vibur.dbcp.util.ViburUtils.*;
 
@@ -39,7 +40,7 @@ import static org.vibur.dbcp.util.ViburUtils.*;
  *
  * @author Simeon Malchev
  */
-public class DefaultHook {
+public abstract class DefaultHook {
 
     private static final Logger logger = LoggerFactory.getLogger(DefaultHook.class);
 
@@ -48,6 +49,8 @@ public class DefaultHook {
     private DefaultHook(ViburConfig config) {
         this.config = config;
     }
+
+    abstract boolean isEnabled();
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -63,6 +66,13 @@ public class DefaultHook {
 
             setDefaultValues(rawConnection, config);
         }
+
+        @Override
+        boolean isEnabled() {
+            return config.getInitSQL() != null ||
+                    config.getDefaultAutoCommit() != null || config.getDefaultReadOnly() != null ||
+                    config.getDefaultTransactionIsolationValue() != null || config.getDefaultCatalog() != null;
+        }
     }
 
     public static class CloseConnection extends DefaultHook implements Hook.CloseConnection {
@@ -76,6 +86,11 @@ public class DefaultHook {
                 clearWarnings(rawConnection);
             if (config.isResetDefaultsAfterUse())
                 setDefaultValues(rawConnection, config);
+        }
+
+        @Override
+        boolean isEnabled() {
+            return config.isClearSQLWarnings() || config.isResetDefaultsAfterUse();
         }
     }
 
@@ -98,6 +113,28 @@ public class DefaultHook {
             if (config.isLogStackTraceForLongConnection() )
                 log.append('\n').append(getStackTraceAsString(new Throwable().getStackTrace()));
             logger.warn(log.toString());
+        }
+
+        @Override
+        boolean isEnabled() {
+            return config.getLogConnectionLongerThanMs() >= 0;
+        }
+    }
+
+    public static class ValidateConnection extends DefaultHook implements Hook.ValidateConnection {
+        public ValidateConnection(ViburConfig config) {
+            super(config);
+        }
+
+        @Override
+        public void on(Connection rawConnection, long idleNanos) throws SQLException {
+            if (!validateConnection(rawConnection, config.getTestConnectionQuery(), config))
+                throw new SQLException("Couldn't validate rawConnection " + rawConnection, SQLSTATE_CONN_VALIDATE_ERROR);
+        }
+
+        @Override
+        boolean isEnabled() {
+            return config.getConnectionIdleLimitInSeconds() >= 0 && config.getTestConnectionQuery() != null;
         }
     }
 
@@ -127,6 +164,11 @@ public class DefaultHook {
                 logger.warn(message.toString());
             }
         }
+
+        @Override
+        boolean isEnabled() {
+            return config.getLogQueryExecutionLongerThanMs() >= 0;
+        }
     }
 
     public static class ResultSetSize extends DefaultHook implements Hook.ResultSetRetrieval {
@@ -145,6 +187,11 @@ public class DefaultHook {
             if (config.isLogStackTraceForLargeResultSet())
                 message.append('\n').append(getStackTraceAsString(new Throwable().getStackTrace()));
             logger.warn(message.toString());
+        }
+
+        @Override
+        boolean isEnabled() {
+            return config.getLogLargeResultSet() >= 0;
         }
     }
 }

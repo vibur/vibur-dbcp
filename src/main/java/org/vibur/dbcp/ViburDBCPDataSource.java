@@ -238,7 +238,7 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
         if (pool == null) {
             pool = new ConcurrentPool<>(getConcurrentCollection(), connectionFactory,
                     getPoolInitialSize(), getPoolMaxSize(), isPoolFair(),
-                    isPoolEnableConnectionTracking() ? new TakenListener<ConnHolder>(getPoolInitialSize()) : null);
+                    isPoolEnableConnectionTracking() ? new TakenListener<ConnHolder>(getPoolMaxSize()) : null);
             setPool(pool);
         }
         poolOperations = new PoolOperations(connectionFactory, pool, this);
@@ -349,14 +349,12 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
 
     private void initHooks() {
         getConnHooks().addOnInit(new DefaultHook.InitConnection(this));
+        getConnHooks().addOnGet(new DefaultHook.GetConnectionTiming(this));
+        getConnHooks().addOnValidate(new DefaultHook.ValidateConnection(this));
         getConnHooks().addOnClose(new DefaultHook.CloseConnection(this));
 
-        if (getLogConnectionLongerThanMs() >= 0)
-            getConnHooks().addOnGet(new DefaultHook.GetConnectionTiming(this));
-        if (getLogQueryExecutionLongerThanMs() >= 0)
-            getInvocationHooks().addOnStatementExecution(new DefaultHook.QueryTiming(this));
-        if (getLogLargeResultSet() >= 0)
-            getInvocationHooks().addOnResultSetRetrieval(new DefaultHook.ResultSetSize(this));
+        getInvocationHooks().addOnStatementExecution(new DefaultHook.QueryTiming(this));
+        getInvocationHooks().addOnResultSetRetrieval(new DefaultHook.ResultSetSize(this));
     }
 
     private void initPoolReducer() throws ViburDBCPException {

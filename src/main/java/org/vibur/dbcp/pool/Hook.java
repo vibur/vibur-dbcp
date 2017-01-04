@@ -70,6 +70,19 @@ public interface Hook {
         void on(Connection rawConnection, long takenNanos) throws SQLException;
     }
 
+    interface ValidateConnection extends Hook {
+        /**
+         * A programming hook that will be invoked on the raw JDBC Connection when it has stayed in the pool for longer
+         * than the predefined {@link ViburConfig#connectionIdleLimitInSeconds idle} timeout. Its execution should take
+         * as short time as possible.
+         *
+         * @param rawConnection the retrieved from the pool raw JDBC connection
+         * @param idleNanos the time for which this connection has stayed in the pool in nanoseconds
+         * @throws SQLException to indicate that an SQL error has occurred <i>or</i> that the given connection is <b>invalid</b>
+         */
+        void on(Connection rawConnection, long idleNanos) throws SQLException;
+    }
+
     interface CloseConnection extends Hook {
         /**
          * A programming hook that will be invoked on the raw JDBC Connection as part of the 
@@ -149,9 +162,12 @@ public interface Hook {
 
         public static <T extends Hook> List<T> addHook(List<T> hooks, T hook) {
             requireNonNull(hook);
+            if (hook instanceof DefaultHook && !((DefaultHook) hook).isEnabled())
+                return hooks;
             if (hooks == EMPTY_LIST)
                 hooks = new ArrayList<>();
-            hooks.add(hook);
+            if (!hooks.contains(hook))
+                hooks.add(hook);
             return hooks;
         }
     }
