@@ -289,6 +289,11 @@ public final class ViburMonitoring implements ViburMonitoringMBean {
     }
 
     @Override
+    public boolean isLogAllStackTracesOnTimeout() {
+        return config.isLogAllStackTracesOnTimeout();
+    }
+
+    @Override
     public boolean isResetDefaultsAfterUse() {
         return config.isResetDefaultsAfterUse();
     }

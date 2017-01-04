@@ -51,7 +51,7 @@ public final class ViburUtils {
     }
 
     public static String formatSql(String sqlQuery, List<Object[]> queryParams) {
-        StringBuilder result = new StringBuilder(4096).append("-- ").append(sqlQuery);
+        StringBuilder result = new StringBuilder(1024).append("-- ").append(sqlQuery);
         if (queryParams != null && !queryParams.isEmpty())
             result.append("\n-- Parameters:\n-- ").append(Arrays.deepToString(queryParams.toArray()));
         return result.toString();

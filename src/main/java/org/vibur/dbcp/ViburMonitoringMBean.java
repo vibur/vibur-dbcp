@@ -130,6 +130,8 @@ public interface ViburMonitoringMBean {
 
     boolean isLogTakenConnectionsOnTimeout();
 
+    boolean isLogAllStackTracesOnTimeout();
+
     //////////// JDBC Connection default states ////////////
 
     boolean isResetDefaultsAfterUse();
