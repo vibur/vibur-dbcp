@@ -37,6 +37,9 @@ public final class ViburUtils {
     }
 
     public static String getStackTraceAsString(StackTraceElement[] stackTrace) {
+        if (stackTrace.length == 0)
+            return "";
+
         int i;
         for (i = 0; i < stackTrace.length; i++) {
             if (!stackTrace[i].getClassName().startsWith("org.vibur")

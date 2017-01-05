@@ -817,9 +817,11 @@ public abstract class ViburConfig {
                     .append(" ms, by thread ").append(holdingThread.getName())
                     .append(", state ").append(holdingThread.getState())
                     .append("\n\nThread stack trace at the moment when getting the Connection:\n")
-                    .append(getStackTraceAsString(takenConn.getLocation().getStackTrace()))
-                    .append("\nThread stack trace at the current moment:\n")
-                    .append(getStackTraceAsString(stackTraces.remove(holdingThread)));
+                    .append(getStackTraceAsString(takenConn.getLocation().getStackTrace()));
+            if (holdingThread.getState() != Thread.State.TERMINATED) {
+                    builder.append("\nThread stack trace at the current moment:\n")
+                            .append(getStackTraceAsString(stackTraces.remove(holdingThread)));
+            }
         }
         if (!stackTraces.isEmpty()) {
             builder.append("\n\n============ All other stack traces: ============\n\n");
