@@ -22,6 +22,8 @@ Version 14.0 (22/12/2016)
   slow SQL queries, and large ResultSets through the above programming hooks. Removed ViburLogger interface and the
   implementing it BaseViburLogger class.
 * Renamed MethodHooksHolder to InvocationHooksHolder as well as the corresponding field in ViburConfig.
+  Example of how to add a method invocation hook:
+    viburDataSource.getInvocationHooks().addOnMethodInvocation(invocationHook);
 * Now all timing measurement in Vibur DBCP is done via System.nanoTime() instead of System.currentTimeMillis()
   and all logging that contains timing is formatted in milliseconds with up to 6 digits precision.
 * Various other refactoring and source code clean-up.
