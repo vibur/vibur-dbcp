@@ -806,7 +806,7 @@ public abstract class ViburConfig {
             }
         });
 
-        Map<Thread, StackTraceElement[]> stackTraces = stackTracesToLog(takenConns, size);
+        Map<Thread, StackTraceElement[]> currentStackTraces = getCurrentStackTraces(takenConns, size);
         long currentNanoTime = System.nanoTime();
         StringBuilder builder = new StringBuilder(65536);
         for (int i = 0; i < size; i++) {
@@ -818,25 +818,35 @@ public abstract class ViburConfig {
                     .append(", state ").append(holdingThread.getState())
                     .append("\n\nThread stack trace at the moment when getting the Connection:\n")
                     .append(getStackTraceAsString(takenConn.getLocation().getStackTrace()));
-            if (holdingThread.getState() != Thread.State.TERMINATED) {
+
+            StackTraceElement[] currentStackTrace = currentStackTraces.remove(holdingThread);
+            if (currentStackTrace != null && currentStackTrace.length > 0) {
                     builder.append("\nThread stack trace at the current moment:\n")
-                            .append(getStackTraceAsString(stackTraces.remove(holdingThread)));
+                            .append(getStackTraceAsString(currentStackTrace));
             }
         }
-        if (!stackTraces.isEmpty()) {
-            builder.append("\n\n============ All other stack traces: ============\n\n");
-            for (Map.Entry<Thread, StackTraceElement[]> entry : stackTraces.entrySet()) {
-                Thread thread = entry.getKey();
-                builder.append("\n============\n").append("Thread ").append(thread.getName())
-                        .append(", state ").append(thread.getState())
-                        .append("\n\nThread stack trace at the current moment:\n")
-                        .append(getStackTraceAsString(entry.getValue()));
-            }
-        }
-        return builder.toString();
+        return addAllOtherStackTraces(builder, currentStackTraces).toString();
     }
 
-    private Map<Thread, StackTraceElement[]> stackTracesToLog(ConnHolder[] takenConns, int size) {
+    private static StringBuilder addAllOtherStackTraces(StringBuilder builder, Map<Thread, StackTraceElement[]> stackTraces) {
+        if (stackTraces.isEmpty())
+            return builder;
+
+        builder.append("\n\n============ All other stack traces: ============\n\n");
+        for (Map.Entry<Thread, StackTraceElement[]> entry : stackTraces.entrySet()) {
+            Thread thread = entry.getKey();
+            builder.append("\n============\n").append("Thread ").append(thread.getName())
+                    .append(", state ").append(thread.getState());
+            StackTraceElement[] currentStackTrace = entry.getValue();
+            if (currentStackTrace.length > 0) {
+                    builder.append("\n\nThread stack trace at the current moment:\n")
+                            .append(getStackTraceAsString(currentStackTrace));
+            }
+        }
+        return builder;
+    }
+
+    private Map<Thread, StackTraceElement[]> getCurrentStackTraces(ConnHolder[] takenConns, int size) {
         if (isLogAllStackTracesOnTimeout())
             return Thread.getAllStackTraces();
 
