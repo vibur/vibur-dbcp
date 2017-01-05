@@ -853,7 +853,8 @@ public abstract class ViburConfig {
         Map<Thread, StackTraceElement[]> map = new HashMap<>(size);
         for (int i = 0; i < size; i++) {
             Thread holdingThread = takenConns[i].getThread();
-            map.put(holdingThread, holdingThread.getStackTrace());
+            if (holdingThread.getState() != Thread.State.TERMINATED)
+                map.put(holdingThread, holdingThread.getStackTrace());
         }
         return map;
     }
