@@ -22,7 +22,6 @@ import org.vibur.dbcp.pool.*;
 import org.vibur.dbcp.proxy.ConnectionInvocationHandler;
 import org.vibur.objectpool.ConcurrentPool;
 import org.vibur.objectpool.PoolService;
-import org.vibur.objectpool.util.TakenListener;
 import org.vibur.objectpool.util.ThreadedPoolReducer;
 
 import java.io.IOException;
@@ -238,7 +237,7 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
         if (pool == null) {
             pool = new ConcurrentPool<>(getConcurrentCollection(), connectionFactory,
                     getPoolInitialSize(), getPoolMaxSize(), isPoolFair(),
-                    isPoolEnableConnectionTracking() ? new TakenListener<ConnHolder>(getPoolMaxSize()) : null);
+                    isPoolEnableConnectionTracking() ? new ViburListener(this) : null);
             setPool(pool);
         }
         poolOperations = new PoolOperations(connectionFactory, pool, this);

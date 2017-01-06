@@ -18,6 +18,7 @@ package org.vibur.dbcp;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.vibur.dbcp.pool.ViburListener;
 
 import javax.management.JMException;
 import javax.management.MBeanServer;
@@ -325,6 +326,6 @@ public final class ViburMonitoring implements ViburMonitoringMBean {
 
     @Override
     public String showTakenConnections() {
-        return config.takenConnectionsToString();
+        return ((ViburListener) config.getPool().listener()).takenConnectionsToString();
     }
 }
