@@ -21,10 +21,7 @@ import org.vibur.dbcp.ViburConfig;
 import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.Arrays;
 import java.util.List;
-
-import static java.util.Objects.requireNonNull;
 
 /**
  * An interface that holds all application programming hook interfaces for JDBC Connection tune-up and method 
@@ -151,24 +148,5 @@ public interface Hook {
          * @param resultSetSize the retrieved ResultSet size
          */
         void on(String sqlQuery, List<Object[]> queryParams, long resultSetSize);
-    }
-
-    ///////////////
-    // Hooks utils:
-
-    final class Util {
-
-        private Util() {}
-
-        public static <T extends Hook> T[] addHook(T[] hooks, T hook) {
-            requireNonNull(hook);
-            if (hook instanceof DefaultHook && !((DefaultHook) hook).isEnabled())
-                return hooks;
-
-            int length = hooks.length;
-            hooks = Arrays.copyOf(hooks, length + 1); // i.e., copy-on-write
-            hooks[length] = hook;
-            return hooks;
-        }
     }
 }

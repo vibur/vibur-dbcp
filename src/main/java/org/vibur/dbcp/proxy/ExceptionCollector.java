@@ -45,7 +45,7 @@ class ExceptionCollector {
     void addException(Throwable t) {
         if (t instanceof SQLException
                 && !(t instanceof SQLTimeoutException) && !(t instanceof SQLTransactionRollbackException))
-            exceptions.add(t); // only SQLExceptions are stored, excluding the above two sub-types
+            exceptions.offer(t); // only SQLExceptions are stored, excluding the above two sub-types
     }
 
     /**

@@ -18,7 +18,7 @@ package org.vibur.dbcp.proxy;
 
 import org.vibur.dbcp.pool.Hook;
 
-import static org.vibur.dbcp.pool.Hook.Util.addHook;
+import static org.vibur.dbcp.pool.DefaultHook.Util.addHook;
 
 /**
  * Holds all programming method invocation hooks collections.

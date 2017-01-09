@@ -18,7 +18,7 @@ package org.vibur.dbcp.pool;
 
 import javax.sql.DataSource;
 
-import static org.vibur.dbcp.pool.Hook.Util.addHook;
+import static org.vibur.dbcp.pool.DefaultHook.Util.addHook;
 
 /**
  * Holds all programming Connection hooks collections.

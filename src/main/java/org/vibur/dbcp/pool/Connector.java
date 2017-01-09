@@ -39,7 +39,7 @@ public interface Connector {
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
-    class Builder {
+    final class Builder {
 
         private Builder() {}
 
@@ -56,7 +56,7 @@ public interface Connector {
             private final String jdbcUrl;
             private final Properties driverProperties;
 
-            public Driver(ViburConfig config, String username, String password) {
+            private Driver(ViburConfig config, String username, String password) {
                 this.driver = config.getDriver();
                 this.jdbcUrl = config.getJdbcUrl();
 
@@ -74,7 +74,7 @@ public interface Connector {
         private static class DataSource implements Connector {
             private final javax.sql.DataSource externalDataSource;
 
-            public DataSource(ViburConfig config) {
+            private DataSource(ViburConfig config) {
                 this.externalDataSource = config.getExternalDataSource();
             }
 
@@ -89,7 +89,7 @@ public interface Connector {
             private final String username;
             private final String password;
 
-            public DataSourceWithCredentials(ViburConfig config, String username, String password) {
+            private DataSourceWithCredentials(ViburConfig config, String username, String password) {
                 this.externalDataSource = config.getExternalDataSource();
                 this.username = username;
                 this.password = password;

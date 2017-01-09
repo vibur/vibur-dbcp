@@ -22,9 +22,11 @@ import org.vibur.dbcp.ViburConfig;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.List;
 
 import static java.lang.String.format;
+import static java.util.Objects.requireNonNull;
 import static org.vibur.dbcp.ViburConfig.SQLSTATE_CONN_INIT_ERROR;
 import static org.vibur.dbcp.ViburConfig.SQLSTATE_CONN_VALIDATE_ERROR;
 import static org.vibur.dbcp.util.JdbcUtils.*;
@@ -87,12 +89,14 @@ public abstract class DefaultHook {
             if (takenMillis < config.getLogConnectionLongerThanMs())
                 return;
 
-            StringBuilder log = new StringBuilder(4096)
-                    .append(format("Call to getConnection() from pool %s took %f ms, connProxy = %s",
-                            getPoolName(config), takenMillis, rawConnection));
-            if (config.isLogStackTraceForLongConnection() )
-                log.append('\n').append(getStackTraceAsString(new Throwable().getStackTrace()));
-            logger.warn(log.toString());
+            if (logger.isWarnEnabled()) {
+                StringBuilder log = new StringBuilder(4096)
+                        .append(format("Call to getConnection() from pool %s took %f ms, connProxy = %s",
+                                getPoolName(config), takenMillis, rawConnection));
+                if (config.isLogStackTraceForLongConnection())
+                    log.append('\n').append(getStackTraceAsString(new Throwable().getStackTrace()));
+                logger.warn(log.toString());
+            }
         }
 
         @Override
@@ -183,17 +187,38 @@ public abstract class DefaultHook {
             if (config.getLogLargeResultSet() > resultSetSize)
                 return;
 
-            StringBuilder message = new StringBuilder(4096).append(
-                    format("SQL query execution from pool %s retrieved a ResultSet with size %d:\n%s",
-                            getPoolName(config), resultSetSize, formatSql(sqlQuery, queryParams)));
-            if (config.isLogStackTraceForLargeResultSet())
-                message.append('\n').append(getStackTraceAsString(new Throwable().getStackTrace()));
-            logger.warn(message.toString());
+            if (logger.isWarnEnabled()) {
+                StringBuilder message = new StringBuilder(4096).append(
+                        format("SQL query execution from pool %s retrieved a ResultSet with size %d:\n%s",
+                                getPoolName(config), resultSetSize, formatSql(sqlQuery, queryParams)));
+                if (config.isLogStackTraceForLargeResultSet())
+                    message.append('\n').append(getStackTraceAsString(new Throwable().getStackTrace()));
+                logger.warn(message.toString());
+            }
         }
 
         @Override
         boolean isEnabled() {
             return config.getLogLargeResultSet() >= 0;
+        }
+    }
+
+    ///////////////
+    // Hooks utils:
+
+    public static final class Util {
+
+        private Util() {}
+
+        public static <T extends Hook> T[] addHook(T[] hooks, T hook) {
+            requireNonNull(hook);
+            if (hook instanceof DefaultHook && !((DefaultHook) hook).isEnabled())
+                return hooks;
+
+            int length = hooks.length;
+            hooks = Arrays.copyOf(hooks, length + 1); // i.e., copy-on-write
+            hooks[length] = hook;
+            return hooks;
         }
     }
 }
