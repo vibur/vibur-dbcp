@@ -166,7 +166,7 @@ public interface Hook {
                 return hooks;
 
             int length = hooks.length;
-            hooks = Arrays.copyOf(hooks, length + 1);
+            hooks = Arrays.copyOf(hooks, length + 1); // i.e., copy-on-write
             hooks[length] = hook;
             return hooks;
         }
