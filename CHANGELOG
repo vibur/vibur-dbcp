@@ -1,5 +1,10 @@
-Version 15.0 (04/01/2017) - RECOMMENDED
+Version 16.0 (09/01/2017) - RECOMMENDED
 =======================================
+* Performance improvements of the programming hooks (version 12.0 onwards) implementation.
+* Fixed a minor bug in the implementation of logAllStackTracesOnTimeout from last release.
+
+Version 15.0 (04/01/2017)
+=========================
 * Added an sqlException param to the StatementExecution hook params.
 * Added ValidateConnection programming hook.
 * Added logAllStackTracesOnTimeout configuration option - allows in case of Connections exhaustion the application
