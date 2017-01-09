@@ -111,8 +111,8 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
     }
 
     private Object processExecute(Statement proxy, Method method, Object[] args) throws Throwable {
-        List<Hook.StatementExecution> onStatementExecution = invocationHooks.onStatementExecution();
-        long startTime = onStatementExecution.isEmpty() ? 0 : System.nanoTime();
+        Hook.StatementExecution[] onStatementExecution = invocationHooks.onStatementExecution();
+        long startTime = onStatementExecution.length > 0 ? System.nanoTime() : 0;
 
         if (statement.getSqlQuery() == null && args != null && args.length >= 1) // a simple Statement "execute..." call
             statement.setSqlQuery((String) args[0]);
@@ -129,10 +129,10 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
             sqlException = e;
             throw e;
         } finally {
-            if (!onStatementExecution.isEmpty()) {
-                long timeTaken = System.nanoTime() - startTime;
+            if (onStatementExecution.length > 0) {
+                long takenNanos = System.nanoTime() - startTime;
                 for (Hook.StatementExecution hook : onStatementExecution)
-                    hook.on(statement.getSqlQuery(), queryParams, timeTaken, sqlException);
+                    hook.on(statement.getSqlQuery(), queryParams, takenNanos, sqlException);
             }
         }
     }

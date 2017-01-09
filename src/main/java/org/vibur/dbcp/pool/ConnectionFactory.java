@@ -24,7 +24,6 @@ import org.vibur.dbcp.ViburDBCPException;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.util.Objects.requireNonNull;
@@ -74,8 +73,8 @@ public class ConnectionFactory implements ViburObjectFactory {
 
     @Override
     public ConnHolder create(Connector connector) throws ViburDBCPException {
-        List<Hook.InitConnection> onInit = connHooks.onInit();
-        long startTime = onInit.isEmpty() ? 0 : System.nanoTime();
+        Hook.InitConnection[] onInit = connHooks.onInit();
+        long startTime = onInit.length > 0 ? System.nanoTime() : 0;
 
         int attempt = 0;
         Connection rawConnection = null;
@@ -94,10 +93,10 @@ public class ConnectionFactory implements ViburObjectFactory {
         }
 
         try {
-            if (!onInit.isEmpty()) {
-                long timeTaken = System.nanoTime() - startTime;
+            if (onInit.length > 0) {
+                long takenNanos = System.nanoTime() - startTime;
                 for (Hook.InitConnection hook : onInit)
-                    hook.on(rawConnection, timeTaken);
+                    hook.on(rawConnection, takenNanos);
             }
         } catch (SQLException e) {
             quietClose(rawConnection);
@@ -116,10 +115,11 @@ public class ConnectionFactory implements ViburObjectFactory {
         Connection rawConnection = conn.value();
         try {
             int idleLimit = config.getConnectionIdleLimitInSeconds();
-            if (idleLimit >= 0 && !connHooks.onValidate().isEmpty()) {
+            Hook.ValidateConnection[] onValidate = connHooks.onValidate();
+            if (idleLimit >= 0 && onValidate.length > 0) {
                 long idleNanos = System.nanoTime() - conn.getRestoredNanoTime();
                 if (NANOSECONDS.toSeconds(idleNanos) >= idleLimit) {
-                    for (Hook.ValidateConnection hook : connHooks.onValidate())
+                    for (Hook.ValidateConnection hook : onValidate)
                         hook.on(rawConnection, idleNanos);
                 }
             }
@@ -138,9 +138,10 @@ public class ConnectionFactory implements ViburObjectFactory {
 
         Connection rawConnection = conn.value();
         try {
-            if (!connHooks.onClose().isEmpty()) {
+            Hook.CloseConnection[] onClose = connHooks.onClose();
+            if (onClose.length > 0) {
                 long takenNanos = System.nanoTime() - conn.getTakenNanoTime();
-                for (Hook.CloseConnection hook : connHooks.onClose())
+                for (Hook.CloseConnection hook : onClose)
                     hook.on(rawConnection, takenNanos);
             }
 
@@ -159,7 +160,7 @@ public class ConnectionFactory implements ViburObjectFactory {
             conn.setThread(Thread.currentThread());
             conn.setLocation(new Throwable());
         }
-        else if (!connHooks.onGet().isEmpty() || !connHooks.onClose().isEmpty())
+        else if (connHooks.onGet().length > 0 || connHooks.onClose().length > 0)
             conn.setTakenNanoTime(System.nanoTime());
 
         return conn;
@@ -178,13 +179,13 @@ public class ConnectionFactory implements ViburObjectFactory {
         logger.debug("Destroying rawConnection {}", rawConnection);
         closeStatements(rawConnection);
 
-        List<Hook.DestroyConnection> onDestroy = connHooks.onDestroy();
-        long startTime = onDestroy.isEmpty() ? 0 : System.nanoTime();
+        Hook.DestroyConnection[] onDestroy = connHooks.onDestroy();
+        long startTime = onDestroy.length == 0 ? 0 : System.nanoTime();
 
         quietClose(rawConnection);
-        long timeTaken = onDestroy.isEmpty() ? 0 : System.nanoTime() - startTime;
+        long takenNanos = onDestroy.length == 0 ? 0 : System.nanoTime() - startTime;
         for (Hook.DestroyConnection hook : onDestroy)
-            hook.on(rawConnection, timeTaken);
+            hook.on(rawConnection, takenNanos);
     }
 
     private void closeStatements(Connection rawConnection) {

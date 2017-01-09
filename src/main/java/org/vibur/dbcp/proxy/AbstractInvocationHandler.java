@@ -26,7 +26,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.sql.SQLException;
 import java.util.Arrays;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.vibur.dbcp.ViburConfig.SQLSTATE_OBJECT_CLOSED_ERROR;
@@ -50,7 +49,7 @@ abstract class AbstractInvocationHandler<T> implements InvocationHandler {
     private final ViburConfig config;
     private final ExceptionCollector exceptionCollector;
 
-    private final List<Hook.MethodInvocation> onMethodInvocation;
+    private final Hook.MethodInvocation[] onMethodInvocation;
 
     private final AtomicBoolean closed = new AtomicBoolean(false);
 

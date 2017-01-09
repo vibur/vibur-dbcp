@@ -98,21 +98,21 @@ public class PoolOperations {
     }
 
     private ConnHolder getConnHolder(long timeout) throws SQLException {
-        long startTime = connHooks.onGet().isEmpty() ? 0 : System.nanoTime();
+        Hook.GetConnection[] onGet = connHooks.onGet();
+        long startTime = onGet.length > 0 ? System.nanoTime() : 0;
 
         ConnHolder conn = timeout == 0 ? poolService.take() : poolService.tryTake(timeout, MILLISECONDS);
 
         Connection rawConnection = null;
-        long currentTime = 0;
+        long takenNanos = 0;
         if (conn != null) {
             rawConnection = conn.value();
-            currentTime = conn.getTakenNanoTime();
+            takenNanos = conn.getTakenNanoTime() - startTime;
         }
-        else if (!connHooks.onGet().isEmpty())
-            currentTime = System.nanoTime();
+        else if (onGet.length > 0)
+            takenNanos = System.nanoTime() - startTime;
 
-        long takenNanos = currentTime - startTime;
-        for (Hook.GetConnection hook : connHooks.onGet())
+        for (Hook.GetConnection hook : onGet)
             hook.on(rawConnection, takenNanos);
 
         return conn;

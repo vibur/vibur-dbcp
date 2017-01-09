@@ -18,16 +18,14 @@ package org.vibur.dbcp.proxy;
 
 import org.vibur.dbcp.pool.Hook;
 
-import java.util.List;
-
-import static java.util.Collections.emptyList;
 import static org.vibur.dbcp.pool.Hook.Util.addHook;
 
 /**
  * Holds all programming method invocation hooks collections.
  *
  * <p>Note that the underlying data structures used to store the Hook instances <b>are not</b> thread-safe
- * for modifications.
+ * for modifications. They must be set only once during the pool configuration phase and must not be modified once
+ * the pool is started.
  *
  * @author Simeon Malchev
  */
@@ -37,15 +35,15 @@ public class InvocationHooksHolder {
      * proxied JDBC interfaces. Methods inherited from the {@link Object} class, methods related to the "closed" state
      * of the JDBC objects (e.g., close(), isClosed()), as well as methods from the {@link java.sql.Wrapper} interface
      * are not intercepted. The hooks execution should take as short time as possible. */
-    private List<Hook.MethodInvocation> onMethodInvocation = emptyList();
+    private Hook.MethodInvocation[] onMethodInvocation = new Hook.MethodInvocation[0];
 
     /** A list of programming {@linkplain Hook.StatementExecution#on hooks} that will be invoked after each JDBC
      * Statement "execute..." method call returns. Their execution should take as short time as possible. */
-    private List<Hook.StatementExecution> onStatementExecution = emptyList();
+    private Hook.StatementExecution[] onStatementExecution = new Hook.StatementExecution[0];
 
     /** A list of programming {@linkplain Hook.ResultSetRetrieval#on hooks} that will be invoked at the end of each
      * ResultSet retrieval. Their execution should take as short time as possible. */
-    private List<Hook.ResultSetRetrieval> onResultSetRetrieval = emptyList();
+    private Hook.ResultSetRetrieval[] onResultSetRetrieval = new Hook.ResultSetRetrieval[0];
 
     public void addOnMethodInvocation(Hook.MethodInvocation hook) {
         onMethodInvocation = addHook(onMethodInvocation, hook);
@@ -59,15 +57,15 @@ public class InvocationHooksHolder {
         onResultSetRetrieval = addHook(onResultSetRetrieval, hook);
     }
 
-    List<Hook.MethodInvocation> onMethodInvocation() {
+    Hook.MethodInvocation[] onMethodInvocation() {
         return onMethodInvocation;
     }
 
-    List<Hook.StatementExecution> onStatementExecution() {
+    Hook.StatementExecution[] onStatementExecution() {
         return onStatementExecution;
     }
 
-    List<Hook.ResultSetRetrieval> onResultSetRetrieval() {
+    Hook.ResultSetRetrieval[] onResultSetRetrieval() {
         return onResultSetRetrieval;
     }
 }

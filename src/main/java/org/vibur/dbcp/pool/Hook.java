@@ -21,10 +21,9 @@ import org.vibur.dbcp.ViburConfig;
 import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
-import static java.util.Collections.EMPTY_LIST;
 import static java.util.Objects.requireNonNull;
 
 /**
@@ -63,7 +62,7 @@ public interface Hook {
          * A programming hook that will be invoked on the raw JDBC Connection as part of the 
          * {@link javax.sql.DataSource#getConnection()} flow. Its execution should take as short time as possible.
          *
-         * @param rawConnection the retrieved from the pool raw JDBC connection; <b>note that</b> this can be {@code null}
+         * @param rawConnection the retrieved from the pool raw JDBC connection; <b>note that this can be {@code null}</b>
          *                      if we were unable to obtain a connection from the pool within the specified time limit
          * @param takenNanos the time taken to get this connection from the pool in nanoseconds
          * @throws SQLException to indicate that an SQL error has occurred
@@ -161,17 +160,14 @@ public interface Hook {
 
         private Util() {}
 
-        public static <T extends Hook> List<T> addHook(List<T> hooks, T hook) {
+        public static <T extends Hook> T[] addHook(T[] hooks, T hook) {
             requireNonNull(hook);
             if (hook instanceof DefaultHook && !((DefaultHook) hook).isEnabled())
                 return hooks;
 
-            if (hooks == EMPTY_LIST) {
-                hooks = new ArrayList<>();
-                hooks.add(hook);
-            }
-            else if (!hooks.contains(hook))
-                hooks.add(hook);
+            int length = hooks.length;
+            hooks = Arrays.copyOf(hooks, length + 1);
+            hooks[length] = hook;
             return hooks;
         }
     }
