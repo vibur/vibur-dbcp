@@ -34,10 +34,10 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  */
 class ExceptionCollector {
 
-    private final Queue<Throwable> exceptions = new ConcurrentLinkedQueue<>();
+    private volatile Queue<Throwable> exceptions = null;
 
     /**
-     * This method will be called by when an operation invoked on a JDBC object throws an Exception.
+     * This method will be called when an operation invoked on a JDBC object throws an Exception.
      * It will accumulate a list of all non-transient exceptions.
      *
      * @param t the exception thrown
@@ -45,15 +45,28 @@ class ExceptionCollector {
     void addException(Throwable t) {
         if (t instanceof SQLException
                 && !(t instanceof SQLTimeoutException) && !(t instanceof SQLTransactionRollbackException))
-            exceptions.offer(t); // only SQLExceptions are stored, excluding the above two sub-types
+            getOrInit().offer(t); // only SQLExceptions are stored, excluding the above two sub-types
+    }
+
+    private Queue<Throwable> getOrInit() {
+        Queue<Throwable> ex = exceptions;
+        if (ex == null) {
+            synchronized (this) {
+                ex = exceptions;
+                if (ex == null)
+                    exceptions = ex = new ConcurrentLinkedQueue<>();
+            }
+        }
+        return ex;
     }
 
     /**
      * Returns a list of all collected by {@link #addException} exceptions. This method will be
      * called when a pooled Connection is closed, in order to determine whether the underlying
-     * (raw) JDBC Connection needs also to be closed or not.
+     * (raw) JDBC Connection also needs to be closed or not.
      */
     List<Throwable> getExceptions() {
-        return exceptions.isEmpty() ? Collections.<Throwable>emptyList() : new ArrayList<>(exceptions);
+        Queue<Throwable> ex = exceptions;
+        return ex == null ? Collections.<Throwable>emptyList() : new ArrayList<>(ex);
     }
 }
