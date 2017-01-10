@@ -19,9 +19,7 @@ package org.vibur.dbcp.proxy;
 import java.sql.SQLException;
 import java.sql.SQLTimeoutException;
 import java.sql.SQLTransactionRollbackException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.Arrays;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -34,7 +32,9 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  */
 class ExceptionCollector {
 
-    private volatile Queue<SQLException> exceptions = null;
+    private static final SQLException[] emptyArray = new SQLException[0];
+
+    private volatile Queue<SQLException> exceptions = null; // will be lazily initialized if an SQLException occurs
 
     /**
      * This method will be called when an operation invoked on a JDBC object throws an SQLException.
@@ -60,12 +60,15 @@ class ExceptionCollector {
     }
 
     /**
-     * Returns a list of all SQL exceptions collected by {@link #addException}. This method will be
-     * called when a pooled Connection is closed, in order to determine whether the underlying
-     * (raw) JDBC Connection also needs to be closed.
+     * Returns an array of all SQL exceptions collected by {@link #addException}. This method will be
+     * called when a pooled Connection is closed, in order to determine whether the underlying (raw)
+     * JDBC Connection also needs to be closed.
      */
-    List<SQLException> getExceptions() {
+    SQLException[] getExceptions() {
         Queue<SQLException> ex = exceptions;
-        return ex == null ? Collections.<SQLException>emptyList() : new ArrayList<>(ex);
+        if (ex == null)
+            return emptyArray;
+        Object[] array = ex.toArray();
+        return Arrays.copyOf(array, array.length, SQLException[].class);
     }
 }

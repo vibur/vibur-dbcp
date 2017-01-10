@@ -27,7 +27,6 @@ import java.sql.SQLException;
 import java.sql.SQLTimeoutException;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -118,9 +117,9 @@ public class PoolOperations {
         return conn;
     }
 
-    public void restore(ConnHolder conn, boolean valid, List<SQLException> exceptions) {
+    public void restore(ConnHolder conn, boolean valid, SQLException[] exceptions) {
         logger.trace("Restoring rawConnection {}", conn.value());
-        boolean reusable = valid && exceptions.isEmpty() && conn.version() == connectionFactory.version();
+        boolean reusable = valid && exceptions.length == 0 && conn.version() == connectionFactory.version();
         poolService.restore(conn, reusable);
         processSQLExceptions(conn, exceptions);
     }
@@ -131,7 +130,7 @@ public class PoolOperations {
      * @param conn the given connection
      * @param exceptions the list of SQL exceptions that have occurred on the connection; might be an empty list but not a {@code null}
      */
-    private void processSQLExceptions(ConnHolder conn, List<SQLException> exceptions) {
+    private void processSQLExceptions(ConnHolder conn, SQLException[] exceptions) {
         int connVersion = conn.version();
         SQLException criticalException = getCriticalSQLException(exceptions);
         if (criticalException != null && connectionFactory.compareAndSetVersion(connVersion, connVersion + 1)) {
@@ -141,7 +140,7 @@ public class PoolOperations {
         }
     }
 
-    private SQLException getCriticalSQLException(List<SQLException> exceptions) {
+    private SQLException getCriticalSQLException(SQLException[] exceptions) {
         for (SQLException exception : exceptions) {
             if (isCriticalSQLException(exception))
                 return exception;
