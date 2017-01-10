@@ -26,7 +26,7 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
- * This collector will receive notifications for all exceptions thrown by the operations invoked on a JDBC
+ * This collector will receive notifications for all SQL exceptions thrown by the operations invoked on a JDBC
  * Connection object or any of its direct or indirect derivative objects (such as Statement, ResultSet,
  * or database Metadata objects).
  *
@@ -34,22 +34,21 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  */
 class ExceptionCollector {
 
-    private volatile Queue<Throwable> exceptions = null;
+    private volatile Queue<SQLException> exceptions = null;
 
     /**
-     * This method will be called when an operation invoked on a JDBC object throws an Exception.
-     * It will accumulate a list of all non-transient exceptions.
+     * This method will be called when an operation invoked on a JDBC object throws an SQLException.
+     * It will accumulate a list of all non-transient SQL exceptions.
      *
-     * @param t the exception thrown
+     * @param exception the exception thrown
      */
-    void addException(Throwable t) {
-        if (t instanceof SQLException
-                && !(t instanceof SQLTimeoutException) && !(t instanceof SQLTransactionRollbackException))
-            getOrInit().offer(t); // only SQLExceptions are stored, excluding the above two sub-types
+    void addException(SQLException exception) {
+        if (!(exception instanceof SQLTimeoutException) && !(exception instanceof SQLTransactionRollbackException))
+            getOrInit().offer(exception); // SQLExceptions from the above two sub-types are not stored
     }
 
-    private Queue<Throwable> getOrInit() {
-        Queue<Throwable> ex = exceptions;
+    private Queue<SQLException> getOrInit() {
+        Queue<SQLException> ex = exceptions;
         if (ex == null) {
             synchronized (this) {
                 ex = exceptions;
@@ -61,12 +60,12 @@ class ExceptionCollector {
     }
 
     /**
-     * Returns a list of all collected by {@link #addException} exceptions. This method will be
+     * Returns a list of all SQL exceptions collected by {@link #addException}. This method will be
      * called when a pooled Connection is closed, in order to determine whether the underlying
-     * (raw) JDBC Connection also needs to be closed or not.
+     * (raw) JDBC Connection also needs to be closed.
      */
-    List<Throwable> getExceptions() {
-        Queue<Throwable> ex = exceptions;
-        return ex == null ? Collections.<Throwable>emptyList() : new ArrayList<>(ex);
+    List<SQLException> getExceptions() {
+        Queue<SQLException> ex = exceptions;
+        return ex == null ? Collections.<SQLException>emptyList() : new ArrayList<>(ex);
     }
 }

@@ -118,22 +118,22 @@ public class PoolOperations {
         return conn;
     }
 
-    public void restore(ConnHolder conn, boolean valid, List<Throwable> errors) {
+    public void restore(ConnHolder conn, boolean valid, List<SQLException> exceptions) {
         logger.trace("Restoring rawConnection {}", conn.value());
-        boolean reusable = valid && errors.isEmpty() && conn.version() == connectionFactory.version();
+        boolean reusable = valid && exceptions.isEmpty() && conn.version() == connectionFactory.version();
         poolService.restore(conn, reusable);
-        processSQLExceptions(conn, errors);
+        processSQLExceptions(conn, exceptions);
     }
 
     /**
      * Processes SQL exceptions that have occurred on the given JDBC Connection (wrapped in a {@code ConnHolder}).
      *
      * @param conn the given connection
-     * @param errors the list of SQL exceptions that have occurred on the connection; might be an empty list but not a {@code null}
+     * @param exceptions the list of SQL exceptions that have occurred on the connection; might be an empty list but not a {@code null}
      */
-    private void processSQLExceptions(ConnHolder conn, List<Throwable> errors) {
+    private void processSQLExceptions(ConnHolder conn, List<SQLException> exceptions) {
         int connVersion = conn.version();
-        SQLException criticalException = getCriticalSQLException(errors);
+        SQLException criticalException = getCriticalSQLException(exceptions);
         if (criticalException != null && connectionFactory.compareAndSetVersion(connVersion, connVersion + 1)) {
             int destroyed = config.getPool().drainCreated(); // destroys all connections in the pool
             logger.error("Critical SQLState {} occurred, destroyed {} connections from pool {}, current connection version is {}.",
@@ -141,22 +141,19 @@ public class PoolOperations {
         }
     }
 
-    private SQLException getCriticalSQLException(List<Throwable> errors) {
-        for (Throwable error : errors) {
-            if (error instanceof SQLException) {
-                SQLException sqlException = (SQLException) error;
-                if (isCriticalSQLException(sqlException))
-                    return sqlException;
-            }
+    private SQLException getCriticalSQLException(List<SQLException> exceptions) {
+        for (SQLException exception : exceptions) {
+            if (isCriticalSQLException(exception))
+                return exception;
         }
         return null;
     }
 
-    private boolean isCriticalSQLException(SQLException sqlException) {
-        if (sqlException == null)
+    private boolean isCriticalSQLException(SQLException exception) {
+        if (exception == null)
             return false;
-        if (criticalSQLStates.contains(sqlException.getSQLState()))
+        if (criticalSQLStates.contains(exception.getSQLState()))
             return true;
-        return isCriticalSQLException(sqlException.getNextException());
+        return isCriticalSQLException(exception.getNextException());
     }
 }

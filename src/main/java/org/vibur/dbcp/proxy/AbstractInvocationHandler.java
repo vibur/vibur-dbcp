@@ -146,9 +146,14 @@ abstract class AbstractInvocationHandler<T> implements InvocationHandler {
             Throwable cause = e.getCause();
             if (cause == null)
                 cause = e;
+
             logTargetInvokeFailure(method, args, cause);
-            exceptionCollector.addException(cause);
-            if (cause instanceof SQLException || cause instanceof RuntimeException || cause instanceof Error)
+
+            if (cause instanceof SQLException) {
+                exceptionCollector.addException((SQLException) cause);
+                throw cause;
+            }
+            else if (cause instanceof RuntimeException || cause instanceof Error)
                 throw cause;
 
             logger.error("Unexpected exception cause", e);
