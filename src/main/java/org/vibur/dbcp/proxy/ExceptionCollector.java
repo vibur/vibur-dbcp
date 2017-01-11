@@ -34,7 +34,7 @@ class ExceptionCollector {
 
     private static final SQLException[] emptyArray = new SQLException[0];
 
-    private volatile Queue<SQLException> exceptions = null; // will be lazily initialized if an SQLException occurs
+    private volatile Queue<SQLException> exceptions = null; // will be lazily initialized if an SQLException occurs on a Connection
 
     /**
      * This method will be called when an operation invoked on a JDBC object throws an SQLException.
