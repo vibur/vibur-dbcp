@@ -1,5 +1,9 @@
-Version 16.0 (09/01/2017) - RECOMMENDED
+Version 16.1 (11/01/2017) - RECOMMENDED
 =======================================
+* Small performance improvements on top of 16.0 release.
+
+Version 16.0 (09/01/2017)
+=========================
 * Performance improvements of the programming hooks (version 12.0 onwards) implementation.
 * Fixed a minor bug in the implementation of logAllStackTracesOnTimeout from last release.
 
