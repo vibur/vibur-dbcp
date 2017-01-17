@@ -42,7 +42,7 @@ abstract class ExceptionCollector {
      *
      * @param exception the exception thrown
      */
-    void addException(SQLException exception) {
+    final void addException(SQLException exception) {
         if (!(exception instanceof SQLTimeoutException) && !(exception instanceof SQLTransactionRollbackException))
             getOrInit().offer(exception); // SQLExceptions from the above two sub-types are not stored
     }
@@ -64,7 +64,7 @@ abstract class ExceptionCollector {
      * called when a pooled Connection is closed, in order to determine whether the underlying (raw)
      * JDBC Connection also needs to be closed.
      */
-    SQLException[] getExceptions() {
+    final SQLException[] getExceptions() {
         Queue<SQLException> ex = exceptions;
         if (ex == null)
             return emptyArray;
