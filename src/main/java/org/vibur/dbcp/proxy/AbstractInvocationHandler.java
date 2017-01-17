@@ -36,7 +36,7 @@ import static org.vibur.dbcp.util.ViburUtils.getPoolName;
  * @author Simeon Malchev
  * @param <T> the type of the object that we are dynamically proxying
 */
-abstract class AbstractInvocationHandler<T> implements InvocationHandler {
+abstract class AbstractInvocationHandler<T> extends ExceptionCollector implements InvocationHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(AbstractInvocationHandler.class);
 
@@ -56,10 +56,9 @@ abstract class AbstractInvocationHandler<T> implements InvocationHandler {
     AbstractInvocationHandler(T target, ViburConfig config, ExceptionCollector exceptionCollector) {
         assert target != null;
         assert config != null;
-        assert exceptionCollector != null;
         this.target = target;
         this.config = config;
-        this.exceptionCollector = exceptionCollector;
+        this.exceptionCollector = exceptionCollector == null ? this : exceptionCollector;
         this.onMethodInvocation = config.getInvocationHooks().onMethodInvocation();
     }
 
@@ -177,10 +176,6 @@ abstract class AbstractInvocationHandler<T> implements InvocationHandler {
 
     final boolean isClosed() {
         return closed.get();
-    }
-
-    final ExceptionCollector getExceptionCollector() {
-        return exceptionCollector;
     }
 
     public final T getTarget() {

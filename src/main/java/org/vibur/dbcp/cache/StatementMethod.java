@@ -38,17 +38,17 @@ import static java.lang.String.format;
  */
 public class StatementMethod {
 
-    private final ConnectionInvocationHandler invoker; // the InvocationHandler for the underlying raw JDBC Connection
+    private final ConnectionInvocationHandler handler; // the InvocationHandler for the underlying raw JDBC Connection
     private final Connection target; // the underlying raw JDBC Connection
     private final Method method; // the invoked prepareStatement(...) or prepareCall(...) method
     private final Object[] args; // the invoked method args
 
-    public StatementMethod(ConnectionInvocationHandler invoker, Method method, Object[] args) {
-        assert invoker != null;
+    public StatementMethod(ConnectionInvocationHandler handler, Method method, Object[] args) {
+        assert handler != null;
         assert method != null;
         assert args != null && args.length >= 1;
-        this.invoker = invoker;
-        this.target = invoker.getTarget();
+        this.handler = handler;
+        this.target = handler.getTarget();
         this.method = method;
         this.args = args;
     }
@@ -58,7 +58,7 @@ public class StatementMethod {
     }
 
     PreparedStatement newStatement() throws Throwable {
-        return invoker.newStatement(method, args);
+        return handler.newStatement(method, args);
     }
 
     String sqlQuery() {

@@ -139,7 +139,7 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
 
     private ResultSet newProxiedResultSet(Statement proxy, Method method, Object[] args, String sqlQuery) throws Throwable {
         ResultSet rawResultSet = (ResultSet) targetInvoke(method, args);
-        return newProxyResultSet(rawResultSet, proxy, sqlQuery, queryParams, config, getExceptionCollector());
+        return newProxyResultSet(rawResultSet, proxy, sqlQuery, queryParams, config, this);
     }
 
     private void addQueryParams(Method method, Object[] args) {

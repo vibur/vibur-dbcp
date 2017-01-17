@@ -44,7 +44,7 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
     private final StatementCache statementCache;
 
     ConnectionInvocationHandler(ConnHolder conn, PoolOperations poolOperations, ViburConfig config) {
-        super(conn.value(), config, new ExceptionCollector());
+        super(conn.value(), config, null /* this ExceptionCollector */);
         this.conn = conn;
         this.poolOperations = poolOperations;
         this.config = config;
@@ -75,19 +75,19 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
         // on their results the return value to be the current JDBC Connection proxy.
         if (methodName == "createStatement") { // *3
             StatementHolder statement = getUncachedStatement(method, args, null);
-            return newProxyStatement(statement, proxy, config, getExceptionCollector());
+            return newProxyStatement(statement, proxy, config, this);
         }
         if (methodName == "prepareStatement") { // *6
             StatementHolder pStatement = getCachedStatement(method, args);
-            return newProxyPreparedStatement(pStatement, proxy, config, getExceptionCollector());
+            return newProxyPreparedStatement(pStatement, proxy, config, this);
         }
         if (methodName == "prepareCall") { // *3
             StatementHolder cStatement = getCachedStatement(method, args);
-            return newProxyCallableStatement(cStatement, proxy, config, getExceptionCollector());
+            return newProxyCallableStatement(cStatement, proxy, config, this);
         }
         if (methodName == "getMetaData") { // *1
             DatabaseMetaData rawDatabaseMetaData = (DatabaseMetaData) targetInvoke(method, args);
-            return newProxyDatabaseMetaData(rawDatabaseMetaData, proxy, config, getExceptionCollector());
+            return newProxyDatabaseMetaData(rawDatabaseMetaData, proxy, config, this);
         }
 
         return super.restrictedInvoke(proxy, method, args);
@@ -116,7 +116,7 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
 
     private Object processClose() {
         if (close())
-            poolOperations.restore(conn, true, getExceptionCollector().getExceptions());
+            poolOperations.restore(conn, true, getExceptions());
         return null;
     }
 
@@ -126,7 +126,7 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
         try {
             return targetInvoke(method, args);
         } finally {
-            poolOperations.restore(conn, false, getExceptionCollector().getExceptions());
+            poolOperations.restore(conn, false, getExceptions());
         }
     }
 
@@ -139,6 +139,6 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
 
     public void invalidate() {
         if (close())
-            poolOperations.restore(conn, false, getExceptionCollector().getExceptions());
+            poolOperations.restore(conn, false, getExceptions());
     }
 }

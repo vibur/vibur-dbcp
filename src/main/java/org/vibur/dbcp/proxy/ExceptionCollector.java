@@ -24,17 +24,17 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
- * This collector will receive notifications for all SQL exceptions thrown by the operations invoked on a JDBC
- * Connection object or any of its direct or indirect derivative objects (such as Statement, ResultSet,
+ * This exceptions collector will receive notifications for all SQL exceptions thrown by the operations invoked on
+ * a JDBC Connection object or any of its direct or indirect derivative objects (such as Statement, ResultSet,
  * or database Metadata objects).
  *
  * @author Simeon Malchev
  */
-class ExceptionCollector {
+abstract class ExceptionCollector {
 
     private static final SQLException[] emptyArray = new SQLException[0];
 
-    private volatile Queue<SQLException> exceptions = null; // will be lazily initialized if an SQLException occurs on a Connection
+    private volatile Queue<SQLException> exceptions = null; // will be lazily initialized if an SQLException occurs
 
     /**
      * This method will be called when an operation invoked on a JDBC object throws an SQLException.
