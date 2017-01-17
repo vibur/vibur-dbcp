@@ -44,7 +44,7 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
     private final StatementCache statementCache;
 
     ConnectionInvocationHandler(ConnHolder conn, PoolOperations poolOperations, ViburConfig config) {
-        super(conn.value(), config, null /* this ExceptionCollector */);
+        super(conn.value(), config, null /* becomes a new ExceptionCollector */);
         this.conn = conn;
         this.poolOperations = poolOperations;
         this.config = config;

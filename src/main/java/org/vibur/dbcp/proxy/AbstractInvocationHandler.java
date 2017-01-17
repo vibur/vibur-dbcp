@@ -47,9 +47,9 @@ abstract class AbstractInvocationHandler<T> extends ExceptionCollector implement
     private final T target;
 
     private final ViburConfig config;
-    private final ExceptionCollector exceptionCollector;
-
     private final Hook.MethodInvocation[] onMethodInvocation;
+
+    private final ExceptionCollector exceptionCollector;
 
     private final AtomicBoolean closed = new AtomicBoolean(false);
 
@@ -58,8 +58,9 @@ abstract class AbstractInvocationHandler<T> extends ExceptionCollector implement
         assert config != null;
         this.target = target;
         this.config = config;
-        this.exceptionCollector = exceptionCollector == null ? this : exceptionCollector;
         this.onMethodInvocation = config.getInvocationHooks().onMethodInvocation();
+        // not every AbstractInvocationHandler is an ExceptionCollector
+        this.exceptionCollector = exceptionCollector == null ? this : exceptionCollector;
     }
 
     @Override
