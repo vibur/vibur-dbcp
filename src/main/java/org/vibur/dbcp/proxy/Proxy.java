@@ -43,7 +43,7 @@ public final class Proxy {
     static Statement newProxyStatement(StatementHolder statement, Connection connProxy,
                                        ViburConfig config, ExceptionCollector exceptionCollector) {
         InvocationHandler handler = new StatementInvocationHandler(
-                statement, null, connProxy, config, exceptionCollector);
+                statement, null /* turns off the cache */, connProxy, config, exceptionCollector);
         return (Statement) newProxy(statementCtor, handler);
     }
 

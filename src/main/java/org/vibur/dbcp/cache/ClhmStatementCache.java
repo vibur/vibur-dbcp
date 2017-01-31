@@ -22,8 +22,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -75,58 +75,64 @@ public class ClhmStatementCache implements StatementCache {
             public void onEviction(StatementMethod statementMethod, StatementHolder value) {
                 if (value.state().getAndSet(EVICTED) == AVAILABLE)
                     quietClose(value.value());
-                logger.trace("Evicted {}", value.value());
+                if (logger.isTraceEnabled())
+                    logger.trace("Evicted {}", value.value());
             }
         };
     }
 
     @Override
     public StatementHolder take(StatementMethod statementMethod) throws Throwable {
-        boolean cacheOpen = !isClosed();
+        if (isClosed())
+            return new StatementHolder(statementMethod.newStatement(), null, statementMethod.sqlQuery());
 
-        StatementHolder statement = cacheOpen ? statementCache.get(statementMethod) : null;
-        if (statement != null && statement.state().compareAndSet(AVAILABLE, IN_USE)) {
-            logger.trace("Using cached statement for {}", statementMethod);
-            return statement;
+        StatementHolder statement = statementCache.get(statementMethod);
+        if (statement != null) {
+            if (statement.state().compareAndSet(AVAILABLE, IN_USE)) {
+                if (logger.isTraceEnabled())
+                    logger.trace("Using cached statement for {}", statementMethod);
+                return statement;
+            }
+            // if the statement in the cache was not available we return an uncached StatementHolder
+            return new StatementHolder(statementMethod.newStatement(), null, statementMethod.sqlQuery());
         }
 
-        Statement rawStatement = statementMethod.newStatement();
-
-        if (cacheOpen && statement == null) { // there was no entry for the key, so we'll try to put a new one
-            statement = new StatementHolder(rawStatement, new AtomicReference<>(IN_USE), statementMethod.sqlQuery());
-            if (statementCache.putIfAbsent(statementMethod, statement) == null)
-                return statement; // the new entry was successfully put in the cache
-        }
-
-        // if we can't do anything better we return an uncached StatementHolder
+        // there was no cache entry for the statementMethod, so we'll try to put a new one
+        PreparedStatement rawStatement = statementMethod.newStatement();
+        statement = new StatementHolder(rawStatement, new AtomicReference<>(IN_USE), statementMethod.sqlQuery());
+        if (statementCache.putIfAbsent(statementMethod, statement) == null)
+            return statement; // the new entry was successfully put in the cache, so we return it
+        // if we couldn't put the statement in the cache we return an uncached StatementHolder
         return new StatementHolder(rawStatement, null, statementMethod.sqlQuery());
     }
 
     @Override
-    public void restore(StatementHolder statement, boolean clearWarnings) {
-        if (statement.state() == null) // this statement is not in the cache
-            return;
+    public boolean restore(StatementHolder statement, boolean clearWarnings) {
         if (isClosed()) {
-            remove(statement.value());
-            statement.state().set(EVICTED);
+            remove(statement);
+            return false;
         }
+        if (statement.state() == null) // this statement is not in the cache
+            return false;
 
-        Statement rawStatement = statement.value();
+        PreparedStatement rawStatement = (PreparedStatement) statement.value();
         try {
             if (clearWarnings)
                 clearWarnings(rawStatement);
-            if (!statement.state().compareAndSet(IN_USE, AVAILABLE)) // just mark it as AVAILABLE if it was IN_USE
-                quietClose(rawStatement); // and close it if it was already EVICTED while it was IN_USE
+            return statement.state().compareAndSet(IN_USE, AVAILABLE); // we just mark it as AVAILABLE if it was IN_USE
         } catch (SQLException e) {
             logger.debug("Couldn't clear warnings on {}", rawStatement, e);
-            remove(rawStatement);
-            quietClose(rawStatement); // close it always, disregards whether it was EVICTED or IN_USE
-            statement.state().set(EVICTED);
+            remove(statement);
+            return false;
         }
     }
 
     @Override
-    public boolean remove(Statement rawStatement) {
+    public boolean remove(StatementHolder statement) {
+        if (statement.state() == null) // this statement is not in the cache
+            return false;
+
+        PreparedStatement rawStatement = (PreparedStatement) statement.value();
         for (Map.Entry<StatementMethod, StatementHolder> entry : statementCache.entrySet()) {
             StatementHolder value = entry.getValue();
             if (value.value() == rawStatement) // comparing with == as these JDBC Statements are cached objects

@@ -133,7 +133,7 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
     public PreparedStatement newStatement(Method method, Object[] args) throws Throwable {
         String methodName = method.getName();
         if (methodName != "prepareStatement" && methodName != "prepareCall")
-            throw new ViburDBCPException("Unexpected method passed to newStatement " + method);
+            throw new ViburDBCPException("Unexpected method passed to newStatement() " + method);
         return (PreparedStatement) targetInvoke(method, args);
     }
 

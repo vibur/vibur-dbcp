@@ -168,7 +168,7 @@ abstract class AbstractInvocationHandler<T> extends ExceptionCollector implement
     }
 
     /**
-     * Logically closes this invocation handler. Returns true only once when the handler state transitions
+     * Logically closes this invocation handler. Returns true only once when the InvocationHandler state transitions
      * from open to close.
      */
     final boolean close() {

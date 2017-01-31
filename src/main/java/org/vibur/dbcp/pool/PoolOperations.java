@@ -77,7 +77,8 @@ public class PoolOperations {
         try {
             ConnHolder conn = getConnHolder(timeout);
             if (conn != null) { // we were able to obtain a connection from the pool within the given timeout
-                logger.trace("Taking rawConnection {}", conn.value());
+                if (logger.isTraceEnabled())
+                    logger.trace("Taking rawConnection {}", conn.value());
                 return newProxyConnection(conn, this, config);
             }
 
@@ -118,7 +119,8 @@ public class PoolOperations {
     }
 
     public void restore(ConnHolder conn, boolean valid, SQLException[] exceptions) {
-        logger.trace("Restoring rawConnection {}", conn.value());
+        if (logger.isTraceEnabled())
+            logger.trace("Restoring rawConnection {}", conn.value());
         boolean reusable = valid && exceptions.length == 0 && conn.version() == connectionFactory.version();
         poolService.restore(conn, reusable);
         processSQLExceptions(conn, exceptions);

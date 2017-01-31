@@ -37,7 +37,7 @@ import static org.vibur.dbcp.proxy.Proxy.newProxyResultSet;
 class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection, Statement> {
 
     private final StatementHolder statement;
-    private final StatementCache statementCache;
+    private final StatementCache statementCache; // always "null" (i.e. off) for simple JDBC Statements
     private final ViburConfig config;
 
     private final InvocationHooksHolder invocationHooks;
@@ -91,16 +91,14 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
     private Object processClose(Method method, Object[] args) throws Throwable {
         if (!close())
             return null;
-        if (statementCache == null)
+        if (statementCache == null || !statementCache.restore(statement, config.isClearSQLWarnings()))
             return targetInvoke(method, args);
-
-        statementCache.restore(statement, config.isClearSQLWarnings());
-        return null; // calls to close() are not passed when StatementCache is used
+        return null; // calls to close() are not passed when the statement is restored successfully back in the cache
     }
 
     private Object processCancel(Method method, Object[] args) throws Throwable {
         if (statementCache != null)
-            statementCache.remove(getTarget()); // because cancelled Statements are not longer valid
+            statementCache.remove(statement); // because cancelled Statements are not longer valid
         return targetInvoke(method, args);
     }
 

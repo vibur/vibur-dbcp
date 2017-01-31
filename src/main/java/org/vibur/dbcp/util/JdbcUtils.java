@@ -21,10 +21,7 @@ import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.ViburConfig;
 import org.vibur.dbcp.ViburDBCPException;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.concurrent.Executor;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -117,7 +114,7 @@ public final class JdbcUtils {
         rawConnection.clearWarnings();
     }
 
-    public static void clearWarnings(Statement rawStatement) throws SQLException {
+    public static void clearWarnings(PreparedStatement rawStatement) throws SQLException {
         rawStatement.clearWarnings();
     }
 

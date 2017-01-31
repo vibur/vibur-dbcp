@@ -17,10 +17,9 @@
 package org.vibur.dbcp.cache;
 
 import java.sql.Connection;
-import java.sql.Statement;
 
 /**
- * Defines the operations needed for the JDBC Statement caching.
+ * Defines the operations needed for the JDBC PreparedStatement caching.
  *
  * @author Simeon Malchev
  */
@@ -30,27 +29,29 @@ public interface StatementCache {
      * Returns <i>a possibly</i> cached StatementHolder object for the given connection statement method.
      *
      * @param statementMethod the statement method
-     * @return a retrieved from the cache or newly created StatementHolder object wrapping the raw JDBC Statement object
+     * @return a retrieved from the cache or newly created StatementHolder object wrapping the raw PreparedStatement object
      * @throws Throwable if the invoked underlying "prepare..." method throws an exception
      */
     StatementHolder take(StatementMethod statementMethod) throws Throwable;
 
     /**
-     * Returns (i.e. marks as available) the given {@code StatementHolder} back to the cache.
+     * Restores (i.e. marks as available) the given {@code StatementHolder} back in the cache.
      *
      * @param statement the given {@code StatementHolder}
-     * @param clearWarnings if {@code true} will execute {@link Statement#clearWarnings} on the underlying raw Statement
+     * @param clearWarnings if {@code true} will execute {@link java.sql.Statement#clearWarnings} on the underlying
+     *                      raw PreparedStatement
+     * @return true if successfully restored the {@code statement} in the cache, false otherwise
      */
-    void restore(StatementHolder statement, boolean clearWarnings);
+    boolean restore(StatementHolder statement, boolean clearWarnings);
 
     /**
-     * Removes an entry from the cache (if such) for the given {@code rawStatement}. Does <b>not</b> close
+     * Removes an entry from the cache (if such) for the given {@code statement}. Does <b>not</b> close
      * the removed statement.
      *
-     * @param rawStatement the statement to be removed
+     * @param statement the {@code StatementHolder} to be removed
      * @return true if success, false otherwise
      */
-    boolean remove(Statement rawStatement);
+    boolean remove(StatementHolder statement);
 
     /**
      * Removes all entries from the cache (if any) for the given {@code rawConnection}. Closes
