@@ -17,9 +17,9 @@
 package org.vibur.dbcp.proxy;
 
 import org.vibur.dbcp.ViburConfig;
-import org.vibur.dbcp.cache.StatementCache;
-import org.vibur.dbcp.cache.StatementHolder;
 import org.vibur.dbcp.pool.Hook;
+import org.vibur.dbcp.stcache.StatementCache;
+import org.vibur.dbcp.stcache.StatementHolder;
 
 import java.lang.reflect.Method;
 import java.sql.Connection;

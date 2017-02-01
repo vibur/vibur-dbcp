@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.vibur.dbcp.cache;
+package org.vibur.dbcp.stcache;
 
 import org.vibur.dbcp.proxy.ConnectionInvocationHandler;
 

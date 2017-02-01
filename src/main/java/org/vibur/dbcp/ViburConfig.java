@@ -19,9 +19,9 @@ package org.vibur.dbcp;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.vibur.dbcp.cache.StatementCache;
 import org.vibur.dbcp.pool.*;
 import org.vibur.dbcp.proxy.InvocationHooksHolder;
+import org.vibur.dbcp.stcache.StatementCache;
 import org.vibur.objectpool.PoolService;
 import org.vibur.objectpool.util.ConcurrentCollection;
 import org.vibur.objectpool.util.ConcurrentLinkedDequeCollection;
