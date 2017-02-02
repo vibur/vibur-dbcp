@@ -83,8 +83,8 @@ public interface Hook {
 
     interface CloseConnection extends Hook {
         /**
-         * A programming hook that will be invoked on the raw JDBC Connection as part of the 
-         * {@link Connection#close()} flow. Its execution should take as short time as possible.
+         * A programming hook that will be invoked on the raw JDBC Connection before it is restored back to the pool as
+         * part of the {@link Connection#close()} flow. Its execution should take as short time as possible.
          *
          * @param rawConnection the raw JDBC connection that will be returned to the pool
          * @param takenNanos the time for which this connection was held by the application before it was restored
@@ -96,7 +96,7 @@ public interface Hook {
 
     interface DestroyConnection extends Hook {
         /**
-         * A programming hook that will be invoked only once when the raw JDBC Connection is closed/destroyed. 
+         * A programming hook that will be invoked only once after the raw JDBC Connection is closed/destroyed.
          * Its execution should take as short time as possible.
          *
          * @param rawConnection the raw JDBC connection that was just closed
@@ -110,8 +110,8 @@ public interface Hook {
 
     interface MethodInvocation extends Hook {
         /**
-         * An application hook that will be invoked when a method on any of the proxied JDBC interfaces is invoked.
-         * The execution of this hook should take as short time as possible.
+         * An application hook that will be invoked before a method on any of the proxied JDBC interfaces is invoked.
+         * Its execution should take as short time as possible.
          *
          * @param proxy the proxy instance that the method was invoked on
          * @param method the invoked method
@@ -139,9 +139,9 @@ public interface Hook {
 
     interface ResultSetRetrieval extends Hook {
         /**
-         * An application hook that will be invoked at the end of each ResultSet retrieval. For implementation details
-         * see the comments for {@link ViburConfig#logLargeResultSet}. Its execution should take as short time
-         * as possible.
+         * An application hook that will be invoked at the end of each ResultSet retrieval as part of the
+         * {@link java.sql.ResultSet#close()} flow. For implementation details, see the comments for
+         * {@link ViburConfig#logLargeResultSet}. Its execution should take as short time as possible.
          *
          * @param sqlQuery the executed SQL query or prepared/callable SQL statement
          * @param queryParams the executed SQL query params if {@link ViburConfig#includeQueryParameters} is enabled,
