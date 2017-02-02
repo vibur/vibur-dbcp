@@ -78,6 +78,23 @@ public abstract class DefaultHook {
         }
     }
 
+    public static class ValidateConnection extends DefaultHook implements Hook.ValidateConnection {
+        public ValidateConnection(ViburConfig config) {
+            super(config);
+        }
+
+        @Override
+        public void on(Connection rawConnection, long idleNanos) throws SQLException {
+            if (!validateConnection(rawConnection, config.getTestConnectionQuery(), config))
+                throw new SQLException("validateConnection() returned false", SQLSTATE_CONN_VALIDATE_ERROR);
+        }
+
+        @Override
+        boolean isEnabled() {
+            return config.getConnectionIdleLimitInSeconds() >= 0 && config.getTestConnectionQuery() != null;
+        }
+    }
+
     public static class GetConnectionTiming extends DefaultHook implements Hook.GetConnection {
         public GetConnectionTiming(ViburConfig config) {
             super(config);
@@ -102,23 +119,6 @@ public abstract class DefaultHook {
         @Override
         boolean isEnabled() {
             return config.getLogConnectionLongerThanMs() >= 0;
-        }
-    }
-
-    public static class ValidateConnection extends DefaultHook implements Hook.ValidateConnection {
-        public ValidateConnection(ViburConfig config) {
-            super(config);
-        }
-
-        @Override
-        public void on(Connection rawConnection, long idleNanos) throws SQLException {
-            if (!validateConnection(rawConnection, config.getTestConnectionQuery(), config))
-                throw new SQLException("validateConnection() returned false", SQLSTATE_CONN_VALIDATE_ERROR);
-        }
-
-        @Override
-        boolean isEnabled() {
-            return config.getConnectionIdleLimitInSeconds() >= 0 && config.getTestConnectionQuery() != null;
         }
     }
 
