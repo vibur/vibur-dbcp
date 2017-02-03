@@ -101,7 +101,7 @@ public class PoolOperations {
         Hook.GetConnection[] onGet = connHooks.onGet();
         long startTime = onGet.length > 0 ? System.nanoTime() : 0;
 
-        ConnHolder conn = timeout == 0 ? poolService.take() : poolService.tryTake(timeout, MILLISECONDS);
+        ConnHolder conn = timeout > 0 ? poolService.tryTake(timeout, MILLISECONDS) : poolService.take();
 
         Connection rawConnection = null;
         long takenNanos = 0;
