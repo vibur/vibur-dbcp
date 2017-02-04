@@ -22,7 +22,7 @@ import org.vibur.objectpool.BasePool;
 import java.util.Arrays;
 import java.util.List;
 
-import static java.lang.String.format;
+import static java.lang.Integer.toHexString;
 
 /**
  * @author Simeon Malchev
@@ -31,10 +31,18 @@ public final class ViburUtils {
 
     private ViburUtils() {}
 
+    /**
+     * Returns the poolName formatted as:
+     * <blockquote>{@code simpleName@hashCode(currentlyTakenConns/remainingCreatedConns/poolMaxSize)}</blockquote>
+     * For example, {@code p1@2db7a79b(1/1/10)}.
+     *
+     * @param config the Vibur config
+     */
     public static String getPoolName(ViburConfig config) {
         BasePool pool = config.getPool();
-        return format("%s@%h (%d/%d/%d)", config.getName(), config.hashCode(),
-                pool.taken(), pool.remainingCreated(), pool.maxSize());
+        return new StringBuilder(48).append(config.getName()).append('@').append(toHexString(config.hashCode())).append('(')
+                .append(pool.taken()).append('/').append(pool.remainingCreated()).append('/').append(pool.maxSize())
+                .append(')').toString();
     }
 
     public static String getStackTraceAsString(StackTraceElement[] stackTrace) {
