@@ -1,3 +1,9 @@
+Version 16.2 (06/02/2017) - RECOMMENDED
+=======================================
+* Small performance improvements on top of 16.1 release.
+* Fixed a minor bug in Statement caching.
+* Small refactoring and javadoc improvements; renamed proxy package to stproxy.
+
 Version 16.1 (11/01/2017) - RECOMMENDED
 =======================================
 * Small performance improvements on top of 16.0 release.
