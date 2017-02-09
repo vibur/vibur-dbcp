@@ -193,12 +193,13 @@ public abstract class ViburConfig {
     private int reducerSamples = 20;
 
 
-    /** The time to wait before a call to {@code getConnection()} times out and throws an {@code SQLException},
-     * for the case when there is an available and valid connection in the pool. {@code 0} means forever.
+    /** The time to wait before a call to {@code DataSource.getConnection()} times out and throws an {@code SQLException}.
+     * More precisely, that is the time to wait to obtain a connection from the pool when there is a ready and valid
+     * connection in the pool. {@code 0} means forever.
      *
-     * <p>If there is not an available and valid connection in the pool, and if the maximum number of allowed
-     * connections is not yet reached, the total maximum time that the call to {@code getConnection()} can take
-     * before it times out and throws an {@code SQLException} is defined as:
+     * <p>If there is no ready and valid connection in the pool, and if the maximum pool capacity is not yet reached,
+     * the total maximum time that the call to {@code getConnection()} can take includes the time to lazily create
+     * a new connection, and is defined as:
      * <pre>
      * maxTimeoutInMs = connectionTimeoutInMs
      *     + (acquireRetryAttempts + 1) * loginTimeoutInSeconds * 1000
@@ -229,14 +230,14 @@ public abstract class ViburConfig {
     private String criticalSQLStates = "08001,08006,08007,08S01,57P01,57P02,57P03,JZ0C0,JZ0C1";
 
 
-    /** {@code getConnection} method calls taking longer than or equal to this time limit are logged at WARN level.
-     * A value of {@code 0} will log all such calls. A {@code negative number} disables it.
+    /** {@code Datasource.getConnection()} method calls taking longer than or equal to this time limit are logged at
+     * WARN level. A value of {@code 0} will log all such calls. A {@code negative number} disables it.
      *
      * <p>If the value of {@code logConnectionLongerThanMs} is greater than {@code connectionTimeoutInMs},
      * then {@code logConnectionLongerThanMs} will be set to the value of {@code connectionTimeoutInMs}. */
     private long logConnectionLongerThanMs = 3000;
     /** Will apply only if {@link #logConnectionLongerThanMs} is enabled, and if set to {@code true},
-     * will log at WARN level the current {@code getConnection} call stack trace. */
+     * will log at WARN level the current {@code getConnection()} call stack trace. */
     private boolean logStackTraceForLongConnection = false;
     /** The underlying SQL queries (including their concrete parameters if {@link #includeQueryParameters} is set to
      * {@code true}) from a JDBC Statement {@code execute...} calls taking longer than or equal to this time limit

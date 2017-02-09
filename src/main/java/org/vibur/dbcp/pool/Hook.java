@@ -47,8 +47,12 @@ public interface Hook {
          * A programming hook that will be invoked only once after the raw JDBC Connection is first created.
          * Its execution should take as short time as possible.
          *
+         * <p>The {@code takenNanos} parameter includes as a minimum the time taken to establish the physical
+         * connection to the database, plus possibly the time taken to make up to {@link ViburConfig#acquireRetryAttempts
+         * that many} retry attempts, separated by a {@link ViburConfig#acquireRetryDelayInMs retry delay}.
+         *
          * @param rawConnection the just created raw JDBC connection
-         * @param takenNanos the time taken to establish this connection in nanoseconds
+         * @param takenNanos the time taken to establish this connection in nanoseconds; also see above
          * @throws SQLException to indicate that an SQL error has occurred
          */
         void on(Connection rawConnection, long takenNanos) throws SQLException;
@@ -57,9 +61,9 @@ public interface Hook {
     interface ValidateConnection extends Hook {
         /**
          * A programming hook that will be invoked on the raw JDBC Connection after it was taken from the pool and only
-         * if it has stayed in the pool for longer than the predefined {@link ViburConfig#connectionIdleLimitInSeconds idle}
-         * timeout. The invocation happens as part of the {@link javax.sql.DataSource#getConnection()} flow.
-         * The hook execution should take as short time as possible.
+         * if it has stayed in the pool for longer than the predefined {@link ViburConfig#connectionIdleLimitInSeconds
+         * idle} timeout. The invocation happens as part of the {@link javax.sql.DataSource#getConnection()
+         * DataSource.getConnection()} flow. The hook execution should take as short time as possible.
          *
          * @param rawConnection the retrieved from the pool raw JDBC connection
          * @param idleNanos the time for which this connection has stayed in the pool in nanoseconds
@@ -71,11 +75,19 @@ public interface Hook {
     interface GetConnection extends Hook {
         /**
          * A programming hook that will be invoked on the raw JDBC Connection after it was taken from the pool as part
-         * of the {@link javax.sql.DataSource#getConnection()} flow. Its execution should take as short time as possible.
+         * of the {@link javax.sql.DataSource#getConnection() DataSource.getConnection()} flow.
+         * Its execution should take as short time as possible.
+         *
+         * <p>Worth noting that the {@code takenNanos} parameter includes in the common case the time taken to get
+         * the {@code rawConnection} from the pool, plus the {@link ValidateConnection#on time taken} to
+         * validate the connection if validation was needed, or the {@link InitConnection#on time taken} to create
+         * the connection if there was no ready connection in the pool but the pool capacity was not reached yet and
+         * a new connection was lazily created upon this request. For the last case, see the comments for the
+         * {@link ViburConfig#connectionTimeoutInMs connectionTimeoutInMs} configuration option.
          *
          * @param rawConnection the retrieved from the pool raw JDBC connection; <b>note that this can be {@code null}</b>
          *                      if we were unable to obtain a connection from the pool within the specified time limit
-         * @param takenNanos the time taken to get this connection from the pool in nanoseconds
+         * @param takenNanos the time taken to get this connection in nanoseconds; also see above
          * @throws SQLException to indicate that an SQL error has occurred
          */
         void on(Connection rawConnection, long takenNanos) throws SQLException;
