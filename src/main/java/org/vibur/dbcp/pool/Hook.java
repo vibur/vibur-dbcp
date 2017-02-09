@@ -49,7 +49,7 @@ public interface Hook {
          *
          * <p>The {@code takenNanos} parameter includes as a minimum the time taken to establish the physical
          * connection to the database, plus possibly the time taken to make up to {@link ViburConfig#acquireRetryAttempts
-         * that many} retry attempts, separated by a {@link ViburConfig#acquireRetryDelayInMs retry delay}.
+         * that many} retry attempts that are separated by a {@link ViburConfig#acquireRetryDelayInMs retry delay}.
          *
          * @param rawConnection the just created raw JDBC connection
          * @param takenNanos the time taken to establish this connection in nanoseconds; also see above
@@ -78,12 +78,12 @@ public interface Hook {
          * of the {@link javax.sql.DataSource#getConnection() DataSource.getConnection()} flow.
          * Its execution should take as short time as possible.
          *
-         * <p>Worth noting that the {@code takenNanos} parameter includes in the common case the time taken to get
-         * the {@code rawConnection} from the pool, plus the {@link ValidateConnection#on time taken} to
+         * <p>Worth noting that the {@code takenNanos} parameter includes in the common case (and as a minimum) the time
+         * taken to get the {@code rawConnection} from the pool, plus the {@link ValidateConnection#on time taken} to
          * validate the connection if validation was needed, or the {@link InitConnection#on time taken} to create
-         * the connection if there was no ready connection in the pool but the pool capacity was not reached yet and
-         * a new connection was lazily created upon this request. For the last case, see the comments for the
-         * {@link ViburConfig#connectionTimeoutInMs connectionTimeoutInMs} configuration option.
+         * the connection if there was no ready connection in the pool but the pool capacity was not yet reached and
+         * a new connection was lazily created upon this {@code getConnection()} request. For the last case, see also
+         * the comments for the {@link ViburConfig#connectionTimeoutInMs connectionTimeoutInMs} configuration option.
          *
          * @param rawConnection the retrieved from the pool raw JDBC connection; <b>note that this can be {@code null}</b>
          *                      if we were unable to obtain a connection from the pool within the specified time limit
@@ -125,6 +125,9 @@ public interface Hook {
          * An application hook that will be invoked before a method on any of the proxied JDBC interfaces is invoked.
          * Its execution should take as short time as possible.
          *
+         * <p>For implementation details, see the comments for
+         * {@link org.vibur.dbcp.proxy.InvocationHooksHolder#onMethodInvocation onMethodInvocation}.
+         *
          * @param proxy the proxy instance that the method was invoked on
          * @param method the invoked method
          * @param args the method arguments
@@ -152,7 +155,7 @@ public interface Hook {
     interface ResultSetRetrieval extends Hook {
         /**
          * An application hook that will be invoked at the end of each ResultSet retrieval as part of the
-         * {@link java.sql.ResultSet#close()} flow. For implementation details, see the comments for
+         * {@link java.sql.ResultSet#close() ResultSet.close()} flow. For implementation details, see the comments for
          * {@link ViburConfig#logLargeResultSet}. Its execution should take as short time as possible.
          *
          * @param sqlQuery the executed SQL query or prepared/callable SQL statement
