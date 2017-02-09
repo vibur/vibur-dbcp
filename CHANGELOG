@@ -1,4 +1,4 @@
-Version 16.2 (06/02/2017) - RECOMMENDED
+Version 16.2 (10/02/2017) - RECOMMENDED
 =======================================
 * Small performance / memory consumption improvements on top of 16.1 release.
 * Fixed a minor bug in Statement caching.
