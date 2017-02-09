@@ -52,6 +52,7 @@ import static org.vibur.dbcp.ViburDataSource.State.*;
 import static org.vibur.dbcp.ViburMonitoring.registerMBean;
 import static org.vibur.dbcp.ViburMonitoring.unregisterMBean;
 import static org.vibur.dbcp.pool.Connector.Builder.buildConnector;
+import static org.vibur.dbcp.util.ViburUtils.getPoolName;
 import static org.vibur.objectpool.util.ArgumentValidation.forbidIllegalArgument;
 
 /**
@@ -449,7 +450,7 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
                 return state;
             case TERMINATED:
                 if (!allowConnectionAfterTermination)
-                    throw new SQLException(format("Pool %s, %s", getName(), state), SQLSTATE_POOL_CLOSED_ERROR);
+                    throw new SQLException(format("Pool %s, %s", getPoolName(this), state), SQLSTATE_POOL_CLOSED_ERROR);
                 return state;
             default:
                 throw new AssertionError(state);

@@ -82,10 +82,10 @@ public class PoolOperations {
                 return newProxyConnection(conn, this, config);
             }
 
-            if (poolService.isTerminated())
-                throw new SQLException(format("Pool %s, the poolService is terminated.", config.getName()), SQLSTATE_POOL_CLOSED_ERROR);
-
             String poolName = getPoolName(config);
+            if (poolService.isTerminated())
+                throw new SQLException(format("Pool %s, the poolService is terminated.", poolName), SQLSTATE_POOL_CLOSED_ERROR);
+
             if (config.isLogTakenConnectionsOnTimeout() && logger.isWarnEnabled())
                 logger.warn("Pool {}, couldn't obtain SQL connection within {} ms, full list of taken connections begins:\n{}",
                         poolName, timeout, ((ViburListener) config.getPool().listener()).takenConnectionsToString());
@@ -138,7 +138,7 @@ public class PoolOperations {
         if (criticalException != null && connectionFactory.compareAndSetVersion(connVersion, connVersion + 1)) {
             int destroyed = config.getPool().drainCreated(); // destroys all connections in the pool
             logger.error("Critical SQLState {} occurred, destroyed {} connections from pool {}, current connection version is {}.",
-                    criticalException.getSQLState(), destroyed, config.getName(), connectionFactory.version(), criticalException);
+                    criticalException.getSQLState(), destroyed, getPoolName(config), connectionFactory.version(), criticalException);
         }
     }
 

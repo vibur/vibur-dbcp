@@ -91,7 +91,7 @@ public abstract class DefaultHook {
 
         @Override
         boolean isEnabled() {
-            return config.getConnectionIdleLimitInSeconds() >= 0 && config.getTestConnectionQuery() != null;
+            return config.getConnectionIdleLimitInSeconds() >= 0;
         }
     }
 
