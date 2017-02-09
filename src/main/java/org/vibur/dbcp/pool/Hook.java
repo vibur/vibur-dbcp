@@ -24,7 +24,7 @@ import java.sql.SQLException;
 import java.util.List;
 
 /**
- * An interface that holds all application programming hook interfaces for JDBC Connection tune-up and method 
+ * An interface that holds all application programming hook interfaces for JDBC Connection tune-up, method
  * invocation interception, and more.
  * 
  * <p>These application hooks serve as extension points to the inner workings of the connection pool and have
