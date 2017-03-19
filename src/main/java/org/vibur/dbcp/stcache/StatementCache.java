@@ -17,6 +17,7 @@
 package org.vibur.dbcp.stcache;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 
 /**
  * Defines the operations needed for the JDBC PreparedStatement caching.
@@ -30,9 +31,9 @@ public interface StatementCache {
      *
      * @param statementMethod the statement method
      * @return a retrieved from the cache or newly created StatementHolder object wrapping the raw PreparedStatement object
-     * @throws Throwable if the invoked underlying "prepare..." method throws an exception
+     * @throws SQLException if the invoked underlying "prepare..." method throws an exception
      */
-    StatementHolder take(StatementMethod statementMethod) throws Throwable;
+    StatementHolder take(StatementMethod statementMethod) throws SQLException;
 
     /**
      * Restores (i.e. marks as available) the given {@code StatementHolder} back in the cache.

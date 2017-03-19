@@ -152,6 +152,11 @@ public interface Hook {
         void on(String sqlQuery, List<Object[]> queryParams, long takenNanos, SQLException sqlException);
     }
 
+    interface StatementExecutionA extends Hook {
+
+        Object on(StatementProceedingPoint spp) throws SQLException;
+    }
+
     interface ResultSetRetrieval extends Hook {
         /**
          * An application hook that will be invoked at the end of each ResultSet retrieval as part of the

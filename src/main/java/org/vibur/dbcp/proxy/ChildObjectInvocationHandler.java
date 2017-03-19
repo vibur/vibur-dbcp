@@ -19,6 +19,7 @@ package org.vibur.dbcp.proxy;
 import org.vibur.dbcp.ViburConfig;
 
 import java.lang.reflect.Method;
+import java.sql.SQLException;
 
 /**
  * @author Simeon Malchev
@@ -40,7 +41,7 @@ class ChildObjectInvocationHandler<P, T> extends AbstractInvocationHandler<T> {
     }
 
     @Override
-    Object restrictedInvoke(T proxy, Method method, Object[] args) throws Throwable {
+    Object restrictedInvoke(T proxy, Method method, Object[] args) throws SQLException {
         if (method.getName() == getParentMethod)
             return parentProxy;
 

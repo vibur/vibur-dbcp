@@ -19,6 +19,7 @@ package org.vibur.dbcp.proxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.ViburConfig;
+import org.vibur.dbcp.ViburDBCPException;
 import org.vibur.dbcp.pool.Hook;
 
 import java.lang.reflect.InvocationHandler;
@@ -64,7 +65,7 @@ abstract class AbstractInvocationHandler<T> extends ExceptionCollector implement
     }
 
     @Override
-    public final Object invoke(Object objProxy, Method method, Object[] args) throws Throwable {
+    public final Object invoke(Object objProxy, Method method, Object[] args) throws SQLException {
         if (logger.isTraceEnabled())
             logger.trace("Calling {} with args {} on {}", method, Arrays.toString(args), target);
         @SuppressWarnings("unchecked")
@@ -90,9 +91,9 @@ abstract class AbstractInvocationHandler<T> extends ExceptionCollector implement
      * @param method as above
      * @param args as above
      * @return as above
-     * @throws Throwable as above
+     * @throws SQLException as above // todo
      */
-    Object unrestrictedInvoke(T proxy, Method method, Object[] args) throws Throwable {
+    Object unrestrictedInvoke(T proxy, Method method, Object[] args) throws SQLException {
         String methodName = method.getName();
 
         if (methodName == "equals") // comparing with == as the Method names are interned Strings
@@ -132,17 +133,17 @@ abstract class AbstractInvocationHandler<T> extends ExceptionCollector implement
      * @param method as above
      * @param args as above
      * @return as above
-     * @throws Throwable as above
+     * @throws SQLException as above
      */
-    Object restrictedInvoke(T proxy, Method method, Object[] args) throws Throwable {
+    Object restrictedInvoke(T proxy, Method method, Object[] args) throws SQLException {
         return targetInvoke(method, args);
     }
 
-    final Object targetInvoke(Method method, Object[] args) throws Throwable {
+    final Object targetInvoke(Method method, Object[] args) throws SQLException {
         try {
             return method.invoke(target, args);  // the real method call on the real underlying (proxied) object
 
-        } catch (InvocationTargetException e) {
+        } catch (ReflectiveOperationException e) {
             Throwable cause = e.getCause();
             if (cause == null)
                 cause = e;
@@ -150,14 +151,17 @@ abstract class AbstractInvocationHandler<T> extends ExceptionCollector implement
             logTargetInvokeFailure(method, args, cause);
 
             if (cause instanceof SQLException) {
-                exceptionCollector.addException((SQLException) cause);
-                throw cause;
+                SQLException sqlException = (SQLException) cause;
+                exceptionCollector.addException(sqlException);
+                throw sqlException;
             }
-            else if (cause instanceof RuntimeException || cause instanceof Error)
-                throw cause;
+            else if (cause instanceof RuntimeException)
+                throw (RuntimeException) cause;
+            else if (cause instanceof Error)
+                throw (Error) cause;
 
             logger.error("Unexpected exception cause", e);
-            throw e; // not expected to happen
+            throw new ViburDBCPException(e); // not expected to happen
         }
     }
 

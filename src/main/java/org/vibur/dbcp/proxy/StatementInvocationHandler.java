@@ -16,8 +16,11 @@
 
 package org.vibur.dbcp.proxy;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.ViburConfig;
 import org.vibur.dbcp.pool.Hook;
+import org.vibur.dbcp.pool.StatementProceedingPoint;
 import org.vibur.dbcp.stcache.StatementCache;
 import org.vibur.dbcp.stcache.StatementHolder;
 
@@ -29,12 +32,18 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
+import static java.lang.String.format;
 import static org.vibur.dbcp.proxy.Proxy.newProxyResultSet;
+import static org.vibur.dbcp.util.ViburUtils.formatSql;
+import static org.vibur.dbcp.util.ViburUtils.getPoolName;
+import static org.vibur.dbcp.util.ViburUtils.getStackTraceAsString;
 
 /**
  * @author Simeon Malchev
  */
 class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection, Statement> {
+
+    private static final Logger logger = LoggerFactory.getLogger(StatementInvocationHandler.class);
 
     private final StatementHolder statement;
     private final StatementCache statementCache; // always "null" (i.e. off) for simple JDBC Statements
@@ -57,7 +66,7 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
     }
 
     @Override
-    Object unrestrictedInvoke(Statement proxy, Method method, Object[] args) throws Throwable {
+    Object unrestrictedInvoke(Statement proxy, Method method, Object[] args) throws SQLException {
         String methodName = method.getName();
 
         if (methodName == "close")
@@ -69,7 +78,7 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
     }
 
     @Override
-    Object restrictedInvoke(Statement proxy, Method method, Object[] args) throws Throwable {
+    Object restrictedInvoke(Statement proxy, Method method, Object[] args) throws SQLException {
         String methodName = method.getName();
 
         if (methodName.startsWith("set")) // this intercepts all "set..." JDBC Prepared/Callable Statement methods
@@ -88,7 +97,7 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
         return super.restrictedInvoke(proxy, method, args);
     }
 
-    private Object processClose(Method method, Object[] args) throws Throwable {
+    private Object processClose(Method method, Object[] args) throws SQLException {
         if (!close())
             return null;
         if (statementCache == null || !statementCache.restore(statement, config.isClearSQLWarnings()))
@@ -96,19 +105,19 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
         return null; // calls to close() are not passed when the statement is restored successfully back in the cache
     }
 
-    private Object processCancel(Method method, Object[] args) throws Throwable {
+    private Object processCancel(Method method, Object[] args) throws SQLException {
         if (statementCache != null)
             statementCache.remove(statement); // because cancelled Statements are not longer valid
         return targetInvoke(method, args);
     }
 
-    private Object processSet(Method method, Object[] args) throws Throwable {
+    private Object processSet(Method method, Object[] args) throws SQLException {
         if (logQueryParams && args != null && args.length >= 2)
             addQueryParams(method, args);
         return targetInvoke(method, args); // the real "set..." call
     }
 
-    private Object processExecute(Statement proxy, Method method, Object[] args) throws Throwable {
+    private Object processExecute(final Statement proxy, final Method method, final Object[] args) throws SQLException {
         Hook.StatementExecution[] onStatementExecution = invocationHooks.onStatementExecution();
         long startTime = onStatementExecution.length > 0 ? System.nanoTime() : 0;
 
@@ -117,6 +126,51 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
 
         SQLException sqlException = null;
         try {
+            StatementProceedingPoint spp = new StatementProceedingPoint()  { // default ProceedingPoint... always with "new"
+
+                // todo need the index of the current / latest statement execution hook
+
+                @Override
+                public Statement proxy() {
+                    return proxy;
+                }
+
+                @Override
+                public Method method() {
+                    return method;
+                }
+
+                @Override
+                public Object[] args() {
+                    return args;
+                }
+
+                @Override
+                public Object proceed() throws SQLException {
+                    return proceed(args);
+                }
+
+                @Override
+                public Object proceed(Object[] args) throws SQLException {
+                    // executeQuery result has to be proxied so that when getStatement() is called
+                    // on its result the return value to be the current JDBC Statement proxy.
+                    if (method.getName() == "executeQuery") // *1
+                        return newProxiedResultSet(proxy, method, args, statement.getSqlQuery());
+
+                    return targetInvoke(method, args); // the real "execute..." call
+                }
+
+                @Override
+                public String sqlQuery() {
+                    return statement.getSqlQuery();
+                }
+
+                @Override
+                public List<Object[]> queryParams() {
+                    return queryParams;
+                }
+            };
+
             // executeQuery result has to be proxied so that when getStatement() is called
             // on its result the return value to be the current JDBC Statement proxy.
             if (method.getName() == "executeQuery") // *1
@@ -135,7 +189,7 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
         }
     }
 
-    private ResultSet newProxiedResultSet(Statement proxy, Method method, Object[] args, String sqlQuery) throws Throwable {
+    private ResultSet newProxiedResultSet(Statement proxy, Method method, Object[] args, String sqlQuery) throws SQLException {
         ResultSet rawResultSet = (ResultSet) targetInvoke(method, args);
         return newProxyResultSet(rawResultSet, proxy, sqlQuery, queryParams, config, this);
     }

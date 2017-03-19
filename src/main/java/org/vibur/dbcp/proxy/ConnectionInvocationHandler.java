@@ -25,10 +25,7 @@ import org.vibur.dbcp.stcache.StatementHolder;
 import org.vibur.dbcp.stcache.StatementMethod;
 
 import java.lang.reflect.Method;
-import java.sql.Connection;
-import java.sql.DatabaseMetaData;
-import java.sql.PreparedStatement;
-import java.sql.Statement;
+import java.sql.*;
 
 import static org.vibur.dbcp.proxy.Proxy.*;
 
@@ -52,7 +49,7 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
     }
 
     @Override
-    Object unrestrictedInvoke(Connection proxy, Method method, Object[] args) throws Throwable {
+    Object unrestrictedInvoke(Connection proxy, Method method, Object[] args) throws SQLException {
         String methodName = method.getName();
 
         if (methodName == "close")
@@ -68,7 +65,7 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
     }
 
     @Override
-    Object restrictedInvoke(Connection proxy, Method method, Object[] args) throws Throwable {
+    Object restrictedInvoke(Connection proxy, Method method, Object[] args) throws SQLException {
         String methodName = method.getName();
 
         // Methods which results have to be proxied so that when getConnection() is called
@@ -100,16 +97,16 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
      * @param method the invoked method
      * @param args the invoked method arguments
      * @return a retrieved from the cache or newly created StatementHolder object wrapping the raw JDBC Statement object
-     * @throws Throwable if the invoked underlying "prepare..." method throws an exception
+     * @throws SQLException if the invoked underlying "prepare..." method throws an exception
      */
-    private StatementHolder getCachedStatement(Method method, Object[] args) throws Throwable {
+    private StatementHolder getCachedStatement(Method method, Object[] args) throws SQLException {
         if (statementCache != null)
             return statementCache.take(new StatementMethod(this, method, args));
 
         return getUncachedStatement(method, args, (String) args[0]);
     }
 
-    private StatementHolder getUncachedStatement(Method method, Object[] args, String sqlQuery) throws Throwable {
+    private StatementHolder getUncachedStatement(Method method, Object[] args, String sqlQuery) throws SQLException {
         Statement rawStatement = (Statement) targetInvoke(method, args);
         return new StatementHolder(rawStatement, null, sqlQuery);
     }
@@ -120,7 +117,7 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
         return null;
     }
 
-    private Object processAbort(Method method, Object[] args) throws Throwable {
+    private Object processAbort(Method method, Object[] args) throws SQLException {
         if (!close())
             return null;
         try {
@@ -130,7 +127,7 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
         }
     }
 
-    public PreparedStatement newStatement(Method method, Object[] args) throws Throwable {
+    public PreparedStatement newStatement(Method method, Object[] args) throws SQLException {
         String methodName = method.getName();
         if (methodName != "prepareStatement" && methodName != "prepareCall")
             throw new ViburDBCPException("Unexpected method passed to newStatement() " + method);

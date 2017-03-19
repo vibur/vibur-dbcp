@@ -20,8 +20,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.ViburConfig;
 
+import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Arrays;
 import java.util.List;
 
@@ -174,6 +176,58 @@ public abstract class DefaultHook {
         @Override
         boolean isEnabled() {
             return config.getLogQueryExecutionLongerThanMs() >= 0;
+        }
+    }
+
+    public static class DefaultStatementExecution extends DefaultHook implements Hook.StatementExecutionA {
+        public DefaultStatementExecution(ViburConfig config) {
+            super(config);
+        }
+
+        @Override
+        public Object on(StatementProceedingPoint spp) throws SQLException {
+            boolean logQueryExecution = config.getLogQueryExecutionLongerThanMs() >= 0;
+            long startTime = logQueryExecution ? System.nanoTime() : 0;
+
+            SQLException sqlException = null;
+            try {
+                return spp.proceed();
+
+            } catch (SQLException e) {
+                sqlException = e;
+                throw e;
+            } finally {
+                if (logQueryExecution) {
+                    long takenNanos = System.nanoTime() - startTime;
+                    logQueryExecution(spp.sqlQuery(), spp.queryParams(), takenNanos, sqlException);
+                }
+            }
+        }
+
+        private void logQueryExecution(String sqlQuery, List<Object[]> queryParams, long takenNanos, SQLException sqlException) {
+            double takenMillis = takenNanos * 0.000001;
+            boolean logTime = takenMillis >= config.getLogQueryExecutionLongerThanMs();
+            boolean logException = sqlException != null && logger.isDebugEnabled();
+            if (!logTime && !logException)
+                return;
+
+            String poolName = getPoolName(config);
+            String formattedSql = formatSql(sqlQuery, queryParams);
+            if (logException)
+                logger.debug("SQL query execution from pool {}:\n{}\n-- threw:", poolName, formattedSql, sqlException);
+
+            if (logTime) {
+                StringBuilder message = new StringBuilder(4096).append(
+                        format("SQL query execution from pool %s took %f ms:\n%s", poolName, takenMillis, formattedSql));
+                if (config.isLogStackTraceForLongQueryExecution())
+                    message.append('\n').append(getStackTraceAsString(new Throwable().getStackTrace()));
+                logger.warn(message.toString());
+            }
+        }
+
+        @Override
+        boolean isEnabled() {
+            return true;
         }
     }
 

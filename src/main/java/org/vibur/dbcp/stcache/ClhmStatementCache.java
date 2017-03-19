@@ -82,7 +82,7 @@ public class ClhmStatementCache implements StatementCache {
     }
 
     @Override
-    public StatementHolder take(StatementMethod statementMethod) throws Throwable {
+    public StatementHolder take(StatementMethod statementMethod) throws SQLException {
         if (isClosed())
             return new StatementHolder(statementMethod.newStatement(), null, statementMethod.sqlQuery());
 

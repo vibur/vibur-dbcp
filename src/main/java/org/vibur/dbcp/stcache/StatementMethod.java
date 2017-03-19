@@ -21,6 +21,7 @@ import org.vibur.dbcp.proxy.ConnectionInvocationHandler;
 import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.Arrays;
 
 import static java.lang.String.format;
@@ -57,7 +58,7 @@ public class StatementMethod {
         return target;
     }
 
-    PreparedStatement newStatement() throws Throwable {
+    PreparedStatement newStatement() throws SQLException {
         return handler.newStatement(method, args);
     }
 

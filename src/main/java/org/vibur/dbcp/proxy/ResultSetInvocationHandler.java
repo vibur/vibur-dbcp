@@ -21,6 +21,7 @@ import org.vibur.dbcp.pool.Hook;
 
 import java.lang.reflect.Method;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
@@ -46,7 +47,7 @@ class ResultSetInvocationHandler extends ChildObjectInvocationHandler<Statement,
     }
 
     @Override
-    Object unrestrictedInvoke(ResultSet proxy, Method method, Object[] args) throws Throwable {
+    Object unrestrictedInvoke(ResultSet proxy, Method method, Object[] args) throws SQLException {
         String methodName = method.getName();
 
         if (methodName == "close")
@@ -58,7 +59,7 @@ class ResultSetInvocationHandler extends ChildObjectInvocationHandler<Statement,
     }
 
     @Override
-    Object restrictedInvoke(ResultSet proxy, Method method, Object[] args) throws Throwable {
+    Object restrictedInvoke(ResultSet proxy, Method method, Object[] args) throws SQLException {
         String methodName = method.getName();
 
         if (methodName == "next")
@@ -67,12 +68,12 @@ class ResultSetInvocationHandler extends ChildObjectInvocationHandler<Statement,
         return super.restrictedInvoke(proxy, method, args);
     }
 
-    private Object processNext(Method method, Object[] args) throws Throwable {
+    private Object processNext(Method method, Object[] args) throws SQLException {
         resultSetSize.incrementAndGet();
         return targetInvoke(method, args);
     }
 
-    private Object processClose(Method method, Object[] args) throws Throwable {
+    private Object processClose(Method method, Object[] args) throws SQLException {
         if (!close())
             return null;
 
