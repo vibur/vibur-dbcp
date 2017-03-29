@@ -56,7 +56,7 @@ public abstract class ViburConfig {
 
     static final int STATEMENT_CACHE_MAX_SIZE = 2000;
 
-    ViburConfig() {}
+    ViburConfig() { }
 
     /** The user name to use when connecting to the database. */
     private String username;

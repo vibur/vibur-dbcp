@@ -19,7 +19,6 @@ package org.vibur.dbcp;
 import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.pool.*;
 import org.vibur.dbcp.proxy.ConnectionInvocationHandler;
-import org.vibur.dbcp.proxy.StatementInvocationHandler;
 import org.vibur.dbcp.stcache.ClhmStatementCache;
 import org.vibur.objectpool.ConcurrentPool;
 import org.vibur.objectpool.PoolService;
@@ -354,7 +353,7 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
         getConnHooks().addOnValidate(new DefaultHook.ValidateConnection(this));
         getConnHooks().addOnClose(new DefaultHook.CloseConnection(this));
 
-        getInvocationHooks().addOnStatementExecution(new StatementInvocationHandler.StatementExecutionHook());
+        getInvocationHooks().addOnStatementExecution(new DefaultHook.QueryTiming(this));
         getInvocationHooks().addOnResultSetRetrieval(new DefaultHook.ResultSetSize(this));
     }
 
@@ -434,8 +433,7 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
         if (Proxy.isProxyClass(connection.getClass())) {
             InvocationHandler ih = Proxy.getInvocationHandler(connection);
             if (ih instanceof ConnectionInvocationHandler) {
-                ConnectionInvocationHandler cih = (ConnectionInvocationHandler) ih;
-                cih.invalidate();
+                ((ConnectionInvocationHandler) ih).invalidate();
                 return;
             }
         }

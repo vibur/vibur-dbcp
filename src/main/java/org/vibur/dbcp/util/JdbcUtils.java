@@ -38,7 +38,7 @@ public final class JdbcUtils {
 
     private static final Logger logger = LoggerFactory.getLogger(JdbcUtils.class);
 
-    private JdbcUtils() {}
+    private JdbcUtils() { }
 
     public static void initLoginTimeout(ViburConfig config) throws ViburDBCPException {
         int loginTimeout = config.getLoginTimeoutInSeconds();

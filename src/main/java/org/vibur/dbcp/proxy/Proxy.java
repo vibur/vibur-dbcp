@@ -33,7 +33,7 @@ import static java.lang.reflect.Proxy.getProxyClass;
  */
 public final class Proxy {
 
-    private Proxy() {}
+    private Proxy() { }
 
     public static Connection newProxyConnection(ConnHolder conn, PoolOperations poolOperations, ViburConfig config) {
         InvocationHandler handler = new ConnectionInvocationHandler(conn, poolOperations, config);
@@ -69,10 +69,10 @@ public final class Proxy {
     }
 
     static ResultSet newProxyResultSet(ResultSet rawResultSet, Statement statementProxy,
-                                       String sqlQuery, List<Object[]> queryParams,
+                                       String sqlQuery, List<Object[]> sqlQueryParams,
                                        ViburConfig config, ExceptionCollector exceptionCollector) {
         InvocationHandler handler = new ResultSetInvocationHandler(
-                rawResultSet, statementProxy, sqlQuery, queryParams, config, exceptionCollector);
+                rawResultSet, statementProxy, sqlQuery, sqlQueryParams, config, exceptionCollector);
         return (ResultSet) newProxy(resultSetCtor, handler);
     }
 

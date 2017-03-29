@@ -152,7 +152,24 @@ public abstract class DefaultHook {
         }
 
         @Override
-        public void on(String sqlQuery, List<Object[]> queryParams, long takenNanos, SQLException sqlException) {
+        public Object on(Statement proxy, Method method, Object[] args, String sqlQuery, List<Object[]> sqlQueryParams,
+                         StatementProceedingPoint proceed) throws SQLException {
+
+            long startTime = System.nanoTime();
+            SQLException sqlException = null;
+            try {
+                return proceed.on(proxy, method, args, sqlQuery, sqlQueryParams, proceed);
+
+            } catch (SQLException e) {
+                sqlException = e;
+                throw e;
+            } finally {
+                long takenNanos = System.nanoTime() - startTime;
+                logQueryExecution(sqlQuery, sqlQueryParams, takenNanos, sqlException);
+            }
+        }
+
+        private void logQueryExecution(String sqlQuery, List<Object[]> sqlQueryParams, long takenNanos, SQLException sqlException) {
             double takenMillis = takenNanos * 0.000001;
             boolean logTime = takenMillis >= config.getLogQueryExecutionLongerThanMs();
             boolean logException = sqlException != null && logger.isDebugEnabled();
@@ -160,7 +177,7 @@ public abstract class DefaultHook {
                 return;
 
             String poolName = getPoolName(config);
-            String formattedSql = formatSql(sqlQuery, queryParams);
+            String formattedSql = formatSql(sqlQuery, sqlQueryParams);
             if (logException)
                 logger.debug("SQL query execution from pool {}:\n{}\n-- threw:", poolName, formattedSql, sqlException);
 
@@ -179,72 +196,20 @@ public abstract class DefaultHook {
         }
     }
 
-    public static class DefaultStatementExecution extends DefaultHook implements Hook.StatementExecutionA {
-        public DefaultStatementExecution(ViburConfig config) {
-            super(config);
-        }
-
-        @Override
-        public Object on(StatementProceedingPoint spp) throws SQLException {
-            boolean logQueryExecution = config.getLogQueryExecutionLongerThanMs() >= 0;
-            long startTime = logQueryExecution ? System.nanoTime() : 0;
-
-            SQLException sqlException = null;
-            try {
-                return spp.proceed();
-
-            } catch (SQLException e) {
-                sqlException = e;
-                throw e;
-            } finally {
-                if (logQueryExecution) {
-                    long takenNanos = System.nanoTime() - startTime;
-                    logQueryExecution(spp.sqlQuery(), spp.queryParams(), takenNanos, sqlException);
-                }
-            }
-        }
-
-        private void logQueryExecution(String sqlQuery, List<Object[]> queryParams, long takenNanos, SQLException sqlException) {
-            double takenMillis = takenNanos * 0.000001;
-            boolean logTime = takenMillis >= config.getLogQueryExecutionLongerThanMs();
-            boolean logException = sqlException != null && logger.isDebugEnabled();
-            if (!logTime && !logException)
-                return;
-
-            String poolName = getPoolName(config);
-            String formattedSql = formatSql(sqlQuery, queryParams);
-            if (logException)
-                logger.debug("SQL query execution from pool {}:\n{}\n-- threw:", poolName, formattedSql, sqlException);
-
-            if (logTime) {
-                StringBuilder message = new StringBuilder(4096).append(
-                        format("SQL query execution from pool %s took %f ms:\n%s", poolName, takenMillis, formattedSql));
-                if (config.isLogStackTraceForLongQueryExecution())
-                    message.append('\n').append(getStackTraceAsString(new Throwable().getStackTrace()));
-                logger.warn(message.toString());
-            }
-        }
-
-        @Override
-        boolean isEnabled() {
-            return true;
-        }
-    }
-
     public static class ResultSetSize extends DefaultHook implements Hook.ResultSetRetrieval {
         public ResultSetSize(ViburConfig config) {
             super(config);
         }
 
         @Override
-        public void on(String sqlQuery, List<Object[]> queryParams, long resultSetSize) {
+        public void on(String sqlQuery, List<Object[]> sqlQueryParams, long resultSetSize) {
             if (config.getLogLargeResultSet() > resultSetSize)
                 return;
 
             if (logger.isWarnEnabled()) {
                 StringBuilder message = new StringBuilder(4096).append(
                         format("SQL query execution from pool %s retrieved a ResultSet with size %d:\n%s",
-                                getPoolName(config), resultSetSize, formatSql(sqlQuery, queryParams)));
+                                getPoolName(config), resultSetSize, formatSql(sqlQuery, sqlQueryParams)));
                 if (config.isLogStackTraceForLargeResultSet())
                     message.append('\n').append(getStackTraceAsString(new Throwable().getStackTrace()));
                 logger.warn(message.toString());
@@ -262,7 +227,7 @@ public abstract class DefaultHook {
 
     public static final class Util {
 
-        private Util() {}
+        private Util() { }
 
         public static <T extends Hook> T[] addHook(T[] hooks, T hook) {
             requireNonNull(hook);

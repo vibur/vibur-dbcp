@@ -17,12 +17,6 @@
 package org.vibur.dbcp.proxy;
 
 import org.vibur.dbcp.pool.Hook;
-import org.vibur.dbcp.pool.StatementProceedingPoint;
-
-import java.lang.reflect.Method;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.List;
 
 import static org.vibur.dbcp.pool.DefaultHook.Util.addHook;
 
@@ -43,11 +37,12 @@ public class InvocationHooksHolder {
      * are not intercepted. The hooks execution should take as short time as possible. */
     private Hook.MethodInvocation[] onMethodInvocation = new Hook.MethodInvocation[0];
 
-    /** A list of programming {@linkplain Hook.StatementExecution#on hooks} that will be invoked after each JDBC
+    // todo...
+    /** A list of programming {////////@linkplain Hook.StatementExecution#on hooks} that will be invoked after each JDBC
      * Statement "execute..." method call returns. Their execution should take as short time as possible. */
-    private Hook.StatementExecution[] onStatementExecution = new Hook.StatementExecution[0];
+//    private Hook.StatementExecution[] onStatementExecution = new Hook.StatementExecution[0];
 
-    private Hook.StatementExecutionA[] onStatementExecutionA = new Hook.StatementExecutionA[0];
+    private Hook.StatementExecution[] onStatementExecution = new Hook.StatementExecution[0];
 
     /** A list of programming {@linkplain Hook.ResultSetRetrieval#on hooks} that will be invoked at the end of each
      * ResultSet retrieval. Their execution should take as short time as possible. */
@@ -75,49 +70,5 @@ public class InvocationHooksHolder {
 
     Hook.ResultSetRetrieval[] onResultSetRetrieval() {
         return onResultSetRetrieval;
-    }
-
-
-    public static class Spp implements StatementProceedingPoint {
-        private final Hook.StatementExecutionA statementExecutionA;
-
-        public Spp(Hook.StatementExecutionA statementExecutionA) {
-            this.statementExecutionA = statementExecutionA;
-        }
-
-        @Override
-        public Statement proxy() {
-            return null;
-        }
-
-        @Override
-        public Method method() {
-            return null;
-        }
-
-        @Override
-        public Object[] args() {
-            return new Object[0];
-        }
-
-        @Override
-        public Object proceed() throws SQLException {
-            return null;
-        }
-
-        @Override
-        public List<Object[]> queryParams() {
-            return null;
-        }
-
-        @Override
-        public String sqlQuery() {
-            return null;
-        }
-
-        @Override
-        public Object proceed(Object[] args) throws SQLException {
-            return null;
-        }
     }
 }

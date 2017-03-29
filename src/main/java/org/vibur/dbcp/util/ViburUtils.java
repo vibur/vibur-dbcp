@@ -29,7 +29,7 @@ import static java.lang.Integer.toHexString;
  */
 public final class ViburUtils {
 
-    private ViburUtils() {}
+    private ViburUtils() { }
 
     /**
      * Returns the poolName formatted as:
@@ -62,10 +62,10 @@ public final class ViburUtils {
         return builder.toString();
     }
 
-    public static String formatSql(String sqlQuery, List<Object[]> queryParams) {
+    public static String formatSql(String sqlQuery, List<Object[]> sqlQueryParams) {
         StringBuilder result = new StringBuilder(1024).append("-- ").append(sqlQuery);
-        if (queryParams != null && !queryParams.isEmpty())
-            result.append("\n-- Parameters:\n-- ").append(Arrays.deepToString(queryParams.toArray()));
+        if (sqlQueryParams != null && !sqlQueryParams.isEmpty())
+            result.append("\n-- Parameters:\n-- ").append(Arrays.deepToString(sqlQueryParams.toArray()));
         return result.toString();
     }
 }

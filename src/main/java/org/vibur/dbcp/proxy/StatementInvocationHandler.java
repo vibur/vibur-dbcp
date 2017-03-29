@@ -16,11 +16,8 @@
 
 package org.vibur.dbcp.proxy;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.ViburConfig;
 import org.vibur.dbcp.pool.Hook;
-import org.vibur.dbcp.pool.StatementProceedingPoint;
 import org.vibur.dbcp.stcache.StatementCache;
 import org.vibur.dbcp.stcache.StatementHolder;
 
@@ -32,26 +29,24 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
-import static java.lang.String.format;
 import static org.vibur.dbcp.proxy.Proxy.newProxyResultSet;
-import static org.vibur.dbcp.util.ViburUtils.formatSql;
-import static org.vibur.dbcp.util.ViburUtils.getPoolName;
-import static org.vibur.dbcp.util.ViburUtils.getStackTraceAsString;
 
 /**
  * @author Simeon Malchev
  */
-class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection, Statement> {
-
-    private static final Logger logger = LoggerFactory.getLogger(StatementInvocationHandler.class);
+class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection, Statement>
+        implements Hook.StatementProceedingPoint {
 
     private final StatementHolder statement;
     private final StatementCache statementCache; // always "null" (i.e. off) for simple JDBC Statements
     private final ViburConfig config;
 
-    private final InvocationHooksHolder invocationHooks;
-    private final boolean logQueryParams;
-    private final List<Object[]> queryParams;
+    private final Hook.StatementExecution[] onStatementExecution;
+    private final Hook.StatementExecution lastHook;
+    private int hookIdx;
+
+    private final boolean logSqlQueryParams;
+    private final List<Object[]> sqlQueryParams;
 
     StatementInvocationHandler(StatementHolder statement, StatementCache statementCache, Connection connProxy,
                                ViburConfig config, ExceptionCollector exceptionCollector) {
@@ -59,10 +54,14 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
         this.statement = statement;
         this.statementCache = statementCache;
         this.config = config;
-        this.invocationHooks = config.getInvocationHooks();
-        this.logQueryParams = config.isIncludeQueryParameters() &&
-                (config.getLogQueryExecutionLongerThanMs() >= 0 || config.getLogLargeResultSet() >= 0);
-        this.queryParams = logQueryParams ? new ArrayList<Object[]>() : null;
+
+        this.onStatementExecution = config.getInvocationHooks().onStatementExecution();
+        this.hookIdx = onStatementExecution.length - 1;
+        this.lastHook = hookIdx >= 0 ? onStatementExecution[hookIdx] : this;
+
+        this.logSqlQueryParams = config.isIncludeQueryParameters() &&
+                (onStatementExecution.length > 0 || config.getInvocationHooks().onResultSetRetrieval().length > 0);
+        this.sqlQueryParams = logSqlQueryParams ? new ArrayList<Object[]>() : null;
     }
 
     @Override
@@ -112,92 +111,52 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
     }
 
     private Object processSet(Method method, Object[] args) throws SQLException {
-        if (logQueryParams && args != null && args.length >= 2)
-            addQueryParams(method, args);
+        if (logSqlQueryParams && args != null && args.length >= 2)
+            addSqlQueryParams(method, args);
         return targetInvoke(method, args); // the real "set..." call
     }
 
     private Object processExecute(final Statement proxy, final Method method, final Object[] args) throws SQLException {
-        Hook.StatementExecution[] onStatementExecution = invocationHooks.onStatementExecution();
-        long startTime = onStatementExecution.length > 0 ? System.nanoTime() : 0;
-
         if (statement.getSqlQuery() == null && args != null && args.length >= 1) // a simple Statement "execute..." call
             statement.setSqlQuery((String) args[0]);
 
-        SQLException sqlException = null;
         try {
-            StatementProceedingPoint spp = new StatementProceedingPoint()  { // default ProceedingPoint... always with "new"
-
-                // todo need the index of the current / latest statement execution hook
-
-                @Override
-                public Statement proxy() {
-                    return proxy;
-                }
-
-                @Override
-                public Method method() {
-                    return method;
-                }
-
-                @Override
-                public Object[] args() {
-                    return args;
-                }
-
-                @Override
-                public Object proceed() throws SQLException {
-                    return proceed(args);
-                }
-
-                @Override
-                public Object proceed(Object[] args) throws SQLException {
-                    // executeQuery result has to be proxied so that when getStatement() is called
-                    // on its result the return value to be the current JDBC Statement proxy.
-                    if (method.getName() == "executeQuery") // *1
-                        return newProxiedResultSet(proxy, method, args, statement.getSqlQuery());
-
-                    return targetInvoke(method, args); // the real "execute..." call
-                }
-
-                @Override
-                public String sqlQuery() {
-                    return statement.getSqlQuery();
-                }
-
-                @Override
-                public List<Object[]> queryParams() {
-                    return queryParams;
-                }
-            };
-
-            // executeQuery result has to be proxied so that when getStatement() is called
-            // on its result the return value to be the current JDBC Statement proxy.
-            if (method.getName() == "executeQuery") // *1
-                return newProxiedResultSet(proxy, method, args, statement.getSqlQuery());
-
-            return targetInvoke(method, args); // the real "execute..." call
-        } catch (SQLException e) {
-            sqlException = e;
-            throw e;
+            return lastHook.on(proxy, method, args, statement.getSqlQuery(), sqlQueryParams, this);
         } finally {
-            if (onStatementExecution.length > 0) {
-                long takenNanos = System.nanoTime() - startTime;
-                for (Hook.StatementExecution hook : onStatementExecution)
-                    hook.on(statement.getSqlQuery(), queryParams, takenNanos, sqlException);
-            }
+            prepareForNextExecution();
         }
+    }
+
+    private void prepareForNextExecution() {
+        if (sqlQueryParams != null)
+            sqlQueryParams.clear();
+        hookIdx = onStatementExecution.length - 1;
     }
 
     private ResultSet newProxiedResultSet(Statement proxy, Method method, Object[] args, String sqlQuery) throws SQLException {
         ResultSet rawResultSet = (ResultSet) targetInvoke(method, args);
-        return newProxyResultSet(rawResultSet, proxy, sqlQuery, queryParams, config, this);
+        return newProxyResultSet(rawResultSet, proxy, sqlQuery, sqlQueryParams, config, this);
     }
 
-    private void addQueryParams(Method method, Object[] args) {
+    private void addSqlQueryParams(Method method, Object[] args) {
         Object[] params = new Object[args.length + 1];
         params[0] = method.getName();
         System.arraycopy(args, 0, params, 1, args.length);
-        queryParams.add(params);
+        sqlQueryParams.add(params);
+    }
+
+    @Override
+    public Object on(Statement proxy, Method method, Object[] args, String sqlQuery, List<Object[]> sqlQueryParams,
+                     StatementProceedingPoint proceed) throws SQLException {
+
+        if (hookIdx > 0)
+            return onStatementExecution[--hookIdx].on(proxy, method, args, sqlQuery, sqlQueryParams, this);
+
+        // executeQuery result has to be proxied so that when getStatement() is called
+        // on its result the return value to be the current JDBC Statement proxy.
+        if (method.getName() == "executeQuery") // *1
+            return newProxiedResultSet(proxy, method, args, statement.getSqlQuery());
+
+        return targetInvoke(method, args); // the real "execute..." call
     }
 }

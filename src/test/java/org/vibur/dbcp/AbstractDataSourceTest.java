@@ -43,7 +43,7 @@ public abstract class AbstractDataSourceTest {
     private static String username;
     private static String password;
 
-    protected AbstractDataSourceTest() {}
+    protected AbstractDataSourceTest() { }
 
     @BeforeClass
     public static void deployDatabaseSchemaAndData() throws IOException, SqlToolError, SQLException {

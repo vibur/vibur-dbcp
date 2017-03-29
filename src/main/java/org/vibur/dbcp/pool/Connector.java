@@ -41,7 +41,7 @@ public interface Connector {
 
     final class Builder {
 
-        private Builder() {}
+        private Builder() { }
 
         public static Connector buildConnector(ViburConfig config, String username, String password) {
             if (config.getExternalDataSource() == null)

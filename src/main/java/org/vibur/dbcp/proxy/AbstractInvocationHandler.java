@@ -23,7 +23,6 @@ import org.vibur.dbcp.ViburDBCPException;
 import org.vibur.dbcp.pool.Hook;
 
 import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.sql.SQLException;
 import java.util.Arrays;
@@ -91,7 +90,7 @@ abstract class AbstractInvocationHandler<T> extends ExceptionCollector implement
      * @param method as above
      * @param args as above
      * @return as above
-     * @throws SQLException as above // todo
+     * @throws SQLException if the invoked underlying method throws such
      */
     Object unrestrictedInvoke(T proxy, Method method, Object[] args) throws SQLException {
         String methodName = method.getName();
@@ -133,7 +132,7 @@ abstract class AbstractInvocationHandler<T> extends ExceptionCollector implement
      * @param method as above
      * @param args as above
      * @return as above
-     * @throws SQLException as above
+     * @throws SQLException if the invoked underlying method throws such
      */
     Object restrictedInvoke(T proxy, Method method, Object[] args) throws SQLException {
         return targetInvoke(method, args);

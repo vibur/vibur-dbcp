@@ -21,6 +21,7 @@ import org.vibur.dbcp.ViburConfig;
 import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.List;
 
 /**
@@ -138,24 +139,21 @@ public interface Hook {
 
     interface StatementExecution extends Hook {
         /**
-         * An application hook that will be invoked after each JDBC Statement "execute..." method call returns.
-         * Its execution should take as short time as possible.
          *
-         * @param sqlQuery the executed SQL query or prepared/callable SQL statement
-         * @param queryParams the executed SQL query params if {@link ViburConfig#includeQueryParameters} is enabled,
-         *                    {@code null} otherwise
-         * @param takenNanos the time taken by the executed SQL query to complete in nanoseconds; also see the comments
-         *                   for {@link ViburConfig#logQueryExecutionLongerThanMs}
-         * @param sqlException an SQL exception that might have been thrown by the executed {@code sqlQuery};
-         *                     {@code null} value means that no exception was thrown
+         * @param proxy
+         * @param method
+         * @param args
+         * @param sqlQuery
+         * @param sqlQueryParams
+         * @param proceed
+         * @return
+         * @throws SQLException
          */
-        void on(String sqlQuery, List<Object[]> queryParams, long takenNanos, SQLException sqlException);
+        Object on(Statement proxy, Method method, Object[] args, String sqlQuery, List<Object[]> sqlQueryParams,
+                  StatementProceedingPoint proceed) throws SQLException;
     }
 
-    interface StatementExecutionA extends Hook {
-
-        Object on(StatementProceedingPoint spp) throws SQLException;
-    }
+    interface StatementProceedingPoint extends StatementExecution { }
 
     interface ResultSetRetrieval extends Hook {
         /**
@@ -164,10 +162,10 @@ public interface Hook {
          * {@link ViburConfig#logLargeResultSet}. Its execution should take as short time as possible.
          *
          * @param sqlQuery the executed SQL query or prepared/callable SQL statement
-         * @param queryParams the executed SQL query params if {@link ViburConfig#includeQueryParameters} is enabled,
+         * @param sqlQueryParams the executed SQL query params if {@link ViburConfig#includeQueryParameters} is enabled,
          *                    {@code null} otherwise
          * @param resultSetSize the retrieved ResultSet size
          */
-        void on(String sqlQuery, List<Object[]> queryParams, long resultSetSize);
+        void on(String sqlQuery, List<Object[]> sqlQueryParams, long resultSetSize);
     }
 }

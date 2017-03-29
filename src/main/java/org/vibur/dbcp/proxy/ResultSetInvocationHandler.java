@@ -32,17 +32,17 @@ import java.util.concurrent.atomic.AtomicLong;
 class ResultSetInvocationHandler extends ChildObjectInvocationHandler<Statement, ResultSet> {
 
     private final String sqlQuery;
-    private final List<Object[]> queryParams;
+    private final List<Object[]> sqlQueryParams;
     private final InvocationHooksHolder invocationHooks;
 
     private final AtomicLong resultSetSize = new AtomicLong(0);
 
     ResultSetInvocationHandler(ResultSet rawResultSet, Statement statementProxy,
-                               String sqlQuery, List<Object[]> queryParams,
+                               String sqlQuery, List<Object[]> sqlQueryParams,
                                ViburConfig config, ExceptionCollector exceptionCollector) {
         super(rawResultSet, statementProxy, "getStatement", config, exceptionCollector);
         this.sqlQuery = sqlQuery;
-        this.queryParams = queryParams;
+        this.sqlQueryParams = sqlQueryParams;
         this.invocationHooks = config.getInvocationHooks();
     }
 
@@ -79,7 +79,7 @@ class ResultSetInvocationHandler extends ChildObjectInvocationHandler<Statement,
 
         long size = resultSetSize.get() - 1;
         for (Hook.ResultSetRetrieval hook : invocationHooks.onResultSetRetrieval())
-            hook.on(sqlQuery, queryParams, size);
+            hook.on(sqlQuery, sqlQueryParams, size);
 
         return targetInvoke(method, args);
     }
