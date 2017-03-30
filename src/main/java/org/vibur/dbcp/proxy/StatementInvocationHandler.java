@@ -38,12 +38,12 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
         implements Hook.StatementProceedingPoint {
 
     private final StatementHolder statement;
-    private final StatementCache statementCache; // always "null" (i.e. off) for simple JDBC Statements
+    private final StatementCache statementCache; // always "null" (i.e. turned off) for simple JDBC Statements
     private final ViburConfig config;
 
-    private final Hook.StatementExecution[] onStatementExecution;
-    private final Hook.StatementExecution lastHook;
-    private int hookIdx;
+    private final Hook.StatementExecution[] executionHooks;
+    private final Hook.StatementExecution firstHook;
+    private int hookIdx = 0;
 
     private final boolean logSqlQueryParams;
     private final List<Object[]> sqlQueryParams;
@@ -55,12 +55,11 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
         this.statementCache = statementCache;
         this.config = config;
 
-        this.onStatementExecution = config.getInvocationHooks().onStatementExecution();
-        this.hookIdx = onStatementExecution.length - 1;
-        this.lastHook = hookIdx >= 0 ? onStatementExecution[hookIdx] : this;
+        this.executionHooks = config.getInvocationHooks().onStatementExecution();
+        this.firstHook = executionHooks.length > 0 ? executionHooks[0] : this;
 
         this.logSqlQueryParams = config.isIncludeQueryParameters() &&
-                (onStatementExecution.length > 0 || config.getInvocationHooks().onResultSetRetrieval().length > 0);
+                (executionHooks.length > 0 || config.getInvocationHooks().onResultSetRetrieval().length > 0);
         this.sqlQueryParams = logSqlQueryParams ? new ArrayList<Object[]>() : null;
     }
 
@@ -116,12 +115,12 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
         return targetInvoke(method, args); // the real "set..." call
     }
 
-    private Object processExecute(final Statement proxy, final Method method, final Object[] args) throws SQLException {
+    private Object processExecute(Statement proxy, Method method, Object[] args) throws SQLException {
         if (statement.getSqlQuery() == null && args != null && args.length >= 1) // a simple Statement "execute..." call
             statement.setSqlQuery((String) args[0]);
 
         try {
-            return lastHook.on(proxy, method, args, statement.getSqlQuery(), sqlQueryParams, this);
+            return firstHook.on(proxy, method, args, statement.getSqlQuery(), sqlQueryParams, this);
         } finally {
             prepareForNextExecution();
         }
@@ -130,7 +129,7 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
     private void prepareForNextExecution() {
         if (sqlQueryParams != null)
             sqlQueryParams.clear();
-        hookIdx = onStatementExecution.length - 1;
+        hookIdx = 0;
     }
 
     private ResultSet newProxiedResultSet(Statement proxy, Method method, Object[] args, String sqlQuery) throws SQLException {
@@ -149,8 +148,8 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
     public Object on(Statement proxy, Method method, Object[] args, String sqlQuery, List<Object[]> sqlQueryParams,
                      StatementProceedingPoint proceed) throws SQLException {
 
-        if (hookIdx > 0)
-            return onStatementExecution[--hookIdx].on(proxy, method, args, sqlQuery, sqlQueryParams, this);
+        if (++hookIdx < executionHooks.length)
+            return executionHooks[hookIdx].on(proxy, method, args, sqlQuery, sqlQueryParams, this);
 
         // executeQuery result has to be proxied so that when getStatement() is called
         // on its result the return value to be the current JDBC Statement proxy.

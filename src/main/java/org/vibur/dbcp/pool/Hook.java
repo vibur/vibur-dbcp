@@ -28,10 +28,14 @@ import java.util.List;
  * An interface that holds all application programming hook interfaces for JDBC Connection tune-up, method
  * invocation interception, and more.
  * 
- * <p>These application hooks serve as extension points to the inner workings of the connection pool and have
- * access to the <b>raw (original)</b> JDBC Connection object, not the proxied such. In order to avoid interference
- * with how the connection pool manages its underlying connections, the application <b>must not</b> keep or store
+ * <p>These application hooks serve as extension points to the inner workings of the connection pool and some of them
+ * have access to the <b>raw (original)</b> JDBC Connection object, not the proxied such. In order to avoid interference
+ * with the way the connection pool manages its underlying connections, the application <b>must not</b> keep or store
  * in one or another form a reference to the {@code rawConnection} object.
+ *
+ * <p>Multiple hooks of one and the same type can be registered and they will be executed in the order in which they
+ * were registered; i.e., if there are N registered hooks from a particular type, the first registered hook will
+ * be executed first, then the second, the third, and so on.
  *
  * @see DefaultHook
  * @see ConnectionFactory
@@ -45,7 +49,7 @@ public interface Hook {
 
     interface InitConnection extends Hook {
         /**
-         * A programming hook that will be invoked only once after the raw JDBC Connection is first created.
+         * A programming hook that will be invoked only once <i>after</i> the raw JDBC Connection is first created.
          * Its execution should take as short time as possible.
          *
          * <p>The {@code takenNanos} parameter includes as a minimum the time taken to establish the physical
@@ -61,8 +65,8 @@ public interface Hook {
 
     interface ValidateConnection extends Hook {
         /**
-         * A programming hook that will be invoked on the raw JDBC Connection after it was taken from the pool and only
-         * if it has stayed in the pool for longer than the predefined {@link ViburConfig#connectionIdleLimitInSeconds
+         * A programming hook that will be invoked on the raw JDBC Connection <i>after</i> it was taken from the pool and
+         * only if it has stayed in the pool for longer than the predefined {@link ViburConfig#connectionIdleLimitInSeconds
          * idle} timeout. The invocation happens as part of the {@link javax.sql.DataSource#getConnection()
          * DataSource.getConnection()} flow. The hook execution should take as short time as possible.
          *
@@ -75,8 +79,8 @@ public interface Hook {
 
     interface GetConnection extends Hook {
         /**
-         * A programming hook that will be invoked on the raw JDBC Connection after it was taken from the pool as part
-         * of the {@link javax.sql.DataSource#getConnection() DataSource.getConnection()} flow.
+         * A programming hook that will be invoked on the raw JDBC Connection <i>after</i> it was taken from the pool
+         * as part of the {@link javax.sql.DataSource#getConnection() DataSource.getConnection()} flow.
          * Its execution should take as short time as possible.
          *
          * <p>Worth noting that the {@code takenNanos} parameter includes in the common case (and as a minimum) the time
@@ -96,8 +100,8 @@ public interface Hook {
 
     interface CloseConnection extends Hook {
         /**
-         * A programming hook that will be invoked on the raw JDBC Connection before it is restored back to the pool as
-         * part of the {@link Connection#close()} flow. Its execution should take as short time as possible.
+         * A programming hook that will be invoked on the raw JDBC Connection <i>before</i> it is restored back to the
+         * pool as part of the {@link Connection#close()} flow. Its execution should take as short time as possible.
          *
          * @param rawConnection the raw JDBC connection that will be returned to the pool
          * @param takenNanos the time for which this connection was held by the application before it was restored
@@ -109,7 +113,7 @@ public interface Hook {
 
     interface DestroyConnection extends Hook {
         /**
-         * A programming hook that will be invoked only once after the raw JDBC Connection is closed/destroyed.
+         * A programming hook that will be invoked only once <i>after</i> the raw JDBC Connection is closed/destroyed.
          * Its execution should take as short time as possible.
          *
          * @param rawConnection the raw JDBC connection that was just closed
@@ -123,8 +127,8 @@ public interface Hook {
 
     interface MethodInvocation extends Hook {
         /**
-         * An application hook that will be invoked before a method on any of the proxied JDBC interfaces is invoked.
-         * Its execution should take as short time as possible.
+         * An application hook that will be invoked <i>before</i> a method on any of the proxied JDBC interfaces is
+         * invoked. Its execution should take as short time as possible.
          *
          * <p>For implementation details, see the comments for
          * {@link org.vibur.dbcp.proxy.InvocationHooksHolder#onMethodInvocation onMethodInvocation}.
@@ -157,7 +161,7 @@ public interface Hook {
 
     interface ResultSetRetrieval extends Hook {
         /**
-         * An application hook that will be invoked at the end of each ResultSet retrieval as part of the
+         * An application hook that will be invoked <i>at the end</i> of each ResultSet retrieval as part of the
          * {@link java.sql.ResultSet#close() ResultSet.close()} flow. For implementation details, see the comments for
          * {@link ViburConfig#logLargeResultSet}. Its execution should take as short time as possible.
          *

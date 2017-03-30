@@ -23,6 +23,7 @@ import org.vibur.dbcp.ViburDBCPException;
 import org.vibur.dbcp.pool.Hook;
 
 import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.sql.SQLException;
 import java.util.Arrays;
@@ -142,7 +143,7 @@ abstract class AbstractInvocationHandler<T> extends ExceptionCollector implement
         try {
             return method.invoke(target, args);  // the real method call on the real underlying (proxied) object
 
-        } catch (ReflectiveOperationException e) {
+        } catch (InvocationTargetException e) {
             Throwable cause = e.getCause();
             if (cause == null)
                 cause = e;
@@ -159,8 +160,9 @@ abstract class AbstractInvocationHandler<T> extends ExceptionCollector implement
             else if (cause instanceof Error)
                 throw (Error) cause;
 
-            logger.error("Unexpected exception cause", e);
-            throw new ViburDBCPException(e); // not expected to happen
+            throw unexpectedException(e);
+        } catch (IllegalAccessException e) {
+            throw unexpectedException(e);
         }
     }
 
@@ -168,6 +170,11 @@ abstract class AbstractInvocationHandler<T> extends ExceptionCollector implement
         if (logger.isDebugEnabled())
             logger.debug("Pool {}, the invocation of {} with args {} on {} threw:",
                     getPoolName(config), method, Arrays.toString(args), target, t);
+    }
+
+    private static ViburDBCPException unexpectedException(ReflectiveOperationException e) {
+        logger.error("Unexpected exception cause", e);
+        return new ViburDBCPException(e); // not expected to happen
     }
 
     /**

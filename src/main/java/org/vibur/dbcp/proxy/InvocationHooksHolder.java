@@ -31,21 +31,18 @@ import static org.vibur.dbcp.pool.DefaultHook.Util.addHook;
  */
 public class InvocationHooksHolder {
 
-    /** A list of programming {@linkplain Hook.MethodInvocation#on hooks} intercepting (almost) all method calls on all
-     * proxied JDBC interfaces. Methods inherited from the {@link Object} class, methods related to the "closed" state
-     * of the JDBC objects (e.g., close(), isClosed()), as well as methods from the {@link java.sql.Wrapper} interface
-     * are not intercepted. The hooks execution should take as short time as possible. */
+    /** A list of programming {@linkplain Hook.MethodInvocation#on hooks} that will be invoked <i>before</i> (almost) all
+     * methods on the proxied JDBC interfaces. Methods inherited from the {@link Object} class, methods related to the
+     * "closed" state of the JDBC objects (e.g., close(), isClosed()), as well as methods from the {@link java.sql.Wrapper}
+     * interface are not intercepted. The hooks execution should take as short time as possible. */
     private Hook.MethodInvocation[] onMethodInvocation = new Hook.MethodInvocation[0];
 
-    // todo...
-    /** A list of programming {////////@linkplain Hook.StatementExecution#on hooks} that will be invoked after each JDBC
-     * Statement "execute..." method call returns. Their execution should take as short time as possible. */
-//    private Hook.StatementExecution[] onStatementExecution = new Hook.StatementExecution[0];
-
+    /** A list of programming {@linkplain Hook.StatementExecution#on hooks} that will be invoked <i>around</i> the call
+     * of each JDBC Statement "execute..." method. Their execution should take as short time as possible. */
     private Hook.StatementExecution[] onStatementExecution = new Hook.StatementExecution[0];
 
-    /** A list of programming {@linkplain Hook.ResultSetRetrieval#on hooks} that will be invoked at the end of each
-     * ResultSet retrieval. Their execution should take as short time as possible. */
+    /** A list of programming {@linkplain Hook.ResultSetRetrieval#on hooks} that will be invoked <i>at the end</i> of
+     * each ResultSet retrieval. Their execution should take as short time as possible. */
     private Hook.ResultSetRetrieval[] onResultSetRetrieval = new Hook.ResultSetRetrieval[0];
 
     public void addOnMethodInvocation(Hook.MethodInvocation hook) {
