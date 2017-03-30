@@ -255,8 +255,8 @@ public abstract class ViburConfig {
      * {@code true}) from a JDBC Statement {@code execute...} calls that generate ResultSets with length greater than
      * or equal to this limit are logged at WARN level. A {@code negative number} disables it. Retrieving of a large
      * ResultSet may have negative effect on the application performance and may sometimes be an indication of a very
-     * subtle application bug, where the whole ResultSet is retrieved, but only the first few records of it are
-     * subsequently read and processed.
+     * subtle application bug, where the whole ResultSet is retrieved and processed, but only the first few records of
+     * it are subsequently needed by the application.
      *
      * <p>The logging is done at the moment when the application issues a call to the {@code ResultSet.close()}
      * method. Applications that rely on the <i>implicit</i> closure of the {@code ResultSet} when the generated it
@@ -273,7 +273,7 @@ public abstract class ViburConfig {
      * will log at WARN level the current {@code ResultSet.close()} call stack trace. */
     private boolean logStackTraceForLargeResultSet = false;
 
-    /** Enables or disables inclusion of the concrete SQL query parameters for {@link #logStackTraceForLongConnection}
+    /** todo... Enables or disables inclusion of the concrete SQL query parameters for {@link #logStackTraceForLongConnection}
      * and {@link #logLargeResultSet}. Disabling the parameters inclusion can be useful if there are particular
      * compliance requirements or if the parameters are already included in the logged messages as part of the
      * {@code toString()} implementation of the {@code PreparedStatements}; the last is a JDBC driver specific feature.

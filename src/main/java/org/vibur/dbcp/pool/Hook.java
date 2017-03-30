@@ -143,15 +143,20 @@ public interface Hook {
 
     interface StatementExecution extends Hook {
         /**
-         *
+         * todo... needs an example... <i>around</i>
          * @param proxy
          * @param method
          * @param args
          * @param sqlQuery
-         * @param sqlQueryParams
+         * @param sqlQueryParams the executed SQL query params if {@link ViburConfig#includeQueryParameters} is enabled;
+         *                       {@code null} otherwise. The size of the parameters list is equal to the number of the
+         *                       question mark placeholders in the PreparedStatement query. Each Object[] inside the
+         *                       list will contain at index 0 the name of the invoked setXyz method and at the following
+         *                       indices the parameters of the invoked setXyz method. For an example, see the
+         *                       documentation for {@link ResultSetRetrieval#on ResultSetRetrieval}.
          * @param proceed
-         * @return
-         * @throws SQLException
+         * @return the result from the invocation of the original intercepted PreparedStatement "execute..." method
+         * @throws SQLException if the underlying method throws such or to indicate an error
          */
         Object on(Statement proxy, Method method, Object[] args, String sqlQuery, List<Object[]> sqlQueryParams,
                   StatementProceedingPoint proceed) throws SQLException;
@@ -166,8 +171,24 @@ public interface Hook {
          * {@link ViburConfig#logLargeResultSet}. Its execution should take as short time as possible.
          *
          * @param sqlQuery the executed SQL query or prepared/callable SQL statement
-         * @param sqlQueryParams the executed SQL query params if {@link ViburConfig#includeQueryParameters} is enabled,
-         *                    {@code null} otherwise
+         * @param sqlQueryParams the executed SQL query params if {@link ViburConfig#includeQueryParameters} is enabled;
+         *                       {@code null} otherwise. The size of the parameters list is equal to the number of the
+         *                       question mark placeholders in the PreparedStatement query. Each Object[] inside the
+         *                       list will contain at index 0 the name of the invoked setXyz method and at the following
+         *                       indices the parameters of the invoked setXyz method; the last implies that the type of
+         *                       the parameter at index 0 is always String, and at index 1 is always Integer (as
+         *                       the first parameter of each setXyz method is always an int). For example, if we have a
+         *                       PreparedStatement query such as {@code select * from T1 where X=? and Y=? and Z>?}
+         *                       where X is of type String, Y is of type Integer, Z is of type Date, and the supplied
+         *                       parameters values are "street", "22", "2007/10/15", then the {@code sqlQueryParams}
+         *                       list content will look as:
+         *                       <code>
+         *                          List {
+         *                              Object[] {String("setString"), Integer("1"), String("street")},
+         *                              Object[] {String("setInt"), Integer("2"), Integer("22")},
+         *                              Object[] {String("setDate"), Integer("3"), java.sql.Date("2007", "10", "15")}
+         *                          }
+         *                       </code>
          * @param resultSetSize the retrieved ResultSet size
          */
         void on(String sqlQuery, List<Object[]> sqlQueryParams, long resultSetSize);
