@@ -24,7 +24,7 @@ import static org.vibur.dbcp.pool.DefaultHook.Util.addHook;
  * Holds all programming Connection hooks collections.
  *
  * <p>Note that the underlying data structures used to store the Hook instances <b>are not</b> thread-safe
- * for modifications. They must be set only once during the pool configuration phase and must not be modified once
+ * for modifications. They must be set only once during the pool configuration phase and must not be modified after
  * the pool is started.
  *
  * @author Simeon Malchev
