@@ -182,13 +182,13 @@ public interface Hook {
          *                       where X is of type String, Y is of type Integer, Z is of type Date, and the supplied
          *                       parameters values are "street", "22", "2007/10/15", then the {@code sqlQueryParams}
          *                       list content will look as:
-         *                       <code>
+         *                       <pre>{@code
          *                          List {
          *                              Object[] {String("setString"), Integer("1"), String("street")},
          *                              Object[] {String("setInt"), Integer("2"), Integer("22")},
          *                              Object[] {String("setDate"), Integer("3"), java.sql.Date("2007", "10", "15")}
          *                          }
-         *                       </code>
+         *                       }</pre>
          * @param resultSetSize the retrieved ResultSet size
          */
         void on(String sqlQuery, List<Object[]> sqlQueryParams, long resultSetSize);
