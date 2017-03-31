@@ -144,6 +144,8 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
         sqlQueryParams.add(params);
     }
 
+    //////// The StatementProceedingPoint implementation: ////////
+
     @Override
     public Object on(Statement proxy, Method method, Object[] args, String sqlQuery, List<Object[]> sqlQueryParams,
                      StatementProceedingPoint proceed) throws SQLException {
