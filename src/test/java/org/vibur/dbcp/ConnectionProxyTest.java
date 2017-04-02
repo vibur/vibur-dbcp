@@ -19,7 +19,6 @@ package org.vibur.dbcp;
 import org.junit.Test;
 
 import javax.sql.DataSource;
-import java.io.IOException;
 import java.sql.*;
 
 import static org.junit.Assert.assertSame;
@@ -30,7 +29,7 @@ import static org.junit.Assert.assertSame;
 public class ConnectionProxyTest extends AbstractDataSourceTest {
 
     @Test
-    public void testSameConnection() throws SQLException, IOException {
+    public void testSameConnection() throws SQLException {
         DataSource ds = createDataSourceNoStatementsCache();
         try (Connection connection = ds.getConnection();
              Statement statement = connection.createStatement();

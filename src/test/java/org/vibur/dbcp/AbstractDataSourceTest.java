@@ -95,6 +95,27 @@ public abstract class AbstractDataSourceTest {
         return dataSource;
     }
 
+    protected ViburDBCPDataSource createDataSourceWithStatementsCache() throws ViburDBCPException {
+        dataSource = new ViburDBCPDataSource();
+
+        dataSource.setJdbcUrl(jdbcUrl);
+        dataSource.setUsername(username);
+        dataSource.setPassword(password);
+
+        dataSource.setPoolInitialSize(POOL_INITIAL_SIZE);
+        dataSource.setPoolMaxSize(POOL_MAX_SIZE);
+        dataSource.setConnectionTimeoutInMs(CONNECTION_TIMEOUT_MS);
+
+        dataSource.setConnectionIdleLimitInSeconds(120);
+
+        dataSource.setLogQueryExecutionLongerThanMs(1);
+        dataSource.setStatementCacheMaxSize(1);
+
+        dataSource.start();
+
+        return dataSource;
+    }
+
     protected ViburDBCPDataSource createDataSourceFromExternalDataSource() throws ViburDBCPException {
         dataSource = new ViburDBCPDataSource();
 
@@ -116,7 +137,7 @@ public abstract class AbstractDataSourceTest {
         return dataSource;
     }
 
-    protected ViburDBCPDataSource createDataSourceWithStatementsCache() throws ViburDBCPException {
+    protected ViburDBCPDataSource createDataSourceNotStarted() throws ViburDBCPException {
         dataSource = new ViburDBCPDataSource();
 
         dataSource.setJdbcUrl(jdbcUrl);
@@ -128,11 +149,6 @@ public abstract class AbstractDataSourceTest {
         dataSource.setConnectionTimeoutInMs(CONNECTION_TIMEOUT_MS);
 
         dataSource.setConnectionIdleLimitInSeconds(120);
-
-        dataSource.setLogQueryExecutionLongerThanMs(1);
-        dataSource.setStatementCacheMaxSize(1);
-
-        dataSource.start();
 
         return dataSource;
     }

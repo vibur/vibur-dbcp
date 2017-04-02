@@ -28,7 +28,6 @@ import org.vibur.dbcp.stcache.StatementHolder;
 import org.vibur.dbcp.stcache.StatementMethod;
 
 import javax.sql.DataSource;
-import java.io.IOException;
 import java.lang.reflect.Proxy;
 import java.sql.*;
 import java.util.Arrays;
@@ -60,19 +59,19 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
     public final ExpectedException exception = ExpectedException.none();
 
     @Test
-    public void testSelectStatementNoStatementsCache() throws SQLException, IOException {
+    public void testSelectStatementNoStatementsCache() throws SQLException {
         DataSource ds = createDataSourceNoStatementsCache();
         doTestSelectStatement(ds);
     }
 
     @Test
-    public void testSelectStatementFromExternalDataSource() throws SQLException, IOException {
+    public void testSelectStatementFromExternalDataSource() throws SQLException {
         DataSource ds = createDataSourceFromExternalDataSource();
         doTestSelectStatement(ds);
     }
 
     @Test
-    public void testSelectStatementWithStatementsCache() throws SQLException, IOException {
+    public void testSelectStatementWithStatementsCache() throws SQLException {
         ViburDBCPDataSource ds = createDataSourceWithStatementsCache();
         ConcurrentMap<StatementMethod, StatementHolder> mockedStatementCache = mockStatementCache(ds);
 
@@ -85,19 +84,19 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
     }
 
     @Test
-    public void testPreparedSelectStatementNoStatementsCache() throws SQLException, IOException {
+    public void testPreparedSelectStatementNoStatementsCache() throws SQLException {
         DataSource ds = createDataSourceNoStatementsCache();
         doTestPreparedSelectStatement(ds);
     }
 
     @Test
-    public void testPreparedSelectStatementFromExternalDataSource() throws SQLException, IOException {
+    public void testPreparedSelectStatementFromExternalDataSource() throws SQLException {
         DataSource ds = createDataSourceFromExternalDataSource();
         doTestPreparedSelectStatement(ds);
     }
 
     @Test
-    public void testPreparedSelectStatementWithStatementsCache() throws SQLException, IOException {
+    public void testPreparedSelectStatementWithStatementsCache() throws SQLException {
         ViburDBCPDataSource ds = createDataSourceWithStatementsCache();
         ConcurrentMap<StatementMethod, StatementHolder> mockedStatementCache = mockStatementCache(ds);
 
@@ -118,7 +117,7 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
     }
 
     @Test
-    public void testTwoPreparedSelectStatementsWithStatementsCache() throws SQLException, IOException {
+    public void testTwoPreparedSelectStatementsWithStatementsCache() throws SQLException {
         ViburDBCPDataSource ds = createDataSourceWithStatementsCache();
         ConcurrentMap<StatementMethod, StatementHolder> mockedStatementCache = mockStatementCache(ds);
 
@@ -142,7 +141,7 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
     }
 
     @Test
-    public void testExceptionOnOneConnectionDoesNotImpactOtherConnections() throws SQLException, IOException {
+    public void testExceptionOnOneConnectionDoesNotImpactOtherConnections() throws SQLException {
         ViburDBCPDataSource ds = createDataSourceNoStatementsCache();
         assertEquals(POOL_INITIAL_SIZE, ds.getPool().remainingCreated());
 
@@ -174,7 +173,7 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
     }
 
     @Test
-    public void testStatementCloseShouldCloseTheInternalStatementToo() throws SQLException, IOException {
+    public void testStatementCloseShouldCloseTheInternalStatementToo() throws SQLException {
         DataSource ds = createDataSourceNoStatementsCache();
 
         Connection connection = ds.getConnection();
@@ -195,7 +194,7 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
     }
 
     @Test
-    public void testConnectionCloseAfterPoolTerminationShouldCloseTheInternalConnectionToo() throws SQLException, IOException {
+    public void testConnectionCloseAfterPoolTerminationShouldCloseTheInternalConnectionToo() throws SQLException {
         ViburDBCPDataSource ds = createDataSourceNoStatementsCache();
 
         Connection connection = ds.getConnection();
