@@ -273,10 +273,10 @@ public abstract class ViburConfig {
      * will log at WARN level the current {@code ResultSet.close()} call stack trace. */
     private boolean logStackTraceForLargeResultSet = false;
 
-    /** todo... Enables or disables inclusion of the concrete SQL query parameters for {@link #logStackTraceForLongConnection}
-     * and {@link #logLargeResultSet}. Disabling the parameters inclusion can be useful if there are particular
-     * compliance requirements or if the parameters are already included in the logged messages as part of the
-     * {@code toString()} implementation of the {@code PreparedStatements}; the last is a JDBC driver specific feature.
+    /** Enables or disables the collection of concrete SQL query parameters for {@link Hook.StatementExecution#on
+     * StatementExecution hook} and {@link Hook.ResultSetRetrieval#on ResultSetRetrieval hook}.
+     * Also see {@link #logQueryExecutionLongerThanMs} and {@link #logLargeResultSet}. Disabling the parameters
+     * collection can be useful if there are specific compliance requirements for the user application.
      */
     private boolean includeQueryParameters = true;
 

@@ -143,19 +143,39 @@ public interface Hook {
 
     interface StatementExecution extends Hook {
         /**
-         * todo... needs an example... <i>around</i>
-         * @param proxy
-         * @param method
-         * @param args
-         * @param sqlQuery
-         * @param sqlQueryParams the executed SQL query params if {@link ViburConfig#includeQueryParameters} is enabled;
-         *                       {@code null} otherwise. The size of the parameters list is equal to the number of the
-         *                       question mark placeholders in the PreparedStatement query. Each Object[] inside the
-         *                       list will contain at index 0 the name of the invoked setXyz method and at the following
-         *                       indices the parameters of the invoked setXyz method. For an example, see the
-         *                       documentation for {@link ResultSetRetrieval#on ResultSetRetrieval}.
-         * @param proceed
-         * @return the result from the invocation of the original intercepted PreparedStatement "execute..." method
+         * An application hook that will be invoked <i>around</i> the call of each JDBC Statement "execute..." method.
+         * Its execution should take as short time as possible. An example implementation may look like:
+         * <pre>{@code
+         *
+         *      public Object on(Statement proxy, Method method, Object[] args, String sqlQuery, List<Object[]> sqlQueryParams,
+         *                       StatementProceedingPoint proceed) throws SQLException {
+         *          try {
+         *              // do something before the real method execution, for example, start stopwatch
+         *
+         *              Object result = proceed.on(proxy, method, args, sqlQuery, sqlQueryParams, proceed);
+         *              return result;
+         *
+         *          } finally {
+         *              // do something after the real method execution, for example, stop stopwatch
+         *          }
+         *      }
+         * }</pre>
+         *
+         * @param proxy the Statement proxy instance that the method was invoked on
+         * @param method the invoked method
+         * @param args the method arguments
+         * @param sqlQuery the executed SQL query or prepared/callable SQL statement
+         * @param sqlQueryParams the executed SQL query params if {@link ViburConfig#includeQueryParameters} is enabled
+         *                       and if the {@code sqlQuery} was a prepared/callable SQL statement; {@code null} otherwise.
+         *                       The size of the parameters list is equal to the number of the question mark placeholders
+         *                       in the PreparedStatement query. Each Object[] inside the list contains at index 0
+         *                       the name of the invoked setXyz method and at the following indices the parameters of
+         *                       the invoked setXyz method. For an example, see the documentation for
+         *                       {@link ResultSetRetrieval#on ResultSetRetrieval}.
+         * @param proceed the proceeding point through which the hook can pass the call to the intercepted Statement
+         *                "execute..." method or to the next registered {@code StatementExecution} around hook,
+         *                if there is such
+         * @return the result from the invocation of the original intercepted Statement "execute..." method
          * @throws SQLException if the underlying method throws such or to indicate an error
          */
         Object on(Statement proxy, Method method, Object[] args, String sqlQuery, List<Object[]> sqlQueryParams,
@@ -171,17 +191,18 @@ public interface Hook {
          * {@link ViburConfig#logLargeResultSet}. Its execution should take as short time as possible.
          *
          * @param sqlQuery the executed SQL query or prepared/callable SQL statement
-         * @param sqlQueryParams the executed SQL query params if {@link ViburConfig#includeQueryParameters} is enabled;
-         *                       {@code null} otherwise. The size of the parameters list is equal to the number of the
-         *                       question mark placeholders in the PreparedStatement query. Each Object[] inside the
-         *                       list will contain at index 0 the name of the invoked setXyz method and at the following
-         *                       indices the parameters of the invoked setXyz method; the last implies that the type of
-         *                       the parameter at index 0 is always String, and at index 1 is always Integer (as
-         *                       the first parameter of each setXyz method is always an int). For example, if we have a
-         *                       PreparedStatement query such as {@code select * from T1 where X=? and Y=? and Z>?}
-         *                       where X is of type String, Y is of type Integer, Z is of type Date, and the supplied
-         *                       parameters values are "street", "22", "2007/10/15", then the {@code sqlQueryParams}
-         *                       list content will look as:
+         * @param sqlQueryParams the executed SQL query params if {@link ViburConfig#includeQueryParameters} is enabled
+         *                       and if the {@code sqlQuery} was a prepared/callable SQL statement; {@code null} otherwise.
+         *                       The size of the parameters list is equal to the number of the question mark placeholders
+         *                       in the PreparedStatement query. Each Object[] inside the list contains at index 0
+         *                       the name of the invoked setXyz method and at the following indices the parameters of
+         *                       the invoked setXyz method; the last implies that the type of the parameter at index 0
+         *                       is always a String, and at index 1 is always an Integer (as the first parameter of each
+         *                       setXyz method is always an int). For example, for the PreparedStatement query
+         *                       {@code select * from T1 where X=? and Y=? and Z>?} where X is of type String,
+         *                       Y is of type Integer, Z is of type java.sql.Date, and the supplied parameters values
+         *                       are "street", "22", and "2007/10/15", the resultant {@code sqlQueryParams} list will
+         *                       look like:
          *                       <pre>{@code
          *                          List {
          *                              Object[] {String("setString"), Integer("1"), String("street")},
