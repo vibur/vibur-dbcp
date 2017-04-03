@@ -70,7 +70,7 @@ public class StatementHookTest extends AbstractDataSourceTest {
              Statement statement = connection.createStatement();
              ResultSet resultSet = statement.executeQuery("select * from actor where first_name = 'CHRISTIAN'")) {
 
-            assertTrue(resultSet.next());
+            assertTrue(resultSet.next()); // make sure the PreparedStatement execution has returned at least one record
         }
 
         assertEquals("aa", executionOrder.get(0));
