@@ -14,11 +14,11 @@
     </logger>
 
     <logger name="org.vibur.dbcp.pool.PoolOperations" additivity="false">
-        <level value="trace"/> <!-- trace shows all take/restore operations on rawConnection from the pool -->
+        <level value="debug"/> <!-- trace shows all take/restore operations on rawConnection from the pool -->
         <appender-ref ref="stdout"/>
     </logger>
     <logger name="org.vibur.dbcp.pool.ConnectionFactory" additivity="false">
-        <level value="debug"/> <!-- debug shows all create/destroy operations on rawConnection by the factory -->
+        <level value="info"/> <!-- debug shows all create/destroy operations on rawConnection by the factory -->
         <appender-ref ref="stdout"/>
     </logger>
 

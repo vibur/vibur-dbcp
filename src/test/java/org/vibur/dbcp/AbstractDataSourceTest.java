@@ -149,6 +149,7 @@ public abstract class AbstractDataSourceTest {
         dataSource.setConnectionTimeoutInMs(CONNECTION_TIMEOUT_MS);
 
         dataSource.setConnectionIdleLimitInSeconds(120);
+        dataSource.setLogQueryExecutionLongerThanMs(-1);
 
         return dataSource;
     }
