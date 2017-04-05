@@ -1,5 +1,24 @@
-Version 16.2 (10/02/2017) - RECOMMENDED
+Version 17.0 (05/04/2017) - RECOMMENDED
 =======================================
+* Reimplemented the StatementExecution hook as an around advice (in terms of AOP) instead of being an after advice
+  as before. Now any implemented by user StatementExecution hooks are responsible for using the supplied
+  StatementProceedingPoint to pass the call to the intercepted Statement "execute..." method or to the next registered
+  StatementExecution hook via something like:
+    try {
+        // do something before the real method execution, for example, start stopwatch
+
+        Object result = proceed.on(proxy, method, args, sqlQuery, sqlQueryParams, proceed);
+        return result;
+
+    finally {
+        // do something after the real method execution, for example, stop stopwatch
+    }
+  This construct allows for easy execution of supplied by user before and after Statement execution logic.
+* Fixed a minor bug in building sqlQueryParams.
+* Various other small refactoring, javadoc updates and clarifications, source code clean-up.
+
+Version 16.2 (10/02/2017)
+=========================
 * Small performance / memory consumption improvements on top of 16.1 release.
 * Fixed a minor bug in Statement caching.
 * Small refactoring - renamed proxy package to stproxy; javadoc updates and clarifications.
