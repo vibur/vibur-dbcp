@@ -37,35 +37,35 @@ public final class Proxy {
 
     public static Connection newProxyConnection(ConnHolder conn, PoolOperations poolOperations, ViburConfig config) {
         InvocationHandler handler = new ConnectionInvocationHandler(conn, poolOperations, config);
-        return (Connection) newProxy(connectionCtor, handler);
+        return newProxy(connectionCtor, handler);
     }
 
     static Statement newProxyStatement(StatementHolder statement, Connection connProxy,
                                        ViburConfig config, ExceptionCollector exceptionCollector) {
         InvocationHandler handler = new StatementInvocationHandler(
                 statement, null /* turns off the cache */, connProxy, config, exceptionCollector);
-        return (Statement) newProxy(statementCtor, handler);
+        return newProxy(statementCtor, handler);
     }
 
     static PreparedStatement newProxyPreparedStatement(StatementHolder pStatement, Connection connProxy,
                                                        ViburConfig config, ExceptionCollector exceptionCollector) {
         InvocationHandler handler = new StatementInvocationHandler(
                 pStatement, config.getStatementCache(), connProxy, config, exceptionCollector);
-        return (PreparedStatement) newProxy(pStatementCtor, handler);
+        return newProxy(pStatementCtor, handler);
     }
 
     static CallableStatement newProxyCallableStatement(StatementHolder cStatement, Connection connProxy,
                                                        ViburConfig config, ExceptionCollector exceptionCollector) {
         InvocationHandler handler = new StatementInvocationHandler(
                 cStatement, config.getStatementCache(), connProxy, config, exceptionCollector);
-        return (CallableStatement) newProxy(cStatementCtor, handler);
+        return newProxy(cStatementCtor, handler);
     }
 
     static DatabaseMetaData newProxyDatabaseMetaData(DatabaseMetaData rawMetaData, Connection connProxy,
                                                      ViburConfig config, ExceptionCollector exceptionCollector) {
         InvocationHandler handler = new ChildObjectInvocationHandler<>(
                 rawMetaData, connProxy, "getConnection", config, exceptionCollector);
-        return (DatabaseMetaData) newProxy(metadataCtor, handler);
+        return newProxy(metadataCtor, handler);
     }
 
     static ResultSet newProxyResultSet(ResultSet rawResultSet, Statement statementProxy,
@@ -73,35 +73,40 @@ public final class Proxy {
                                        ViburConfig config, ExceptionCollector exceptionCollector) {
         InvocationHandler handler = new ResultSetInvocationHandler(
                 rawResultSet, statementProxy, sqlQuery, sqlQueryParams, config, exceptionCollector);
-        return (ResultSet) newProxy(resultSetCtor, handler);
+        return newProxy(resultSetCtor, handler);
     }
 
-    private static Object newProxy(Constructor<?> proxyCtor, InvocationHandler invocationHandler) {
+    private static <T> T newProxy(Constructor<T> proxyCtor, InvocationHandler handler) {
         try {
-            return proxyCtor.newInstance(invocationHandler);
+            return proxyCtor.newInstance(handler);
         } catch (ReflectiveOperationException e) {
             throw new Error(e);
         }
     }
 
-    private static final Constructor<?> connectionCtor;
-    private static final Constructor<?> statementCtor;
-    private static final Constructor<?> pStatementCtor;
-    private static final Constructor<?> cStatementCtor;
-    private static final Constructor<?> metadataCtor;
-    private static final Constructor<?> resultSetCtor;
+    private static final Constructor<Connection> connectionCtor;
+    private static final Constructor<Statement> statementCtor;
+    private static final Constructor<PreparedStatement> pStatementCtor;
+    private static final Constructor<CallableStatement> cStatementCtor;
+    private static final Constructor<DatabaseMetaData> metadataCtor;
+    private static final Constructor<ResultSet> resultSetCtor;
 
     private static final ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
 
     // static initializer for all constructors:
     static {
+        connectionCtor = getIHConstructor(Connection.class);
+        statementCtor = getIHConstructor(Statement.class);
+        pStatementCtor = getIHConstructor(PreparedStatement.class);
+        cStatementCtor = getIHConstructor(CallableStatement.class);
+        metadataCtor = getIHConstructor(DatabaseMetaData.class);
+        resultSetCtor = getIHConstructor(ResultSet.class);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T> Constructor<T> getIHConstructor(Class<T> cl) {
         try {
-            connectionCtor = getProxyClass(classLoader, Connection.class).getConstructor(InvocationHandler.class);
-            statementCtor  = getProxyClass(classLoader, Statement.class).getConstructor(InvocationHandler.class);
-            pStatementCtor = getProxyClass(classLoader, PreparedStatement.class).getConstructor(InvocationHandler.class);
-            cStatementCtor = getProxyClass(classLoader, CallableStatement.class).getConstructor(InvocationHandler.class);
-            metadataCtor   = getProxyClass(classLoader, DatabaseMetaData.class).getConstructor(InvocationHandler.class);
-            resultSetCtor  = getProxyClass(classLoader, ResultSet.class).getConstructor(InvocationHandler.class);
+            return (Constructor<T>) getProxyClass(classLoader, cl).getConstructor(InvocationHandler.class);
         } catch (NoSuchMethodException e) {
             throw new Error(e);
         }
