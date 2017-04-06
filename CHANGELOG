@@ -4,16 +4,21 @@ Version 17.0 (05/04/2017) - RECOMMENDED
   as before. Now any implemented by user StatementExecution hooks are responsible for using the supplied
   StatementProceedingPoint to pass the call to the intercepted Statement "execute..." method or to the next registered
   StatementExecution hook via something like:
-    try {
-        // do something before the real method execution, for example, start stopwatch
+    (proxy, method, args, sqlQuery, sqlQueryParams, proceed) -> {
+        try {
+            // do something before the real method execution, for example:
+            queriesInProcess.incrementAndGet();
 
-        Object result = proceed.on(proxy, method, args, sqlQuery, sqlQueryParams, proceed);
-        return result;
+            Object result = proceed.on(proxy, method, args, sqlQuery, sqlQueryParams, proceed);
+            return result;
 
-    finally {
-        // do something after the real method execution, for example, stop stopwatch
+        finally {
+            // do something after the real method execution, for example:
+            queriesInProcess.decrementAndGet();
+        }
     }
   This construct allows for easy execution of supplied by user before and after Statement execution logic.
+
 * Fixed a minor bug in building sqlQueryParams.
 * Various other small refactoring, javadoc updates and clarifications, source code clean-up.
 
@@ -58,6 +63,7 @@ Version 14.0 (22/12/2016)
 * Renamed MethodHooksHolder to InvocationHooksHolder as well as the corresponding field in ViburConfig.
   Example of how to add a method invocation hook:
     viburDataSource.getInvocationHooks().addOnMethodInvocation(invocationHook);
+
 * Now all timing measurement in Vibur DBCP is done via System.nanoTime() instead of System.currentTimeMillis()
   and all logging that contains timing is formatted in milliseconds with up to 6 digits precision.
 * Various other refactoring and source code clean-up.
@@ -81,10 +87,12 @@ Version 12.0 (11/11/2016)
   Example of how to add Connection and method invocation hooks:
     viburDataSource.getConnHooks().addOnInit(connectionInitHook);
     viburDataSource.getMethodHooks().addOnInvocation(invocationHook);
+
 * Adopted Vibur Object Pool 12.0, particularly allowed for third-party concurrent collections such as the
   Conversant Disruptor to be used on the place of java.util.Queue/Deque as part of the ConcurrentPool implementation.
   Example of how to configure Conversant Disruptor after adding the required Maven dependency:
     viburDataSource.setConcurrentCollection(new MultithreadConcurrentQueueCollection<ConnHolder>(poolMaxSize));
+
 * Changed the Maven dependency type for ConcurrentLinkedHashMap from compile to provided, this means that
   applications using the Statement caching feature will now need to provide/include the Maven dependency for CLHM.
 * Removed ExceptionListener due to being underutilized.
