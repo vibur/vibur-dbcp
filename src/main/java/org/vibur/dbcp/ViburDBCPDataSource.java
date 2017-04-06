@@ -459,7 +459,7 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
     private boolean defaultCredentials(String username, String password) {
         if (getUsername() != null ? !getUsername().equals(username) : username != null)
             return false;
-        return !(getPassword() != null ? !getPassword().equals(password) : password != null);
+        return getPassword() != null ? getPassword().equals(password) : password == null;
     }
 
     @Override
