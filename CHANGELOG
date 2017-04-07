@@ -12,7 +12,7 @@ Version 17.0 (05/04/2017) - RECOMMENDED
             Object result = proceed.on(proxy, method, args, sqlQuery, sqlQueryParams, proceed);
             return result;
 
-        finally {
+        } finally {
             // do something after the real method execution, for example, decrement a queriesInProcess counter
             // or stop a stopwatch
         }
