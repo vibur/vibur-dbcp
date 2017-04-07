@@ -6,15 +6,15 @@ Version 17.0 (05/04/2017) - RECOMMENDED
   StatementExecution hook via something like:
     (proxy, method, args, sqlQuery, sqlQueryParams, proceed) -> {
         try {
-            // do something before the real method execution, for example:
-            queriesInProcess.incrementAndGet();
+            // do something before the real method execution, for example, increment a queriesInProcess counter
+            // or start a stopwatch
 
             Object result = proceed.on(proxy, method, args, sqlQuery, sqlQueryParams, proceed);
             return result;
 
         finally {
-            // do something after the real method execution, for example:
-            queriesInProcess.decrementAndGet();
+            // do something after the real method execution, for example, decrement a queriesInProcess counter
+            // or stop a stopwatch
         }
     }
   This construct allows for easy execution of supplied by user before and after Statement execution logic.
