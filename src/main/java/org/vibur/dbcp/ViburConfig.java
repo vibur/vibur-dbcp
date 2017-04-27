@@ -323,15 +323,13 @@ public abstract class ViburConfig {
      *
      * <p>Note that the underlying data structures used to store the Hook instances <b>are not</b>
      * thread-safe for modifications; the connHooks must be registered only once at pool creation/setup time,
-     * before the pool is started.
-     */
+     * before the pool is started. */
     private final ConnHooksHolder connHooks = new ConnHooksHolder();
     /** These are all programming Method invocation hooks.
      *
      * <p>Note that the underlying data structures used to store the Hook instances <b>are not</b>
      * thread-safe for modifications; the hooks must be registered only once at pool creation/setup time,
-     * before the pool is started.
-     */
+     * before the pool is started. */
     private final InvocationHooksHolder invocationHooks = new InvocationHooksHolder();
 
 
