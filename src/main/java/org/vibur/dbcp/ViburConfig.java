@@ -165,7 +165,7 @@ public abstract class ViburConfig {
 
 
     private static final AtomicInteger idGenerator = new AtomicInteger(1);
-    private final String defaultName = "p" + Integer.toString(idGenerator.getAndIncrement());
+    private final String defaultName = "p" + idGenerator.getAndIncrement();
 
     /** The DataSource/pool name, used for JMX identification, logging and similar. If is responsibility of the
      * application to set an unique name to each pool if it uses more than one pool. The default name is "p" + an auto
