@@ -150,13 +150,18 @@ public interface Hook {
          *      public Object on(Statement proxy, Method method, Object[] args, String sqlQuery, List<Object[]> sqlQueryParams,
          *                       StatementProceedingPoint proceed) throws SQLException {
          *          try {
-         *              // do something before the real method execution, for example, start stopwatch
+         *              // do something before the real method execution, for example, increment a queriesInProcess counter
+         *              // or start a stopwatch
          *
-         *              Object result = proceed.on(proxy, method, args, sqlQuery, sqlQueryParams, proceed);
+         *              Object result = proceed.on(proxy, method, args, sqlQuery, sqlQueryParams, proceed); // execute it
+         *
+         *              // examine a thrown SQLException if necessary, retry the Statement execution if appropriate, etc
+         *
          *              return result;
          *
          *          } finally {
-         *              // do something after the real method execution, for example, stop stopwatch
+         *              // do something after the real method execution, for example, decrement a queriesInProcess counter
+         *              // or stop a stopwatch
          *          }
          *      }
          * }</pre>
