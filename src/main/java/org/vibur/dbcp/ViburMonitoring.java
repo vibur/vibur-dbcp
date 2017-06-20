@@ -326,6 +326,6 @@ public final class ViburMonitoring implements ViburMonitoringMBean {
 
     @Override
     public String showTakenConnections() {
-        return ((ViburListener) config.getPool().listener()).takenConnectionsToString();
+        return config.getTakenConnectionsAsString();
     }
 }

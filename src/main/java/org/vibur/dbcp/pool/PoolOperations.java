@@ -88,7 +88,7 @@ public class PoolOperations {
 
             if (config.isLogTakenConnectionsOnTimeout() && logger.isWarnEnabled())
                 logger.warn("Pool {}, couldn't obtain SQL connection within {} ms, full list of taken connections begins:\n{}",
-                        poolName, timeout, ((ViburListener) config.getPool().listener()).takenConnectionsToString());
+                        poolName, timeout, config.getTakenConnectionsAsString());
             throw new SQLTimeoutException(format("Pool %s, couldn't obtain SQL connection within %d ms.",
                     poolName, timeout), SQLSTATE_TIMEOUT_ERROR, (int) timeout);
 

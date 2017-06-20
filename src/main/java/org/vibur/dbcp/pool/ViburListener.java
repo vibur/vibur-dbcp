@@ -40,12 +40,10 @@ public class ViburListener extends TakenListener<ConnHolder> {
     }
 
     /**
-     * See {@link ViburConfig#logTakenConnectionsOnTimeout} and {@link ViburConfig#logAllStackTracesOnTimeout}.
+     * See {@link ViburConfig#poolEnableConnectionTracking}, {@link ViburConfig#logTakenConnectionsOnTimeout}
+     * and {@link ViburConfig#logAllStackTracesOnTimeout}.
      */
-    public String takenConnectionsToString() {
-        if (!config.isPoolEnableConnectionTracking())
-            return "poolEnableConnectionTracking is disabled.";
-
+    public String getTakenToString() {
         ConnHolder[] takenConns = getTaken(new ConnHolder[config.getPoolMaxSize()]);
 
         int size = 0;
