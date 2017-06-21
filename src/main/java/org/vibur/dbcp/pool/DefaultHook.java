@@ -110,7 +110,7 @@ public abstract class DefaultHook {
 
             if (logger.isWarnEnabled()) {
                 StringBuilder log = new StringBuilder(4096)
-                        .append(format("Call to getConnection() from pool %s took %f ms, connProxy = %s",
+                        .append(format("Call to getConnection() from pool %s took %f ms, rawConnection = %s",
                                 getPoolName(config), takenMillis, rawConnection));
                 if (config.isLogStackTraceForLongConnection())
                     log.append('\n').append(getStackTraceAsString(new Throwable().getStackTrace()));
