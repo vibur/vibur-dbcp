@@ -178,11 +178,13 @@ public interface Hook {
          * @param sqlQuery the executed SQL query or prepared/callable SQL statement
          * @param sqlQueryParams the executed SQL query params if {@link ViburConfig#includeQueryParameters} is enabled
          *                       and if the {@code sqlQuery} was a prepared/callable SQL statement; {@code null} otherwise.
-         *                       The size of the parameters list is equal to the number of the question mark placeholders
+         *
+         *                       <p>The size of the parameters list is equal to the number of the question mark placeholders
          *                       in the PreparedStatement query. Each Object[] inside the list contains at index 0
          *                       the name of the invoked setXyz method and at the following indices the parameters of
          *                       the invoked setXyz method. For an example, see the documentation for
          *                       {@link ResultSetRetrieval#on ResultSetRetrieval}.
+         *
          * @param proceed the proceeding point through which the hook can pass the call to the intercepted Statement
          *                "execute..." method or to the next registered {@code StatementExecution} around hook,
          *                if there is such
