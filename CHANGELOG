@@ -1,6 +1,6 @@
 Version 17.1 (23/06/2017) - RECOMMENDED
 =======================================
-* Javadoc improvements and minor fixes/refactoring.
+* Javadoc and logging improvements; other minor fixes and refactoring.
 * Adopted changes from Vibur Object Pool 17.1.
 
 Version 17.0 (05/04/2017)
