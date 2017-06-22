@@ -49,12 +49,12 @@ public class ConnHolder {
         return value;
     }
 
-    public int version() {
+    int version() {
         return version;
     }
 
 
-    public long getTakenNanoTime() {
+    long getTakenNanoTime() {
         return takenNanoTime;
     }
 
@@ -71,7 +71,7 @@ public class ConnHolder {
     }
 
 
-    public Thread getThread() {
+    Thread getThread() {
         return thread;
     }
 
@@ -79,7 +79,7 @@ public class ConnHolder {
         this.thread = thread;
     }
 
-    public Throwable getLocation() {
+    Throwable getLocation() {
         return location;
     }
 

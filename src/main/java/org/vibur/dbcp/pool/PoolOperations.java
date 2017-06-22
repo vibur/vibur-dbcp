@@ -50,9 +50,9 @@ public class PoolOperations {
 
     private static final Pattern whitespaces = Pattern.compile("\\s");
 
+    private final ViburConfig config;
     private final ViburObjectFactory connectionFactory;
     private final PoolService<ConnHolder> poolService;
-    private final ViburConfig config;
 
     private final ConnHooksHolder connHooks;
     private final Set<String> criticalSQLStates;
@@ -60,14 +60,12 @@ public class PoolOperations {
     /**
      * Instantiates the PoolOperations facade.
      *
-     * @param connectionFactory the object pool connection factory
-     * @param poolService the object pool instance
      * @param config the ViburConfig from which we will initialize
      */
-    public PoolOperations(ViburObjectFactory connectionFactory, PoolService<ConnHolder> poolService, ViburConfig config) {
-        this.connectionFactory = connectionFactory;
-        this.poolService = poolService;
+    public PoolOperations(ViburConfig config) {
         this.config = config;
+        this.connectionFactory = config.getConnectionFactory();
+        this.poolService = config.getPool();
         this.connHooks = config.getConnHooks();
         this.criticalSQLStates = new HashSet<>(Arrays.asList(
                 whitespaces.matcher(config.getCriticalSQLStates()).replaceAll("").split(",")));

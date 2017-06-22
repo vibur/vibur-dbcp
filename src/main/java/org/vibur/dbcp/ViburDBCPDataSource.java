@@ -241,7 +241,7 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
                     isPoolEnableConnectionTracking() ? new ViburListener(this) : null);
             setPool(pool);
         }
-        poolOperations = new PoolOperations(connectionFactory, pool, this);
+        poolOperations = new PoolOperations(this);
 
         initPoolReducer();
         initStatementCache();
