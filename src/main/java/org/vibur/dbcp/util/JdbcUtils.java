@@ -119,21 +119,20 @@ public final class JdbcUtils {
     }
 
     public static void quietClose(Connection rawConnection) {
-        doQuietClose(rawConnection);
+        try {
+            if (rawConnection != null)
+                rawConnection.close();
+        } catch (SQLException e) {
+            logger.warn("Couldn't close {}", rawConnection, e);
+        }
     }
 
     public static void quietClose(Statement rawStatement) {
-        doQuietClose(rawStatement);
-    }
-
-    private static void doQuietClose(AutoCloseable closeable) {
         try {
-            if (closeable != null)
-                closeable.close();
+            if (rawStatement != null)
+                rawStatement.close();
         } catch (SQLException e) {
-            logger.debug("Couldn't close {}", closeable, e);
-        } catch (Exception e) {
-            logger.warn("Ignoring unexpected exception thrown by the JDBC driver for {}", closeable, e);
+            logger.warn("Couldn't close {}", rawStatement, e);
         }
     }
 }
