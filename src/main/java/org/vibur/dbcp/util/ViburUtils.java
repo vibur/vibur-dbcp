@@ -33,15 +33,16 @@ public final class ViburUtils {
 
     /**
      * Returns the poolName formatted as:
-     * <blockquote>{@code simpleName@hashCode(currentlyTakenConns/remainingCreatedConns/poolMaxSize)}</blockquote>
-     * For example, {@code p1@2db7a79b(1/1/10)}.
+     * <blockquote>{@code simpleName@hashCode(currentlyTakenConns/remainingCreatedConns/poolMaxSize/poolState)}</blockquote>
+     * For example, {@code p1@2db7a79b(1/1/10/w)}.
      *
      * @param config the Vibur config
      */
     public static String getPoolName(ViburConfig config) {
         BasePool pool = config.getPool();
         return config.getName() + '@' + toHexString(config.hashCode())
-                + '(' + pool.taken() + '/' + pool.remainingCreated() + '/' + pool.maxSize() + ')';
+                + '(' + pool.taken() + '/' + pool.remainingCreated() + '/' + pool.maxSize()
+                + '/' + (!pool.isTerminated() ? 'w' : 't') + ')'; // poolState: w == working, t == terminated
     }
 
     public static String getStackTraceAsString(StackTraceElement[] stackTrace) {

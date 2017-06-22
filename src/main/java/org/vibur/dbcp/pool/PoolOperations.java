@@ -80,15 +80,14 @@ public class PoolOperations {
                 return newProxyConnection(conn, this, config);
             }
 
-            String poolName = getPoolName(config);
             if (poolService.isTerminated())
-                throw new SQLException(format("Pool %s, the poolService is terminated.", poolName), SQLSTATE_POOL_CLOSED_ERROR);
+                throw new SQLException(format("Pool %s, the poolService is terminated.", getPoolName(config)), SQLSTATE_POOL_CLOSED_ERROR);
 
             if (config.isLogTakenConnectionsOnTimeout() && logger.isWarnEnabled())
                 logger.warn("Pool {}, couldn't obtain SQL connection within {} ms, full list of taken connections begins:\n{}",
-                        poolName, timeout, config.getTakenConnectionsAsString());
+                        getPoolName(config), timeout, config.getTakenConnectionsAsString());
             throw new SQLTimeoutException(format("Pool %s, couldn't obtain SQL connection within %d ms.",
-                    poolName, timeout), SQLSTATE_TIMEOUT_ERROR, (int) timeout);
+                    getPoolName(config), timeout), SQLSTATE_TIMEOUT_ERROR, (int) timeout);
 
         } catch (ViburDBCPException e) { // can be (indirectly) thrown by the ConnectionFactory.create() methods
             throw e.unwrapSQLException();
