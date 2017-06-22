@@ -44,7 +44,7 @@ import java.util.List;
  */
 public interface Hook {
 
-    ////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////////////
     // Connection hooks:
 
     interface InitConnection extends Hook {
@@ -56,7 +56,7 @@ public interface Hook {
          * connection to the database, plus possibly the time taken to make up to {@link ViburConfig#acquireRetryAttempts
          * that many} retry attempts that are separated by a {@link ViburConfig#acquireRetryDelayInMs retry delay}.
          *
-         * @param rawConnection the just created raw JDBC connection
+         * @param rawConnection the just created <b>raw</b> JDBC connection
          * @param takenNanos the time taken to establish this connection in nanoseconds; also see above
          * @throws SQLException to indicate that an SQL error has occurred
          */
@@ -70,7 +70,7 @@ public interface Hook {
          * idle} timeout. The invocation happens as part of the {@link javax.sql.DataSource#getConnection()
          * DataSource.getConnection()} flow. The hook execution should take as short time as possible.
          *
-         * @param rawConnection the retrieved from the pool raw JDBC connection
+         * @param rawConnection the retrieved from the pool <b>raw</b> JDBC connection
          * @param idleNanos the time for which this connection has stayed in the pool in nanoseconds
          * @throws SQLException to indicate that an SQL error has occurred <i>or</i> that the given connection is <b>invalid</b>
          */
@@ -90,7 +90,7 @@ public interface Hook {
          * a new connection was lazily created upon this {@code getConnection()} request. For the last case, see also
          * the comments for the {@link ViburConfig#connectionTimeoutInMs connectionTimeoutInMs} configuration option.
          *
-         * @param rawConnection the retrieved from the pool raw JDBC connection; <b>note that this can be {@code null}</b>
+         * @param rawConnection the retrieved from the pool <b>raw</b> JDBC connection; <b>note that it can be {@code null}</b>
          *                      if we were unable to obtain a connection from the pool within the specified time limit
          * @param takenNanos the time taken to get this connection in nanoseconds; also see above
          * @throws SQLException to indicate that an SQL error has occurred
@@ -103,7 +103,7 @@ public interface Hook {
          * A programming hook that will be invoked on the raw JDBC Connection <i>before</i> it is restored back to the
          * pool as part of the {@link Connection#close()} flow. Its execution should take as short time as possible.
          *
-         * @param rawConnection the raw JDBC connection that will be returned to the pool
+         * @param rawConnection the <b>raw</b> JDBC connection that will be returned to the pool
          * @param takenNanos the time for which this connection was held by the application before it was restored
          *                   to the pool in nanoseconds
          * @throws SQLException to indicate that an SQL error has occurred
@@ -116,13 +116,14 @@ public interface Hook {
          * A programming hook that will be invoked only once <i>after</i> the raw JDBC Connection is closed/destroyed.
          * Its execution should take as short time as possible.
          *
-         * @param rawConnection the raw JDBC connection that was just closed
+         * @param rawConnection the <b>raw</b> JDBC connection that was just closed
          * @param takenNanos the time taken to close/destroy this connection in nanoseconds
          */
         void on(Connection rawConnection, long takenNanos);
     }
 
-    ////////////////////
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
     // Invocation hooks:
 
     interface MethodInvocation extends Hook {
@@ -130,10 +131,15 @@ public interface Hook {
          * An application hook that will be invoked <i>before</i> a method on any of the proxied JDBC interfaces is
          * invoked. Its execution should take as short time as possible.
          *
-         * <p>For implementation details, see the comments for
+         * <p><b>Note that</b> any method invocations on the hook {@code Object proxy} parameter will recursively
+         * re-enter this same hook and must be done with extreme care as they may cause infinite recursion and
+         * a {@code StackOverflowError}.
+         *
+         * <p>For further implementation details see the comments for
          * {@link org.vibur.dbcp.proxy.InvocationHooksHolder#onMethodInvocation onMethodInvocation}.
          *
-         * @param proxy the proxy instance that the method was invoked on
+         * @param proxy the JDBC object <b>proxy</b> that the method was invoked on;
+         *              this can be the Connection proxy, the Statement proxy, etc
          * @param method the invoked method
          * @param args the method arguments
          * @throws SQLException to indicate that an SQL error has occurred
@@ -166,7 +172,7 @@ public interface Hook {
          *      }
          * }</pre>
          *
-         * @param proxy the Statement proxy instance that the method was invoked on
+         * @param proxy the Statement <b>proxy</b> instance that the method was invoked on
          * @param method the invoked method
          * @param args the method arguments
          * @param sqlQuery the executed SQL query or prepared/callable SQL statement
@@ -198,7 +204,8 @@ public interface Hook {
          * @param sqlQuery the executed SQL query or prepared/callable SQL statement
          * @param sqlQueryParams the executed SQL query params if {@link ViburConfig#includeQueryParameters} is enabled
          *                       and if the {@code sqlQuery} was a prepared/callable SQL statement; {@code null} otherwise.
-         *                       The size of the parameters list is equal to the number of the question mark placeholders
+         *
+         *                       <p>The size of the parameters list is equal to the number of the question mark placeholders
          *                       in the PreparedStatement query. Each Object[] inside the list contains at index 0
          *                       the name of the invoked setXyz method and at the following indices the parameters of
          *                       the invoked setXyz method; the last implies that the type of the parameter at index 0
