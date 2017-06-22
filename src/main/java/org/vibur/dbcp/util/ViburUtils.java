@@ -40,9 +40,13 @@ public final class ViburUtils {
      */
     public static String getPoolName(ViburConfig config) {
         BasePool pool = config.getPool();
-        return config.getName() + '@' + toHexString(config.hashCode())
+        boolean initialState = pool.isTerminated();
+        String result = config.getName() + '@' + toHexString(config.hashCode())
                 + '(' + pool.taken() + '/' + pool.remainingCreated() + '/' + pool.maxSize()
-                + '/' + (!pool.isTerminated() ? 'w' : 't') + ')'; // poolState: w == working, t == terminated
+                + '/' + (!initialState ? 'w' : 't') + ')'; // poolState: w == working, t == terminated
+        if (initialState == pool.isTerminated()) // make sure the pool state has not changed in the meantime
+            return result;
+        return getPoolName(config); // otherwise try one more time
     }
 
     public static String getStackTraceAsString(StackTraceElement[] stackTrace) {
