@@ -256,12 +256,12 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
         if (oldState == TERMINATED || oldState == NEW)
             return;
 
-        if (getStatementCache() != null)
-            getStatementCache().close();
-        if (getPoolReducer() != null)
-            getPoolReducer().terminate();
         if (getPool() != null)
             getPool().terminate();
+        if (getPoolReducer() != null)
+            getPoolReducer().terminate();
+        if (getStatementCache() != null)
+            getStatementCache().close();
 
         if (isEnableJMX())
             unregisterMBean(this);
