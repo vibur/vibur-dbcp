@@ -785,21 +785,21 @@ public abstract class ViburConfig {
 
     @Override
     public String toString() {
-        return new StringBuilder(512).append(super.toString())
-            .append("[driverClassName = ").append(driverClassName)
-            .append(", jdbcUrl = ").append(jdbcUrl)
-            .append(", username = ").append(username)
-            .append(", externalDataSource = ").append(externalDataSource)
-            .append(", poolInitialSize = ").append(poolInitialSize)
-            .append(", poolMaxSize = ").append(poolMaxSize)
-            .append(", poolFair = ").append(poolFair)
-            .append(", pool = ").append(pool)
-            .append(", name = ").append(name)
-            .append(", connectionTimeoutInMs = ").append(connectionTimeoutInMs)
-            .append(", loginTimeoutInSeconds = ").append(loginTimeoutInSeconds)
-            .append(", acquireRetryDelayInMs = ").append(acquireRetryDelayInMs)
-            .append(", acquireRetryAttempts = ").append(acquireRetryAttempts)
-            .append(", statementCacheMaxSize = ").append(statementCacheMaxSize)
-            .append(']').toString();
+        return super.toString() +
+                "[driverClassName = " + driverClassName +
+                ", jdbcUrl = " + jdbcUrl +
+                ", username = " + username +
+                ", externalDataSource = " + externalDataSource +
+                ", poolInitialSize = " + poolInitialSize +
+                ", poolMaxSize = " + poolMaxSize +
+                ", poolFair = " + poolFair +
+                ", pool = " + pool +
+                ", name = " + name +
+                ", connectionTimeoutInMs = " + connectionTimeoutInMs +
+                ", loginTimeoutInSeconds = " + loginTimeoutInSeconds +
+                ", acquireRetryDelayInMs = " + acquireRetryDelayInMs +
+                ", acquireRetryAttempts = " + acquireRetryAttempts +
+                ", statementCacheMaxSize = " + statementCacheMaxSize +
+                ']';
     }
 }
