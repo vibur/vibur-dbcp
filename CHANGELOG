@@ -1,5 +1,10 @@
-Version 17.0 (05/04/2017) - RECOMMENDED
+Version 17.1 (23/06/2017) - RECOMMENDED
 =======================================
+* Javadoc improvements and minor fixes/refactoring.
+* Adopted changes from Vibur Object Pool 17.1.
+
+Version 17.0 (05/04/2017)
+=========================
 * Reimplemented the StatementExecution hook as an around advice (in terms of AOP) instead of being an after advice
   as before. Now any implemented by user StatementExecution hooks are responsible for using the supplied
   StatementProceedingPoint to pass the call to the intercepted Statement "execute..." method or to the next registered
