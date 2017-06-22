@@ -387,6 +387,7 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
                 if (!SQLSTATE_POOL_CLOSED_ERROR.equals(e.getSQLState()) || !isAllowConnectionAfterTermination())
                     throw e;
                 // else falls back to creating a non-pooled Connection
+                logger.info("The pool was closed while retrieving a Connection.");
             }
         }
 
