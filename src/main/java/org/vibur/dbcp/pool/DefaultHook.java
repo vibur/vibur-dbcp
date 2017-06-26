@@ -30,7 +30,6 @@ import java.util.List;
 import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 import static org.vibur.dbcp.ViburConfig.SQLSTATE_CONN_INIT_ERROR;
-import static org.vibur.dbcp.ViburConfig.SQLSTATE_CONN_VALIDATE_ERROR;
 import static org.vibur.dbcp.util.JdbcUtils.*;
 import static org.vibur.dbcp.util.ViburUtils.*;
 

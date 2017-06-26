@@ -30,9 +30,7 @@ import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
 import static org.vibur.dbcp.ViburConfig.SQLSTATE_CONN_VALIDATE_ERROR;
-import static org.vibur.dbcp.util.JdbcUtils.initLoginTimeout;
-import static org.vibur.dbcp.util.JdbcUtils.quietClose;
-import static org.vibur.dbcp.util.JdbcUtils.validateConnection;
+import static org.vibur.dbcp.util.JdbcUtils.*;
 
 /**
  * The object factory which controls the lifecycle of the underlying JDBC Connections: creates them,
