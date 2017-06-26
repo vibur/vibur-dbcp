@@ -20,8 +20,9 @@ import java.sql.Connection;
 
 /**
  * The stateful versioned object which is held in the object pool. It is just a thin wrapper around the raw
- * JDBC {@code Connection} object which allows us to augment it with useful "state" information, such as
- * the Connection last {@code takenNanoTime} and {@code restoredNanoTime}, and the {@link ConnectionFactory} version.
+ * JDBC {@code Connection} object which allows us to augment it with useful "state" information such as the
+ * {@link ConnectionFactory} version as well as the "state" needed by the {@link TakenConnection} interface,
+ * i.e., the Connection {@code takenNanoTime} and {@code lastAccessNanoTime}, etc.
  *
  * @author Simeon Malchev
  */

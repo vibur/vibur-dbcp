@@ -132,7 +132,7 @@ public class ConnectionFactory implements ViburObjectFactory {
 
     @Override
     public boolean readyToRestore(ConnHolder conn) {
-        clearTracking(conn); // we don't want to keep all objects references
+        clearTracking(conn); // we don't want to keep the tracking objects references
 
         Connection rawConnection = conn.rawConnection();
         try {

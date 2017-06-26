@@ -37,20 +37,22 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
     private final ConnHolder conn;
     private final PoolOperations poolOperations;
     private final ViburConfig config;
+    private final boolean poolEnableConnectionTracking;
 
     private final StatementCache statementCache;
 
     ConnectionInvocationHandler(ConnHolder conn, PoolOperations poolOperations, ViburConfig config) {
-        super(conn.rawConnection(), config, null /* null means it becomes a new ExceptionCollector */);
+        super(conn.rawConnection(), config, null /* becomes a new ExceptionCollector */);
         this.conn = conn;
         this.poolOperations = poolOperations;
         this.config = config;
+        this.poolEnableConnectionTracking = config.isPoolEnableConnectionTracking();
         this.statementCache = config.getStatementCache();
     }
 
     @Override
     Object unrestrictedInvoke(Connection proxy, Method method, Object[] args) throws SQLException {
-        if (config.isPoolEnableConnectionTracking())
+        if (poolEnableConnectionTracking)
             conn.setLastAccessNanoTime(System.nanoTime());
 
         String methodName = method.getName();

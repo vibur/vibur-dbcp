@@ -19,17 +19,36 @@ package org.vibur.dbcp.pool;
 import java.sql.Connection;
 
 /**
+ * Represents a currently taken proxy Connection, its associated timing data, the thread that has taken it, and
+ * the stack trace at the moment when the Connection was taken.
+ *
  * @author Simeon Malchev
  */
 public interface TakenConnection {
 
+    /**
+     * Returns the taken proxy Connection. The application can check whether the Connection is still in taken state
+     * via calling the Connection {@code isClosed()} method.
+     */
     Connection getProxyConnection();
 
+    /**
+     * Returns the nano time when the Connection was taken.
+     */
     long getTakenNanoTime();
 
+    /**
+     * Returns the nano time when a method was last invoked on this Connection.
+     */
     long getLastAccessNanoTime();
 
+    /**
+     * Returns the thread that has taken this Connection.
+     */
     Thread getThread();
 
+    /**
+     * Returns the stack trace at the moment when the connection was taken.
+     */
     Throwable getLocation();
 }

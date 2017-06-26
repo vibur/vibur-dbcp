@@ -17,6 +17,7 @@
 package org.vibur.dbcp.pool;
 
 import org.vibur.dbcp.ViburConfig;
+import org.vibur.dbcp.ViburDataSource;
 import org.vibur.objectpool.util.TakenListener;
 
 import java.util.Arrays;
@@ -40,7 +41,7 @@ public class ViburListener extends TakenListener<ConnHolder> {
     }
 
     /**
-     * See {@link ViburConfig#getTakenConnections} and {@link ViburConfig#getTakenConnectionsAsString}.
+     * See {@link org.vibur.dbcp.ViburDataSource#getTakenConnections} and {@link ViburDataSource#getTakenConnectionsStackTraces()}.
      */
     public TakenConnection[] getTakenConnections() {
         ConnHolder[] takenConns = getTaken(new ConnHolder[config.getPoolMaxSize()]);
@@ -55,7 +56,7 @@ public class ViburListener extends TakenListener<ConnHolder> {
      * See {@link ViburConfig#poolEnableConnectionTracking}, {@link ViburConfig#logTakenConnectionsOnTimeout}
      * and {@link ViburConfig#logAllStackTracesOnTimeout}.
      */
-    public String getTakenConnectionsAsString() {
+    public String getTakenConnectionsStackTraces() {
         ConnHolder[] takenConns = getTaken(new ConnHolder[config.getPoolMaxSize()]);
 
         int size = 0;

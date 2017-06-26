@@ -31,300 +31,300 @@ public final class ViburMonitoring implements ViburMonitoringMBean {
 
     private static final Logger logger = LoggerFactory.getLogger(ViburMonitoring.class);
 
-    private final ViburConfig config;
+    private final ViburDBCPDataSource dataSource;
 
-    private ViburMonitoring(ViburConfig config) {
-        this.config = config;
+    private ViburMonitoring(ViburDBCPDataSource dataSource) {
+        this.dataSource = dataSource;
     }
 
-    static void registerMBean(ViburConfig config) {
+    static void registerMBean(ViburDBCPDataSource dataSource) {
         try {
             MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
-            ObjectName objectName = new ObjectName(config.getJmxName());
+            ObjectName objectName = new ObjectName(dataSource.getJmxName());
             if (!mbs.isRegistered(objectName))
-                mbs.registerMBean(new ViburMonitoring(config), objectName);
+                mbs.registerMBean(new ViburMonitoring(dataSource), objectName);
             else
-                logger.warn(config.getJmxName() + " is already registered.");
+                logger.warn(dataSource.getJmxName() + " is already registered.");
         } catch (JMException e) {
-            logger.warn("Unable to register mBean {}", config.getJmxName(), e);
+            logger.warn("Unable to register mBean {}", dataSource.getJmxName(), e);
         }
     }
 
-    static void unregisterMBean(ViburConfig config) {
+    static void unregisterMBean(ViburDBCPDataSource dataSource) {
         try {
             MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
-            ObjectName objectName = new ObjectName(config.getJmxName());
+            ObjectName objectName = new ObjectName(dataSource.getJmxName());
             if (mbs.isRegistered(objectName))
                 mbs.unregisterMBean(objectName);
             else
-                logger.debug(config.getJmxName() + " is not registered.");
+                logger.debug(dataSource.getJmxName() + " is not registered.");
         } catch (JMException e) {
-            logger.warn("Unable to unregister mBean {}", config.getJmxName(), e);
+            logger.warn("Unable to unregister mBean {}", dataSource.getJmxName(), e);
         }
     }
 
     @Override
     public String getJdbcUrl() {
-        return config.getJdbcUrl();
+        return dataSource.getJdbcUrl();
     }
 
     @Override
     public String getDriverClassName() {
-        return config.getDriverClassName();
+        return dataSource.getDriverClassName();
     }
 
     @Override
     public int getConnectionIdleLimitInSeconds() {
-        return config.getConnectionIdleLimitInSeconds();
+        return dataSource.getConnectionIdleLimitInSeconds();
     }
 
     @Override
     public void setConnectionIdleLimitInSeconds(int connectionIdleLimitInSeconds) {
-        config.setConnectionIdleLimitInSeconds(connectionIdleLimitInSeconds);
+        dataSource.setConnectionIdleLimitInSeconds(connectionIdleLimitInSeconds);
     }
 
     @Override
     public int getValidateTimeoutInSeconds() {
-        return config.getValidateTimeoutInSeconds();
+        return dataSource.getValidateTimeoutInSeconds();
     }
 
     @Override
     public void setValidateTimeoutInSeconds(int validateTimeoutInSeconds) {
-        config.setValidateTimeoutInSeconds(validateTimeoutInSeconds);
+        dataSource.setValidateTimeoutInSeconds(validateTimeoutInSeconds);
     }
 
     @Override
     public String getTestConnectionQuery() {
-        return config.getTestConnectionQuery();
+        return dataSource.getTestConnectionQuery();
     }
 
     @Override
     public void setTestConnectionQuery(String testConnectionQuery) {
-        config.setTestConnectionQuery(testConnectionQuery);
+        dataSource.setTestConnectionQuery(testConnectionQuery);
     }
 
     @Override
     public String getInitSQL() {
-        return config.getInitSQL();
+        return dataSource.getInitSQL();
     }
 
     @Override
     public void setInitSQL(String initSQL) {
-        config.setInitSQL(initSQL);
+        dataSource.setInitSQL(initSQL);
     }
 
     @Override
     public boolean isUseNetworkTimeout() {
-        return config.isUseNetworkTimeout();
+        return dataSource.isUseNetworkTimeout();
     }
 
     @Override
     public int getPoolInitialSize() {
-        return config.getPoolInitialSize();
+        return dataSource.getPoolInitialSize();
     }
 
     @Override
     public int getPoolMaxSize() {
-        return config.getPoolMaxSize();
+        return dataSource.getPoolMaxSize();
     }
 
     @Override
     public int getPoolTaken() {
-        return config.getPool().taken();
+        return dataSource.getPool().taken();
     }
 
     @Override
     public int getPoolRemainingCreated() {
-        return config.getPool().remainingCreated();
+        return dataSource.getPool().remainingCreated();
     }
 
     @Override
     public boolean isPoolFair() {
-        return config.isPoolFair();
+        return dataSource.isPoolFair();
     }
 
     @Override
     public boolean isPoolEnableConnectionTracking() {
-        return config.isPoolEnableConnectionTracking();
+        return dataSource.isPoolEnableConnectionTracking();
     }
 
     @Override
     public int getReducerTimeIntervalInSeconds() {
-        return config.getReducerTimeIntervalInSeconds();
+        return dataSource.getReducerTimeIntervalInSeconds();
     }
 
     @Override
     public int getReducerSamples() {
-        return config.getReducerSamples();
+        return dataSource.getReducerSamples();
     }
 
     @Override
     public boolean isAllowConnectionAfterTermination() {
-        return config.isAllowConnectionAfterTermination();
+        return dataSource.isAllowConnectionAfterTermination();
     }
 
     @Override
     public boolean isAllowUnwrapping() {
-        return config.isAllowUnwrapping();
+        return dataSource.isAllowUnwrapping();
     }
 
     @Override
     public long getConnectionTimeoutInMs() {
-        return config.getConnectionTimeoutInMs();
+        return dataSource.getConnectionTimeoutInMs();
     }
 
     @Override
     public void setConnectionTimeoutInMs(long connectionTimeoutInMs) {
-        config.setConnectionTimeoutInMs(connectionTimeoutInMs);
+        dataSource.setConnectionTimeoutInMs(connectionTimeoutInMs);
     }
 
     @Override
     public int getLoginTimeoutInSeconds() {
-        return config.getLoginTimeoutInSeconds();
+        return dataSource.getLoginTimeoutInSeconds();
     }
 
     @Override
     public void setLoginTimeoutInSeconds(int loginTimeoutInSeconds) {
-        config.setLoginTimeoutInSeconds(loginTimeoutInSeconds);
+        dataSource.setLoginTimeoutInSeconds(loginTimeoutInSeconds);
     }
 
     @Override
     public long getAcquireRetryDelayInMs() {
-        return config.getAcquireRetryDelayInMs();
+        return dataSource.getAcquireRetryDelayInMs();
     }
 
     @Override
     public void setAcquireRetryDelayInMs(long acquireRetryDelayInMs) {
-        config.setAcquireRetryDelayInMs(acquireRetryDelayInMs);
+        dataSource.setAcquireRetryDelayInMs(acquireRetryDelayInMs);
     }
 
     @Override
     public int getAcquireRetryAttempts() {
-        return config.getAcquireRetryAttempts();
+        return dataSource.getAcquireRetryAttempts();
     }
 
     @Override
     public void setAcquireRetryAttempts(int acquireRetryAttempts) {
-        config.setAcquireRetryAttempts(acquireRetryAttempts);
+        dataSource.setAcquireRetryAttempts(acquireRetryAttempts);
     }
 
     @Override
     public int getStatementCacheMaxSize() {
-        return config.getStatementCacheMaxSize();
+        return dataSource.getStatementCacheMaxSize();
     }
 
     @Override
     public long getLogConnectionLongerThanMs() {
-        return config.getLogConnectionLongerThanMs();
+        return dataSource.getLogConnectionLongerThanMs();
     }
 
     @Override
     public void setLogConnectionLongerThanMs(long logConnectionLongerThanMs) {
-        config.setLogConnectionLongerThanMs(logConnectionLongerThanMs);
+        dataSource.setLogConnectionLongerThanMs(logConnectionLongerThanMs);
     }
 
     @Override
     public boolean isLogStackTraceForLongConnection() {
-        return config.isLogStackTraceForLongConnection();
+        return dataSource.isLogStackTraceForLongConnection();
     }
 
     @Override
     public void setLogStackTraceForLongConnection(boolean logStackTraceForLongConnection) {
-        config.setLogStackTraceForLongConnection(logStackTraceForLongConnection);
+        dataSource.setLogStackTraceForLongConnection(logStackTraceForLongConnection);
     }
 
     @Override
     public long getLogQueryExecutionLongerThanMs() {
-        return config.getLogQueryExecutionLongerThanMs();
+        return dataSource.getLogQueryExecutionLongerThanMs();
     }
 
     @Override
     public void setLogQueryExecutionLongerThanMs(long logQueryExecutionLongerThanMs) {
-        config.setLogQueryExecutionLongerThanMs(logQueryExecutionLongerThanMs);
+        dataSource.setLogQueryExecutionLongerThanMs(logQueryExecutionLongerThanMs);
     }
 
     @Override
     public boolean isLogStackTraceForLongQueryExecution() {
-        return config.isLogStackTraceForLongQueryExecution();
+        return dataSource.isLogStackTraceForLongQueryExecution();
     }
 
     @Override
     public void setLogStackTraceForLongQueryExecution(boolean logStackTraceForLongQueryExecution) {
-        config.setLogStackTraceForLongQueryExecution(logStackTraceForLongQueryExecution);
+        dataSource.setLogStackTraceForLongQueryExecution(logStackTraceForLongQueryExecution);
     }
 
     @Override
     public long getLogLargeResultSet() {
-        return config.getLogLargeResultSet();
+        return dataSource.getLogLargeResultSet();
     }
 
     @Override
     public void setLogLargeResultSet(long logLargeResultSet) {
-        config.setLogLargeResultSet(logLargeResultSet);
+        dataSource.setLogLargeResultSet(logLargeResultSet);
     }
 
     @Override
     public boolean isLogStackTraceForLargeResultSet() {
-        return config.isLogStackTraceForLargeResultSet();
+        return dataSource.isLogStackTraceForLargeResultSet();
     }
 
     @Override
     public void setLogStackTraceForLargeResultSet(boolean logStackTraceForLargeResultSet) {
-        config.setLogStackTraceForLargeResultSet(logStackTraceForLargeResultSet);
+        dataSource.setLogStackTraceForLargeResultSet(logStackTraceForLargeResultSet);
     }
 
     @Override
     public boolean isIncludeQueryParameters() {
-        return config.isIncludeQueryParameters();
+        return dataSource.isIncludeQueryParameters();
     }
 
     @Override
     public void setIncludeQueryParameters(boolean includeQueryParameters) {
-        config.setIncludeQueryParameters(includeQueryParameters);
+        dataSource.setIncludeQueryParameters(includeQueryParameters);
     }
 
     @Override
     public boolean isLogTakenConnectionsOnTimeout() {
-        return config.isLogTakenConnectionsOnTimeout();
+        return dataSource.isLogTakenConnectionsOnTimeout();
     }
 
     @Override
     public boolean isLogAllStackTracesOnTimeout() {
-        return config.isLogAllStackTracesOnTimeout();
+        return dataSource.isLogAllStackTracesOnTimeout();
     }
 
     @Override
     public boolean isResetDefaultsAfterUse() {
-        return config.isResetDefaultsAfterUse();
+        return dataSource.isResetDefaultsAfterUse();
     }
 
     @Override
     public Boolean getDefaultAutoCommit() {
-        return config.getDefaultAutoCommit();
+        return dataSource.getDefaultAutoCommit();
     }
 
     @Override
     public Boolean getDefaultReadOnly() {
-        return config.getDefaultReadOnly();
+        return dataSource.getDefaultReadOnly();
     }
 
     @Override
     public String getDefaultTransactionIsolation() {
-        return config.getDefaultTransactionIsolation();
+        return dataSource.getDefaultTransactionIsolation();
     }
 
     @Override
     public String getDefaultCatalog() {
-        return config.getDefaultCatalog();
+        return dataSource.getDefaultCatalog();
     }
 
     @Override
     public boolean isClearSQLWarnings() {
-        return config.isClearSQLWarnings();
+        return dataSource.isClearSQLWarnings();
     }
 
     @Override
     public String showTakenConnections() {
-        return config.getTakenConnectionsAsString();
+        return dataSource.getTakenConnectionsStackTraces();
     }
 }

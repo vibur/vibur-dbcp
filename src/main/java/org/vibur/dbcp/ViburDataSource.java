@@ -16,6 +16,8 @@
 
 package org.vibur.dbcp;
 
+import org.vibur.dbcp.pool.TakenConnection;
+
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -114,4 +116,20 @@ public interface ViburDataSource extends DataSource, AutoCloseable {
      * @throws SQLException if an error occurs while closing/severing the connection
      */
     void severConnection(Connection connection) throws SQLException;
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * See the comments for {@link ViburConfig#logTakenConnectionsOnTimeout}. Also see {@link #getTakenConnections}.
+     */
+    String getTakenConnectionsStackTraces();
+
+    /**
+     * Returns an array of all taken proxy Connections. Note that this is just a snapshot of the taken Connections
+     * at the moment of the method call; the state of some (or all) of the returned Connections may change immediately
+     * after this method returns. Also see {@link #getTakenConnectionsStackTraces}.
+     *
+     * @return an array of all taken proxy Connections
+     */
+    TakenConnection[] getTakenConnections();
 }

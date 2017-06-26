@@ -18,7 +18,7 @@ package org.vibur.dbcp.pool;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.vibur.dbcp.ViburConfig;
+import org.vibur.dbcp.ViburDBCPDataSource;
 import org.vibur.dbcp.ViburDBCPException;
 import org.vibur.objectpool.PoolService;
 
@@ -38,8 +38,8 @@ import static org.vibur.dbcp.proxy.Proxy.newProxyConnection;
 import static org.vibur.dbcp.util.ViburUtils.getPoolName;
 
 /**
- * The facade class through which the {@link ConnectionFactory}  and {@link PoolService} functions are accessed.
- * Essentially, these are operations that allows us to get and restore a JDBC Connection from the pool,
+ * The facade class through which the {@link ConnectionFactory} and {@link PoolService} functions are accessed.
+ * Essentially, these are operations that allows us to get and restore a JDBC Connection from the pool
  * as well as to process the SQLExceptions that might have occurred on a taken JDBC Connection.
  *
  * @author Simeon Malchev
@@ -50,25 +50,23 @@ public class PoolOperations {
 
     private static final Pattern whitespaces = Pattern.compile("\\s");
 
-    private final ViburConfig config;
+    private final ViburDBCPDataSource dataSource;
     private final ViburObjectFactory connectionFactory;
     private final PoolService<ConnHolder> poolService;
 
-    private final ConnHooksHolder connHooks;
     private final Set<String> criticalSQLStates;
 
     /**
      * Instantiates the PoolOperations facade.
      *
-     * @param config the ViburConfig from which we will initialize
+     * @param dataSource the Vibur DBCP dataSource on which we will operate
      */
-    public PoolOperations(ViburConfig config) {
-        this.config = config;
-        this.connectionFactory = config.getConnectionFactory();
-        this.poolService = config.getPool();
-        this.connHooks = config.getConnHooks();
+    public PoolOperations(ViburDBCPDataSource dataSource) {
+        this.dataSource = dataSource;
+        this.connectionFactory = dataSource.getConnectionFactory();
+        this.poolService = dataSource.getPool();
         this.criticalSQLStates = new HashSet<>(Arrays.asList(
-                whitespaces.matcher(config.getCriticalSQLStates()).replaceAll("").split(",")));
+                whitespaces.matcher(dataSource.getCriticalSQLStates()).replaceAll("").split(",")));
     }
 
     public Connection getProxyConnection(long timeout) throws SQLException {
@@ -77,17 +75,17 @@ public class PoolOperations {
             if (conn != null) { // we were able to obtain a connection from the pool within the given timeout
                 if (logger.isTraceEnabled())
                     logger.trace("Taking rawConnection {}", conn.rawConnection());
-                return newProxyConnection(conn, this, config);
+                return newProxyConnection(conn, this, dataSource);
             }
 
             if (poolService.isTerminated())
-                throw new SQLException(format("Pool %s, the poolService is terminated.", getPoolName(config)), SQLSTATE_POOL_CLOSED_ERROR);
+                throw new SQLException(format("Pool %s, the poolService is terminated.", getPoolName(dataSource)), SQLSTATE_POOL_CLOSED_ERROR);
 
-            if (config.isLogTakenConnectionsOnTimeout() && logger.isWarnEnabled())
+            if (dataSource.isLogTakenConnectionsOnTimeout() && logger.isWarnEnabled())
                 logger.warn("Pool {}, couldn't obtain SQL connection within {} ms, full list of taken connections begins:\n{}",
-                        getPoolName(config), timeout, config.getTakenConnectionsAsString());
+                        getPoolName(dataSource), timeout, dataSource.getTakenConnectionsStackTraces());
             throw new SQLTimeoutException(format("Pool %s, couldn't obtain SQL connection within %d ms.",
-                    getPoolName(config), timeout), SQLSTATE_TIMEOUT_ERROR, (int) timeout);
+                    getPoolName(dataSource), timeout), SQLSTATE_TIMEOUT_ERROR, (int) timeout);
 
         } catch (ViburDBCPException e) { // can be (indirectly) thrown by the ConnectionFactory.create() methods
             throw e.unwrapSQLException();
@@ -95,7 +93,7 @@ public class PoolOperations {
     }
 
     private ConnHolder getConnHolder(long timeout) throws SQLException {
-        Hook.GetConnection[] onGet = connHooks.onGet();
+        Hook.GetConnection[] onGet = dataSource.getConnHooks().onGet();
         long startTime = onGet.length > 0 ? System.nanoTime() : 0;
 
         ConnHolder conn = timeout > 0 ? poolService.tryTake(timeout, MILLISECONDS) : poolService.take();
@@ -133,9 +131,9 @@ public class PoolOperations {
         int connVersion = conn.version();
         SQLException criticalException = getCriticalSQLException(exceptions);
         if (criticalException != null && connectionFactory.compareAndSetVersion(connVersion, connVersion + 1)) {
-            int destroyed = config.getPool().drainCreated(); // destroys all connections in the pool
+            int destroyed = dataSource.getPool().drainCreated(); // destroys all connections in the pool
             logger.error("Critical SQLState {} occurred, destroyed {} connections from pool {}, current connection version is {}.",
-                    criticalException.getSQLState(), destroyed, getPoolName(config), connectionFactory.version(), criticalException);
+                    criticalException.getSQLState(), destroyed, getPoolName(dataSource), connectionFactory.version(), criticalException);
         }
     }
 
