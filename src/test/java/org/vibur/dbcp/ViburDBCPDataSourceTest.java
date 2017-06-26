@@ -276,10 +276,11 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
 
         long currentNanoTime = System.nanoTime();
         long takenNanoTime = takenConnections[0].getTakenNanoTime();
+        assertTrue(takenNanoTime > 0);
         assertTrue(currentNanoTime > takenNanoTime);
         assertEquals(0, takenConnections[0].getLastAccessNanoTime());
 
-        connection.isClosed();
+        connection.isClosed(); // invokes a "random" method on the connection
         assertEquals(takenNanoTime, takenConnections[0].getTakenNanoTime());
         assertTrue(currentNanoTime < takenConnections[0].getLastAccessNanoTime());
 
