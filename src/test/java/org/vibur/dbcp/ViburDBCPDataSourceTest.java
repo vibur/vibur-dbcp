@@ -24,6 +24,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InOrder;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.vibur.dbcp.pool.TakenConnection;
 import org.vibur.dbcp.stcache.StatementHolder;
 import org.vibur.dbcp.stcache.StatementMethod;
 
@@ -261,6 +262,28 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
         assertFalse(connection.isClosed());
         ds.severConnection(connection);
         assertTrue(connection.isClosed());
+    }
+
+    @Test
+    public void testConnectionTracking() throws SQLException {
+        ViburDBCPDataSource ds = createDataSourceWithTracking();
+        Connection connection = ds.getConnection();
+
+        TakenConnection[] takenConnections = ds.getTakenConnections();
+
+        assertEquals(1, takenConnections.length);
+        assertSame(connection, takenConnections[0].getProxyConnection());
+
+        long currentNanoTime = System.nanoTime();
+        long takenNanoTime = takenConnections[0].getTakenNanoTime();
+        assertTrue(currentNanoTime > takenNanoTime);
+        assertEquals(0, takenConnections[0].getLastAccessNanoTime());
+
+        connection.isClosed();
+        assertEquals(takenNanoTime, takenConnections[0].getTakenNanoTime());
+        assertTrue(currentNanoTime < takenConnections[0].getLastAccessNanoTime());
+
+        connection.close();
     }
 
     private void doTestSelectStatement(DataSource ds) throws SQLException {

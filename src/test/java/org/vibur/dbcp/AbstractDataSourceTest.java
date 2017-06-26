@@ -102,6 +102,30 @@ public abstract class AbstractDataSourceTest {
         return dataSource;
     }
 
+    protected ViburDBCPDataSource createDataSourceWithTracking() throws ViburDBCPException {
+        dataSource = new ViburDBCPDataSource();
+
+        dataSource.setJdbcUrl(jdbcUrl);
+        dataSource.setUsername(username);
+        dataSource.setPassword(password);
+
+        dataSource.setPoolInitialSize(POOL_INITIAL_SIZE);
+        dataSource.setPoolMaxSize(POOL_MAX_SIZE);
+        dataSource.setConnectionTimeoutInMs(CONNECTION_TIMEOUT_MS);
+
+        dataSource.setConnectionIdleLimitInSeconds(120);
+
+        dataSource.setLogQueryExecutionLongerThanMs(0);
+        dataSource.setLogConnectionLongerThanMs(0);
+        dataSource.setLogLargeResultSet(2);
+
+        dataSource.setPoolEnableConnectionTracking(true);
+
+        dataSource.start();
+
+        return dataSource;
+    }
+
     protected ViburDBCPDataSource createDataSourceWithStatementsCache() throws ViburDBCPException {
         dataSource = new ViburDBCPDataSource();
 
