@@ -483,7 +483,7 @@ public abstract class ViburConfig {
         return pool;
     }
 
-    public void setPool(PoolService<ConnHolder> pool) {
+    protected void setPool(PoolService<ConnHolder> pool) {
         this.pool = pool;
     }
 
@@ -491,7 +491,7 @@ public abstract class ViburConfig {
         return concurrentCollection;
     }
 
-    public void setConcurrentCollection(ConcurrentCollection<ConnHolder> concurrentCollection) {
+    protected void setConcurrentCollection(ConcurrentCollection<ConnHolder> concurrentCollection) {
         this.concurrentCollection = concurrentCollection;
     }
 
@@ -499,7 +499,7 @@ public abstract class ViburConfig {
         return connectionFactory;
     }
 
-    public void setConnectionFactory(ViburObjectFactory connectionFactory) {
+    protected void setConnectionFactory(ViburObjectFactory connectionFactory) {
         this.connectionFactory = connectionFactory;
     }
 
@@ -507,7 +507,7 @@ public abstract class ViburConfig {
         return poolReducer;
     }
 
-    public void setPoolReducer(ThreadedPoolReducer poolReducer) {
+    protected void setPoolReducer(ThreadedPoolReducer poolReducer) {
         this.poolReducer = poolReducer;
     }
 
@@ -564,7 +564,7 @@ public abstract class ViburConfig {
         return poolReducerClass;
     }
 
-    public void setPoolReducerClass(String poolReducerClass) {
+    protected void setPoolReducerClass(String poolReducerClass) {
         this.poolReducerClass = poolReducerClass;
     }
 
@@ -628,7 +628,7 @@ public abstract class ViburConfig {
         return statementCache;
     }
 
-    public void setStatementCache(StatementCache statementCache) {
+    protected void setStatementCache(StatementCache statementCache) {
         this.statementCache = statementCache;
     }
 
@@ -636,7 +636,7 @@ public abstract class ViburConfig {
         return criticalSQLStates;
     }
 
-    public void setCriticalSQLStates(String criticalSQLStates) {
+    protected void setCriticalSQLStates(String criticalSQLStates) {
         this.criticalSQLStates = criticalSQLStates;
     }
 

@@ -40,7 +40,6 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 import static org.vibur.dbcp.stcache.StatementHolder.State.AVAILABLE;
 import static org.vibur.dbcp.stcache.StatementHolder.State.EVICTED;
-import static org.vibur.dbcp.util.StatementCacheUtils.mockStatementCache;
 
 /**
  * JDBC integration tests.

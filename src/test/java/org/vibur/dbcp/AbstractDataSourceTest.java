@@ -19,6 +19,9 @@ package org.vibur.dbcp;
 import org.hsqldb.cmdline.SqlToolError;
 import org.junit.After;
 import org.junit.BeforeClass;
+import org.vibur.dbcp.stcache.ClhmStatementCache;
+import org.vibur.dbcp.stcache.StatementHolder;
+import org.vibur.dbcp.stcache.StatementMethod;
 import org.vibur.dbcp.util.HsqldbUtils;
 import org.vibur.dbcp.util.SimpleDataSource;
 
@@ -26,6 +29,10 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Properties;
+import java.util.concurrent.ConcurrentMap;
+
+import static org.mockito.AdditionalAnswers.delegatesTo;
+import static org.mockito.Mockito.mock;
 
 /**
  * Abstract JDBC integration super test.
@@ -152,5 +159,22 @@ public abstract class AbstractDataSourceTest {
         dataSource.setLogQueryExecutionLongerThanMs(-1);
 
         return dataSource;
+    }
+
+    @SuppressWarnings("unchecked")
+    public static ConcurrentMap<StatementMethod, StatementHolder> mockStatementCache(ViburDBCPDataSource ds) {
+        final ConcurrentMap<StatementMethod, StatementHolder>[] holder = new ConcurrentMap[1];
+
+        ds.setStatementCache(new ClhmStatementCache(ds.getStatementCacheMaxSize()) {
+            @Override
+            protected ConcurrentMap<StatementMethod, StatementHolder> buildStatementCache(int maxSize) {
+                ConcurrentMap<StatementMethod, StatementHolder> mockedStatementCache =
+                        mock(ConcurrentMap.class, delegatesTo(super.buildStatementCache(maxSize)));
+                holder[0] = mockedStatementCache;
+                return mockedStatementCache;
+            }
+        });
+
+        return holder[0];
     }
 }
