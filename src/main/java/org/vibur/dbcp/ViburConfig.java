@@ -479,7 +479,7 @@ public abstract class ViburConfig {
         this.poolEnableConnectionTracking = poolEnableConnectionTracking;
     }
 
-    public PoolService<ConnHolder>  getPool() {
+    public PoolService<ConnHolder> getPool() {
         return pool;
     }
 
