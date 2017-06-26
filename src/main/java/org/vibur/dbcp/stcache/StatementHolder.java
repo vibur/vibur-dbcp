@@ -41,20 +41,20 @@ public class StatementHolder {
         EVICTED
     }
 
-    private final Statement value; // the underlying raw JDBC Statement
+    private final Statement rawStatement; // the underlying raw JDBC Statement
     private final AtomicReference<State> state; // a null value means that this StatementHolder instance is not included in the cache
 
     private String sqlQuery;
 
-    public StatementHolder(Statement value, AtomicReference<State> state, String sqlQuery) {
-        assert value != null;
-        this.value = value;
+    public StatementHolder(Statement rawStatement, AtomicReference<State> state, String sqlQuery) {
+        assert rawStatement != null;
+        this.rawStatement = rawStatement;
         this.state = state;
         this.sqlQuery = sqlQuery;
     }
 
-    public Statement value() {
-        return value;
+    public Statement rawStatement() {
+        return rawStatement;
     }
 
     public AtomicReference<State> state() {

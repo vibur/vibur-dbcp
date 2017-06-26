@@ -40,11 +40,6 @@ public class ConnHooksHolder {
      * Their execution should take as short time as possible. */
     private Hook.GetConnection[] onGet = new Hook.GetConnection[0];
 
-    /** A list of programming {@linkplain Hook.ValidateConnection#on hooks} that will be invoked on the raw JDBC
-     * Connection <i>after</i> it was taken from the pool as part of the Connection validation flow.
-     * Their execution should take as short time as possible. */
-    private Hook.ValidateConnection[] onValidate = new Hook.ValidateConnection[0];
-
     /** A list of programming {@linkplain Hook.CloseConnection#on hooks} that will be invoked on the raw JDBC Connection
      * <i>before</i> it is restored back to the pool as part of the {@link java.sql.Connection#close()} flow.
      * Their execution should take as short time as possible. */
@@ -62,10 +57,6 @@ public class ConnHooksHolder {
         onGet = addHook(onGet, hook);
     }
 
-    public void addOnValidate(Hook.ValidateConnection hook) {
-        onValidate = addHook(onValidate, hook);
-    }
-
     public void addOnClose(Hook.CloseConnection hook) {
         onClose = addHook(onClose, hook);
     }
@@ -80,10 +71,6 @@ public class ConnHooksHolder {
 
     Hook.GetConnection[] onGet() {
         return onGet;
-    }
-
-    Hook.ValidateConnection[] onValidate() {
-        return onValidate;
     }
 
     Hook.CloseConnection[] onClose() {

@@ -40,10 +40,22 @@ public class ViburListener extends TakenListener<ConnHolder> {
     }
 
     /**
+     * See {@link ViburConfig#getTakenConnections} and {@link ViburConfig#getTakenConnectionsAsString}.
+     */
+    public TakenConnection[] getTakenConnections() {
+        ConnHolder[] takenConns = getTaken(new ConnHolder[config.getPoolMaxSize()]);
+
+        int size = 0;
+        while (size < takenConns.length && takenConns[size] != null) size++;
+
+        return Arrays.copyOf(takenConns, size, TakenConnection[].class);
+    }
+
+    /**
      * See {@link ViburConfig#poolEnableConnectionTracking}, {@link ViburConfig#logTakenConnectionsOnTimeout}
      * and {@link ViburConfig#logAllStackTracesOnTimeout}.
      */
-    public String getTakenToString() {
+    public String getTakenConnectionsAsString() {
         ConnHolder[] takenConns = getTaken(new ConnHolder[config.getPoolMaxSize()]);
 
         int size = 0;
@@ -64,7 +76,7 @@ public class ViburListener extends TakenListener<ConnHolder> {
         for (int i = 0; i < size; i++) {
             ConnHolder takenConn = takenConns[i];
             Thread holdingThread = takenConn.getThread();
-            builder.append("\n============\n").append(takenConn.value())
+            builder.append("\n============\n").append(takenConn.rawConnection())
                     .append(", held for ").append(NANOSECONDS.toMillis(currentNanoTime - takenConn.getTakenNanoTime()))
                     .append(" ms, by thread ").append(holdingThread.getName())
                     .append(", state ").append(holdingThread.getState())

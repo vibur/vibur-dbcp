@@ -29,8 +29,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
+import static org.vibur.dbcp.ViburConfig.SQLSTATE_CONN_VALIDATE_ERROR;
 import static org.vibur.dbcp.util.JdbcUtils.initLoginTimeout;
 import static org.vibur.dbcp.util.JdbcUtils.quietClose;
+import static org.vibur.dbcp.util.JdbcUtils.validateConnection;
 
 /**
  * The object factory which controls the lifecycle of the underlying JDBC Connections: creates them,
@@ -112,16 +114,14 @@ public class ConnectionFactory implements ViburObjectFactory {
         if (conn.version() != version())
             return false;
 
-        Connection rawConnection = conn.value();
+        Connection rawConnection = conn.rawConnection();
         try {
             int idleLimit = config.getConnectionIdleLimitInSeconds();
-            Hook.ValidateConnection[] onValidate = connHooks.onValidate();
-            if (idleLimit >= 0 && onValidate.length > 0) {
+            if (idleLimit >= 0) {
                 long idleNanos = System.nanoTime() - conn.getRestoredNanoTime();
-                if (NANOSECONDS.toSeconds(idleNanos) >= idleLimit) {
-                    for (Hook.ValidateConnection hook : onValidate)
-                        hook.on(rawConnection, idleNanos);
-                }
+                if (NANOSECONDS.toSeconds(idleNanos) >= idleLimit
+                        && !validateConnection(rawConnection, config.getTestConnectionQuery(), config))
+                    throw new SQLException("validateConnection() returned false", SQLSTATE_CONN_VALIDATE_ERROR);
             }
 
             prepareTracking(conn);
@@ -134,9 +134,9 @@ public class ConnectionFactory implements ViburObjectFactory {
 
     @Override
     public boolean readyToRestore(ConnHolder conn) {
-        clearTracking(conn); // we don't want to keep the Thread and Throwable objects references
+        clearTracking(conn); // we don't want to keep all objects references
 
-        Connection rawConnection = conn.value();
+        Connection rawConnection = conn.rawConnection();
         try {
             Hook.CloseConnection[] onClose = connHooks.onClose();
             if (onClose.length > 0) {
@@ -168,6 +168,9 @@ public class ConnectionFactory implements ViburObjectFactory {
 
     private void clearTracking(ConnHolder conn) {
         if (config.isPoolEnableConnectionTracking()) {
+            conn.setTakenNanoTime(0L);
+            conn.setLastAccessNanoTime(0L);
+            conn.setProxyConnection(null);
             conn.setThread(null);
             conn.setLocation(null);
         }
@@ -175,7 +178,7 @@ public class ConnectionFactory implements ViburObjectFactory {
 
     @Override
     public void destroy(ConnHolder conn) {
-        Connection rawConnection = conn.value();
+        Connection rawConnection = conn.rawConnection();
         logger.debug("Destroying rawConnection {}", rawConnection);
         closeStatements(rawConnection);
 

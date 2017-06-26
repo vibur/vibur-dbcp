@@ -25,41 +25,55 @@ import java.sql.Connection;
  *
  * @author Simeon Malchev
  */
-public class ConnHolder {
+public class ConnHolder implements TakenConnection {
 
-    private final Connection value; // the underlying raw JDBC Connection
+    private final Connection rawConnection; // the underlying raw JDBC Connection
     private final int version; // the version of the ConnectionFactory at the moment of this ConnHolder object creation
 
-    // used when there is a CloseConnection hook to measure and emit for how long the connection was held by the app
+    // used when poolEnableConnectionTracking is allowed or if there are GetConnection or CloseConnection hooks registered
     private long takenNanoTime = 0;
-    private long restoredNanoTime; // used when getConnectionIdleLimitInSeconds() >= 0
+    // the last nano time when a method was called on the proxyConnection, used when poolEnableConnectionTracking is allowed
+    private long lastAccessNanoTime = 0;
+    // used when connection validation is enabled via getConnectionIdleLimitInSeconds() >= 0
+    private long restoredNanoTime;
+    // the proxy Connection encompassing the rawConnection, used when poolEnableConnectionTracking is allowed
+    private Connection proxyConnection = null;
 
-    // these 2 fields are used when isPoolEnableConnectionTracking() is allowed
+    // these 2 fields are used when poolEnableConnectionTracking is allowed
     private Thread thread = null;
     private Throwable location = null;
 
-    ConnHolder(Connection value, int version, long currentNanoTime) {
-        assert value != null;
-        this.value = value;
+    ConnHolder(Connection rawConnection, int version, long currentNanoTime) {
+        assert rawConnection != null;
+        this.rawConnection = rawConnection;
         this.version = version;
         this.restoredNanoTime = currentNanoTime;
     }
 
-    public Connection value() {
-        return value;
+    public Connection rawConnection() {
+        return rawConnection;
     }
 
     int version() {
         return version;
     }
 
-
-    long getTakenNanoTime() {
+    @Override
+    public long getTakenNanoTime() {
         return takenNanoTime;
     }
 
     void setTakenNanoTime(long takenNanoTime) {
         this.takenNanoTime = takenNanoTime;
+    }
+
+    @Override
+    public long getLastAccessNanoTime() {
+        return lastAccessNanoTime;
+    }
+
+    public void setLastAccessNanoTime(long lastAccessNanoTime) {
+        this.lastAccessNanoTime = lastAccessNanoTime;
     }
 
     long getRestoredNanoTime() {
@@ -70,8 +84,17 @@ public class ConnHolder {
         this.restoredNanoTime = restoredNanoTime;
     }
 
+    @Override
+    public Connection getProxyConnection() {
+        return proxyConnection;
+    }
 
-    Thread getThread() {
+    public void setProxyConnection(Connection proxyConnection) {
+        this.proxyConnection = proxyConnection;
+    }
+
+    @Override
+    public Thread getThread() {
         return thread;
     }
 
@@ -79,7 +102,8 @@ public class ConnHolder {
         this.thread = thread;
     }
 
-    Throwable getLocation() {
+    @Override
+    public Throwable getLocation() {
         return location;
     }
 

@@ -50,7 +50,7 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
 
     StatementInvocationHandler(StatementHolder statement, StatementCache statementCache, Connection connProxy,
                                ViburConfig config, ExceptionCollector exceptionCollector) {
-        super(statement.value(), connProxy, "getConnection", config, exceptionCollector);
+        super(statement.rawStatement(), connProxy, "getConnection", config, exceptionCollector);
         this.statement = statement;
         this.statementCache = statementCache;
         this.config = config;

@@ -63,20 +63,6 @@ public interface Hook {
         void on(Connection rawConnection, long takenNanos) throws SQLException;
     }
 
-    interface ValidateConnection extends Hook {
-        /**
-         * A programming hook that will be invoked on the raw JDBC Connection <i>after</i> it was taken from the pool and
-         * only if it has stayed in the pool for longer than the predefined {@link ViburConfig#connectionIdleLimitInSeconds
-         * idle} timeout. The invocation happens as part of the {@link javax.sql.DataSource#getConnection()
-         * DataSource.getConnection()} flow. The hook execution should take as short time as possible.
-         *
-         * @param rawConnection the retrieved from the pool <b>raw</b> JDBC connection
-         * @param idleNanos the time for which this connection has stayed in the pool in nanoseconds
-         * @throws SQLException to indicate that an SQL error has occurred <i>or</i> that the given connection is <b>invalid</b>
-         */
-        void on(Connection rawConnection, long idleNanos) throws SQLException;
-    }
-
     interface GetConnection extends Hook {
         /**
          * A programming hook that will be invoked on the raw JDBC Connection <i>after</i> it was taken from the pool
@@ -84,11 +70,11 @@ public interface Hook {
          * Its execution should take as short time as possible.
          *
          * <p>Worth noting that the {@code takenNanos} parameter includes in the common case (and as a minimum) the time
-         * taken to get the {@code rawConnection} from the pool, plus the {@link ValidateConnection#on time taken} to
-         * validate the connection if validation was needed, or the {@link InitConnection#on time taken} to create
-         * the connection if there was no ready connection in the pool but the pool capacity was not yet reached and
-         * a new connection was lazily created upon this {@code getConnection()} request. For the last case, see also
-         * the comments for the {@link ViburConfig#connectionTimeoutInMs connectionTimeoutInMs} configuration option.
+         * taken to get the {@code rawConnection} from the pool, plus the time taken to validate the connection if
+         * validation was needed, or the {@link InitConnection#on time taken} to create the connection if there was no
+         * ready connection in the pool but the pool capacity was not yet reached and a new connection was lazily
+         * created upon this {@code getConnection()} request. For the last case, see also the comments for the
+         * {@link ViburConfig#connectionTimeoutInMs connectionTimeoutInMs} configuration option.
          *
          * @param rawConnection the retrieved from the pool <b>raw</b> JDBC connection; <b>note that it can be {@code null}</b>
          *                      if we were unable to obtain a connection from the pool within the specified time limit

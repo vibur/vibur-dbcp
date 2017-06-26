@@ -72,11 +72,11 @@ public class ClhmStatementCache implements StatementCache {
     private static EvictionListener<StatementMethod, StatementHolder> getListener() {
         return new EvictionListener<StatementMethod, StatementHolder>() {
             @Override
-            public void onEviction(StatementMethod statementMethod, StatementHolder value) {
-                if (value.state().getAndSet(EVICTED) == AVAILABLE)
-                    quietClose(value.value());
+            public void onEviction(StatementMethod statementMethod, StatementHolder statementHolder) {
+                if (statementHolder.state().getAndSet(EVICTED) == AVAILABLE)
+                    quietClose(statementHolder.rawStatement());
                 if (logger.isTraceEnabled())
-                    logger.trace("Evicted {}", value.value());
+                    logger.trace("Evicted {}", statementHolder.rawStatement());
             }
         };
     }
@@ -115,7 +115,7 @@ public class ClhmStatementCache implements StatementCache {
         if (statement.state() == null) // this statement is not in the cache
             return false;
 
-        PreparedStatement rawStatement = (PreparedStatement) statement.value();
+        PreparedStatement rawStatement = (PreparedStatement) statement.rawStatement();
         try {
             if (clearWarnings)
                 clearWarnings(rawStatement);
@@ -132,10 +132,9 @@ public class ClhmStatementCache implements StatementCache {
         if (statement.state() == null) // this statement is not in the cache
             return false;
 
-        PreparedStatement rawStatement = (PreparedStatement) statement.value();
         for (Map.Entry<StatementMethod, StatementHolder> entry : statementCache.entrySet()) {
             StatementHolder value = entry.getValue();
-            if (value.value() == rawStatement) // comparing with == as these JDBC Statements are cached objects
+            if (value == statement) // comparing with == as these JDBC Statements are cached objects
                 return statementCache.remove(entry.getKey(), value);
         }
         return false;
@@ -148,7 +147,7 @@ public class ClhmStatementCache implements StatementCache {
             StatementMethod key = entry.getKey();
             StatementHolder value = entry.getValue();
             if (key.target() == rawConnection && statementCache.remove(key, value)) {
-                quietClose(value.value());
+                quietClose(value.rawStatement());
                 removed++;
             }
         }
@@ -166,7 +165,7 @@ public class ClhmStatementCache implements StatementCache {
         for (Map.Entry<StatementMethod, StatementHolder> entry : statementCache.entrySet()) {
             StatementHolder value = entry.getValue();
             statementCache.remove(entry.getKey(), value);
-            quietClose(value.value());
+            quietClose(value.rawStatement());
         }
     }
 

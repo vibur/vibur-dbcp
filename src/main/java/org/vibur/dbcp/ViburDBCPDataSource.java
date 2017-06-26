@@ -229,7 +229,7 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
             initDriverAndProperties();
         setConnector(buildConnector(this, getUsername(), getPassword()));
 
-        initHooks();
+        initDefaultHooks();
 
         ViburObjectFactory connectionFactory = getConnectionFactory();
         if (connectionFactory == null)
@@ -347,10 +347,9 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
         }
     }
 
-    private void initHooks() {
+    private void initDefaultHooks() {
         getConnHooks().addOnInit(new DefaultHook.InitConnection(this));
         getConnHooks().addOnGet(new DefaultHook.GetConnectionTiming(this));
-        getConnHooks().addOnValidate(new DefaultHook.ValidateConnection(this));
         getConnHooks().addOnClose(new DefaultHook.CloseConnection(this));
 
         getInvocationHooks().addOnStatementExecution(new DefaultHook.QueryTiming(this));
@@ -421,7 +420,8 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
     public Connection getNonPooledConnection(String username, String password) throws SQLException {
         validatePoolState(true);
         try {
-            Connection rawConnection = getConnectionFactory().create(buildConnector(this, username, password)).value();
+            Connector connector = buildConnector(this, username, password);
+            Connection rawConnection = getConnectionFactory().create(connector).rawConnection();
             logger.debug("Taking non-pooled rawConnection {}", rawConnection);
             return rawConnection;
         } catch (ViburDBCPException e) {
