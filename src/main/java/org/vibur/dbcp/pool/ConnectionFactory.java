@@ -166,8 +166,8 @@ public class ConnectionFactory implements ViburObjectFactory {
 
     private void clearTracking(ConnHolder conn) {
         if (config.isPoolEnableConnectionTracking()) {
-            conn.setTakenNanoTime(0L);
-            conn.setLastAccessNanoTime(0L);
+            conn.setTakenNanoTime(0);
+            conn.setLastAccessNanoTime(0);
             conn.setProxyConnection(null);
             conn.setThread(null);
             conn.setLocation(null);
