@@ -78,9 +78,16 @@ public class ViburListener extends TakenListener<ConnHolder> {
             ConnHolder takenConn = takenConns[i];
             Thread holdingThread = takenConn.getThread();
             builder.append("\n============\n").append(takenConn.rawConnection())
-                    .append(", held for ").append(NANOSECONDS.toMillis(currentNanoTime - takenConn.getTakenNanoTime()))
-                    .append(" ms, by thread ").append(holdingThread.getName())
-                    .append(", state ").append(holdingThread.getState())
+                    .append(", held for ").append(NANOSECONDS.toMillis(currentNanoTime - takenConn.getTakenNanoTime()));
+
+            if (takenConn.getLastAccessNanoTime() == 0)
+                builder.append(" ms, NEVER been accessed");
+            else
+                builder.append(" ms, last accessed before ").append(
+                        NANOSECONDS.toMillis(currentNanoTime - takenConn.getLastAccessNanoTime())).append(" ms");
+
+            builder.append(", taken by thread ").append(holdingThread.getName())
+                    .append(", current thread state ").append(holdingThread.getState())
                     .append("\n\nThread stack trace at the moment when getting the Connection:\n")
                     .append(getStackTraceAsString(takenConn.getLocation().getStackTrace()));
 

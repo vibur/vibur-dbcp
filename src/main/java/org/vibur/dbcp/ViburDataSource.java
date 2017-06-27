@@ -126,8 +126,8 @@ public interface ViburDataSource extends DataSource, AutoCloseable {
 
     /**
      * Returns an array of all taken proxy Connections. Note that this is just a snapshot of the taken Connections
-     * at the moment of the method call; the state of some (or all) of the returned Connections may change immediately
-     * after this method returns. Also see {@link #getTakenConnectionsStackTraces}.
+     * at the moment of the method call; the closed/restored state of some (or all) of the returned Connections may
+     * change immediately after this method returns. Also see {@link #getTakenConnectionsStackTraces}.
      *
      * @return an array of all taken proxy Connections
      */
