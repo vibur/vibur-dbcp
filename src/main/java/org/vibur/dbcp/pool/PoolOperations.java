@@ -59,7 +59,9 @@ public class PoolOperations {
     /**
      * Instantiates the PoolOperations facade.
      *
-     * @param dataSource the Vibur DBCP dataSource on which we will operate
+     * @param dataSource the Vibur dataSource on which we will operate
+     * @param connectionFactory the Vibur connection factory
+     * @param poolService the Vibur pool service
      */
     public PoolOperations(ViburDBCPDataSource dataSource, ViburObjectFactory connectionFactory, PoolService<ConnHolder> poolService) {
         this.dataSource = dataSource;

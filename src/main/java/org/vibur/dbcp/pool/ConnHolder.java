@@ -31,8 +31,7 @@ public class ConnHolder extends TakenConnection {
     private final Connection rawConnection; // the underlying raw JDBC Connection
     private final int version; // the version of the ConnectionFactory at the moment of this ConnHolder object creation
 
-    // used when connection validation is enabled via getConnectionIdleLimitInSeconds() >= 0
-    private long restoredNanoTime;
+    private long restoredNanoTime; // used when connection validation is enabled via getConnectionIdleLimitInSeconds() >= 0
 
     ConnHolder(Connection rawConnection, int version, long currentNanoTime) {
         assert rawConnection != null;
