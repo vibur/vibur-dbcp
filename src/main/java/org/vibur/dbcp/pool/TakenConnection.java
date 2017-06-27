@@ -101,7 +101,7 @@ public abstract class TakenConnection {
 
     @Override
     public String toString() {
-        return "TakenConnection@" + toHexString(hashCode())+ '[' + proxyConnection +
+        return "TakenConnection@" + toHexString(hashCode()) + '[' + proxyConnection +
                 ", takenNanoTime=" + takenNanoTime +
                 ", lastAccessNanoTime=" + lastAccessNanoTime +
                 ", thread=" + thread +

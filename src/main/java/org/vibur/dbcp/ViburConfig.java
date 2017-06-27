@@ -154,6 +154,23 @@ public abstract class ViburConfig {
     private ViburObjectFactory connectionFactory = null;
     private ThreadedPoolReducer poolReducer = null;
 
+
+    /** The fully qualified pool reducer class name. This pool reducer class will be instantiated via reflection;
+     * it will be created only if {@link #reducerTimeIntervalInSeconds} is greater than {@code 0}.
+     * It must implements the {@link org.vibur.objectpool.util.ThreadedPoolReducer} interface and must also have
+     * a public constructor accepting a single argument of type {@code ViburConfig}. */
+    private String poolReducerClass = PoolReducer.class.getName();
+
+    /** For more details on the next 2 parameters see {@link org.vibur.objectpool.util.SamplingPoolReducer}. */
+
+    /** The time period after which the {@code poolReducer} will try to possibly reduce the number of created
+     * but unused JDBC Connections in this pool. {@code 0} disables it. */
+    private int reducerTimeIntervalInSeconds = 60;
+    /** How many times the {@code poolReducer} will wake up during the given
+     * {@link #reducerTimeIntervalInSeconds} period in order to sample various information from this pool. */
+    private int reducerSamples = 20;
+
+
     /** In rare circumstances, the application may need to obtain a non-pooled connection from the pool
      * after the pool has been terminated. This may happen as part of some post-caching or application
      * shutdown execution path. */
@@ -175,22 +192,6 @@ public abstract class ViburConfig {
 
     /** Enables or disables the DataSource JMX exposure. */
     private boolean enableJMX = true;
-
-
-    /** The fully qualified pool reducer class name. This pool reducer class will be instantiated via reflection,
-     * and will be instantiated only if {@link #reducerTimeIntervalInSeconds} is greater than {@code 0}.
-     * It must implements the {@link org.vibur.objectpool.util.ThreadedPoolReducer} interface and must also have
-     * a public constructor accepting a single argument of type {@code ViburConfig}. */
-    private String poolReducerClass = PoolReducer.class.getName();
-
-    /** For more details on the next 2 parameters see {@link org.vibur.objectpool.util.SamplingPoolReducer}. */
-
-    /** The time period after which the {@code poolReducer} will try to possibly reduce the number of created
-     * but unused JDBC Connections in this pool. {@code 0} disables it. */
-    private int reducerTimeIntervalInSeconds = 60;
-    /** How many times the {@code poolReducer} will wake up during the given
-     * {@link #reducerTimeIntervalInSeconds} period in order to sample various information from this pool. */
-    private int reducerSamples = 20;
 
 
     /** The time to wait before a call to {@code DataSource.getConnection()} times out and throws an {@code SQLException}.
@@ -512,6 +513,30 @@ public abstract class ViburConfig {
         this.poolReducer = poolReducer;
     }
 
+    protected String getPoolReducerClass() {
+        return poolReducerClass;
+    }
+
+    protected void setPoolReducerClass(String poolReducerClass) {
+        this.poolReducerClass = poolReducerClass;
+    }
+
+    public int getReducerTimeIntervalInSeconds() {
+        return reducerTimeIntervalInSeconds;
+    }
+
+    public void setReducerTimeIntervalInSeconds(int reducerTimeIntervalInSeconds) {
+        this.reducerTimeIntervalInSeconds = reducerTimeIntervalInSeconds;
+    }
+
+    public int getReducerSamples() {
+        return reducerSamples;
+    }
+
+    public void setReducerSamples(int reducerSamples) {
+        this.reducerSamples = reducerSamples;
+    }
+
     public boolean isAllowConnectionAfterTermination() {
         return allowConnectionAfterTermination;
     }
@@ -559,30 +584,6 @@ public abstract class ViburConfig {
 
     public void setEnableJMX(boolean enableJMX) {
         this.enableJMX = enableJMX;
-    }
-
-    protected String getPoolReducerClass() {
-        return poolReducerClass;
-    }
-
-    protected void setPoolReducerClass(String poolReducerClass) {
-        this.poolReducerClass = poolReducerClass;
-    }
-
-    public int getReducerTimeIntervalInSeconds() {
-        return reducerTimeIntervalInSeconds;
-    }
-
-    public void setReducerTimeIntervalInSeconds(int reducerTimeIntervalInSeconds) {
-        this.reducerTimeIntervalInSeconds = reducerTimeIntervalInSeconds;
-    }
-
-    public int getReducerSamples() {
-        return reducerSamples;
-    }
-
-    public void setReducerSamples(int reducerSamples) {
-        this.reducerSamples = reducerSamples;
     }
 
     public long getConnectionTimeoutInMs() {
