@@ -34,6 +34,7 @@ import java.lang.reflect.Proxy;
 import java.net.URL;
 import java.net.URLConnection;
 import java.sql.*;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
@@ -241,7 +242,7 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
                     isPoolEnableConnectionTracking() ? new ViburListener(this) : null);
             setPool(pool);
         }
-        poolOperations = new PoolOperations(this);
+        poolOperations = new PoolOperations(this, connectionFactory, pool);
 
         initPoolReducer();
         initStatementCache();
@@ -258,6 +259,8 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
 
         if (getPool() != null)
             getPool().terminate();
+        TakenConnection[] takenConnections = getTakenConnections();
+
         if (getPoolReducer() != null)
             getPoolReducer().terminate();
         if (getStatementCache() != null)
@@ -266,7 +269,10 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
         if (isEnableJMX())
             unregisterMBean(this);
 
-        logger.info("Terminated {}", this);
+        if (!isPoolEnableConnectionTracking())
+            logger.info("Terminated {}", this);
+        else
+            logger.info("Terminated {}, remaining taken connections {}", this, Arrays.deepToString(takenConnections));
     }
 
     @Override

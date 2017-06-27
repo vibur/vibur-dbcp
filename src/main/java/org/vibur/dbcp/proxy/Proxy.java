@@ -37,9 +37,7 @@ public final class Proxy {
 
     public static Connection newProxyConnection(ConnHolder conn, PoolOperations poolOperations, ViburConfig config) {
         InvocationHandler handler = new ConnectionInvocationHandler(conn, poolOperations, config);
-        Connection proxy = newProxy(connectionCtor, handler);
-        conn.setProxyConnection(proxy);
-        return proxy;
+        return newProxy(connectionCtor, handler);
     }
 
     static Statement newProxyStatement(StatementHolder statement, Connection connProxy,

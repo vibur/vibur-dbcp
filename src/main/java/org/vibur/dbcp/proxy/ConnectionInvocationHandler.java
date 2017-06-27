@@ -52,9 +52,6 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
 
     @Override
     Object unrestrictedInvoke(Connection proxy, Method method, Object[] args) throws SQLException {
-        if (poolEnableConnectionTracking)
-            conn.setLastAccessNanoTime(System.nanoTime());
-
         String methodName = method.getName();
 
         if (methodName == "close")
@@ -71,6 +68,9 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
 
     @Override
     Object restrictedInvoke(Connection proxy, Method method, Object[] args) throws SQLException {
+        if (poolEnableConnectionTracking)
+            conn.setLastAccessNanoTime(System.nanoTime());
+
         String methodName = method.getName();
 
         // Methods which results have to be proxied so that when getConnection() is called

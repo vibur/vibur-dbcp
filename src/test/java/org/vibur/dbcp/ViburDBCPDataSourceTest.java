@@ -195,7 +195,7 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
 
     @Test
     public void testConnectionCloseAfterPoolTerminationShouldCloseTheInternalConnectionToo() throws SQLException {
-        ViburDBCPDataSource ds = createDataSourceNoStatementsCache();
+        ViburDBCPDataSource ds = createDataSourceWithTracking();
 
         Connection connection = ds.getConnection();
         ds.close();
@@ -224,6 +224,7 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
     @Test
     public void testGetConnectionAfterPoolTerminationFail() throws SQLException {
         ViburDBCPDataSource ds = createDataSourceNoStatementsCache();
+        ds.setAllowConnectionAfterTermination(false); // that's the default value
         ds.close();
 
         exception.expect(SQLException.class);
@@ -280,8 +281,11 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
         assertTrue(currentNanoTime > takenNanoTime);
         assertEquals(0, takenConnections[0].getLastAccessNanoTime());
 
-        connection.isClosed(); // invokes a "random" method on the connection
-        assertEquals(takenNanoTime, takenConnections[0].getTakenNanoTime());
+        connection.isClosed(); // "unrestricted" methods such as close(), isClosed(), etc don't impact the lastAccessNanoTime
+        assertEquals(0, takenConnections[0].getLastAccessNanoTime());
+
+        connection.isReadOnly(); // all other "restricted" methods impact the lastAccessNanoTime
+        assertEquals(takenNanoTime, takenConnections[0].getTakenNanoTime()); // takenNanoTime shouldn't change as the connection is not restored, i.e., closed() yet
         assertTrue(currentNanoTime < takenConnections[0].getLastAccessNanoTime());
 
         connection.close();

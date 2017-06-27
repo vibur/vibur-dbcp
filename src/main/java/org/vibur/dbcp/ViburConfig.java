@@ -144,8 +144,9 @@ public abstract class ViburConfig {
      * methods will be selected to obtain a connection from it in FIFO order, and no thread will be starved out from
      * accessing the pool's underlying resources. */
     private boolean poolFair = true;
-    /** If {@code true}, the pool will keep information for the current stack trace of every taken connection.
-     * See also {@link #logTakenConnectionsOnTimeout}. */
+    /** If {@code true}, the pool will keep information for the current stack trace of every taken connection plus
+     * timing information about the connection last use, taken time, etc. See also {@link #logTakenConnectionsOnTimeout}
+     * and {@link TakenConnection}. */
     private boolean poolEnableConnectionTracking = false;
 
     private PoolService<ConnHolder> pool = null;
@@ -487,7 +488,7 @@ public abstract class ViburConfig {
         this.pool = pool;
     }
 
-    public ConcurrentCollection<ConnHolder> getConcurrentCollection() {
+    protected ConcurrentCollection<ConnHolder> getConcurrentCollection() {
         return concurrentCollection;
     }
 
@@ -495,7 +496,7 @@ public abstract class ViburConfig {
         this.concurrentCollection = concurrentCollection;
     }
 
-    public ViburObjectFactory getConnectionFactory() {
+    protected ViburObjectFactory getConnectionFactory() {
         return connectionFactory;
     }
 
@@ -503,7 +504,7 @@ public abstract class ViburConfig {
         this.connectionFactory = connectionFactory;
     }
 
-    public ThreadedPoolReducer getPoolReducer() {
+    protected ThreadedPoolReducer getPoolReducer() {
         return poolReducer;
     }
 
@@ -560,7 +561,7 @@ public abstract class ViburConfig {
         this.enableJMX = enableJMX;
     }
 
-    public String getPoolReducerClass() {
+    protected String getPoolReducerClass() {
         return poolReducerClass;
     }
 

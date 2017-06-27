@@ -61,10 +61,10 @@ public class PoolOperations {
      *
      * @param dataSource the Vibur DBCP dataSource on which we will operate
      */
-    public PoolOperations(ViburDBCPDataSource dataSource) {
+    public PoolOperations(ViburDBCPDataSource dataSource, ViburObjectFactory connectionFactory, PoolService<ConnHolder> poolService) {
         this.dataSource = dataSource;
-        this.connectionFactory = dataSource.getConnectionFactory();
-        this.poolService = dataSource.getPool();
+        this.connectionFactory = connectionFactory;
+        this.poolService = poolService;
         this.criticalSQLStates = new HashSet<>(Arrays.asList(
                 whitespaces.matcher(dataSource.getCriticalSQLStates()).replaceAll("").split(",")));
     }
@@ -75,7 +75,9 @@ public class PoolOperations {
             if (conn != null) { // we were able to obtain a connection from the pool within the given timeout
                 if (logger.isTraceEnabled())
                     logger.trace("Taking rawConnection {}", conn.rawConnection());
-                return newProxyConnection(conn, this, dataSource);
+                Connection proxy = newProxyConnection(conn, this, dataSource);
+                conn.setProxyConnection(proxy);
+                return proxy;
             }
 
             if (poolService.isTerminated())
@@ -131,7 +133,7 @@ public class PoolOperations {
         int connVersion = conn.version();
         SQLException criticalException = getCriticalSQLException(exceptions);
         if (criticalException != null && connectionFactory.compareAndSetVersion(connVersion, connVersion + 1)) {
-            int destroyed = dataSource.getPool().drainCreated(); // destroys all connections in the pool
+            int destroyed = poolService.drainCreated(); // destroys all connections in the pool
             logger.error("Critical SQLState {} occurred, destroyed {} connections from pool {}, current connection version is {}.",
                     criticalException.getSQLState(), destroyed, getPoolName(dataSource), connectionFactory.version(), criticalException);
         }

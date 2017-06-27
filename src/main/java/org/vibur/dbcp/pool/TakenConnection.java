@@ -18,37 +18,93 @@ package org.vibur.dbcp.pool;
 
 import java.sql.Connection;
 
+import static java.lang.Integer.toHexString;
+
 /**
  * Represents a currently taken proxy Connection, its associated timing data, the thread that has taken it, and
- * the stack trace at the moment when the Connection was taken.
+ * the stack trace at the moment when the Connection was taken. Most of the fields of this class are used only if
+ * {@link org.vibur.dbcp.ViburConfig#poolEnableConnectionTracking poolEnableConnectionTracking} is allowed.
  *
  * @author Simeon Malchev
  */
-public interface TakenConnection {
+public abstract class TakenConnection {
+
+    TakenConnection() { }
+
+    // the proxy Connection, used when poolEnableConnectionTracking is allowed
+    private Connection proxyConnection = null;
+    // used when poolEnableConnectionTracking is allowed or if there are GetConnection or CloseConnection hooks registered
+    private long takenNanoTime = 0;
+    // the last nano time when a method was called on the proxyConnection, used when poolEnableConnectionTracking is allowed
+    private long lastAccessNanoTime = 0;
+
+    // these 2 fields are used when poolEnableConnectionTracking is allowed
+    private Thread thread = null;
+    private Throwable location = null;
 
     /**
      * Returns the taken proxy Connection. The application can check whether the Connection is still in taken state
      * via calling the Connection {@code isClosed()} method.
      */
-    Connection getProxyConnection();
+    public Connection getProxyConnection() {
+        return proxyConnection;
+    }
+
+    void setProxyConnection(Connection proxyConnection) {
+        this.proxyConnection = proxyConnection;
+    }
 
     /**
      * Returns the nano time when the Connection was taken.
      */
-    long getTakenNanoTime();
+    public long getTakenNanoTime() {
+        return takenNanoTime;
+    }
+
+    void setTakenNanoTime(long takenNanoTime) {
+        this.takenNanoTime = takenNanoTime;
+    }
 
     /**
      * Returns the nano time when a method was last invoked on this Connection.
      */
-    long getLastAccessNanoTime();
+    public long getLastAccessNanoTime() {
+        return lastAccessNanoTime;
+    }
+
+    public void setLastAccessNanoTime(long lastAccessNanoTime) {
+        this.lastAccessNanoTime = lastAccessNanoTime;
+    }
 
     /**
      * Returns the thread that has taken this Connection.
      */
-    Thread getThread();
+    public Thread getThread() {
+        return thread;
+    }
+
+    void setThread(Thread thread) {
+        this.thread = thread;
+    }
+
 
     /**
      * Returns the stack trace at the moment when the connection was taken.
      */
-    Throwable getLocation();
+    public Throwable getLocation() {
+        return location;
+    }
+
+    void setLocation(Throwable location) {
+        this.location = location;
+    }
+
+    @Override
+    public String toString() {
+        return "TakenConnection@" + toHexString(hashCode())+ '[' + proxyConnection +
+                ", takenNanoTime=" + takenNanoTime +
+                ", lastAccessNanoTime=" + lastAccessNanoTime +
+                ", thread=" + thread +
+                ']';
+    }
 }
