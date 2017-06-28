@@ -212,7 +212,7 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
     @Test
     public void testGetConnectionAfterPoolTermination() throws SQLException {
         ViburDBCPDataSource ds = createDataSourceNoStatementsCache();
-        ds.setAllowConnectionAfterTermination(true);
+        ds.setAllowConnectionAfterTermination(true); // enable the feature
         ds.close();
 
         Connection connection = ds.getConnection();

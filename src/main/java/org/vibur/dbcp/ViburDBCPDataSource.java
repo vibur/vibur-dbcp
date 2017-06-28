@@ -270,8 +270,7 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
         if (!isPoolEnableConnectionTracking())
             logger.info("Terminated {}", this);
         else
-            logger.info("Terminated {}, remaining taken connections {}, current nanoTime = {}",
-                    this, Arrays.deepToString(takenConnections), System.nanoTime());
+            logger.info("Terminated {}, remaining taken connections {}", this, Arrays.deepToString(takenConnections));
     }
 
     @Override
