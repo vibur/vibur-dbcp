@@ -16,6 +16,7 @@
 
 package org.vibur.dbcp;
 
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.pool.*;
 import org.vibur.dbcp.proxy.ConnectionInvocationHandler;
@@ -36,7 +37,6 @@ import java.net.URLConnection;
 import java.sql.*;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.logging.Logger;
 
 import static java.lang.Boolean.parseBoolean;
 import static java.lang.Float.parseFloat;
@@ -65,7 +65,9 @@ import static org.vibur.objectpool.util.ArgumentValidation.forbidIllegalArgument
  */
 public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource {
 
-    private static final org.slf4j.Logger logger = LoggerFactory.getLogger(ViburDBCPDataSource.class);
+    private static final Logger logger = LoggerFactory.getLogger(ViburDBCPDataSource.class);
+
+    private static final TakenConnection[] NO_TAKEN_CONNECTIONS = new TakenConnection[0];
 
     private final AtomicReference<State> state = new AtomicReference<>(NEW);
 
@@ -268,7 +270,8 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
         if (!isPoolEnableConnectionTracking())
             logger.info("Terminated {}", this);
         else
-            logger.info("Terminated {}, remaining taken connections {}", this, Arrays.deepToString(takenConnections));
+            logger.info("Terminated {}, remaining taken connections {}, current nanoTime = {}",
+                    this, Arrays.deepToString(takenConnections), System.nanoTime());
     }
 
     @Override
@@ -476,7 +479,7 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
     @Override
     public TakenConnection[] getTakenConnections() {
         if (!isPoolEnableConnectionTracking())
-            return new TakenConnection[0];
+            return NO_TAKEN_CONNECTIONS;
 
         return ((ViburListener) getPool().listener()).getTakenConnections();
     }
@@ -502,7 +505,7 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
     }
 
     @Override
-    public Logger getParentLogger() throws SQLFeatureNotSupportedException {
+    public java.util.logging.Logger getParentLogger() throws SQLFeatureNotSupportedException {
         throw new SQLFeatureNotSupportedException();
     }
 

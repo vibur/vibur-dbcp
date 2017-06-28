@@ -66,7 +66,11 @@ public abstract class TakenConnection {
     }
 
     /**
-     * Returns the nano time when a method was last invoked on this Connection.
+     * Returns the nano time when a method was last invoked on this Connection. Only "restricted" methods
+     * invocations are updating the {@code lastAccessNanoTime}, i.e., methods such as {@code close()},
+     * {@code isClosed()} do not update the {@code lastAccessNanoTime}. See
+     * {@link org.vibur.dbcp.proxy.ConnectionInvocationHandler#restrictedInvoke restrictedInvoke()} for more details.
+     * A value of {@code 0} indicates that a restricted method was never called on this Connection proxy.
      */
     public long getLastAccessNanoTime() {
         return lastAccessNanoTime;
