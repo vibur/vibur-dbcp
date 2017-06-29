@@ -32,7 +32,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  */
 abstract class ExceptionCollector {
 
-    private static final SQLException[] emptyArray = new SQLException[0];
+    private static final SQLException[] NO_EXCEPTIONS = new SQLException[0];
 
     private volatile Queue<SQLException> exceptions = null; // will be lazily initialized if an SQLException occurs
 
@@ -67,8 +67,11 @@ abstract class ExceptionCollector {
     final SQLException[] getExceptions() {
         Queue<SQLException> ex = exceptions;
         if (ex == null)
-            return emptyArray;
-        Object[] array = ex.toArray();
-        return Arrays.copyOf(array, array.length, SQLException[].class);
+            return NO_EXCEPTIONS;
+
+        SQLException[] exArray = ex.toArray(new SQLException[64]);
+        int size = 0;
+        while (size < exArray.length && exArray[size] != null) size++;
+        return Arrays.copyOf(exArray, size);
     }
 }

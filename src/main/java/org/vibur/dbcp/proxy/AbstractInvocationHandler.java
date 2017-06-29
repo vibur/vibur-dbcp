@@ -60,7 +60,7 @@ abstract class AbstractInvocationHandler<T> extends ExceptionCollector implement
         this.target = target;
         this.config = config;
         this.onMethodInvocation = config.getInvocationHooks().onMethodInvocation();
-        // not every AbstractInvocationHandler is an ExceptionCollector
+        // not every AbstractInvocationHandler (this) is an ExceptionCollector
         this.exceptionCollector = exceptionCollector == null ? this : exceptionCollector;
     }
 
