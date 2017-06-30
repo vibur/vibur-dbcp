@@ -46,7 +46,7 @@ public final class ViburUtils {
                 + '/' + (!initialState ? 'w' : 't') + ')'; // poolState: w == working, t == terminated
         if (initialState == pool.isTerminated()) // make sure the pool state has not changed in the meantime
             return result;
-        return getPoolName(config); // otherwise try one more time
+        return getPoolName(config); // this is one level of recursion only, pool state changes only once
     }
 
     public static String getStackTraceAsString(StackTraceElement[] stackTrace) {
