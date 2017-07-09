@@ -55,4 +55,9 @@ public class ConnHolder extends TakenConnection {
     void setRestoredNanoTime(long restoredNanoTime) {
         this.restoredNanoTime = restoredNanoTime;
     }
+
+    @Override
+    public void setLastAccessNanoTime(long lastAccessNanoTime) {
+        super.setLastAccessNanoTime(lastAccessNanoTime);
+    }
 }

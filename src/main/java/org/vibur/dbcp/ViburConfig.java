@@ -397,7 +397,7 @@ public abstract class ViburConfig {
         return connector;
     }
 
-    public void setConnector(Connector connector) {
+    protected void setConnector(Connector connector) {
         this.connector = connector;
     }
 
@@ -638,7 +638,7 @@ public abstract class ViburConfig {
         return criticalSQLStates;
     }
 
-    protected void setCriticalSQLStates(String criticalSQLStates) {
+    public void setCriticalSQLStates(String criticalSQLStates) {
         this.criticalSQLStates = criticalSQLStates;
     }
 

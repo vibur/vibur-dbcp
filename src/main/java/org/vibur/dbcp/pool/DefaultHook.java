@@ -55,7 +55,7 @@ public abstract class DefaultHook {
 
     abstract boolean isEnabled();
 
-    ////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////////////
     // Connection hooks:
 
     public static class InitConnection extends DefaultHook implements Hook.InitConnection {
@@ -125,7 +125,7 @@ public abstract class DefaultHook {
         }
     }
 
-    ////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////////////
     // Invocation hooks:
 
     public static class QueryTiming extends DefaultHook implements Hook.StatementExecution {
@@ -203,7 +203,7 @@ public abstract class DefaultHook {
         }
     }
 
-    ///////////////
+    ///////////////////////////////////////////////////////////////////////////////////////////////
     // Hooks utils:
 
     public static final class Util {

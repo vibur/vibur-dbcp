@@ -76,7 +76,7 @@ public abstract class TakenConnection {
         return lastAccessNanoTime;
     }
 
-    public void setLastAccessNanoTime(long lastAccessNanoTime) {
+    void setLastAccessNanoTime(long lastAccessNanoTime) {
         this.lastAccessNanoTime = lastAccessNanoTime;
     }
 
