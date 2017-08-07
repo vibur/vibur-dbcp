@@ -67,7 +67,7 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
 
     private static final Logger logger = LoggerFactory.getLogger(ViburDBCPDataSource.class);
 
-    private static final TakenConnection[] NO_TAKEN_CONNECTIONS = new TakenConnection[0];
+    private static final TakenConnection[] NO_TAKEN_CONNECTIONS = {};
 
     private final AtomicReference<State> state = new AtomicReference<>(NEW);
 

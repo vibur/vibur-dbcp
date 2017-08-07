@@ -33,21 +33,21 @@ public class ConnHooksHolder {
 
     /** A list of programming {@linkplain Hook.InitConnection#on hooks} that will be invoked only once <i>after</i>
      * the raw JDBC Connection is first created. Their execution should take as short time as possible. */
-    private Hook.InitConnection[] onInit = new Hook.InitConnection[0];
+    private Hook.InitConnection[] onInit = {};
 
     /** A list of programming {@linkplain Hook.GetConnection#on hooks} that will be invoked on the raw JDBC Connection
      * <i>after</i> it was taken from the pool as part of the {@link DataSource#getConnection()} flow.
      * Their execution should take as short time as possible. */
-    private Hook.GetConnection[] onGet = new Hook.GetConnection[0];
+    private Hook.GetConnection[] onGet = {};
 
     /** A list of programming {@linkplain Hook.CloseConnection#on hooks} that will be invoked on the raw JDBC Connection
      * <i>before</i> it is restored back to the pool as part of the {@link java.sql.Connection#close()} flow.
      * Their execution should take as short time as possible. */
-    private Hook.CloseConnection[] onClose = new Hook.CloseConnection[0];
+    private Hook.CloseConnection[] onClose = {};
 
     /** A list of programming {@linkplain Hook.DestroyConnection#on hooks} that will be invoked only once <i>after</i>
      * the raw JDBC Connection is closed/destroyed. Their execution should take as short time as possible. */
-    private Hook.DestroyConnection[] onDestroy = new Hook.DestroyConnection[0];
+    private Hook.DestroyConnection[] onDestroy = {};
 
     public void addOnInit(Hook.InitConnection hook) {
         onInit = addHook(onInit, hook);

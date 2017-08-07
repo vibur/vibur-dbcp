@@ -35,15 +35,15 @@ public class InvocationHooksHolder {
      * methods on the proxied JDBC interfaces. Methods inherited from the {@link Object} class, methods related to the
      * "closed" state of the JDBC objects (e.g., close(), isClosed()), as well as methods from the {@link java.sql.Wrapper}
      * interface are not intercepted. The hooks execution should take as short time as possible. */
-    private Hook.MethodInvocation[] onMethodInvocation = new Hook.MethodInvocation[0];
+    private Hook.MethodInvocation[] onMethodInvocation = {};
 
     /** A list of programming {@linkplain Hook.StatementExecution#on hooks} that will be invoked <i>around</i> the call
      * of each JDBC Statement "execute..." method. Their execution should take as short time as possible. */
-    private Hook.StatementExecution[] onStatementExecution = new Hook.StatementExecution[0];
+    private Hook.StatementExecution[] onStatementExecution = {};
 
     /** A list of programming {@linkplain Hook.ResultSetRetrieval#on hooks} that will be invoked <i>at the end</i> of
      * each ResultSet retrieval. Their execution should take as short time as possible. */
-    private Hook.ResultSetRetrieval[] onResultSetRetrieval = new Hook.ResultSetRetrieval[0];
+    private Hook.ResultSetRetrieval[] onResultSetRetrieval = {};
 
     public void addOnMethodInvocation(Hook.MethodInvocation hook) {
         onMethodInvocation = addHook(onMethodInvocation, hook);

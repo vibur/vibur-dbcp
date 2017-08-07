@@ -32,7 +32,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  */
 abstract class ExceptionCollector {
 
-    private static final SQLException[] NO_EXCEPTIONS = new SQLException[0];
+    private static final SQLException[] NO_EXCEPTIONS = {};
 
     private volatile Queue<SQLException> exceptions = null; // will be lazily initialized if an SQLException occurs
 

@@ -85,6 +85,7 @@ public class ConnectionFactory implements ViburObjectFactory {
                 logger.debug("Couldn't create rawConnection, attempt {}", attempt, e);
                 if (attempt++ >= config.getAcquireRetryAttempts())
                     throw new ViburDBCPException(e);
+
                 try {
                     MILLISECONDS.sleep(config.getAcquireRetryDelayInMs());
                 } catch (InterruptedException ignored) {
