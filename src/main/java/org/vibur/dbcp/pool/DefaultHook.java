@@ -143,8 +143,7 @@ public abstract class DefaultHook {
                 return proceed.on(proxy, method, args, sqlQuery, sqlQueryParams, proceed);
 
             } catch (SQLException e) {
-                sqlException = e;
-                throw e;
+                throw sqlException = e;
             } finally {
                 long takenNanos = System.nanoTime() - startTime;
                 logQueryExecution(sqlQuery, sqlQueryParams, takenNanos, sqlException);
