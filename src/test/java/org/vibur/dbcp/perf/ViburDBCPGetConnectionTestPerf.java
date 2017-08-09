@@ -65,10 +65,8 @@ public class ViburDBCPGetConnectionTestPerf {
         CountDownLatch readySignal = new CountDownLatch(THREADS_COUNT);
         CountDownLatch doneSignal = new CountDownLatch(THREADS_COUNT);
 
-        Worker w = new Worker(ds, errors, DO_WORK_FOR_MS, readySignal, startSignal, doneSignal);
-
         for (int i = 0; i < THREADS_COUNT; i++) {
-            Thread thread = new Thread(w);
+            Thread thread = new Thread(new Worker(ds, errors, DO_WORK_FOR_MS, readySignal, startSignal, doneSignal));
             thread.start();
         }
 
