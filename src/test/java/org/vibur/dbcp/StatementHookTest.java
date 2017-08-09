@@ -36,7 +36,7 @@ import static org.junit.Assert.assertTrue;
 public class StatementHookTest extends AbstractDataSourceTest {
 
     @Test
-    public void testStatementHook() throws SQLException {
+    public void testStatementExecutionHook() throws SQLException {
         final List<String> executionOrder = new ArrayList<>();
 
         ViburDBCPDataSource ds = createDataSourceNotStarted();
