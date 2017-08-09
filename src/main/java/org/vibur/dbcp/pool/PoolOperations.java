@@ -74,23 +74,23 @@ public class PoolOperations {
 
     public Connection getProxyConnection(long timeout) throws SQLException {
         ConnHolder conn = getConnHolder(timeout);
-        if (conn != null) { // we were able to obtain a connection from the pool within the given timeout
-            if (logger.isTraceEnabled())
-                logger.trace("Taking rawConnection {}", conn.rawConnection());
-            Connection proxy = newProxyConnection(conn, this, dataSource);
-            conn.setProxyConnection(proxy);
-            return proxy;
+        if (conn == null) { // we were *not* able to obtain a connection from the pool within the given timeout
+            if (poolService.isTerminated())
+                throw new SQLException(format("Pool %s, the poolService is terminated.", getPoolName(dataSource)),
+                        SQLSTATE_POOL_CLOSED_ERROR);
+
+            if (dataSource.isLogTakenConnectionsOnTimeout() && logger.isWarnEnabled())
+                logger.warn("Pool {}, couldn't obtain SQL connection within {} ms, full list of taken connections begins:\n{}",
+                        getPoolName(dataSource), timeout, dataSource.getTakenConnectionsStackTraces());
+            throw new SQLTimeoutException(format("Pool %s, couldn't obtain SQL connection within %d ms.",
+                    getPoolName(dataSource), timeout), SQLSTATE_TIMEOUT_ERROR, (int) timeout);
         }
 
-        if (poolService.isTerminated())
-            throw new SQLException(format("Pool %s, the poolService is terminated.", getPoolName(dataSource)), SQLSTATE_POOL_CLOSED_ERROR);
-
-        if (dataSource.isLogTakenConnectionsOnTimeout() && logger.isWarnEnabled())
-            logger.warn("Pool {}, couldn't obtain SQL connection within {} ms, full list of taken connections begins:\n{}",
-                    getPoolName(dataSource), timeout, dataSource.getTakenConnectionsStackTraces());
-
-        throw new SQLTimeoutException(format("Pool %s, couldn't obtain SQL connection within %d ms.",
-                getPoolName(dataSource), timeout), SQLSTATE_TIMEOUT_ERROR, (int) timeout);
+        if (logger.isTraceEnabled())
+            logger.trace("Taking rawConnection {}", conn.rawConnection());
+        Connection proxy = newProxyConnection(conn, this, dataSource);
+        conn.setProxyConnection(proxy);
+        return proxy;
     }
 
     private ConnHolder getConnHolder(long timeout) throws SQLException {

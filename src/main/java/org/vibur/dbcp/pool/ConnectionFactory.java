@@ -73,39 +73,61 @@ public class ConnectionFactory implements ViburObjectFactory {
 
     @Override
     public ConnHolder create(Connector connector) throws ViburDBCPException {
-        Hook.InitConnection[] onInit = connHooks.onInit();
-        long startTime = onInit.length > 0 ? System.nanoTime() : 0;
+        long startTime = connHooks.onInit().length > 0 ? System.nanoTime() : 0;
 
-        int attempt = 0;
+        int attempt = 1;
         Connection rawConnection = null;
+        SQLException sqlException = null;
         while (rawConnection == null) {
             try {
                 rawConnection = requireNonNull(connector.connect());
-            } catch (SQLException e) {
-                logger.debug("Couldn't create rawConnection, attempt {}", attempt, e);
-                if (attempt++ >= config.getAcquireRetryAttempts())
-                    throw new ViburDBCPException(e);
+                sqlException = null; // clear the previous exception (if any) after successfully establishing the connection
 
+            } catch (SQLException e) {
+                if (sqlException != null)
+                    e.setNextException(sqlException);
+                sqlException = e;
+
+                logger.debug("Couldn't create rawConnection, attempt {}", attempt, e);
+                if (attempt > config.getAcquireRetryAttempts())
+                    break;
+
+                attempt++;
                 try {
                     MILLISECONDS.sleep(config.getAcquireRetryDelayInMs());
-                } catch (InterruptedException ignored) {
-                }
+                } catch (InterruptedException ignored) { }
             }
         }
 
-        try {
-            if (onInit.length > 0) {
-                long takenNanos = System.nanoTime() - startTime;
+        return postCreate(rawConnection, sqlException, startTime);
+    }
+
+    private ConnHolder postCreate(Connection rawConnection, SQLException sqlException, long startTime) throws ViburDBCPException {
+        Hook.InitConnection[] onInit = connHooks.onInit();
+        long currentNanoTime = 0;
+        if (onInit.length > 0) {
+            currentNanoTime = System.nanoTime();
+            long takenNanos = currentNanoTime - startTime;
+            try {
                 for (Hook.InitConnection hook : onInit)
                     hook.on(rawConnection, takenNanos);
+
+            } catch (SQLException e) {
+                quietClose(rawConnection);
+                if (sqlException != null)
+                    sqlException.setNextException(e);
+                else
+                    sqlException = e;
             }
-        } catch (SQLException e) {
-            quietClose(rawConnection);
-            throw new ViburDBCPException(e);
         }
+
+        if (sqlException != null)
+            throw new ViburDBCPException(sqlException);
+
         logger.debug("Created rawConnection {}", rawConnection);
-        return prepareTracking(new ConnHolder(rawConnection, version(),
-                config.getConnectionIdleLimitInSeconds() >= 0 ? System.nanoTime() : 0));
+        if (config.getConnectionIdleLimitInSeconds() >= 0 && onInit.length == 0)
+            currentNanoTime = System.nanoTime();
+        return prepareTracking(new ConnHolder(rawConnection, version(), currentNanoTime));
     }
 
     @Override

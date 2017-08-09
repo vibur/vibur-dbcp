@@ -145,7 +145,6 @@ public class ViburDBCPGetConnectionTestPerf {
 
         try {
             Thread.sleep(millis);
-        } catch (InterruptedException ignored) {
-        }
+        } catch (InterruptedException ignored) { }
     }
 }

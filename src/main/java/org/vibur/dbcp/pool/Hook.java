@@ -52,12 +52,17 @@ public interface Hook {
          * A programming hook that will be invoked only once <i>after</i> the raw JDBC Connection is first created.
          * Its execution should take as short time as possible.
          *
-         * <p>The {@code takenNanos} parameter includes as a minimum the time taken to establish the physical
-         * connection to the database, plus possibly the time taken to make up to {@link ViburConfig#acquireRetryAttempts
-         * that many} retry attempts that are separated by a {@link ViburConfig#acquireRetryDelayInMs retry delay}.
+         * <p>The {@code takenNanos} parameter includes as a minimum the time taken to establish (or attempt to
+         * establish) one physical connection to the database, plus possibly the time taken to make up to
+         * {@link ViburConfig#acquireRetryAttempts} that are separated by a {@link ViburConfig#acquireRetryDelayInMs},
+         * if there were errors while trying to establish the connection.
          *
-         * @param rawConnection the just created <b>raw</b> JDBC connection
-         * @param takenNanos the time taken to establish this connection in nanoseconds; also see above
+         * <p>Worth noting that since version 19.0 the {@code rawConnection} parameter can be {@code null}, which
+         * means that the attempt to establish a connection, plus all reattempts, were unsuccessful.
+         *
+         * @param rawConnection the just created <b>raw</b> JDBC connection; <b>note that it can be
+         *                      {@code null}</b> if we were unable to establish a connection to the database
+         * @param takenNanos the time taken to establish (or attempt to establish) the connection in nanoseconds
          * @throws SQLException to indicate that an SQL error has occurred
          */
         void on(Connection rawConnection, long takenNanos) throws SQLException;
@@ -72,11 +77,11 @@ public interface Hook {
          * <p>Worth noting that since version 19.0 the {@code takenNanos} parameter represents only the
          * time waited for an object to become available in the pool, excluding any object creation time.
          *
-         * @param rawConnection the retrieved from the pool <b>raw</b> JDBC connection; <b>note that it can be
+         * @param rawConnection the retrieved from the pool <b>raw</b> JDBC Connection; <b>note that it can be
          *                      {@code null}</b> if we were unable to obtain a connection from the pool within the
          *                      specified time limit or if we attempted to create a new Connection in the pool and
          *                      the attempt failed with an exception
-         * @param takenNanos the time taken to get this connection in nanoseconds; also see above
+         * @param takenNanos the time taken to get this connection in nanoseconds
          * @throws SQLException to indicate that an SQL error has occurred
          */
         void on(Connection rawConnection, long takenNanos) throws SQLException;
@@ -87,7 +92,7 @@ public interface Hook {
          * A programming hook that will be invoked on the raw JDBC Connection <i>before</i> it is restored back to the
          * pool as part of the {@link Connection#close()} flow. Its execution should take as short time as possible.
          *
-         * @param rawConnection the <b>raw</b> JDBC connection that will be returned to the pool
+         * @param rawConnection the <b>raw</b> JDBC Connection that will be returned to the pool
          * @param takenNanos the time for which this connection was held by the application before it was restored
          *                   to the pool in nanoseconds
          * @throws SQLException to indicate that an SQL error has occurred
@@ -100,7 +105,7 @@ public interface Hook {
          * A programming hook that will be invoked only once <i>after</i> the raw JDBC Connection is closed/destroyed.
          * Its execution should take as short time as possible.
          *
-         * @param rawConnection the <b>raw</b> JDBC connection that was just closed
+         * @param rawConnection the <b>raw</b> JDBC Connection that was just closed
          * @param takenNanos the time taken to close/destroy this connection in nanoseconds
          */
         void on(Connection rawConnection, long takenNanos);

@@ -111,11 +111,13 @@ public final class JdbcUtils {
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
     public static void clearWarnings(Connection rawConnection) throws SQLException {
-        rawConnection.clearWarnings();
+        if (rawConnection != null)
+            rawConnection.clearWarnings();
     }
 
     public static void clearWarnings(PreparedStatement rawStatement) throws SQLException {
-        rawStatement.clearWarnings();
+        if (rawStatement != null)
+            rawStatement.clearWarnings();
     }
 
     public static void quietClose(Connection rawConnection) {
