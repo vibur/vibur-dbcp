@@ -1,9 +1,18 @@
-Version 18.0 (28/06/2017) - RECOMMENDED
+Version 19.0 (09/08/2017) - RECOMMENDED
 =======================================
-* Added getTakenConnectionsStackTraces() and getTakenConnections() to ViburDataSource. The taken Connection information
-  now includes the takenNanoTime and lastAccessNanoTime, the thread that has taken the Connection and a Throwable
-  representing the location (stack trace) at the moment when the Connection was taken. The application also has access
-  to the taken Connection proxy and can close it forcefully if needed.
+* Change the invocation of InitConnection hook to cover cases when establishing the connection was unsuccessful.
+* Adapted the new functionality introduced in Vibur Object Pool 19.0 which allows the real time waited to obtain
+  a connection from the pool to be reported back to the GetConnection hook. Before the time reported to
+  GetConnection hook was sometimes "polluted" by the time taken to establish new connection to the database when
+  the pool was lazily creating such.
+* Javadoc updates and clarifications, various logging improvements.
+
+Version 18.0 (28/06/2017)
+=========================
+* Added getTakenConnectionsStackTraces() and getTakenConnections() to ViburDataSource interface. The taken Connection
+  information now includes the takenNanoTime and lastAccessNanoTime, the thread that has taken the Connection and a
+  Throwable representing the location (stack trace) at the moment when the Connection was taken. The application also
+  has access to the taken Connection proxy and can close it forcefully if needed.
 * Removed ValidateConnection hook due to being underutilized.
 * Various other logging improvements and refactoring.
 
