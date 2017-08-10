@@ -24,7 +24,8 @@ import java.sql.SQLException;
 
 /**
  * Defines the {@link ViburDBCPDataSource} lifecycle operations and states. Also, defines specific to Vibur
- * DataSource operations such as retrieving of a non-pooled connection and severing of a connection.
+ * DataSource operations such as retrieving and manipulating of non-pooled connections as well as operations
+ * giving information about the currently taken from the pool connections.
  *
  * @author Simeon Malchev
  */
