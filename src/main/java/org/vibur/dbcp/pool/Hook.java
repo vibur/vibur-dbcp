@@ -60,7 +60,7 @@ public interface Hook {
          * <p>Worth noting that since version 19.0 the {@code rawConnection} parameter can be {@code null}, which
          * means that the attempt to establish a connection, plus all reattempts, were unsuccessful.
          *
-         * @param rawConnection the just created <b>raw</b> JDBC connection; <b>note that it can be
+         * @param rawConnection the just created <b>raw</b> JDBC Connection; <b>note that it can be
          *                      {@code null}</b> if we were unable to establish a connection to the database
          * @param takenNanos the time taken to establish (or attempt to establish) the connection in nanoseconds
          * @throws SQLException to indicate that an SQL error has occurred
