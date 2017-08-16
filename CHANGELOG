@@ -1,5 +1,9 @@
-Version 19.0 (09/08/2017) - RECOMMENDED
+Version 19.1 (17/08/2017) - RECOMMENDED
 =======================================
+* Fixed a rarely occurring NPE in DefaultHook.InitConnection, introduced in version 19.0.
+
+Version 19.0 (09/08/2017)
+=========================
 * Change the invocation of InitConnection hook to cover cases when establishing the connection was unsuccessful.
 * Adapted the new functionality introduced in Vibur Object Pool 19.0 which allows the real time waited to obtain
   a connection from the pool to be reported back to the GetConnection hook. Before the time reported to
