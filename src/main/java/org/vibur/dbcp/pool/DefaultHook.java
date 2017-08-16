@@ -65,6 +65,8 @@ public abstract class DefaultHook {
 
         @Override
         public void on(Connection rawConnection, long takenNanos) throws SQLException {
+            if (rawConnection == null)
+                return;
             if (!validateConnection(rawConnection, config.getInitSQL(), config))
                 throw new SQLException("validateConnection() returned false", SQLSTATE_CONN_INIT_ERROR);
 

@@ -29,8 +29,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
-import static org.vibur.dbcp.ViburConfig.SQLSTATE_CONN_VALIDATE_ERROR;
 import static org.vibur.dbcp.util.JdbcUtils.*;
+import static org.vibur.dbcp.util.ViburUtils.waitTime;
 
 /**
  * The object factory which controls the lifecycle of the underlying JDBC Connections: creates them,
@@ -84,18 +84,14 @@ public class ConnectionFactory implements ViburObjectFactory {
                 sqlException = null; // clear the previous exception (if any) after successfully establishing the connection
 
             } catch (SQLException e) {
-                if (sqlException != null)
-                    e.setNextException(sqlException);
-                sqlException = e;
+                sqlException = chainSQLException(e, sqlException);
 
                 logger.debug("Couldn't create rawConnection, attempt {}", attempt, e);
                 if (attempt > config.getAcquireRetryAttempts())
                     break;
 
                 attempt++;
-                try {
-                    MILLISECONDS.sleep(config.getAcquireRetryDelayInMs());
-                } catch (InterruptedException ignored) { }
+                waitTime(MILLISECONDS, config.getAcquireRetryDelayInMs());
             }
         }
 
@@ -103,8 +99,9 @@ public class ConnectionFactory implements ViburObjectFactory {
     }
 
     private ConnHolder postCreate(Connection rawConnection, SQLException sqlException, long startTime) throws ViburDBCPException {
-        Hook.InitConnection[] onInit = connHooks.onInit();
         long currentNanoTime = 0;
+
+        Hook.InitConnection[] onInit = connHooks.onInit();
         if (onInit.length > 0) {
             currentNanoTime = System.nanoTime();
             long takenNanos = currentNanoTime - startTime;
@@ -114,10 +111,7 @@ public class ConnectionFactory implements ViburObjectFactory {
 
             } catch (SQLException e) {
                 quietClose(rawConnection);
-                if (sqlException != null)
-                    sqlException.setNextException(e);
-                else
-                    sqlException = e;
+                sqlException = chainSQLException(sqlException, e);
             }
         }
 
@@ -135,44 +129,47 @@ public class ConnectionFactory implements ViburObjectFactory {
         if (conn.version() != version())
             return false;
 
-        Connection rawConnection = conn.rawConnection();
-        try {
-            int idleLimit = config.getConnectionIdleLimitInSeconds();
-            if (idleLimit >= 0) {
+        int idleLimit = config.getConnectionIdleLimitInSeconds();
+        if (idleLimit >= 0) {
+            Connection rawConnection = conn.rawConnection();
+            try {
                 long idleNanos = System.nanoTime() - conn.getRestoredNanoTime();
                 if (NANOSECONDS.toSeconds(idleNanos) >= idleLimit
-                        && !validateConnection(rawConnection, config.getTestConnectionQuery(), config))
-                    throw new SQLException("validateConnection() returned false", SQLSTATE_CONN_VALIDATE_ERROR);
+                        && !validateConnection(rawConnection, config.getTestConnectionQuery(), config)) {
+                    logger.debug("Couldn't validate rawConnection {}", rawConnection);
+                    return false;
+                }
+            } catch (SQLException e) {
+                logger.debug("Couldn't validate rawConnection {}", rawConnection, e);
+                return false;
             }
-
-            prepareTracking(conn);
-            return true;
-        } catch (SQLException e) {
-            logger.debug("Couldn't validate rawConnection {}", rawConnection, e);
-            return false;
         }
+
+        prepareTracking(conn);
+        return true;
     }
 
     @Override
     public boolean readyToRestore(ConnHolder conn) {
         clearTracking(conn); // we don't want to keep the tracking objects references
 
-        Connection rawConnection = conn.rawConnection();
-        try {
-            Hook.CloseConnection[] onClose = connHooks.onClose();
-            if (onClose.length > 0) {
+        Hook.CloseConnection[] onClose = connHooks.onClose();
+        if (onClose.length > 0) {
+            Connection rawConnection = conn.rawConnection();
+            try {
                 long takenNanos = System.nanoTime() - conn.getTakenNanoTime();
                 for (Hook.CloseConnection hook : onClose)
                     hook.on(rawConnection, takenNanos);
-            }
 
-            if (config.getConnectionIdleLimitInSeconds() >= 0)
-                conn.setRestoredNanoTime(System.nanoTime());
-            return true;
-        } catch (SQLException e) {
-            logger.debug("Couldn't reset rawConnection {}", rawConnection, e);
-            return false;
+            } catch (SQLException e) {
+                logger.debug("Couldn't reset rawConnection {}", rawConnection, e);
+                return false;
+            }
         }
+
+        if (config.getConnectionIdleLimitInSeconds() >= 0)
+            conn.setRestoredNanoTime(System.nanoTime());
+        return true;
     }
 
     private ConnHolder prepareTracking(ConnHolder conn) {

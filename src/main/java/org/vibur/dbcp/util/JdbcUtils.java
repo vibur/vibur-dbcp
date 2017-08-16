@@ -137,4 +137,13 @@ public final class JdbcUtils {
             logger.warn("Couldn't close {}", rawStatement, e);
         }
     }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    public static SQLException chainSQLException(SQLException root, SQLException e) {
+        if (root == null)
+            return e;
+        root.setNextException(e);
+        return root;
+    }
 }

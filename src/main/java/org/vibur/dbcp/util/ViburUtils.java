@@ -21,6 +21,7 @@ import org.vibur.objectpool.BasePool;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static java.lang.Integer.toHexString;
 
@@ -71,5 +72,11 @@ public final class ViburUtils {
         if (sqlQueryParams != null && !sqlQueryParams.isEmpty())
             result.append("\n-- Parameters:\n-- ").append(Arrays.deepToString(sqlQueryParams.toArray()));
         return result.toString();
+    }
+
+    public static void waitTime(TimeUnit unit, long duration) {
+        try {
+            unit.sleep(duration);
+        } catch (InterruptedException ignored) { }
     }
 }
