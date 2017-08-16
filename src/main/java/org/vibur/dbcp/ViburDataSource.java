@@ -24,7 +24,8 @@ import java.sql.SQLException;
 
 /**
  * Defines the {@link ViburDBCPDataSource} lifecycle operations and states. Also, defines specific to Vibur
- * DataSource operations such as retrieving of a non-pooled connection and severing of a connection.
+ * DataSource operations such as retrieving and manipulating of non-pooled connections as well as operations
+ * giving information about the currently taken from the pool connections.
  *
  * @author Simeon Malchev
  */
@@ -107,8 +108,8 @@ public interface ViburDataSource extends DataSource, AutoCloseable {
      * one of the {@link #getNonPooledConnection} methods. If the supplied connection is pooled, it will
      * be closed and removed from the pool and its underlying raw connection will be closed, too. In the
      * case when the supplied connection is non-pooled, it will be just closed.
-     * <p>
-     * Calling this method on a pooled or non-pooled connection that is already closed is a no-op.
+     *
+     * <p>Calling this method on a pooled or non-pooled connection that is already closed is a no-op.
      * When the {@code severConnection} method returns, the connection on which it is called will
      * be marked as closed.
      *
@@ -120,14 +121,21 @@ public interface ViburDataSource extends DataSource, AutoCloseable {
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
     /**
-     * See the comments for {@link ViburConfig#logTakenConnectionsOnTimeout}. Also see {@link #getTakenConnections}.
+     * Generates information about all currently taken connections, including the stack traces of the threads
+     * that have taken them, plus the threads names and states. This method implies that that the
+     * {@link ViburConfig#poolEnableConnectionTracking} option is enabled.
+     *
+     * <p>Also see {@link ViburConfig#logTakenConnectionsOnTimeout} and {@link #getTakenConnections}.
      */
     String getTakenConnectionsStackTraces();
 
     /**
      * Returns an array of all taken proxy Connections. Note that this is just a snapshot of the taken Connections
      * at the moment of the method call; the closed/restored state of some (or all) of the returned Connections may
-     * change immediately after this method returns. Also see {@link #getTakenConnectionsStackTraces}.
+     * change immediately after this method returns. This method implies that that the
+     * {@link ViburConfig#poolEnableConnectionTracking} option is enabled.
+     *
+     * <p>Also see {@link #getTakenConnectionsStackTraces}.
      *
      * @return an array of all taken proxy Connections
      */

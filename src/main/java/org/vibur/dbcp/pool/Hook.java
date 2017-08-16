@@ -60,7 +60,7 @@ public interface Hook {
          * <p>Worth noting that since version 19.0 the {@code rawConnection} parameter can be {@code null}, which
          * means that the attempt to establish a connection, plus all reattempts, were unsuccessful.
          *
-         * @param rawConnection the just created <b>raw</b> JDBC connection; <b>note that it can be
+         * @param rawConnection the just created <b>raw</b> JDBC Connection; <b>note that it can be
          *                      {@code null}</b> if we were unable to establish a connection to the database
          * @param takenNanos the time taken to establish (or attempt to establish) the connection in nanoseconds
          * @throws SQLException to indicate that an SQL error has occurred
@@ -79,7 +79,7 @@ public interface Hook {
          *
          * @param rawConnection the retrieved from the pool <b>raw</b> JDBC Connection; <b>note that it can be
          *                      {@code null}</b> if we were unable to obtain a connection from the pool within the
-         *                      specified time limit or if we attempted to create a new Connection in the pool and
+         *                      specified time limit or if we attempted to create a new connection in the pool and
          *                      the attempt failed with an exception
          * @param takenNanos the time taken to get this connection in nanoseconds
          * @throws SQLException to indicate that an SQL error has occurred
