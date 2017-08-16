@@ -35,6 +35,7 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.vibur.dbcp.ViburConfig.SQLSTATE_POOL_CLOSED_ERROR;
 import static org.vibur.dbcp.ViburConfig.SQLSTATE_TIMEOUT_ERROR;
 import static org.vibur.dbcp.proxy.Proxy.newProxyConnection;
+import static org.vibur.dbcp.util.JdbcUtils.chainSQLException;
 import static org.vibur.dbcp.util.ViburUtils.getPoolName;
 
 /**
@@ -117,11 +118,8 @@ public class PoolOperations {
                     hook.on(rawConnection, waitedNanos[0]);
 
             } catch (SQLException e) {
-                if (sqlException != null) {
-                    sqlException.setNextException(e);
-                    throw sqlException;
-                } else
-                    throw e;
+                //noinspection all
+                throw chainSQLException(sqlException, e);
             }
         }
     }
