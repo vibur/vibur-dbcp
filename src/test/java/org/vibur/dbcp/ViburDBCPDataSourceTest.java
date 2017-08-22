@@ -303,7 +303,7 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
         }
     }
 
-    private void executeAndVerifySelectStatement(Connection connection) throws SQLException {
+    private static void executeAndVerifySelectStatement(Connection connection) throws SQLException {
         try (Statement statement = connection.createStatement();
              ResultSet resultSet = statement.executeQuery("select * from actor where first_name = 'CHRISTIAN'")) {
 
@@ -316,7 +316,7 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
         }
     }
 
-    private void executeAndVerifyPreparedSelectStatement(Connection connection) throws SQLException {
+    private static void executeAndVerifyPreparedSelectStatement(Connection connection) throws SQLException {
         try (PreparedStatement pStatement = connection.prepareStatement("select * from actor where first_name = ?")) {
             pStatement.setString(1, "CHRISTIAN");
             try (ResultSet resultSet = pStatement.executeQuery()) {
@@ -330,7 +330,7 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
         }
     }
 
-    private void executeAndVerifyPreparedSelectStatementByLastName(Connection connection) throws SQLException {
+    private static void executeAndVerifyPreparedSelectStatementByLastName(Connection connection) throws SQLException {
         try (PreparedStatement pStatement = connection.prepareStatement("select * from actor where last_name = ?")) {
             pStatement.setString(1, "CROWE");
             try (ResultSet resultSet = pStatement.executeQuery()) {
