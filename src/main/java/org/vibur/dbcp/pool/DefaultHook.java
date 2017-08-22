@@ -76,7 +76,7 @@ public abstract class DefaultHook {
 
         @Override
         boolean isEnabled() {
-            return (config.getInitSQL() != null && !config.getInitSQL().isEmpty()) ||
+            return config.getInitSQL() != null ||
                     config.getDefaultAutoCommit() != null || config.getDefaultReadOnly() != null ||
                     config.getDefaultTransactionIsolationIntValue() != null || config.getDefaultCatalog() != null;
         }

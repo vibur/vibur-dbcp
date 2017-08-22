@@ -72,13 +72,13 @@ public final class JdbcUtils {
      *
      * @param rawConnection the raw connection to validate/ initialize
      * @param sqlQuery must be a valid SQL query, a special value of {@code isValid} in which case
-     *                 the {@link Connection#isValid} method will be called, or {@code null}/ empty string
+     *                 the {@link Connection#isValid} method will be called, or {@code null}
      *                 in which case no validation/ initialization will be performed
      * @param config the Vibur config
      * @return {@code true} if the given connection is successfully validated/ initialized; {@code false} otherwise
      */
     public static boolean validateOrInitialize(Connection rawConnection, String sqlQuery, ViburConfig config) {
-        if (sqlQuery == null || sqlQuery.isEmpty())
+        if (sqlQuery == null)
             return true;
 
         try {
