@@ -131,16 +131,10 @@ public class ConnectionFactory implements ViburObjectFactory {
 
         int idleLimit = config.getConnectionIdleLimitInSeconds();
         if (idleLimit >= 0) {
-            Connection rawConnection = conn.rawConnection();
-            try {
-                long idleNanos = System.nanoTime() - conn.getRestoredNanoTime();
-                if (NANOSECONDS.toSeconds(idleNanos) >= idleLimit
-                        && !validateConnection(rawConnection, config.getTestConnectionQuery(), config)) {
-                    logger.debug("Couldn't validate rawConnection {}", rawConnection);
-                    return false;
-                }
-            } catch (SQLException e) {
-                logger.debug("Couldn't validate rawConnection {}", rawConnection, e);
+            long idleNanos = System.nanoTime() - conn.getRestoredNanoTime();
+            if (NANOSECONDS.toSeconds(idleNanos) >= idleLimit
+                    && !validateOrInitialize(conn.rawConnection(), config.getTestConnectionQuery(), config)) {
+                logger.debug("Couldn't validate rawConnection {}", conn.rawConnection());
                 return false;
             }
         }

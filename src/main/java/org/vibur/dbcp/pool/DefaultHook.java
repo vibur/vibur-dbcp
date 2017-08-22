@@ -67,17 +67,18 @@ public abstract class DefaultHook {
         public void on(Connection rawConnection, long takenNanos) throws SQLException {
             if (rawConnection == null)
                 return;
-            if (!validateConnection(rawConnection, config.getInitSQL(), config))
-                throw new SQLException("validateConnection() returned false", SQLSTATE_CONN_INIT_ERROR);
+
+            if (!validateOrInitialize(rawConnection, config.getInitSQL(), config))
+                throw new SQLException("Couldn't initialize rawConnection " + rawConnection, SQLSTATE_CONN_INIT_ERROR);
 
             setDefaultValues(rawConnection, config);
         }
 
         @Override
         boolean isEnabled() {
-            return config.getInitSQL() != null ||
+            return (config.getInitSQL() != null && !config.getInitSQL().isEmpty()) ||
                     config.getDefaultAutoCommit() != null || config.getDefaultReadOnly() != null ||
-                    config.getDefaultTransactionIsolationValue() != null || config.getDefaultCatalog() != null;
+                    config.getDefaultTransactionIsolationIntValue() != null || config.getDefaultCatalog() != null;
         }
     }
 

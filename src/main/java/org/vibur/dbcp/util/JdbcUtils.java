@@ -60,35 +60,52 @@ public final class JdbcUtils {
             rawConnection.setAutoCommit(config.getDefaultAutoCommit());
         if (config.getDefaultReadOnly() != null)
             rawConnection.setReadOnly(config.getDefaultReadOnly());
-        if (config.getDefaultTransactionIsolationValue() != null)
-            rawConnection.setTransactionIsolation(config.getDefaultTransactionIsolationValue());
+        if (config.getDefaultTransactionIsolationIntValue() != null)
+            // noinspection all - the int value is checked/ set during Vibur config validation
+            rawConnection.setTransactionIsolation(config.getDefaultTransactionIsolationIntValue());
         if (config.getDefaultCatalog() != null)
             rawConnection.setCatalog(config.getDefaultCatalog());
     }
 
-    public static boolean validateConnection(Connection rawConnection, String query, ViburConfig config) throws SQLException {
-        if (query == null)
+    /**
+     * Validates/ initializes the given {@code rawConnection} via executing the given {@code sqlQuery}.
+     *
+     * @param rawConnection the raw connection to validate/ initialize
+     * @param sqlQuery must be a valid SQL query, a special value of {@code isValid} in which case
+     *                 the {@link Connection#isValid} method will be called, or {@code null}/ empty string
+     *                 in which case no validation/ initialization will be performed
+     * @param config the Vibur config
+     * @return {@code true} if the given connection is successfully validated/ initialized; {@code false} otherwise
+     */
+    public static boolean validateOrInitialize(Connection rawConnection, String sqlQuery, ViburConfig config) {
+        if (sqlQuery == null || sqlQuery.isEmpty())
             return true;
 
-        if (query.equals(IS_VALID_QUERY))
-            return rawConnection.isValid(config.getValidateTimeoutInSeconds());
-        return executeValidationQuery(rawConnection, query, config);
+        try {
+            if (sqlQuery.equals(IS_VALID_QUERY))
+                return rawConnection.isValid(config.getValidateTimeoutInSeconds());
+
+            executeSqlQuery(rawConnection, sqlQuery, config);
+            return true;
+        } catch (SQLException e) {
+            logger.debug("Couldn't validate/ initialize rawConnection {}", rawConnection, e);
+            return false;
+        }
     }
 
-    private static boolean executeValidationQuery(Connection rawConnection, String query, ViburConfig config) throws SQLException {
+    private static void executeSqlQuery(Connection rawConnection, String sqlQuery, ViburConfig config) throws SQLException {
         int oldTimeout = setNetworkTimeoutIfDifferent(rawConnection, config);
 
         Statement rawStatement = null;
         try {
             rawStatement = rawConnection.createStatement();
             rawStatement.setQueryTimeout(config.getValidateTimeoutInSeconds());
-            rawStatement.execute(query);
+            rawStatement.execute(sqlQuery);
         } finally {
             quietClose(rawStatement);
         }
 
         resetNetworkTimeout(rawConnection, config.getNetworkTimeoutExecutor(), oldTimeout);
-        return true;
     }
 
     private static int setNetworkTimeoutIfDifferent(Connection rawConnection, ViburConfig config) throws SQLException {

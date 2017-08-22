@@ -292,7 +292,8 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
         forbidIllegalArgument(getStatementCacheMaxSize() < 0 && getStatementCache() == null);
         forbidIllegalArgument(getReducerTimeIntervalInSeconds() > 0 && getPoolReducerClass() == null && getPoolReducer() == null);
         forbidIllegalArgument(getReducerSamples() <= 0);
-        forbidIllegalArgument(getConnectionIdleLimitInSeconds() >= 0 && getTestConnectionQuery() == null);
+        forbidIllegalArgument(getConnectionIdleLimitInSeconds() >= 0
+                && (getTestConnectionQuery() == null || getTestConnectionQuery().isEmpty()));
         forbidIllegalArgument(getValidateTimeoutInSeconds() < 0);
         forbidIllegalArgument(isUseNetworkTimeout() && getNetworkTimeoutExecutor() == null);
         requireNonNull(getCriticalSQLStates());
@@ -317,19 +318,19 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
             String defaultTransactionIsolation = getDefaultTransactionIsolation().toUpperCase();
             switch (defaultTransactionIsolation) {
                 case "NONE" :
-                    setDefaultTransactionIsolationValue(TRANSACTION_NONE);
+                    setDefaultTransactionIsolationIntValue(TRANSACTION_NONE);
                     break;
                 case "READ_COMMITTED" :
-                    setDefaultTransactionIsolationValue(TRANSACTION_READ_COMMITTED);
+                    setDefaultTransactionIsolationIntValue(TRANSACTION_READ_COMMITTED);
                     break;
                 case "REPEATABLE_READ" :
-                    setDefaultTransactionIsolationValue(TRANSACTION_REPEATABLE_READ);
+                    setDefaultTransactionIsolationIntValue(TRANSACTION_REPEATABLE_READ);
                     break;
                 case "READ_UNCOMMITTED" :
-                    setDefaultTransactionIsolationValue(TRANSACTION_READ_UNCOMMITTED);
+                    setDefaultTransactionIsolationIntValue(TRANSACTION_READ_UNCOMMITTED);
                     break;
                 case "SERIALIZABLE" :
-                    setDefaultTransactionIsolationValue(TRANSACTION_SERIALIZABLE);
+                    setDefaultTransactionIsolationIntValue(TRANSACTION_SERIALIZABLE);
                     break;
                 default:
                     logger.warn("Unknown defaultTransactionIsolation {}. Will use the driver's default.",

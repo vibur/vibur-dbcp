@@ -118,7 +118,7 @@ public class PoolOperations {
                     hook.on(rawConnection, waitedNanos[0]);
 
             } catch (SQLException e) {
-                //noinspection all
+                // noinspection all - the new exception is just chained to the existing one, if there was such
                 throw chainSQLException(sqlException, e);
             }
         }

@@ -311,8 +311,8 @@ public abstract class ViburConfig {
     private String defaultTransactionIsolation;
     /** The default catalog of the created connections. */
     private String defaultCatalog;
-    /** The parsed transaction isolation value. {@code null} means use the default driver value. */
-    private Integer defaultTransactionIsolationValue;
+    /** The parsed transaction isolation String value. {@code null} means use the default driver value. */
+    private Integer defaultTransactionIsolationIntValue;
 
 
     /** If set to {@code true}, will clear the SQL Warnings (if any) from the JDBC Connection before returning it to
@@ -753,12 +753,12 @@ public abstract class ViburConfig {
         this.defaultCatalog = defaultCatalog;
     }
 
-    public Integer getDefaultTransactionIsolationValue() {
-        return defaultTransactionIsolationValue;
+    public Integer getDefaultTransactionIsolationIntValue() {
+        return defaultTransactionIsolationIntValue;
     }
 
-    public void setDefaultTransactionIsolationValue(Integer defaultTransactionIsolationValue) {
-        this.defaultTransactionIsolationValue = defaultTransactionIsolationValue;
+    public void setDefaultTransactionIsolationIntValue(Integer defaultTransactionIsolationIntValue) {
+        this.defaultTransactionIsolationIntValue = defaultTransactionIsolationIntValue;
     }
 
     public boolean isClearSQLWarnings() {
