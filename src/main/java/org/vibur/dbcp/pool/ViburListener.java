@@ -81,7 +81,7 @@ public class ViburListener extends TakenListener<ConnHolder> {
                     .append(", held for ").append(NANOSECONDS.toMillis(currentNanoTime - takenConn.getTakenNanoTime()));
 
             if (takenConn.getLastAccessNanoTime() == 0)
-                builder.append(" ms, NEVER been accessed");
+                builder.append(" ms, has not been accessed");
             else
                 builder.append(" ms, last accessed before ").append(
                         NANOSECONDS.toMillis(currentNanoTime - takenConn.getLastAccessNanoTime())).append(" ms");

@@ -108,10 +108,10 @@ public abstract class TakenConnection {
         long currentNanoTime = System.nanoTime();
         return "TakenConnection@" + toHexString(hashCode()) + '[' + proxyConnection +
                 ", takenNanoTime=" + nanosToMillis(takenNanoTime, currentNanoTime) +
-                " ms, " + (lastAccessNanoTime == 0 ? "NEVER been accessed" :
+                " ms, " + (lastAccessNanoTime == 0 ? "has not been accessed" :
                     "lastAccessNanoTime=" + nanosToMillis(lastAccessNanoTime, currentNanoTime) + " ms") +
                 ", thread=" + thread +
-                ", state=" + thread.getState() +
+                (thread != null ? ", state=" + thread.getState() : "") +
                 ']';
     }
 

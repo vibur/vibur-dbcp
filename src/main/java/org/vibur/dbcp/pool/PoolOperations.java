@@ -89,8 +89,10 @@ public class PoolOperations {
 
         if (logger.isTraceEnabled())
             logger.trace("Taking rawConnection {}", conn.rawConnection());
+
         Connection proxy = newProxyConnection(conn, this, dataSource);
-        conn.setProxyConnection(proxy);
+        if (dataSource.isPoolEnableConnectionTracking())
+            conn.setProxyConnection(proxy);
         return proxy;
     }
 

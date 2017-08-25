@@ -99,13 +99,12 @@ public class ConnectionFactory implements ViburObjectFactory {
     }
 
     private ConnHolder postCreate(Connection rawConnection, SQLException sqlException, long startTime) throws ViburDBCPException {
-        long currentNanoTime = 0;
-
         Hook.InitConnection[] onInit = connHooks.onInit();
+        long currentNanoTime = onInit.length > 0 || config.getConnectionIdleLimitInSeconds() >= 0 ? System.nanoTime() : 0;
+
         if (onInit.length > 0) {
-            currentNanoTime = System.nanoTime();
-            long takenNanos = currentNanoTime - startTime;
             try {
+                long takenNanos = currentNanoTime - startTime;
                 for (Hook.InitConnection hook : onInit)
                     hook.on(rawConnection, takenNanos);
 
@@ -119,9 +118,8 @@ public class ConnectionFactory implements ViburObjectFactory {
             throw new ViburDBCPException(sqlException);
 
         logger.debug("Created rawConnection {}", rawConnection);
-        if (config.getConnectionIdleLimitInSeconds() >= 0 && onInit.length == 0)
-            currentNanoTime = System.nanoTime();
-        return prepareTracking(new ConnHolder(rawConnection, version(), currentNanoTime));
+        return prepareTracking(new ConnHolder(rawConnection, version(),
+                config.getConnectionIdleLimitInSeconds() >= 0 ? currentNanoTime : 0));
     }
 
     @Override
@@ -148,10 +146,12 @@ public class ConnectionFactory implements ViburObjectFactory {
         clearTracking(conn); // we don't want to keep the tracking objects references
 
         Hook.CloseConnection[] onClose = connHooks.onClose();
+        long currentNanoTime = onClose.length > 0 || config.getConnectionIdleLimitInSeconds() >= 0 ? System.nanoTime() : 0;
+
         if (onClose.length > 0) {
             Connection rawConnection = conn.rawConnection();
             try {
-                long takenNanos = System.nanoTime() - conn.getTakenNanoTime();
+                long takenNanos = currentNanoTime - conn.getTakenNanoTime();
                 for (Hook.CloseConnection hook : onClose)
                     hook.on(rawConnection, takenNanos);
 
@@ -162,7 +162,7 @@ public class ConnectionFactory implements ViburObjectFactory {
         }
 
         if (config.getConnectionIdleLimitInSeconds() >= 0)
-            conn.setRestoredNanoTime(System.nanoTime());
+            conn.setRestoredNanoTime(currentNanoTime);
         return true;
     }
 
