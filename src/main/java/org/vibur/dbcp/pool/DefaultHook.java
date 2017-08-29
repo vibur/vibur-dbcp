@@ -217,6 +217,10 @@ public abstract class DefaultHook {
             if (hook instanceof DefaultHook && !((DefaultHook) hook).isEnabled())
                 return hooks;
 
+            for (Hook h : hooks)
+                if (h.equals(hook)) // don't add the same hook twice
+                    return hooks;
+
             int length = hooks.length;
             hooks = Arrays.copyOf(hooks, length + 1); // i.e., copy-on-write
             hooks[length] = hook;
