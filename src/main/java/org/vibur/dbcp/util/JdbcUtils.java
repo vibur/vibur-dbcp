@@ -61,7 +61,7 @@ public final class JdbcUtils {
         if (config.getDefaultReadOnly() != null)
             rawConnection.setReadOnly(config.getDefaultReadOnly());
         if (config.getDefaultTransactionIsolationIntValue() != null)
-            // noinspection all - the int value is checked/ set during Vibur config validation
+            // noinspection MagicConstant - the int value is checked/ set during Vibur config validation
             rawConnection.setTransactionIsolation(config.getDefaultTransactionIsolationIntValue());
         if (config.getDefaultCatalog() != null)
             rawConnection.setCatalog(config.getDefaultCatalog());
