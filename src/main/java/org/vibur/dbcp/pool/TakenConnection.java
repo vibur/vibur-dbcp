@@ -116,6 +116,6 @@ public abstract class TakenConnection {
     }
 
     private static double nanosToMillis(long pastNanoTime, long currentNanoTime) {
-        return (currentNanoTime - pastNanoTime) * 0.000001;
+        return (currentNanoTime - pastNanoTime) * 0.000_001;
     }
 }

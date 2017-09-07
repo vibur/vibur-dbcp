@@ -89,7 +89,7 @@ public abstract class DefaultHook {
 
         @Override
         public void on(Connection rawConnection, long takenNanos) {
-            double takenMillis = takenNanos * 0.000001;
+            double takenMillis = takenNanos * 0.000_001;
             if (takenMillis < config.getLogConnectionLongerThanMs())
                 return;
 
@@ -154,7 +154,7 @@ public abstract class DefaultHook {
         }
 
         private void logQueryExecution(String sqlQuery, List<Object[]> sqlQueryParams, long takenNanos, SQLException sqlException) {
-            double takenMillis = takenNanos * 0.000001;
+            double takenMillis = takenNanos * 0.000_001;
             boolean logTime = takenMillis >= config.getLogQueryExecutionLongerThanMs();
             boolean logException = sqlException != null && logger.isDebugEnabled();
             if (!logTime && !logException)

@@ -205,7 +205,7 @@ public abstract class ViburConfig {
      *     + (acquireRetryAttempts + 1) * loginTimeoutInSeconds * 1000
      *     + acquireRetryAttempts * acquireRetryDelayInMs
      * </pre> */
-    private long connectionTimeoutInMs = 30000;
+    private long connectionTimeoutInMs = 30_000;
     /** The login timeout that will be set to the call to {@code DriverManager.setLoginTimeout()}
      * or {@code getExternalDataSource().setLoginTimeout()} during the initialization process of the DataSource. */
     private int loginTimeoutInSeconds = 5;
