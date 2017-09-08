@@ -34,7 +34,7 @@ public final class ViburUtils {
 
     /**
      * Returns the poolName formatted as:
-     * <blockquote>{@code simpleName@hashCode(currentlyTakenConns/remainingCreatedConns/poolMaxSize/poolState)}</blockquote>
+     * <blockquote>{@code poolName@hashCode(currentlyTakenConns/remainingCreatedConns/poolMaxSize/poolState)}</blockquote>
      * For example, {@code p1@2db7a79b(1/1/10/w)}.
      *
      * @param config the Vibur config
