@@ -47,7 +47,8 @@ public class ViburListener extends TakenListener<ConnHolder> {
         ConnHolder[] takenConns = getTaken(new ConnHolder[config.getPoolMaxSize()]);
 
         int size = 0;
-        while (size < takenConns.length && takenConns[size] != null) size++;
+        while (size < takenConns.length && takenConns[size] != null)
+            size++;
 
         return Arrays.copyOf(takenConns, size, TakenConnection[].class);
     }
@@ -60,7 +61,8 @@ public class ViburListener extends TakenListener<ConnHolder> {
         ConnHolder[] takenConns = getTaken(new ConnHolder[config.getPoolMaxSize()]);
 
         int size = 0;
-        while (size < takenConns.length && takenConns[size] != null) size++;
+        while (size < takenConns.length && takenConns[size] != null)
+            size++;
         if (size == 0) return "";
 
         // sort the thread holding connection for the longest time on top

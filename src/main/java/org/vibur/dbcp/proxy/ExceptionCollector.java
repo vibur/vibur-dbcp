@@ -71,7 +71,8 @@ abstract class ExceptionCollector {
 
         SQLException[] exArray = ex.toArray(new SQLException[64]);
         int size = 0;
-        while (size < exArray.length && exArray[size] != null) size++;
+        while (size < exArray.length && exArray[size] != null)
+            size++;
         return Arrays.copyOf(exArray, size);
     }
 }
