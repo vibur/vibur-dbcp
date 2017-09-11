@@ -127,7 +127,7 @@ public class ViburListener extends TakenListener<ConnHolder> {
         Map<Thread, StackTraceElement[]> map = new HashMap<>(size);
         for (int i = 0; i < size; i++) {
             Thread holdingThread = takenConns[i].getThread();
-            if (holdingThread.getState() != Thread.State.TERMINATED)
+            if (holdingThread.isAlive())
                 map.put(holdingThread, holdingThread.getStackTrace());
         }
         return map;
