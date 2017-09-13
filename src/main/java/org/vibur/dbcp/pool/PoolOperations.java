@@ -73,19 +73,10 @@ public class PoolOperations {
                 whitespaces.matcher(dataSource.getCriticalSQLStates()).replaceAll("").split(",")));
     }
 
-    public Connection getProxyConnection(long timeout) throws SQLException {
-        ConnHolder conn = getConnHolder(timeout);
-        if (conn == null) { // we were *not* able to obtain a connection from the pool within the given timeout
-            if (poolService.isTerminated())
-                throw new SQLException(format("Pool %s, the poolService is terminated.", getPoolName(dataSource)),
-                        SQLSTATE_POOL_CLOSED_ERROR);
+    ////////////// getProxyConnection(...) //////////////
 
-            if (dataSource.isLogTakenConnectionsOnTimeout() && logger.isWarnEnabled())
-                logger.warn("Pool {}, couldn't obtain SQL connection within {} ms, full list of taken connections begins:\n{}",
-                        getPoolName(dataSource), timeout, dataSource.getTakenConnectionsStackTraces());
-            throw new SQLTimeoutException(format("Pool %s, couldn't obtain SQL connection within %d ms.",
-                    getPoolName(dataSource), timeout), SQLSTATE_TIMEOUT_ERROR, (int) timeout);
-        }
+    public Connection getProxyConnection(long timeoutMs) throws SQLException {
+        ConnHolder conn = getConnHolder(timeoutMs);
 
         if (logger.isTraceEnabled())
             logger.trace("Taking rawConnection {}", conn.rawConnection());
@@ -96,7 +87,7 @@ public class PoolOperations {
         return proxy;
     }
 
-    private ConnHolder getConnHolder(long timeout) throws SQLException {
+    private ConnHolder getConnHolder(long timeoutMs) throws SQLException {
         Hook.GetConnection[] onGet = dataSource.getConnHooks().onGet();
         ConnHolder conn = null;
         long[] waitedNanos = NO_WAIT;
@@ -105,9 +96,14 @@ public class PoolOperations {
         try {
             if (onGet.length > 0) {
                 waitedNanos = new long[1];
-                conn = timeout > 0 ? poolService.tryTake(timeout, MILLISECONDS, waitedNanos) : poolService.take(waitedNanos);
+                conn = timeoutMs > 0 ? poolService.tryTake(timeoutMs, MILLISECONDS, waitedNanos) : poolService.take(waitedNanos);
             } else
-                conn = timeout > 0 ? poolService.tryTake(timeout, MILLISECONDS) : poolService.take();
+                conn = timeoutMs > 0 ? poolService.tryTake(timeoutMs, MILLISECONDS) : poolService.take();
+
+            if (conn == null) { // we were *not* able to obtain a connection from the pool within the given timeout
+                throw sqlException = createSQLException(onGet.length > 0 ? waitedNanos[0] * 0.000_001 : timeoutMs);
+            }
+
             return conn;
 
         } catch (ViburDBCPException e) { // can be (indirectly) thrown by the ConnectionFactory.create() methods
@@ -125,6 +121,21 @@ public class PoolOperations {
             }
         }
     }
+
+    private SQLException createSQLException(double timeoutMs) {
+        if (poolService.isTerminated())
+            return new SQLException(format("Pool %s, the poolService is terminated.", getPoolName(dataSource)),
+                    SQLSTATE_POOL_CLOSED_ERROR);
+
+        if (dataSource.isLogTakenConnectionsOnTimeout() && logger.isWarnEnabled())
+            logger.warn(format("Pool %s, couldn't obtain SQL connection within %.3f ms, full list of taken connections begins:\n%s",
+                    getPoolName(dataSource), timeoutMs, dataSource.getTakenConnectionsStackTraces()));
+
+        return new SQLTimeoutException(format("Pool %s, couldn't obtain SQL connection within %.3f ms.",
+                getPoolName(dataSource), timeoutMs), SQLSTATE_TIMEOUT_ERROR, (int) timeoutMs);
+    }
+
+    ////////////// restore(...) //////////////
 
     public void restore(ConnHolder conn, boolean valid, SQLException[] exceptions) {
         if (logger.isTraceEnabled())

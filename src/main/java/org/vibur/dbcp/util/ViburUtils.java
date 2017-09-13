@@ -33,9 +33,9 @@ public final class ViburUtils {
     private ViburUtils() { }
 
     /**
-     * Returns the poolName formatted as:
-     * <blockquote>{@code poolName@hashCode(currentlyTakenConns/remainingCreatedConns/poolMaxSize/poolState)}</blockquote>
-     * For example, {@code p1@2db7a79b(1/1/10/w)}.
+     * Returns the extended pool name formatted as:
+     * <blockquote>{@code poolName@hashCode(currentlyTakenConns/remainingCreatedConns/poolMaxSize/poolState/threadInterruptedStatus)}</blockquote>
+     * For example, {@code p1@2db7a79b(1/1/10/w/n)}.
      *
      * @param config the Vibur config
      */
@@ -44,7 +44,8 @@ public final class ViburUtils {
         boolean initialState = pool.isTerminated();
         String result = config.getName() + '@' + toHexString(config.hashCode())
                 + '(' + pool.taken() + '/' + pool.remainingCreated() + '/' + pool.maxSize()
-                + '/' + (!initialState ? 'w' : 't') + ')'; // poolState: w == working, t == terminated
+                + '/' + (!initialState ? 'w' : 't')  // poolState: w == working, t == terminated
+                + '/' + (Thread.currentThread().isInterrupted() ? 'i' : 'n') + ')';
         if (initialState == pool.isTerminated()) // make sure the pool state has not changed in the meantime
             return result;
         return getPoolName(config); // this is one level of recursion only, pool state changes only once

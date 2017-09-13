@@ -73,6 +73,7 @@ abstract class ExceptionCollector {
         int size = 0;
         while (size < exArray.length && exArray[size] != null)
             size++;
-        return Arrays.copyOf(exArray, size);
+
+        return size < exArray.length ? Arrays.copyOf(exArray, size) : exArray;
     }
 }

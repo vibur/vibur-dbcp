@@ -33,6 +33,8 @@ import static org.vibur.dbcp.util.ViburUtils.getStackTraceAsString;
  */
 public class ViburListener extends TakenListener<ConnHolder> {
 
+    private static final ConnHolder[] NO_TAKEN_CONNS = {};
+
     private final ViburConfig config;
 
     public ViburListener(ViburConfig config) {
@@ -45,12 +47,7 @@ public class ViburListener extends TakenListener<ConnHolder> {
      */
     public TakenConnection[] getTakenConnections() {
         ConnHolder[] takenConns = getTaken(new ConnHolder[config.getPoolMaxSize()]);
-
-        int size = 0;
-        while (size < takenConns.length && takenConns[size] != null)
-            size++;
-
-        return Arrays.copyOf(takenConns, size, TakenConnection[].class);
+        return Arrays.copyOf(takenConns, takenConns.length, TakenConnection[].class);
     }
 
     /**
@@ -59,25 +56,21 @@ public class ViburListener extends TakenListener<ConnHolder> {
      */
     public String getTakenConnectionsStackTraces() {
         ConnHolder[] takenConns = getTaken(new ConnHolder[config.getPoolMaxSize()]);
-
-        int size = 0;
-        while (size < takenConns.length && takenConns[size] != null)
-            size++;
-        if (size == 0) return "";
+        if (takenConns.length == 0)
+            return "";
 
         // sort the thread holding connection for the longest time on top
-        Arrays.sort(takenConns, 0, size, new Comparator<ConnHolder>() {
+        Arrays.sort(takenConns, new Comparator<ConnHolder>() {
             @Override
             public int compare(ConnHolder h1, ConnHolder h2) {
                 return Long.compare(h1.getTakenNanoTime(), h2.getTakenNanoTime());
             }
         });
 
-        Map<Thread, StackTraceElement[]> currentStackTraces = getCurrentStackTraces(takenConns, size);
+        Map<Thread, StackTraceElement[]> currentStackTraces = getCurrentStackTraces(takenConns);
         long currentNanoTime = System.nanoTime();
-        StringBuilder builder = new StringBuilder(size * 8192);
-        for (int i = 0; i < size; i++) {
-            ConnHolder takenConn = takenConns[i];
+        StringBuilder builder = new StringBuilder(takenConns.length * 8192);
+        for (ConnHolder takenConn : takenConns) {
             Thread holdingThread = takenConn.getThread();
             builder.append("\n============\n").append(takenConn.rawConnection())
                     .append(", held for ").append(NANOSECONDS.toMillis(currentNanoTime - takenConn.getTakenNanoTime()));
@@ -99,7 +92,23 @@ public class ViburListener extends TakenListener<ConnHolder> {
                         .append(getStackTraceAsString(currentStackTrace));
             }
         }
+
         return addAllOtherStackTraces(builder, currentStackTraces).toString();
+    }
+
+    @Override
+    protected ConnHolder[] getTaken(ConnHolder[] a) {
+        ConnHolder[] takenConns =  super.getTaken(a);
+        int size = 0;
+        while (size < takenConns.length && takenConns[size] != null)
+            size++;
+        if (size == 0)
+            return NO_TAKEN_CONNS;
+
+        ConnHolder[] result = new ConnHolder[size];
+        for (int i = 0; i < size; i++)
+            result[i] = new ConnHolder(takenConns[i]);
+        return result;
     }
 
     private static StringBuilder addAllOtherStackTraces(StringBuilder builder, Map<Thread, StackTraceElement[]> stackTraces) {
@@ -120,13 +129,13 @@ public class ViburListener extends TakenListener<ConnHolder> {
         return builder;
     }
 
-    private Map<Thread, StackTraceElement[]> getCurrentStackTraces(ConnHolder[] takenConns, int size) {
+    private Map<Thread, StackTraceElement[]> getCurrentStackTraces(ConnHolder[] takenConns) {
         if (config.isLogAllStackTracesOnTimeout())
             return Thread.getAllStackTraces();
 
-        Map<Thread, StackTraceElement[]> map = new HashMap<>(size);
-        for (int i = 0; i < size; i++) {
-            Thread holdingThread = takenConns[i].getThread();
+        Map<Thread, StackTraceElement[]> map = new HashMap<>(takenConns.length);
+        for (ConnHolder takenConn : takenConns) {
+            Thread holdingThread = takenConn.getThread();
             if (holdingThread.isAlive())
                 map.put(holdingThread, holdingThread.getStackTrace());
         }

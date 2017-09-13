@@ -29,8 +29,6 @@ import static java.lang.Integer.toHexString;
  */
 public abstract class TakenConnection {
 
-    TakenConnection() { }
-
     // the proxy Connection, used when poolEnableConnectionTracking is allowed
     private Connection proxyConnection = null;
     // used when poolEnableConnectionTracking is allowed or if there are GetConnection or CloseConnection hooks registered
@@ -41,6 +39,16 @@ public abstract class TakenConnection {
     // these 2 fields are used when poolEnableConnectionTracking is allowed
     private Thread thread = null;
     private Throwable location = null;
+
+    TakenConnection() { }
+
+    TakenConnection(TakenConnection takenConnection) {
+        this.proxyConnection = takenConnection.proxyConnection;
+        this.takenNanoTime = takenConnection.takenNanoTime;
+        this.lastAccessNanoTime = takenConnection.lastAccessNanoTime;
+        this.thread = takenConnection.thread;
+        this.location = takenConnection.location;
+    }
 
     /**
      * Returns the taken proxy Connection. The application can check whether the Connection is still in taken state

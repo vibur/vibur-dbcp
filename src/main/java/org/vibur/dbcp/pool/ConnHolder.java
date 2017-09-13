@@ -40,6 +40,13 @@ public class ConnHolder extends TakenConnection {
         this.restoredNanoTime = currentNanoTime;
     }
 
+    ConnHolder(ConnHolder connHolder) {
+        super(connHolder);
+        this.rawConnection = connHolder.rawConnection;
+        this.version = connHolder.version;
+        this.restoredNanoTime = connHolder.restoredNanoTime;
+    }
+
     public Connection rawConnection() {
         return rawConnection;
     }
