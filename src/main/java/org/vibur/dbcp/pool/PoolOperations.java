@@ -40,7 +40,7 @@ import static org.vibur.dbcp.util.ViburUtils.getPoolName;
 
 /**
  * The facade class through which the {@link ConnectionFactory} and {@link PoolService} functions are accessed.
- * Essentially, these are the operations that allow us to get and restore a JDBC Connection from the pool
+ * Essentially, these are the operations that allow us to <i>get</i> and <i>restore</i> a JDBC Connection from the pool
  * as well as to process the SQLExceptions that might have occurred on a taken JDBC Connection.
  *
  * @author Simeon Malchev
