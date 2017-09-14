@@ -19,7 +19,6 @@ package org.vibur.dbcp.proxy;
 import java.sql.SQLException;
 import java.sql.SQLTimeoutException;
 import java.sql.SQLTransactionRollbackException;
-import java.util.Arrays;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -69,11 +68,6 @@ abstract class ExceptionCollector {
         if (ex == null)
             return NO_EXCEPTIONS;
 
-        SQLException[] exArray = ex.toArray(new SQLException[64]);
-        int size = 0;
-        while (size < exArray.length && exArray[size] != null)
-            size++;
-
-        return size < exArray.length ? Arrays.copyOf(exArray, size) : exArray;
+        return ex.toArray(NO_EXCEPTIONS);
     }
 }

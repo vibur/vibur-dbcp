@@ -100,9 +100,8 @@ public class PoolOperations {
             } else
                 conn = timeoutMs > 0 ? poolService.tryTake(timeoutMs, MILLISECONDS) : poolService.take();
 
-            if (conn == null) { // we were *not* able to obtain a connection from the pool within the given timeout
+            if (conn == null) // we were *not* able to obtain a connection from the pool within the given timeout
                 throw sqlException = createSQLException(onGet.length > 0 ? waitedNanos[0] * 0.000_001 : timeoutMs);
-            }
 
             return conn;
 
@@ -132,7 +131,7 @@ public class PoolOperations {
                     getPoolName(dataSource), timeoutMs, dataSource.getTakenConnectionsStackTraces()));
 
         return new SQLTimeoutException(format("Pool %s, couldn't obtain SQL connection within %.3f ms.",
-                getPoolName(dataSource), timeoutMs), SQLSTATE_TIMEOUT_ERROR, (int) timeoutMs);
+                getPoolName(dataSource), timeoutMs), SQLSTATE_TIMEOUT_ERROR, (int) Math.round(timeoutMs));
     }
 
     ////////////// restore(...) //////////////

@@ -67,9 +67,9 @@ public class ViburListener extends TakenListener<ConnHolder> {
             }
         });
 
-        Map<Thread, StackTraceElement[]> currentStackTraces = getCurrentStackTraces(takenConns);
         long currentNanoTime = System.nanoTime();
         StringBuilder builder = new StringBuilder(takenConns.length * 8192);
+        Map<Thread, StackTraceElement[]> currentStackTraces = getCurrentStackTraces(takenConns);
         for (ConnHolder takenConn : takenConns) {
             Thread holdingThread = takenConn.getThread();
             builder.append("\n============\n").append(takenConn.rawConnection())
