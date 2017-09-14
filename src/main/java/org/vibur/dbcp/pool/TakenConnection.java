@@ -114,13 +114,11 @@ public abstract class TakenConnection {
     @Override
     public String toString() {
         long currentNanoTime = System.nanoTime();
-        return "TakenConnection@" + toHexString(hashCode()) + '[' + proxyConnection +
-                ", takenNanoTime=" + nanosToMillis(takenNanoTime, currentNanoTime) +
+        return "TakenConnection@" + toHexString(hashCode()) +
+                '[' + proxyConnection + ", takenNanoTime=" + nanosToMillis(takenNanoTime, currentNanoTime) +
                 " ms, " + (lastAccessNanoTime == 0 ? "has not been accessed" :
                     "lastAccessNanoTime=" + nanosToMillis(lastAccessNanoTime, currentNanoTime) + " ms") +
-                ", thread=" + thread +
-                (thread != null ? ", state=" + thread.getState() : "") +
-                ']';
+                ", thread=" + thread + (thread != null ? ", state=" + thread.getState() : "") + ']';
     }
 
     private static double nanosToMillis(long pastNanoTime, long currentNanoTime) {

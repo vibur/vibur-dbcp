@@ -266,7 +266,7 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
     }
 
     @Test
-    public void testConnectionTracking() throws SQLException {
+    public void testTakenConnections() throws SQLException {
         ViburDBCPDataSource ds = createDataSourceWithTracking();
         Connection connection = ds.getConnection();
 
@@ -281,23 +281,21 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
         assertTrue(currentNanoTime > takenNanoTime);
         assertEquals(0, takenConnections[0].getLastAccessNanoTime());
 
-        connection.isClosed(); // "unrestricted" methods such as close(), isClosed(), etc don't impact the lastAccessNanoTime
-        assertEquals(0, takenConnections[0].getLastAccessNanoTime());
-
-        connection.isReadOnly(); // all other "restricted" methods impact the lastAccessNanoTime
-        assertEquals(takenNanoTime, takenConnections[0].getTakenNanoTime()); // takenNanoTime shouldn't change as the connection is not restored, i.e., closed() yet
-        assertTrue(currentNanoTime < takenConnections[0].getLastAccessNanoTime());
+        TakenConnection[] takenConnections2 = ds.getTakenConnections();
+        assertNotSame(takenConnections, takenConnections2);
+        assertNotSame(takenConnections[0], takenConnections2[0]);
+        assertSame(takenConnections[0].getProxyConnection(), takenConnections2[0].getProxyConnection());
 
         connection.close();
     }
 
-    private void doTestSelectStatement(DataSource ds) throws SQLException {
+    private static void doTestSelectStatement(DataSource ds) throws SQLException {
         try (Connection connection = ds.getConnection()) {
             executeAndVerifySelectStatement(connection);
         }
     }
 
-    private void doTestPreparedSelectStatement(DataSource ds) throws SQLException {
+    private static void doTestPreparedSelectStatement(DataSource ds) throws SQLException {
         try (Connection connection = ds.getConnection()) {
             executeAndVerifyPreparedSelectStatement(connection);
         }
