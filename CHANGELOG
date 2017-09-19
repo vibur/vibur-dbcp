@@ -1,6 +1,7 @@
 Version 19.2 (14/09/2017) - RECOMMENDED
 =======================================
 * Fixed a rarely occurring bug in ViburListener.getTakenConnections().
+* Renamed defaultTransactionIsolationValue configuration option to setDefaultTransactionIsolationIntValue.
 * Various other logging improvements and refactoring.
 
 Version 19.1 (17/08/2017)
