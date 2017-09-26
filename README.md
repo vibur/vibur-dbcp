@@ -15,7 +15,7 @@ The project maven coordinates are:
 <dependency>
   <groupId>org.vibur</groupId>
   <artifactId>vibur-dbcp</artifactId>
-  <version>19.2</version>
+  <version>20.0</version>
 </dependency>   
 ```
 

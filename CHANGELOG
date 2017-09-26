@@ -1,5 +1,11 @@
-Version 19.2 (14/09/2017) - RECOMMENDED
+Version 20.0 (26/09/2017) - RECOMMENDED
 =======================================
+* Changed the behavior of getConnection(...) to throw an SQLException("...interrupted while getting SQL connection...")
+  when the current thread is interrupted; it was throwing an SQLTimeoutException before.
+  The thread interrupted status remains set / uncleared as it was before.
+
+Version 19.2 (14/09/2017)
+=========================
 * Fixed a rarely occurring bug in ViburListener.getTakenConnections().
 * Renamed defaultTransactionIsolationValue configuration option to defaultTransactionIsolationIntValue (added Int
   before Value).
