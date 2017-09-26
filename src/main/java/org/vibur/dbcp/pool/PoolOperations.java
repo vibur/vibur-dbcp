@@ -32,6 +32,7 @@ import java.util.regex.Pattern;
 
 import static java.lang.String.format;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static org.vibur.dbcp.ViburConfig.SQLSTATE_INTERRUPTED_ERROR;
 import static org.vibur.dbcp.ViburConfig.SQLSTATE_POOL_CLOSED_ERROR;
 import static org.vibur.dbcp.ViburConfig.SQLSTATE_TIMEOUT_ERROR;
 import static org.vibur.dbcp.proxy.Proxy.newProxyConnection;
@@ -100,7 +101,7 @@ public class PoolOperations {
             } else
                 conn = timeoutMs > 0 ? poolService.tryTake(timeoutMs, MILLISECONDS) : poolService.take();
 
-            if (conn == null) // we were *not* able to obtain a connection from the pool within the given timeout
+            if (conn == null) // we were *not* able to obtain a connection from the pool
                 throw sqlException = createSQLException(onGet.length > 0 ? waitedNanos[0] * 0.000_001 : timeoutMs);
 
             return conn;
@@ -122,16 +123,22 @@ public class PoolOperations {
     }
 
     private SQLException createSQLException(double timeoutMs) {
+        String poolName = getPoolName(dataSource);
         if (poolService.isTerminated())
-            return new SQLException(format("Pool %s, the poolService is terminated.", getPoolName(dataSource)),
+            return new SQLException(format("Pool %s, the poolService is terminated.", poolName),
                     SQLSTATE_POOL_CLOSED_ERROR);
 
-        if (dataSource.isLogTakenConnectionsOnTimeout() && logger.isWarnEnabled())
+        boolean isInterrupted = Thread.currentThread().isInterrupted(); // someone else has interrupted us, so we do not clear the flag
+        if (!isInterrupted && dataSource.isLogTakenConnectionsOnTimeout() && logger.isWarnEnabled())
             logger.warn(format("Pool %s, couldn't obtain SQL connection within %.3f ms, full list of taken connections begins:\n%s",
-                    getPoolName(dataSource), timeoutMs, dataSource.getTakenConnectionsStackTraces()));
+                    poolName, timeoutMs, dataSource.getTakenConnectionsStackTraces()));
 
-        return new SQLTimeoutException(format("Pool %s, couldn't obtain SQL connection within %.3f ms.",
-                getPoolName(dataSource), timeoutMs), SQLSTATE_TIMEOUT_ERROR, (int) Math.round(timeoutMs));
+        int intTimeoutMs = (int) Math.round(timeoutMs);
+        return !isInterrupted ?
+                new SQLTimeoutException(format("Pool %s, couldn't obtain SQL connection within %.3f ms.",
+                        poolName, timeoutMs), SQLSTATE_TIMEOUT_ERROR, intTimeoutMs) :
+                new SQLException(format("Pool %s, interrupted while getting SQL connection, waited for %.3f ms.",
+                        poolName, timeoutMs), SQLSTATE_INTERRUPTED_ERROR, intTimeoutMs);
     }
 
     ////////////// restore(...) //////////////

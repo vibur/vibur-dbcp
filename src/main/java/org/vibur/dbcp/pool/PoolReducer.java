@@ -51,7 +51,7 @@ public class PoolReducer extends SamplingPoolReducer {
             if (!(thrown instanceof ViburDBCPException))
                 terminate();
         }
-        else
+        else if (logger.isDebugEnabled())
             logger.debug("Pool {}, intended reduction {} actual {}.", getPoolName(config), reduction, reduced);
     }
 

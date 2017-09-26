@@ -155,18 +155,20 @@ public abstract class DefaultHook {
 
         private void logQueryExecution(String sqlQuery, List<Object[]> sqlQueryParams, long takenNanos, SQLException sqlException) {
             double takenMillis = takenNanos * 0.000_001;
-            boolean logTime = takenMillis >= config.getLogQueryExecutionLongerThanMs();
+            boolean logTime = takenMillis >= config.getLogQueryExecutionLongerThanMs() && logger.isWarnEnabled();
             boolean logException = sqlException != null && logger.isDebugEnabled();
             if (!logTime && !logException)
                 return;
 
+            String poolName = getPoolName(config);
             String formattedSql = formatSql(sqlQuery, sqlQueryParams);
+
             if (logException)
-                logger.debug("SQL query execution from pool {}:\n{}\n-- threw:", getPoolName(config), formattedSql, sqlException);
+                logger.debug("SQL query execution from pool {}:\n{}\n-- threw:", poolName, formattedSql, sqlException);
 
             if (logTime) {
                 StringBuilder message = new StringBuilder(4096).append(
-                        format("SQL query execution from pool %s took %f ms:\n%s", getPoolName(config), takenMillis, formattedSql));
+                        format("SQL query execution from pool %s took %f ms:\n%s", poolName, takenMillis, formattedSql));
                 if (config.isLogStackTraceForLongQueryExecution())
                     message.append('\n').append(getStackTraceAsString(new Throwable().getStackTrace()));
                 logger.warn(message.toString());

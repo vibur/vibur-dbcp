@@ -39,6 +39,7 @@ import java.util.concurrent.ConcurrentMap;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
+import static org.vibur.dbcp.ViburConfig.SQLSTATE_INTERRUPTED_ERROR;
 import static org.vibur.dbcp.stcache.StatementHolder.State.AVAILABLE;
 import static org.vibur.dbcp.stcache.StatementHolder.State.EVICTED;
 
@@ -287,6 +288,20 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
         assertSame(takenConnections[0].getProxyConnection(), takenConnections2[0].getProxyConnection());
 
         connection.close();
+    }
+
+    @Test
+    public void testInterruptedWhileGettingConnection() {
+        ViburDBCPDataSource ds = createDataSourceWithTracking();
+        Thread.currentThread().interrupt();
+        try {
+            ds.getConnection();
+            fail("SQLException expected");
+        } catch (SQLException e) {
+            assertEquals(SQLSTATE_INTERRUPTED_ERROR, e.getSQLState());
+        } finally {
+            assertTrue(Thread.interrupted()); // clears the interrupted flag in order to not affect subsequent tests
+        }
     }
 
     private static void doTestSelectStatement(DataSource ds) throws SQLException {

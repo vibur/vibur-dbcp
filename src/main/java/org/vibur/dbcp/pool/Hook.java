@@ -79,8 +79,8 @@ public interface Hook {
          *
          * @param rawConnection the retrieved from the pool <b>raw</b> JDBC Connection; <b>note that it can be
          *                      {@code null}</b> if we were unable to obtain a connection from the pool within the
-         *                      specified time limit or if we attempted to create a new connection in the pool and
-         *                      the attempt failed with an exception
+         *                      specified time limit, if the current thread was interrupted, or if we attempted to
+         *                      create a new connection in the pool and the attempt failed with an exception
          * @param takenNanos the time taken to get this connection in nanoseconds
          * @throws SQLException to indicate that an SQL error has occurred
          */
