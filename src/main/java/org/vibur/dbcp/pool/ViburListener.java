@@ -98,7 +98,7 @@ public class ViburListener extends TakenListener<ConnHolder> {
 
     @Override
     protected ConnHolder[] getTaken(ConnHolder[] a) {
-        ConnHolder[] takenConns =  super.getTaken(a);
+        ConnHolder[] takenConns = super.getTaken(a);
         int size = 0;
         while (size < takenConns.length && takenConns[size] != null)
             size++;
