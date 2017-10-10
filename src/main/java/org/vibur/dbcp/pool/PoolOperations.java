@@ -98,7 +98,8 @@ public class PoolOperations {
             if (onGet.length > 0) {
                 waitedNanos = new long[1];
                 conn = timeoutMs > 0 ? poolService.tryTake(timeoutMs, MILLISECONDS, waitedNanos) : poolService.take(waitedNanos);
-            } else
+            }
+            else
                 conn = timeoutMs > 0 ? poolService.tryTake(timeoutMs, MILLISECONDS) : poolService.take();
 
             if (conn == null) // we were *not* able to obtain a connection from the pool
