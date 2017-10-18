@@ -494,12 +494,12 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
     }
 
     @Override
-    public void setLoginTimeout(int seconds) throws SQLException {
+    public void setLoginTimeout(int seconds) {
         setLoginTimeoutInSeconds(seconds);
     }
 
     @Override
-    public int getLoginTimeout() throws SQLException {
+    public int getLoginTimeout() {
         return getLoginTimeoutInSeconds();
     }
 
