@@ -469,15 +469,15 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
 
     @Override
     public String getTakenConnectionsStackTraces() {
-        if (!isPoolEnableConnectionTracking())
-            return "poolEnableConnectionTracking is disabled.";
+        if (!isPoolEnableConnectionTracking() || getState() != WORKING)
+            return "poolEnableConnectionTracking is disabled or the pool is not in working state";
 
         return ((ViburListener) getPool().listener()).getTakenConnectionsStackTraces();
     }
 
     @Override
     public TakenConnection[] getTakenConnections() {
-        if (!isPoolEnableConnectionTracking())
+        if (!isPoolEnableConnectionTracking() || getState() != WORKING)
             return NO_TAKEN_CONNECTIONS;
 
         return ((ViburListener) getPool().listener()).getTakenConnections();
