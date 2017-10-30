@@ -300,17 +300,22 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
         if (getPassword() == null) logger.warn("JDBC password is not specified.");
         if (getUsername() == null) logger.warn("JDBC username is not specified.");
 
+        if (getLoginTimeoutInSeconds() > getConnectionTimeoutInMs() * 0.001) {
+            int loginTimeoutInSeconds = (int) getConnectionTimeoutInMs() / 1000;
+            logger.info("Setting loginTimeoutInSeconds to {}", loginTimeoutInSeconds);
+            setLoginTimeoutInSeconds(loginTimeoutInSeconds);
+        }
         if (getLogConnectionLongerThanMs() > getConnectionTimeoutInMs()) {
-            logger.warn("Setting logConnectionLongerThanMs to {}", getConnectionTimeoutInMs());
+            logger.info("Setting logConnectionLongerThanMs to {}", getConnectionTimeoutInMs());
             setLogConnectionLongerThanMs(getConnectionTimeoutInMs());
         }
-        if (getStatementCacheMaxSize() > STATEMENT_CACHE_MAX_SIZE) {
-            logger.warn("Setting statementCacheMaxSize to {}", STATEMENT_CACHE_MAX_SIZE);
-            setStatementCacheMaxSize(STATEMENT_CACHE_MAX_SIZE);
-        }
         if (isLogTakenConnectionsOnTimeout() && !isPoolEnableConnectionTracking()) {
-            logger.debug("Setting poolEnableConnectionTracking to true");
+            logger.info("Setting poolEnableConnectionTracking to true");
             setPoolEnableConnectionTracking(true);
+        }
+        if (getStatementCacheMaxSize() > STATEMENT_CACHE_MAX_SIZE) {
+            logger.info("Setting statementCacheMaxSize to {}", STATEMENT_CACHE_MAX_SIZE);
+            setStatementCacheMaxSize(STATEMENT_CACHE_MAX_SIZE);
         }
 
         if (getDefaultTransactionIsolation() != null) {
