@@ -91,7 +91,14 @@ public class ConnectionFactory implements ViburObjectFactory {
                     break;
 
                 attempt++;
-                waitTime(MILLISECONDS, config.getAcquireRetryDelayInMs());
+
+                try {
+                    MILLISECONDS.sleep(config.getAcquireRetryDelayInMs());
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    sqlException = chainSQLException(sqlException, new SQLException(ie));
+                    break;
+                }
             }
         }
 
