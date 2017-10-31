@@ -74,10 +74,4 @@ public final class ViburUtils {
             result.append("\n-- Parameters:\n-- ").append(Arrays.deepToString(sqlQueryParams.toArray()));
         return result.toString();
     }
-
-    public static void waitTime(TimeUnit unit, long duration) {
-        try {
-            unit.sleep(duration);
-        } catch (InterruptedException ignored) { }
-    }
 }
