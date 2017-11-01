@@ -50,6 +50,7 @@ public class ConnectionFactory implements ViburObjectFactory {
     private static final Logger logger = LoggerFactory.getLogger(ConnectionFactory.class);
 
     private final ViburConfig config;
+    private final long connectionTimeoutInNanos;
     private final ConnHooksHolder connHooks;
     private final AtomicInteger version = new AtomicInteger(1);
 
@@ -61,6 +62,7 @@ public class ConnectionFactory implements ViburObjectFactory {
      */
     public ConnectionFactory(ViburConfig config) throws ViburDBCPException {
         this.config = config;
+        this.connectionTimeoutInNanos = MILLISECONDS.toNanos(config.getConnectionTimeoutInMs());
         this.connHooks = config.getConnHooks();
         initLoginTimeout(config);
     }
@@ -72,11 +74,11 @@ public class ConnectionFactory implements ViburObjectFactory {
 
     @Override
     public ConnHolder create(Connector connector) throws ViburDBCPException {
-        long startTime = connHooks.onInit().length > 0 ? System.nanoTime() : 0;
-
         int attempt = 1;
         Connection rawConnection = null;
         SQLException sqlException = null;
+        long startTime = System.nanoTime();
+
         while (rawConnection == null) {
             try {
                 rawConnection = requireNonNull(connector.connect());
@@ -86,7 +88,7 @@ public class ConnectionFactory implements ViburObjectFactory {
                 sqlException = chainSQLException(e, sqlException);
 
                 logger.debug("Couldn't create rawConnection, attempt {}", attempt, e);
-                if (attempt > config.getAcquireRetryAttempts())
+                if (attempt > config.getAcquireRetryAttempts() || System.nanoTime() - startTime >= connectionTimeoutInNanos)
                     break;
 
                 attempt++;
