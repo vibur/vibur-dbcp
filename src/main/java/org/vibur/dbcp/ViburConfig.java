@@ -200,12 +200,16 @@ public abstract class ViburConfig {
      *
      * <p>If there is no ready and valid connection in the pool, and if the maximum pool capacity is not yet reached,
      * the total maximum time that the call to {@code getConnection()} can take includes the time to lazily create
-     * a new connection, and is defined as:
+     * a new connection, and is defined as
      * <pre>
      * maxTimeoutInMs = connectionTimeoutInMs
      *     + (acquireRetryAttempts + 1) * loginTimeoutInSeconds * 1000
+     *     + (acquireRetryAttempts + 1) * createNativeConnectionTime
      *     + acquireRetryAttempts * acquireRetryDelayInMs
-     * </pre> */
+     * </pre>
+     * where the retry attempts loop will be interrupted if the time spent in it exceeds connectionTimeoutInMs.
+     * This means that in the worst case scenario the maximum time taken by the call to {@code getConnection()} is
+     * limited to approx 2 * connectionTimeoutInMs. */
     private long connectionTimeoutInMs = 30_000;
     /** The login timeout that will be set to the call to {@code DriverManager.setLoginTimeout()}
      * or {@code getExternalDataSource().setLoginTimeout()} during the initialization process of the DataSource. */
