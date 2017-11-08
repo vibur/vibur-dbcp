@@ -137,9 +137,9 @@ public abstract class ViburConfig {
 
 
     /** The pool initial size, i.e. the initial number of JDBC Connections allocated in this pool. */
-    private int poolInitialSize = 10;
+    private int poolInitialSize = 5;
     /** The pool max size, i.e. the maximum number of JDBC Connections allocated in this pool. */
-    private int poolMaxSize = 100;
+    private int poolMaxSize = 50;
     /** If {@code true}, guarantees that the threads invoking the pool's {@link org.vibur.objectpool.PoolService#take}
      * methods will be selected to obtain a connection from it in FIFO order, and no thread will be starved out from
      * accessing the pool's underlying resources. */
@@ -165,10 +165,10 @@ public abstract class ViburConfig {
 
     /** The time period after which the {@code poolReducer} will try to possibly reduce the number of created
      * but unused JDBC Connections in this pool. {@code 0} disables it. */
-    private int reducerTimeIntervalInSeconds = 60;
+    private int reducerTimeIntervalInSeconds = 30;
     /** How many times the {@code poolReducer} will wake up during the given
      * {@link #reducerTimeIntervalInSeconds} period in order to sample various information from this pool. */
-    private int reducerSamples = 20;
+    private int reducerSamples = 15;
 
 
     /** In rare circumstances, the application may need to obtain a non-pooled connection from the pool
@@ -210,13 +210,13 @@ public abstract class ViburConfig {
      * where the retry attempts loop will be interrupted if the time spent in it exceeds connectionTimeoutInMs.
      * This means that in the worst case scenario the maximum time taken by the call to {@code getConnection()} is
      * limited to approx 2 * connectionTimeoutInMs. */
-    private long connectionTimeoutInMs = 30_000;
+    private long connectionTimeoutInMs = 15_000;
     /** The login timeout that will be set to the call to {@code DriverManager.setLoginTimeout()}
      * or {@code getExternalDataSource().setLoginTimeout()} during the initialization process of the DataSource. */
     private int loginTimeoutInSeconds = 5;
     /** After attempting to acquire a JDBC Connection and failing with an {@code SQLException},
      * wait for this long before attempting to acquire a new JDBC Connection again. */
-    private long acquireRetryDelayInMs = 1000;
+    private long acquireRetryDelayInMs = 500;
     /** After attempting to acquire a JDBC Connection and failing with an {@code SQLException},
      * try to connect these many times before giving up. */
     private int acquireRetryAttempts = 3;
