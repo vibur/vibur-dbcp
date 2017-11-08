@@ -21,7 +21,6 @@ import org.vibur.objectpool.BasePool;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import static java.lang.Integer.toHexString;
 
