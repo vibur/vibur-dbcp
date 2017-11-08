@@ -77,7 +77,7 @@ public class ConnectionFactory implements ViburObjectFactory {
         int attempt = 1;
         Connection rawConnection = null;
         SQLException sqlException = null;
-        long startTime = System.nanoTime();
+        long startNanoTime = System.nanoTime();
 
         while (rawConnection == null) {
             try {
@@ -88,7 +88,7 @@ public class ConnectionFactory implements ViburObjectFactory {
                 sqlException = chainSQLException(e, sqlException);
 
                 logger.debug("Couldn't create rawConnection, attempt {}", attempt, e);
-                if (attempt > config.getAcquireRetryAttempts() || System.nanoTime() - startTime >= connectionTimeoutInNanos)
+                if (attempt > config.getAcquireRetryAttempts() || System.nanoTime() - startNanoTime >= connectionTimeoutInNanos)
                     break;
 
                 attempt++;
@@ -103,16 +103,16 @@ public class ConnectionFactory implements ViburObjectFactory {
             }
         }
 
-        return postCreate(rawConnection, sqlException, startTime);
+        return postCreate(rawConnection, sqlException, startNanoTime);
     }
 
-    private ConnHolder postCreate(Connection rawConnection, SQLException sqlException, long startTime) throws ViburDBCPException {
+    private ConnHolder postCreate(Connection rawConnection, SQLException sqlException, long startNanoTime) throws ViburDBCPException {
         Hook.InitConnection[] onInit = connHooks.onInit();
         long currentNanoTime = onInit.length > 0 || config.getConnectionIdleLimitInSeconds() >= 0 ? System.nanoTime() : 0;
 
         if (onInit.length > 0) {
             try {
-                long takenNanos = currentNanoTime - startTime;
+                long takenNanos = currentNanoTime - startNanoTime;
                 for (Hook.InitConnection hook : onInit)
                     hook.on(rawConnection, takenNanos);
 
