@@ -226,7 +226,8 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
 
         if (getExternalDataSource() == null)
             initJdbcDriver();
-        setConnector(buildConnector(this, getUsername(), getPassword()));
+        if (getConnector() == null)
+            setConnector(buildConnector(this, getUsername(), getPassword()));
 
         initDefaultHooks();
 
