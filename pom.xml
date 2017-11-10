@@ -90,7 +90,7 @@
         <hsqldb.version>2.3.3</hsqldb.version>
 
         <maven.compiler.plugin.version>2.3.2</maven.compiler.plugin.version>
-        <maven.bundle.plugin.version>3.0.0</maven.bundle.plugin.version>
+        <maven.bundle.plugin.version>3.3.0</maven.bundle.plugin.version>
         <maven.release.plugin.version>2.4.2</maven.release.plugin.version>
         <maven.javadoc.plugin.version>2.8</maven.javadoc.plugin.version>
         <maven.jar.plugin.version>2.4</maven.jar.plugin.version>
