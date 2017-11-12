@@ -140,4 +140,8 @@ public interface ViburDataSource extends DataSource, AutoCloseable {
      * @return an array of all taken proxy Connections
      */
     TakenConnection[] getTakenConnections();
+
+    interface ConnectionInvalidator {
+        void invalidate();
+    }
 }

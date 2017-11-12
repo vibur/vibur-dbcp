@@ -18,6 +18,7 @@ package org.vibur.dbcp.proxy;
 
 import org.vibur.dbcp.ViburConfig;
 import org.vibur.dbcp.ViburDBCPException;
+import org.vibur.dbcp.ViburDataSource.ConnectionInvalidator;
 import org.vibur.dbcp.pool.ConnHolder;
 import org.vibur.dbcp.pool.PoolOperations;
 import org.vibur.dbcp.stcache.StatementCache;
@@ -32,7 +33,8 @@ import static org.vibur.dbcp.proxy.Proxy.*;
 /**
  * @author Simeon Malchev
  */
-public class ConnectionInvocationHandler extends AbstractInvocationHandler<Connection> {
+public class ConnectionInvocationHandler extends AbstractInvocationHandler<Connection>
+        implements ConnectionInvalidator {
 
     private final ConnHolder conn;
     private final PoolOperations poolOperations;
@@ -139,6 +141,7 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
         return (PreparedStatement) targetInvoke(method, args);
     }
 
+    @Override
     public void invalidate() {
         if (close())
             poolOperations.restore(conn, false, getExceptions());
