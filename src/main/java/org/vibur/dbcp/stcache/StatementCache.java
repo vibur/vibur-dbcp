@@ -16,7 +16,9 @@
 
 package org.vibur.dbcp.stcache;
 
+import java.lang.reflect.Method;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
 /**
@@ -34,6 +36,13 @@ public interface StatementCache {
      * @throws SQLException if the invoked underlying "prepare..." method throws an exception
      */
     StatementHolder take(StatementMethod statementMethod) throws SQLException;
+
+    /**
+     * Used internally by the implementation of {@link #take}.
+     */
+    interface StatementCreator {
+        PreparedStatement newStatement(Method method, Object[] args) throws SQLException;
+    }
 
     /**
      * Restores (i.e. marks as available) the given {@code StatementHolder} back in the cache.

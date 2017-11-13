@@ -146,7 +146,7 @@ public class ClhmStatementCache implements StatementCache {
         for (Map.Entry<StatementMethod, StatementHolder> entry : statementCache.entrySet()) {
             StatementMethod key = entry.getKey();
             StatementHolder value = entry.getValue();
-            if (key.target() == rawConnection && statementCache.remove(key, value)) {
+            if (key.rawConnection() == rawConnection && statementCache.remove(key, value)) {
                 quietClose(value.rawStatement());
                 removed++;
             }

@@ -16,7 +16,7 @@
 
 package org.vibur.dbcp.stcache;
 
-import org.vibur.dbcp.proxy.ConnectionInvocationHandler;
+import org.vibur.dbcp.stcache.StatementCache.StatementCreator;
 
 import java.lang.reflect.Method;
 import java.sql.Connection;
@@ -39,27 +39,27 @@ import static java.lang.String.format;
  */
 public class StatementMethod {
 
-    private final ConnectionInvocationHandler handler; // the InvocationHandler for the underlying raw JDBC Connection
-    private final Connection target; // the underlying raw JDBC Connection
+    private final StatementCreator statementCreator;
+    private final Connection rawConnection; // the underlying raw JDBC Connection
     private final Method method; // the invoked prepareStatement(...) or prepareCall(...) method
     private final Object[] args; // the invoked method args
 
-    public StatementMethod(ConnectionInvocationHandler handler, Method method, Object[] args) {
-        assert handler != null;
+    public StatementMethod(Connection rawConnection, StatementCreator statementCreator, Method method, Object[] args) {
+        assert statementCreator != null;
         assert method != null;
         assert args != null && args.length >= 1;
-        this.handler = handler;
-        this.target = handler.getTarget();
+        this.statementCreator = statementCreator;
+        this.rawConnection = rawConnection;
         this.method = method;
         this.args = args;
     }
 
-    Connection target() {
-        return target;
+    Connection rawConnection() {
+        return rawConnection;
     }
 
     PreparedStatement newStatement() throws SQLException {
-        return handler.newStatement(method, args);
+        return statementCreator.newStatement(method, args);
     }
 
     String sqlQuery() {
@@ -72,14 +72,14 @@ public class StatementMethod {
         if (o == null || getClass() != o.getClass()) return false;
 
         StatementMethod that = (StatementMethod) o;
-        return target == that.target // comparing with == as the JDBC Connections are pooled objects
+        return rawConnection == that.rawConnection // comparing with == as the JDBC Connections are pooled objects
             && method.equals(that.method)
             && Arrays.equals(args, that.args);
     }
 
     @Override
     public int hashCode() {
-        int result = target.hashCode();
+        int result = rawConnection.hashCode();
         result = 31 * result + method.hashCode();
         result = 31 * result + Arrays.hashCode(args);
         return result;
@@ -87,6 +87,6 @@ public class StatementMethod {
 
     @Override
     public String toString() {
-        return format("connection %s, method %s, args %s", target, method, Arrays.toString(args));
+        return format("rawConnection %s, method %s, args %s", rawConnection, method, Arrays.toString(args));
     }
 }
