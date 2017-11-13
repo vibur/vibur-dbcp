@@ -33,9 +33,7 @@ import java.util.regex.Pattern;
 
 import static java.lang.String.format;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static org.vibur.dbcp.ViburConfig.SQLSTATE_INTERRUPTED_ERROR;
-import static org.vibur.dbcp.ViburConfig.SQLSTATE_POOL_CLOSED_ERROR;
-import static org.vibur.dbcp.ViburConfig.SQLSTATE_TIMEOUT_ERROR;
+import static org.vibur.dbcp.ViburConfig.*;
 import static org.vibur.dbcp.proxy.Proxy.newProxyConnection;
 import static org.vibur.dbcp.util.JdbcUtils.chainSQLException;
 import static org.vibur.dbcp.util.ViburUtils.getPoolName;
