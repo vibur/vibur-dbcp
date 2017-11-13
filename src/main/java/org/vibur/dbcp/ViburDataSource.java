@@ -118,6 +118,13 @@ public interface ViburDataSource extends DataSource, AutoCloseable {
      */
     void severConnection(Connection connection) throws SQLException;
 
+    /**
+     * Used internally by the implementation of {@link #severConnection}.
+     */
+    interface ConnectionInvalidator {
+        void invalidate();
+    }
+
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
     /**
@@ -140,8 +147,4 @@ public interface ViburDataSource extends DataSource, AutoCloseable {
      * @return an array of all taken proxy Connections
      */
     TakenConnection[] getTakenConnections();
-
-    interface ConnectionInvalidator {
-        void invalidate();
-    }
 }

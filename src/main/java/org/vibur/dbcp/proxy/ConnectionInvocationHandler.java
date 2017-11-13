@@ -22,6 +22,7 @@ import org.vibur.dbcp.ViburDataSource.ConnectionInvalidator;
 import org.vibur.dbcp.pool.ConnHolder;
 import org.vibur.dbcp.pool.PoolOperations;
 import org.vibur.dbcp.stcache.StatementCache;
+import org.vibur.dbcp.stcache.StatementCache.StatementCreator;
 import org.vibur.dbcp.stcache.StatementHolder;
 import org.vibur.dbcp.stcache.StatementMethod;
 
@@ -34,7 +35,7 @@ import static org.vibur.dbcp.proxy.Proxy.*;
  * @author Simeon Malchev
  */
 public class ConnectionInvocationHandler extends AbstractInvocationHandler<Connection>
-        implements ConnectionInvalidator {
+        implements ConnectionInvalidator, StatementCreator {
 
     private final ConnHolder conn;
     private final PoolOperations poolOperations;
@@ -108,7 +109,7 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
      */
     private StatementHolder getCachedStatement(Method method, Object[] args) throws SQLException {
         if (statementCache != null)
-            return statementCache.take(new StatementMethod(this, method, args));
+            return statementCache.take(new StatementMethod(getTarget(), this, method, args));
 
         return getUncachedStatement(method, args, (String) args[0]);
     }
@@ -134,6 +135,7 @@ public class ConnectionInvocationHandler extends AbstractInvocationHandler<Conne
         }
     }
 
+    @Override
     public PreparedStatement newStatement(Method method, Object[] args) throws SQLException {
         String methodName = method.getName();
         if (methodName != "prepareStatement" && methodName != "prepareCall")
