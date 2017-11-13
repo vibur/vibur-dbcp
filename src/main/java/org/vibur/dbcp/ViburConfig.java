@@ -20,7 +20,8 @@ package org.vibur.dbcp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.pool.*;
-import org.vibur.dbcp.proxy.InvocationHooksHolder;
+import org.vibur.dbcp.pool.HookHolder.ConnHooks;
+import org.vibur.dbcp.pool.HookHolder.InvocationHooks;
 import org.vibur.dbcp.stcache.StatementCache;
 import org.vibur.objectpool.PoolService;
 import org.vibur.objectpool.util.ConcurrentCollection;
@@ -32,6 +33,9 @@ import java.sql.Driver;
 import java.util.Properties;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static org.vibur.dbcp.pool.HookHolder.newConnHooks;
+import static org.vibur.dbcp.pool.HookHolder.newInvocationHooks;
 
 /**
  * Specifies all {@link ViburDBCPDataSource} configuration options.
@@ -330,13 +334,13 @@ public abstract class ViburConfig {
      * <p>Note that the underlying data structures used to store the Hook instances <b>are not</b>
      * thread-safe for modifications; the connHooks must be registered only once at pool creation/setup time,
      * before the pool is started. */
-    private final ConnHooksHolder connHooks = new ConnHooksHolder();
+    private final ConnHooks connHooks = newConnHooks();
     /** These are all programming Method invocation hooks.
      *
      * <p>Note that the underlying data structures used to store the Hook instances <b>are not</b>
      * thread-safe for modifications; the hooks must be registered only once at pool creation/setup time,
      * before the pool is started. */
-    private final InvocationHooksHolder invocationHooks = new InvocationHooksHolder();
+    private final InvocationHooks invocationHooks = newInvocationHooks();
 
 
     //////////////////////// Getters & Setters ////////////////////////
@@ -774,11 +778,11 @@ public abstract class ViburConfig {
         this.clearSQLWarnings = clearSQLWarnings;
     }
 
-    public ConnHooksHolder getConnHooks() {
+    public ConnHooks getConnHooks() {
         return connHooks;
     }
 
-    public InvocationHooksHolder getInvocationHooks() {
+    public InvocationHooks getInvocationHooks() {
         return invocationHooks;
     }
 

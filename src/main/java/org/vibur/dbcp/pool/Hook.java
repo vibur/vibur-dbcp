@@ -125,7 +125,7 @@ public interface Hook {
          * a {@code StackOverflowError}.
          *
          * <p>For further implementation details see the comments for
-         * {@link org.vibur.dbcp.proxy.InvocationHooksHolder#onMethodInvocation onMethodInvocation}.
+         * {@link HookHolder.InvocationHooksHolder#onMethodInvocation onMethodInvocation}.
          *
          * @param proxy the JDBC object <b>proxy</b> that the method was invoked on;
          *              this can be the Connection proxy, the Statement proxy, etc

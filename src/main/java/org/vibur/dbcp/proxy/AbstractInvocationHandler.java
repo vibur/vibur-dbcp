@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.ViburConfig;
 import org.vibur.dbcp.ViburDBCPException;
 import org.vibur.dbcp.pool.Hook;
+import org.vibur.dbcp.pool.HookHolder.InvocationHooksAccessor;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
@@ -59,7 +60,7 @@ abstract class AbstractInvocationHandler<T> extends ExceptionCollector implement
         assert config != null;
         this.target = target;
         this.config = config;
-        this.onMethodInvocation = config.getInvocationHooks().onMethodInvocation();
+        this.onMethodInvocation = ((InvocationHooksAccessor) config.getInvocationHooks()).onMethodInvocation();
         // not every AbstractInvocationHandler (this) is an ExceptionCollector
         this.exceptionCollector = exceptionCollector == null ? this : exceptionCollector;
     }
@@ -189,7 +190,7 @@ abstract class AbstractInvocationHandler<T> extends ExceptionCollector implement
         return closed.get();
     }
 
-    public final T getTarget() {
+    final T getTarget() {
         return target;
     }
 

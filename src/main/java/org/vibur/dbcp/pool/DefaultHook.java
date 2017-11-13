@@ -210,11 +210,11 @@ public abstract class DefaultHook {
     ///////////////////////////////////////////////////////////////////////////////////////////////
     // Hooks utils:
 
-    public static final class Util {
+    static final class Util {
 
         private Util() { }
 
-        public static <T extends Hook> T[] addHook(T[] hooks, T hook) {
+        static <T extends Hook> T[] addHook(T[] hooks, T hook) {
             requireNonNull(hook);
             if (hook instanceof DefaultHook && !((DefaultHook) hook).isEnabled())
                 return hooks;

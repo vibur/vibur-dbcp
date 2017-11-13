@@ -18,6 +18,7 @@ package org.vibur.dbcp.proxy;
 
 import org.vibur.dbcp.ViburConfig;
 import org.vibur.dbcp.pool.Hook;
+import org.vibur.dbcp.pool.HookHolder.InvocationHooksAccessor;
 import org.vibur.dbcp.stcache.StatementCache;
 import org.vibur.dbcp.stcache.StatementHolder;
 
@@ -55,11 +56,12 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
         this.statementCache = statementCache;
         this.config = config;
 
-        this.executionHooks = config.getInvocationHooks().onStatementExecution();
+        InvocationHooksAccessor invocationHooksAccessor = (InvocationHooksAccessor) config.getInvocationHooks();
+        this.executionHooks = invocationHooksAccessor.onStatementExecution();
         this.firstHook = executionHooks.length > 0 ? executionHooks[0] : this;
 
         this.logSqlQueryParams = config.isIncludeQueryParameters() &&
-                (executionHooks.length > 0 || config.getInvocationHooks().onResultSetRetrieval().length > 0);
+                (executionHooks.length > 0 || invocationHooksAccessor.onResultSetRetrieval().length > 0);
         this.sqlQueryParams = logSqlQueryParams ? new ArrayList<Object[]>() : null;
     }
 

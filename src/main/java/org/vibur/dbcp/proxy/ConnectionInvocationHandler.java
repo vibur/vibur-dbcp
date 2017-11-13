@@ -34,7 +34,7 @@ import static org.vibur.dbcp.proxy.Proxy.*;
 /**
  * @author Simeon Malchev
  */
-public class ConnectionInvocationHandler extends AbstractInvocationHandler<Connection>
+class ConnectionInvocationHandler extends AbstractInvocationHandler<Connection>
         implements ConnectionInvalidator, StatementCreator {
 
     private final ConnHolder conn;

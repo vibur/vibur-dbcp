@@ -20,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.ViburDBCPDataSource;
 import org.vibur.dbcp.ViburDBCPException;
+import org.vibur.dbcp.pool.HookHolder.ConnHooksAccessor;
 import org.vibur.objectpool.PoolService;
 
 import java.sql.Connection;
@@ -89,7 +90,7 @@ public class PoolOperations {
     }
 
     private ConnHolder getConnHolder(long timeoutMs) throws SQLException {
-        Hook.GetConnection[] onGet = dataSource.getConnHooks().onGet();
+        Hook.GetConnection[] onGet = ((ConnHooksAccessor) dataSource.getConnHooks()).onGet();
         ConnHolder conn = null;
         long[] waitedNanos = NO_WAIT;
         SQLException sqlException = null;

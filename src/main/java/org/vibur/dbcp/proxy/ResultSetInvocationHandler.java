@@ -18,6 +18,7 @@ package org.vibur.dbcp.proxy;
 
 import org.vibur.dbcp.ViburConfig;
 import org.vibur.dbcp.pool.Hook;
+import org.vibur.dbcp.pool.HookHolder.InvocationHooksAccessor;
 
 import java.lang.reflect.Method;
 import java.sql.ResultSet;
@@ -33,7 +34,7 @@ class ResultSetInvocationHandler extends ChildObjectInvocationHandler<Statement,
 
     private final String sqlQuery;
     private final List<Object[]> sqlQueryParams;
-    private final InvocationHooksHolder invocationHooks;
+    private final Hook.ResultSetRetrieval[] executionHooks;
 
     private final AtomicLong resultSetSize = new AtomicLong(0);
 
@@ -43,7 +44,7 @@ class ResultSetInvocationHandler extends ChildObjectInvocationHandler<Statement,
         super(rawResultSet, statementProxy, "getStatement", config, exceptionCollector);
         this.sqlQuery = sqlQuery;
         this.sqlQueryParams = sqlQueryParams;
-        this.invocationHooks = config.getInvocationHooks();
+        this.executionHooks = ((InvocationHooksAccessor) config.getInvocationHooks()).onResultSetRetrieval();
     }
 
     @Override
@@ -78,7 +79,7 @@ class ResultSetInvocationHandler extends ChildObjectInvocationHandler<Statement,
             return null;
 
         long size = resultSetSize.get() - 1;
-        for (Hook.ResultSetRetrieval hook : invocationHooks.onResultSetRetrieval())
+        for (Hook.ResultSetRetrieval hook : executionHooks)
             hook.on(sqlQuery, sqlQueryParams, size);
 
         return targetInvoke(method, args);

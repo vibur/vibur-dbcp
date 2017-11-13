@@ -21,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.ViburConfig;
 import org.vibur.dbcp.ViburDBCPException;
+import org.vibur.dbcp.pool.HookHolder.ConnHooksAccessor;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -51,7 +52,7 @@ public class ConnectionFactory implements ViburObjectFactory {
 
     private final ViburConfig config;
     private final long connectionTimeoutInNanos;
-    private final ConnHooksHolder connHooks;
+    private final ConnHooksAccessor connHooksAccessor;
     private final AtomicInteger version = new AtomicInteger(1);
 
     /**
@@ -63,7 +64,7 @@ public class ConnectionFactory implements ViburObjectFactory {
     public ConnectionFactory(ViburConfig config) throws ViburDBCPException {
         this.config = config;
         this.connectionTimeoutInNanos = MILLISECONDS.toNanos(config.getConnectionTimeoutInMs());
-        this.connHooks = config.getConnHooks();
+        this.connHooksAccessor = (ConnHooksAccessor) config.getConnHooks();
         initLoginTimeout(config);
     }
 
@@ -107,7 +108,7 @@ public class ConnectionFactory implements ViburObjectFactory {
     }
 
     private ConnHolder postCreate(Connection rawConnection, SQLException sqlException, long startNanoTime) throws ViburDBCPException {
-        Hook.InitConnection[] onInit = connHooks.onInit();
+        Hook.InitConnection[] onInit = connHooksAccessor.onInit();
         long currentNanoTime = onInit.length > 0 || config.getConnectionIdleLimitInSeconds() >= 0 ? System.nanoTime() : 0;
 
         if (onInit.length > 0) {
@@ -153,7 +154,7 @@ public class ConnectionFactory implements ViburObjectFactory {
     public boolean readyToRestore(ConnHolder conn) {
         clearTracking(conn); // we don't want to keep the tracking objects references
 
-        Hook.CloseConnection[] onClose = connHooks.onClose();
+        Hook.CloseConnection[] onClose = connHooksAccessor.onClose();
         long currentNanoTime = onClose.length > 0 || config.getConnectionIdleLimitInSeconds() >= 0 ? System.nanoTime() : 0;
 
         if (onClose.length > 0) {
@@ -180,7 +181,7 @@ public class ConnectionFactory implements ViburObjectFactory {
             conn.setThread(Thread.currentThread());
             conn.setLocation(new Throwable());
         }
-        else if (connHooks.onGet().length > 0 || connHooks.onClose().length > 0)
+        else if (connHooksAccessor.onGet().length > 0 || connHooksAccessor.onClose().length > 0)
             conn.setTakenNanoTime(System.nanoTime());
 
         return conn;
@@ -202,7 +203,7 @@ public class ConnectionFactory implements ViburObjectFactory {
         logger.debug("Destroying rawConnection {}", rawConnection);
         closeStatements(rawConnection);
 
-        Hook.DestroyConnection[] onDestroy = connHooks.onDestroy();
+        Hook.DestroyConnection[] onDestroy = connHooksAccessor.onDestroy();
         long startTime = onDestroy.length == 0 ? 0 : System.nanoTime();
 
         quietClose(rawConnection);
