@@ -208,7 +208,6 @@ public abstract class ViburConfig {
      * <pre>
      * maxTimeoutInMs = connectionTimeoutInMs
      *     + (acquireRetryAttempts + 1) * loginTimeoutInSeconds * 1000
-     *     + (acquireRetryAttempts + 1) * createNativeConnectionTime
      *     + acquireRetryAttempts * acquireRetryDelayInMs
      * </pre>
      * where the retry attempts loop will be interrupted if the time spent in it exceeds connectionTimeoutInMs.
