@@ -1,6 +1,6 @@
 Vibur DBCP
 A concurrent and dynamic JDBC connection pool.
-Copyright 2013-2015 Simeon Malchev
+Copyright 2013-2017 Simeon Malchev
 
 Other copyrights also apply to some parts of this work.  Please
 see the CONTRIBUTORS file and individual file headers for details.
