@@ -132,35 +132,35 @@ public class ConnectionFactory implements ViburObjectFactory {
     }
 
     @Override
-    public boolean readyToTake(ConnHolder conn) {
-        if (conn.version() != version())
+    public boolean readyToTake(ConnHolder connHolder) {
+        if (connHolder.version() != version())
             return false;
 
         int idleLimit = config.getConnectionIdleLimitInSeconds();
         if (idleLimit >= 0) {
-            long idleNanos = System.nanoTime() - conn.getRestoredNanoTime();
+            long idleNanos = System.nanoTime() - connHolder.getRestoredNanoTime();
             if (NANOSECONDS.toSeconds(idleNanos) >= idleLimit
-                    && !validateOrInitialize(conn.rawConnection(), config.getTestConnectionQuery(), config)) {
-                logger.debug("Couldn't validate rawConnection {}", conn.rawConnection());
+                    && !validateOrInitialize(connHolder.rawConnection(), config.getTestConnectionQuery(), config)) {
+                logger.debug("Couldn't validate rawConnection {}", connHolder.rawConnection());
                 return false;
             }
         }
 
-        prepareTracking(conn);
+        prepareTracking(connHolder);
         return true;
     }
 
     @Override
-    public boolean readyToRestore(ConnHolder conn) {
-        clearTracking(conn); // we don't want to keep the tracking objects references
+    public boolean readyToRestore(ConnHolder connHolder) {
+        clearTracking(connHolder); // we don't want to keep the tracking objects references
 
         Hook.CloseConnection[] onClose = connHooksAccessor.onClose();
         long currentNanoTime = onClose.length > 0 || config.getConnectionIdleLimitInSeconds() >= 0 ? System.nanoTime() : 0;
 
         if (onClose.length > 0) {
-            Connection rawConnection = conn.rawConnection();
+            Connection rawConnection = connHolder.rawConnection();
             try {
-                long takenNanos = currentNanoTime - conn.getTakenNanoTime();
+                long takenNanos = currentNanoTime - connHolder.getTakenNanoTime();
                 for (Hook.CloseConnection hook : onClose)
                     hook.on(rawConnection, takenNanos);
 
@@ -171,35 +171,35 @@ public class ConnectionFactory implements ViburObjectFactory {
         }
 
         if (config.getConnectionIdleLimitInSeconds() >= 0)
-            conn.setRestoredNanoTime(currentNanoTime);
+            connHolder.setRestoredNanoTime(currentNanoTime);
         return true;
     }
 
-    private ConnHolder prepareTracking(ConnHolder conn) {
+    private ConnHolder prepareTracking(ConnHolder connHolder) {
         if (config.isPoolEnableConnectionTracking()) {
-            conn.setTakenNanoTime(System.nanoTime());
-            conn.setThread(Thread.currentThread());
-            conn.setLocation(new Throwable());
+            connHolder.setTakenNanoTime(System.nanoTime());
+            connHolder.setThread(Thread.currentThread());
+            connHolder.setLocation(new Throwable());
         }
         else if (connHooksAccessor.onGet().length > 0 || connHooksAccessor.onClose().length > 0)
-            conn.setTakenNanoTime(System.nanoTime());
+            connHolder.setTakenNanoTime(System.nanoTime());
 
-        return conn;
+        return connHolder;
     }
 
-    private void clearTracking(ConnHolder conn) {
+    private void clearTracking(ConnHolder connHolder) {
         if (config.isPoolEnableConnectionTracking()) {
-            conn.setTakenNanoTime(0);
-            conn.setLastAccessNanoTime(0);
-            conn.setProxyConnection(null);
-            conn.setThread(null);
-            conn.setLocation(null);
+            connHolder.setTakenNanoTime(0);
+            connHolder.setLastAccessNanoTime(0);
+            connHolder.setProxyConnection(null);
+            connHolder.setThread(null);
+            connHolder.setLocation(null);
         }
     }
 
     @Override
-    public void destroy(ConnHolder conn) {
-        Connection rawConnection = conn.rawConnection();
+    public void destroy(ConnHolder connHolder) {
+        Connection rawConnection = connHolder.rawConnection();
         logger.debug("Destroying rawConnection {}", rawConnection);
         closeStatements(rawConnection);
 

@@ -35,8 +35,8 @@ public final class Proxy {
 
     private Proxy() { }
 
-    public static Connection newProxyConnection(ConnHolder conn, PoolOperations poolOperations, ViburConfig config) {
-        InvocationHandler handler = new ConnectionInvocationHandler(conn, poolOperations, config);
+    public static Connection newProxyConnection(ConnHolder connHolder, PoolOperations poolOperations, ViburConfig config) {
+        InvocationHandler handler = new ConnectionInvocationHandler(connHolder, poolOperations, config);
         return newProxy(connectionCtor, handler);
     }
 

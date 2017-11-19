@@ -76,41 +76,41 @@ public class PoolOperations {
     ////////////// getProxyConnection(...) //////////////
 
     public Connection getProxyConnection(long timeoutMs) throws SQLException {
-        ConnHolder conn = getConnHolder(timeoutMs);
+        ConnHolder connHolder = getConnHolder(timeoutMs);
 
         if (logger.isTraceEnabled())
-            logger.trace("Taking rawConnection {}", conn.rawConnection());
+            logger.trace("Taking rawConnection {}", connHolder.rawConnection());
 
-        Connection proxy = newProxyConnection(conn, this, dataSource);
+        Connection proxy = newProxyConnection(connHolder, this, dataSource);
         if (dataSource.isPoolEnableConnectionTracking())
-            conn.setProxyConnection(proxy);
+            connHolder.setProxyConnection(proxy);
         return proxy;
     }
 
     private ConnHolder getConnHolder(long timeoutMs) throws SQLException {
         Hook.GetConnection[] onGet = ((ConnHooksAccessor) dataSource.getConnHooks()).onGet();
-        ConnHolder conn = null;
+        ConnHolder connHolder = null;
         long[] waitedNanos = NO_WAIT;
         SQLException sqlException = null;
 
         try {
             if (onGet.length > 0) {
                 waitedNanos = new long[1];
-                conn = timeoutMs > 0 ? poolService.tryTake(timeoutMs, MILLISECONDS, waitedNanos) : poolService.take(waitedNanos);
+                connHolder = timeoutMs > 0 ? poolService.tryTake(timeoutMs, MILLISECONDS, waitedNanos) : poolService.take(waitedNanos);
             }
             else
-                conn = timeoutMs > 0 ? poolService.tryTake(timeoutMs, MILLISECONDS) : poolService.take();
+                connHolder = timeoutMs > 0 ? poolService.tryTake(timeoutMs, MILLISECONDS) : poolService.take();
 
-            if (conn == null) // we were *not* able to obtain a connection from the pool
+            if (connHolder == null) // we were *not* able to obtain a connection from the pool
                 throw sqlException = createSQLException(onGet.length > 0 ? waitedNanos[0] * 0.000_001 : timeoutMs);
 
-            return conn;
+            return connHolder;
 
         } catch (ViburDBCPException e) { // can be (indirectly) thrown by the ConnectionFactory.create() methods
             throw sqlException = e.unwrapSQLException();
 
         } finally {
-            Connection rawConnection = conn != null ? conn.rawConnection() : null;
+            Connection rawConnection = connHolder != null ? connHolder.rawConnection() : null;
             try {
                 for (Hook.GetConnection hook : onGet)
                     hook.on(rawConnection, waitedNanos[0]);
@@ -143,22 +143,22 @@ public class PoolOperations {
 
     ////////////// restore(...) //////////////
 
-    public void restore(ConnHolder conn, boolean valid, SQLException[] exceptions) {
+    public void restore(ConnHolder connHolder, boolean valid, SQLException[] exceptions) {
         if (logger.isTraceEnabled())
-            logger.trace("Restoring rawConnection {}", conn.rawConnection());
-        boolean reusable = valid && exceptions.length == 0 && conn.version() == connectionFactory.version();
-        poolService.restore(conn, reusable);
-        processSQLExceptions(conn, exceptions);
+            logger.trace("Restoring rawConnection {}", connHolder.rawConnection());
+        boolean reusable = valid && exceptions.length == 0 && connHolder.version() == connectionFactory.version();
+        poolService.restore(connHolder, reusable);
+        processSQLExceptions(connHolder, exceptions);
     }
 
     /**
      * Processes SQL exceptions that have occurred on the given JDBC Connection (wrapped in a {@code ConnHolder}).
      *
-     * @param conn the given connection
+     * @param connHolder the given connection
      * @param exceptions the list of SQL exceptions that have occurred on the connection; might be an empty list but not a {@code null}
      */
-    private void processSQLExceptions(ConnHolder conn, SQLException[] exceptions) {
-        int connVersion = conn.version();
+    private void processSQLExceptions(ConnHolder connHolder, SQLException[] exceptions) {
+        int connVersion = connHolder.version();
         SQLException criticalException = getCriticalSQLException(exceptions);
         if (criticalException != null && connectionFactory.compareAndSetVersion(connVersion, connVersion + 1)) {
             int destroyed = poolService.drainCreated(); // destroys all connections in the pool

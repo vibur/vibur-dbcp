@@ -37,16 +37,16 @@ import static org.vibur.dbcp.proxy.Proxy.*;
 class ConnectionInvocationHandler extends AbstractInvocationHandler<Connection>
         implements ConnectionInvalidator, StatementCreator {
 
-    private final ConnHolder conn;
+    private final ConnHolder connHolder;
     private final PoolOperations poolOperations;
     private final ViburConfig config;
     private final boolean poolEnableConnectionTracking;
 
     private final StatementCache statementCache;
 
-    ConnectionInvocationHandler(ConnHolder conn, PoolOperations poolOperations, ViburConfig config) {
-        super(conn.rawConnection(), config, null /* becomes a new ExceptionCollector */);
-        this.conn = conn;
+    ConnectionInvocationHandler(ConnHolder connHolder, PoolOperations poolOperations, ViburConfig config) {
+        super(connHolder.rawConnection(), config, null /* becomes a new ExceptionCollector */);
+        this.connHolder = connHolder;
         this.poolOperations = poolOperations;
         this.config = config;
         this.poolEnableConnectionTracking = config.isPoolEnableConnectionTracking();
@@ -72,7 +72,7 @@ class ConnectionInvocationHandler extends AbstractInvocationHandler<Connection>
     @Override
     Object restrictedInvoke(Connection proxy, Method method, Object[] args) throws SQLException {
         if (poolEnableConnectionTracking)
-            conn.setLastAccessNanoTime(System.nanoTime());
+            connHolder.setLastAccessNanoTime(System.nanoTime());
 
         String methodName = method.getName();
 
@@ -121,7 +121,7 @@ class ConnectionInvocationHandler extends AbstractInvocationHandler<Connection>
 
     private Object processClose() {
         if (close())
-            poolOperations.restore(conn, true, getExceptions());
+            poolOperations.restore(connHolder, true, getExceptions());
         return null;
     }
 
@@ -131,7 +131,7 @@ class ConnectionInvocationHandler extends AbstractInvocationHandler<Connection>
         try {
             return targetInvoke(method, args);
         } finally {
-            poolOperations.restore(conn, false, getExceptions());
+            poolOperations.restore(connHolder, false, getExceptions());
         }
     }
 
@@ -146,6 +146,6 @@ class ConnectionInvocationHandler extends AbstractInvocationHandler<Connection>
     @Override
     public void invalidate() {
         if (close())
-            poolOperations.restore(conn, false, getExceptions());
+            poolOperations.restore(connHolder, false, getExceptions());
     }
 }
