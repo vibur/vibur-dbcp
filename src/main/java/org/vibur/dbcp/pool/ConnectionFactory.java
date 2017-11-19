@@ -89,10 +89,8 @@ public class ConnectionFactory implements ViburObjectFactory {
                 sqlException = chainSQLException(e, sqlException);
 
                 logger.debug("Couldn't create rawConnection, attempt {}", attempt, e);
-                if (attempt > config.getAcquireRetryAttempts() || System.nanoTime() - startNanoTime >= connectionTimeoutInNanos)
+                if (attempt++ > config.getAcquireRetryAttempts() || System.nanoTime() - startNanoTime >= connectionTimeoutInNanos)
                     break;
-
-                attempt++;
 
                 try {
                     MILLISECONDS.sleep(config.getAcquireRetryDelayInMs());
