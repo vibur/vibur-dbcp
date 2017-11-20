@@ -157,10 +157,10 @@ public final class JdbcUtils {
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
-    public static SQLException chainSQLException(SQLException main, SQLException e) {
+    public static SQLException chainSQLException(SQLException main, SQLException next) {
         if (main == null)
-            return e;
-        main.setNextException(e);
+            return next;
+        main.setNextException(next);
         return main;
     }
 }

@@ -202,26 +202,23 @@ public abstract class ViburConfig {
      * More precisely, that is the time to wait to obtain a connection from the pool when there is a ready and valid
      * connection in the pool. {@code 0} means forever.
      *
-     * <p>If there is no ready and valid connection in the pool, and if the maximum pool capacity is not yet reached,
-     * the total maximum time that the call to {@code getConnection()} can take includes the time to lazily create
-     * a new connection, and is defined as
+     * <p>If there is no ready and valid connection in the pool, and if the maximum pool capacity is not
+     * reached yet, the total time that the call to {@code getConnection()} can take may include the time
+     * to lazily create a new connection, and is defined as:
      * <pre>
-     * maxTimeoutInMs = connectionTimeoutInMs
-     *     + (acquireRetryAttempts + 1) * loginTimeoutInSeconds * 1000
-     *     + acquireRetryAttempts * acquireRetryDelayInMs
+     *      maxTimeoutInMs = connectionTimeoutInMs + loginTimeoutInSeconds * 1000
      * </pre>
-     * where the retry attempts loop will be interrupted if the time spent in it exceeds connectionTimeoutInMs.
-     * This means that in the worst case scenario the maximum time taken by the call to {@code getConnection()} is
-     * limited to approx 2 * connectionTimeoutInMs. */
+     * During this time the pool can make up to {@link #acquireRetryAttempts} that are separated with
+     * {@link #acquireRetryDelayInMs}, if there are errors while trying to lazily create the new connection. */
     private long connectionTimeoutInMs = 15_000;
     /** The login timeout that will be set to the call to {@code DriverManager.setLoginTimeout()}
      * or {@code getExternalDataSource().setLoginTimeout()} during the initialization process of the DataSource. */
     private int loginTimeoutInSeconds = 5;
-    /** After attempting to acquire a JDBC Connection and failing with an {@code SQLException},
-     * wait for this long before attempting to acquire a new JDBC Connection again. */
+    /** After attempting to lazily create a JDBC Connection as part of the {@code DataSource.getConnection()} flow
+     * and failing with an {@code SQLException}, wait for this long before attempting again. */
     private long acquireRetryDelayInMs = 500;
-    /** After attempting to acquire a JDBC Connection and failing with an {@code SQLException},
-     * try to connect these many times before giving up. */
+    /** After attempting to lazily create a JDBC Connection as part of the {@code DataSource.getConnection()} flow
+     * and failing with an {@code SQLException}, retry maximum these many times before giving up. */
     private int acquireRetryAttempts = 3;
 
 

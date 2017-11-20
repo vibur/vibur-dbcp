@@ -33,6 +33,7 @@ import java.util.regex.Pattern;
 
 import static java.lang.String.format;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.NANOSECONDS;
 import static org.vibur.dbcp.ViburConfig.*;
 import static org.vibur.dbcp.proxy.Proxy.newProxyConnection;
 import static org.vibur.dbcp.util.JdbcUtils.chainSQLException;
@@ -50,6 +51,7 @@ public class PoolOperations {
     private static final Logger logger = LoggerFactory.getLogger(PoolOperations.class);
 
     private static final long[] NO_WAIT = {};
+    private final long connectionTimeoutInNanos;
     private static final Pattern whitespaces = Pattern.compile("\\s");
 
     private final ViburDBCPDataSource dataSource;
@@ -67,6 +69,7 @@ public class PoolOperations {
      */
     public PoolOperations(ViburDBCPDataSource dataSource, ViburObjectFactory connectionFactory, PoolService<ConnHolder> poolService) {
         this.dataSource = dataSource;
+        this.connectionTimeoutInNanos = MILLISECONDS.toNanos(dataSource.getConnectionTimeoutInMs());
         this.connectionFactory = connectionFactory;
         this.poolService = poolService;
         this.criticalSQLStates = new HashSet<>(Arrays.asList(
@@ -76,7 +79,35 @@ public class PoolOperations {
     ////////////// getProxyConnection(...) //////////////
 
     public Connection getProxyConnection(long timeoutMs) throws SQLException {
-        ConnHolder connHolder = getConnHolder(timeoutMs);
+        int attempt = 1;
+        ConnHolder connHolder = null;
+        SQLException sqlException = null;
+        long startNanoTime = System.nanoTime();
+
+        while (connHolder == null) {
+            try {
+                connHolder = getConnHolder(timeoutMs);
+
+            } catch (ViburDBCPException e) { // thrown only if we can retry the operation, see getConnHolder(...)
+                sqlException = chainSQLException(e.unwrapSQLException(), sqlException);
+
+                if (attempt++ > dataSource.getAcquireRetryAttempts())
+                    throw sqlException;
+                if (timeoutMs > 0) {
+                    timeoutMs = NANOSECONDS.toMillis(connectionTimeoutInNanos - (System.nanoTime() - startNanoTime))
+                            - dataSource.getAcquireRetryDelayInMs(); // calculates the remaining timeout
+                    if (timeoutMs <= 0)
+                        throw sqlException;
+                }
+
+                try {
+                    MILLISECONDS.sleep(dataSource.getAcquireRetryDelayInMs());
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    throw chainSQLException(new SQLException(ie), sqlException);
+                }
+            }
+        }
 
         if (logger.isTraceEnabled())
             logger.trace("Taking rawConnection {}", connHolder.rawConnection());
@@ -87,11 +118,12 @@ public class PoolOperations {
         return proxy;
     }
 
-    private ConnHolder getConnHolder(long timeoutMs) throws SQLException {
+    private ConnHolder getConnHolder(long timeoutMs) throws SQLException, ViburDBCPException {
         Hook.GetConnection[] onGet = ((ConnHooksAccessor) dataSource.getConnHooks()).onGet();
         ConnHolder connHolder = null;
         long[] waitedNanos = NO_WAIT;
         SQLException sqlException = null;
+        ViburDBCPException viburException = null;
 
         try {
             if (onGet.length > 0) {
@@ -102,12 +134,11 @@ public class PoolOperations {
                 connHolder = timeoutMs > 0 ? poolService.tryTake(timeoutMs, MILLISECONDS) : poolService.take();
 
             if (connHolder == null) // we were *not* able to obtain a connection from the pool
-                throw sqlException = createSQLException(onGet.length > 0 ? waitedNanos[0] * 0.000_001 : timeoutMs);
+                sqlException = createSQLException(onGet.length > 0 ? waitedNanos[0] * 0.000_001 : timeoutMs);
 
-            return connHolder;
-
-        } catch (ViburDBCPException e) { // can be (indirectly) thrown by the ConnectionFactory.create() methods
-            throw sqlException = e.unwrapSQLException();
+        } catch (ViburDBCPException e) { // thrown (indirectly) by the ConnectionFactory.create() methods
+            viburException = e;
+            sqlException = e.unwrapSQLException();
 
         } finally {
             Connection rawConnection = connHolder != null ? connHolder.rawConnection() : null;
@@ -116,13 +147,19 @@ public class PoolOperations {
                     hook.on(rawConnection, waitedNanos[0]);
 
             } catch (SQLException e) {
-                // noinspection ThrowFromFinallyBlock - the new exception is just chained to the existing one, if there was such
-                throw chainSQLException(sqlException, e);
+                sqlException = chainSQLException(sqlException, e);
             }
         }
+
+        if (viburException != null)
+            throw viburException; // indicates that we can retry the operation
+        if (sqlException != null)
+            throw sqlException;
+
+        return connHolder;
     }
 
-    private SQLException createSQLException(double timeoutMs) {
+    private SQLException createSQLException(double elapsedMs) {
         String poolName = getPoolName(dataSource);
         if (poolService.isTerminated())
             return new SQLException(format("Pool %s, the poolService is terminated.", poolName),
@@ -131,14 +168,14 @@ public class PoolOperations {
         boolean isInterrupted = Thread.currentThread().isInterrupted(); // someone else has interrupted us, so we do not clear the flag
         if (!isInterrupted && dataSource.isLogTakenConnectionsOnTimeout() && logger.isWarnEnabled())
             logger.warn(format("Pool %s, couldn't obtain SQL connection within %.3f ms, full list of taken connections begins:\n%s",
-                    poolName, timeoutMs, dataSource.getTakenConnectionsStackTraces()));
+                    poolName, elapsedMs, dataSource.getTakenConnectionsStackTraces()));
 
-        int intTimeoutMs = (int) Math.round(timeoutMs);
+        int intElapsedMs = (int) Math.round(elapsedMs);
         return !isInterrupted ?
                 new SQLTimeoutException(format("Pool %s, couldn't obtain SQL connection within %.3f ms.",
-                        poolName, timeoutMs), SQLSTATE_TIMEOUT_ERROR, intTimeoutMs) :
+                        poolName, elapsedMs), SQLSTATE_TIMEOUT_ERROR, intElapsedMs) :
                 new SQLException(format("Pool %s, interrupted while getting SQL connection, waited for %.3f ms.",
-                        poolName, timeoutMs), SQLSTATE_INTERRUPTED_ERROR, intTimeoutMs);
+                        poolName, elapsedMs), SQLSTATE_INTERRUPTED_ERROR, intElapsedMs);
     }
 
     ////////////// restore(...) //////////////

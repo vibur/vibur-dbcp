@@ -28,7 +28,6 @@ import java.sql.SQLException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.util.Objects.requireNonNull;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
 import static org.vibur.dbcp.util.JdbcUtils.*;
 
@@ -51,7 +50,6 @@ public class ConnectionFactory implements ViburObjectFactory {
     private static final Logger logger = LoggerFactory.getLogger(ConnectionFactory.class);
 
     private final ViburConfig config;
-    private final long connectionTimeoutInNanos;
     private final ConnHooksAccessor connHooksAccessor;
     private final AtomicInteger version = new AtomicInteger(1);
 
@@ -63,7 +61,6 @@ public class ConnectionFactory implements ViburObjectFactory {
      */
     public ConnectionFactory(ViburConfig config) throws ViburDBCPException {
         this.config = config;
-        this.connectionTimeoutInNanos = MILLISECONDS.toNanos(config.getConnectionTimeoutInMs());
         this.connHooksAccessor = (ConnHooksAccessor) config.getConnHooks();
         initLoginTimeout(config);
     }
@@ -75,31 +72,16 @@ public class ConnectionFactory implements ViburObjectFactory {
 
     @Override
     public ConnHolder create(Connector connector) throws ViburDBCPException {
-        int attempt = 1;
         Connection rawConnection = null;
         SQLException sqlException = null;
         long startNanoTime = System.nanoTime();
 
-        while (rawConnection == null) {
-            try {
-                rawConnection = requireNonNull(connector.connect());
-                sqlException = null; // clear the previous exception (if any) after successfully establishing the connection
+        try {
+            rawConnection = requireNonNull(connector.connect());
 
-            } catch (SQLException e) {
-                sqlException = chainSQLException(e, sqlException);
-
-                logger.debug("Couldn't create rawConnection, attempt {}", attempt, e);
-                if (attempt++ > config.getAcquireRetryAttempts() || System.nanoTime() - startNanoTime >= connectionTimeoutInNanos)
-                    break;
-
-                try {
-                    MILLISECONDS.sleep(config.getAcquireRetryDelayInMs());
-                } catch (InterruptedException ie) {
-                    Thread.currentThread().interrupt();
-                    sqlException = chainSQLException(sqlException, new SQLException(ie));
-                    break;
-                }
-            }
+        } catch (SQLException e) {
+            sqlException = e;
+            logger.debug("Couldn't create rawConnection", e);
         }
 
         return postCreate(rawConnection, sqlException, startNanoTime);
