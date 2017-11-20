@@ -51,10 +51,10 @@ public class PoolOperations {
     private static final Logger logger = LoggerFactory.getLogger(PoolOperations.class);
 
     private static final long[] NO_WAIT = {};
-    private final long connectionTimeoutInNanos;
     private static final Pattern whitespaces = Pattern.compile("\\s");
 
     private final ViburDBCPDataSource dataSource;
+    private final long connectionTimeoutInNanos;
     private final ViburObjectFactory connectionFactory;
     private final PoolService<ConnHolder> poolService;
 
