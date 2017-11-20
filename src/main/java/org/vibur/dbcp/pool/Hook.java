@@ -35,8 +35,10 @@ import java.util.List;
  *
  * <p>Multiple hooks of one and the same type can be registered and they will be executed in the order in which they
  * were registered; i.e., if there are N registered hooks from a particular type, the first registered hook will
- * be executed first, then the second, the third, and so on. Note that throwing an exception from a hook will prevent
- * the execution of the subsequent hooks from the same type.
+ * be executed first, then the second, the third, and so on.
+ *
+ * <p>Throwing of an exception from a hook will affect the JDBC flow from which the hook was invoked and will
+ * prevent the execution of the subsequent hooks (if any) from the same type.
  *
  * @see DefaultHook
  * @see ConnectionFactory

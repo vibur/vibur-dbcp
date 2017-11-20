@@ -118,6 +118,14 @@ public class PoolOperations {
         return proxy;
     }
 
+    /**
+     * Tries to take a {@code ConnHolder} object from the underlying object pool. If successful, never returns
+     * {@code null}.
+     *
+     * @param timeoutMs timeout in millis to pass to the underlying object pool {@code take} methods
+     * @throws SQLException to indicate a non-recoverable error that cannot be retried
+     * @throws ViburDBCPException to indicate a recoverable error that can be retried
+     */
     private ConnHolder getConnHolder(long timeoutMs) throws SQLException, ViburDBCPException {
         Hook.GetConnection[] onGet = ((ConnHooksAccessor) dataSource.getConnHooks()).onGet();
         ConnHolder connHolder = null;
@@ -138,7 +146,7 @@ public class PoolOperations {
 
         } catch (ViburDBCPException e) { // thrown (indirectly) by the ConnectionFactory.create() methods
             viburException = e;
-            sqlException = e.unwrapSQLException();
+            sqlException = e.unwrapSQLException(); // currently all such errors are treated as recoverable, i.e., can be retried
 
         } finally {
             Connection rawConnection = connHolder != null ? connHolder.rawConnection() : null;
@@ -152,11 +160,11 @@ public class PoolOperations {
         }
 
         if (viburException != null)
-            throw viburException; // indicates that we can retry the operation
+            throw viburException; // a recoverable error
         if (sqlException != null)
-            throw sqlException;
+            throw sqlException; // a non-recoverable error
 
-        return connHolder;
+        return connHolder; // never null if we reach this point
     }
 
     private SQLException createSQLException(double elapsedMs) {
