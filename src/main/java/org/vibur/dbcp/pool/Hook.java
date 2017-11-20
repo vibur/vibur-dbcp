@@ -28,14 +28,15 @@ import java.util.List;
  * An interface that holds all application programming hook interfaces for JDBC Connection tune-up, method
  * invocation interception, and more.
  * 
- * <p>These application hooks serve as extension points to the inner workings of the connection pool and some of them
- * have access to the <b>raw (original)</b> JDBC Connection object, not the proxied such. In order to avoid interference
- * with the way the connection pool manages its underlying connections, the application <b>must not</b> keep or store
- * in one or another form a reference to the {@code rawConnection} object.
+ * <p>These application hooks are invoked when particular JDBC events occur and serve as extension points of the inner
+ * workings of the connection pool. Some of them have access to the <b>raw (original)</b> JDBC Connection object, not
+ * the proxied such. In order to avoid interference with the way the connection pool manages its underlying connections,
+ * the application <b>must not</b> keep or store in one or another form a reference to the {@code rawConnection} object.
  *
  * <p>Multiple hooks of one and the same type can be registered and they will be executed in the order in which they
  * were registered; i.e., if there are N registered hooks from a particular type, the first registered hook will
- * be executed first, then the second, the third, and so on.
+ * be executed first, then the second, the third, and so on. Throwing of an exception from a hook will prevent the
+ * execution of the subsequent hooks from the same type.
  *
  * @see DefaultHook
  * @see ConnectionFactory
