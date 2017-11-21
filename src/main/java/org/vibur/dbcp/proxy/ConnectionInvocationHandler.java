@@ -135,6 +135,8 @@ class ConnectionInvocationHandler extends AbstractInvocationHandler<Connection>
         }
     }
 
+    //
+
     @Override
     public PreparedStatement newStatement(Method method, Object[] args) throws SQLException {
         String methodName = method.getName();

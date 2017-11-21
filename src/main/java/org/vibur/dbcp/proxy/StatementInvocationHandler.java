@@ -158,7 +158,7 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
     public Object on(Statement proxy, Method method, Object[] args, String sqlQuery, List<Object[]> sqlQueryParams,
                      StatementProceedingPoint proceed) throws SQLException {
 
-        if (++hookIdx < executionHooks.length)
+        if (++hookIdx < executionHooks.length) //
             return executionHooks[hookIdx].on(proxy, method, args, sqlQuery, sqlQueryParams, this);
 
         // executeQuery result has to be proxied so that when getStatement() is called
