@@ -67,9 +67,9 @@ public class StatementHookTest extends AbstractDataSourceTest {
         ds.start();
 
         try (Connection connection = ds.getConnection();
-             Statement statement = connection.createStatement();
-             ResultSet resultSet = statement.executeQuery("select * from actor where first_name = 'CHRISTIAN'")) {
+             Statement statement = connection.createStatement()) {
 
+            ResultSet resultSet = statement.executeQuery("select * from actor where first_name = 'CHRISTIAN'");
             assertTrue(resultSet.next()); // make sure the PreparedStatement execution has returned at least one record
         }
 

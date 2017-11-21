@@ -317,9 +317,8 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
     }
 
     private static void executeAndVerifySelectStatement(Connection connection) throws SQLException {
-        try (Statement statement = connection.createStatement();
-             ResultSet resultSet = statement.executeQuery("select * from actor where first_name = 'CHRISTIAN'")) {
-
+        try (Statement statement = connection.createStatement()) {
+            ResultSet resultSet = statement.executeQuery("select * from actor where first_name = 'CHRISTIAN'");
             Set<String> expectedLastNames = new HashSet<>(Arrays.asList("GABLE", "AKROYD", "NEESON"));
             while (resultSet.next()) {
                 String lastName = resultSet.getString("last_name");
@@ -332,28 +331,26 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
     private static void executeAndVerifyPreparedSelectStatement(Connection connection) throws SQLException {
         try (PreparedStatement pStatement = connection.prepareStatement("select * from actor where first_name = ?")) {
             pStatement.setString(1, "CHRISTIAN");
-            try (ResultSet resultSet = pStatement.executeQuery()) {
-                Set<String> expectedLastNames = new HashSet<>(Arrays.asList("GABLE", "AKROYD", "NEESON"));
-                while (resultSet.next()) {
-                    String lastName = resultSet.getString("last_name");
-                    assertTrue(expectedLastNames.remove(lastName));
-                }
-                assertTrue(expectedLastNames.isEmpty());
+            ResultSet resultSet = pStatement.executeQuery();
+            Set<String> expectedLastNames = new HashSet<>(Arrays.asList("GABLE", "AKROYD", "NEESON"));
+            while (resultSet.next()) {
+                String lastName = resultSet.getString("last_name");
+                assertTrue(expectedLastNames.remove(lastName));
             }
+            assertTrue(expectedLastNames.isEmpty());
         }
     }
 
     private static void executeAndVerifyPreparedSelectStatementByLastName(Connection connection) throws SQLException {
         try (PreparedStatement pStatement = connection.prepareStatement("select * from actor where last_name = ?")) {
             pStatement.setString(1, "CROWE");
-            try (ResultSet resultSet = pStatement.executeQuery()) {
-                Set<String> expectedFirstNames = new HashSet<>(Collections.singletonList("SIDNEY"));
-                while (resultSet.next()) {
-                    String firstName = resultSet.getString("first_name");
-                    assertTrue(expectedFirstNames.remove(firstName));
-                }
-                assertTrue(expectedFirstNames.isEmpty());
+            ResultSet resultSet = pStatement.executeQuery();
+            Set<String> expectedFirstNames = new HashSet<>(Collections.singletonList("SIDNEY"));
+            while (resultSet.next()) {
+                String firstName = resultSet.getString("first_name");
+                assertTrue(expectedFirstNames.remove(firstName));
             }
+            assertTrue(expectedFirstNames.isEmpty());
         }
     }
 }

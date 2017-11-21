@@ -127,31 +127,40 @@ public final class JdbcUtils {
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
-    public static void clearWarnings(Connection rawConnection) throws SQLException {
-        if (rawConnection != null)
-            rawConnection.clearWarnings();
+    public static void clearWarnings(Connection connection) throws SQLException {
+        if (connection != null)
+            connection.clearWarnings();
     }
 
-    public static void clearWarnings(PreparedStatement rawStatement) throws SQLException {
-        if (rawStatement != null)
-            rawStatement.clearWarnings();
+    public static void clearWarnings(PreparedStatement preparedStatement) throws SQLException {
+        if (preparedStatement != null)
+            preparedStatement.clearWarnings();
     }
 
-    public static void quietClose(Connection rawConnection) {
+    public static void quietClose(Connection connection) {
         try {
-            if (rawConnection != null)
-                rawConnection.close();
+            if (connection != null)
+                connection.close();
         } catch (SQLException e) {
-            logger.warn("Couldn't close {}", rawConnection, e);
+            logger.warn("Couldn't close {}", connection, e);
         }
     }
 
-    public static void quietClose(Statement rawStatement) {
+    public static void quietClose(Statement statement) {
         try {
-            if (rawStatement != null)
-                rawStatement.close();
+            if (statement != null)
+                statement.close();
         } catch (SQLException e) {
-            logger.warn("Couldn't close {}", rawStatement, e);
+            logger.warn("Couldn't close {}", statement, e);
+        }
+    }
+
+    public static void quietClose(ResultSet resultSet) {
+        try {
+            if (resultSet != null)
+                resultSet.close();
+        } catch (SQLException e) {
+            logger.warn("Couldn't close {}", resultSet, e);
         }
     }
 

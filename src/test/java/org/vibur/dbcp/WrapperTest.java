@@ -33,7 +33,6 @@ public class WrapperTest extends AbstractDataSourceTest {
         DataSource ds = createDataSourceNoStatementsCache();
         try (Connection connection = ds.getConnection();
              Statement statement = connection.createStatement();
-             ResultSet resultSet = statement.executeQuery("select * from actor where first_name = 'CHRISTIAN'");
              PreparedStatement pStatement = connection.prepareStatement("select count(*) from actor");
              CallableStatement cStatement = connection.prepareCall("select count(*) from actor")) {
 
@@ -59,6 +58,7 @@ public class WrapperTest extends AbstractDataSourceTest {
             assertNotNull(s);
             assertNotEquals(s, statement);
 
+            ResultSet resultSet = statement.executeQuery("select * from actor where first_name = 'CHRISTIAN'");
             assertTrue(resultSet.isWrapperFor(ResultSet.class));
             ResultSet r = resultSet.unwrap(ResultSet.class);
             assertNotNull(r);

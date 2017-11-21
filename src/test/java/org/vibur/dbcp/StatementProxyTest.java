@@ -35,9 +35,9 @@ public class StatementProxyTest extends AbstractDataSourceTest {
     public void testSameStatement() throws SQLException {
         DataSource ds = createDataSourceNoStatementsCache();
         try (Connection connection = ds.getConnection();
-             Statement statement = connection.createStatement();
-             ResultSet resultSet = statement.executeQuery("select * from actor where first_name = 'CHRISTIAN'")) {
+             Statement statement = connection.createStatement()) {
 
+            ResultSet resultSet = statement.executeQuery("select * from actor where first_name = 'CHRISTIAN'");
             assertSame(statement, resultSet.getStatement());
         }
     }

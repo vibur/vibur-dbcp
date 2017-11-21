@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.vibur.dbcp.proxy.Proxy.newProxyResultSet;
+import static org.vibur.dbcp.util.JdbcUtils.quietClose;
 
 /**
  * @author Simeon Malchev
@@ -41,6 +42,7 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
     private final StatementHolder statement;
     private final StatementCache statementCache; // always "null" (i.e. turned off) for simple JDBC Statements
     private final ViburConfig config;
+    private ResultSet lastResultSet = null;
 
     private final Hook.StatementExecution[] executionHooks;
     private final Hook.StatementExecution firstHook;
@@ -100,6 +102,9 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
     private Object processClose(Method method, Object[] args) throws SQLException {
         if (!close())
             return null;
+
+        quietClose(lastResultSet);
+
         if (statementCache == null || !statementCache.restore(statement, config.isClearSQLWarnings()))
             return targetInvoke(method, args);
         return null; // calls to close() are not passed when the statement is restored successfully back in the cache
@@ -136,7 +141,7 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
 
     private ResultSet newProxiedResultSet(Statement proxy, Method method, Object[] args, String sqlQuery) throws SQLException {
         ResultSet rawResultSet = (ResultSet) targetInvoke(method, args);
-        return newProxyResultSet(rawResultSet, proxy, sqlQuery, sqlQueryParams, config, this);
+        return lastResultSet = newProxyResultSet(rawResultSet, proxy, sqlQuery, sqlQueryParams, config, this);
     }
 
     private void addSqlQueryParams(Method method, Object[] args) {
