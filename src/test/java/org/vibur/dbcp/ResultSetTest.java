@@ -19,8 +19,12 @@ package org.vibur.dbcp;
 import org.junit.Test;
 
 import javax.sql.DataSource;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -38,6 +42,9 @@ public class ResultSetTest extends AbstractDataSourceTest {
 
             resultSet = statement.executeQuery("select * from actor where first_name = 'CHRISTIAN'");
             assertTrue(resultSet.next());
+
+            assertFalse(resultSet.isClosed());
+            assertFalse(resultSet.unwrap(ResultSet.class).isClosed());
         }
 
         assertTrue(resultSet.isClosed());
