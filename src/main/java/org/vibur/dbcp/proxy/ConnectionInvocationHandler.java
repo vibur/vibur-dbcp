@@ -135,7 +135,7 @@ class ConnectionInvocationHandler extends AbstractInvocationHandler<Connection>
         }
     }
 
-    //
+    //////// The StatementCreator implementation: ////////
 
     @Override
     public PreparedStatement newStatement(Method method, Object[] args) throws SQLException {
@@ -144,6 +144,8 @@ class ConnectionInvocationHandler extends AbstractInvocationHandler<Connection>
             throw new ViburDBCPException("Unexpected method passed to newStatement() " + method);
         return (PreparedStatement) targetInvoke(method, args);
     }
+
+    //////// The ConnectionInvalidator implementation: ////////
 
     @Override
     public void invalidate() {

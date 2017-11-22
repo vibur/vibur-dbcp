@@ -91,9 +91,9 @@ public class PoolOperations {
             } catch (ViburDBCPException e) { // thrown only if we can retry the operation, see getConnHolder(...)
                 sqlException = chainSQLException(e.unwrapSQLException(), sqlException);
 
-                if (attempt++ > dataSource.getAcquireRetryAttempts()) //
+                if (attempt++ > dataSource.getAcquireRetryAttempts()) // check the max retries limit
                     throw sqlException;
-                if (timeoutMs > 0) { //
+                if (timeoutMs > 0) { // check the time limit if applicable
                     timeoutMs = NANOSECONDS.toMillis(connectionTimeoutInNanos - (System.nanoTime() - startNanoTime))
                             - dataSource.getAcquireRetryDelayInMs(); // calculates the remaining timeout
                     if (timeoutMs <= 0)

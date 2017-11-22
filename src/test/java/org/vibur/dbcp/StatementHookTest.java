@@ -40,6 +40,8 @@ public class StatementHookTest extends AbstractDataSourceTest {
         final List<String> executionOrder = new ArrayList<>();
 
         ViburDBCPDataSource ds = createDataSourceNotStarted();
+
+        // first hook
         ds.getInvocationHooks().addOnStatementExecution(new Hook.StatementExecution() {
             @Override
             public Object on(Statement proxy, Method method, Object[] args, String sqlQuery, List<Object[]> sqlQueryParams,
@@ -52,6 +54,8 @@ public class StatementHookTest extends AbstractDataSourceTest {
                 }
             }
         });
+
+        // second hook
         ds.getInvocationHooks().addOnStatementExecution(new Hook.StatementExecution() {
             @Override
             public Object on(Statement proxy, Method method, Object[] args, String sqlQuery, List<Object[]> sqlQueryParams,
@@ -64,6 +68,7 @@ public class StatementHookTest extends AbstractDataSourceTest {
                 }
             }
         });
+
         ds.start();
 
         try (Connection connection = ds.getConnection();
