@@ -105,9 +105,9 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
 
         quietClose(lastResultSet);
 
-        if (statementCache == null || !statementCache.restore(statement, config.isClearSQLWarnings()))
-            return targetInvoke(method, args);
-        return null; // calls to close() are not passed when the statement is restored successfully back in the cache
+        if (statementCache != null && statementCache.restore(statement, config.isClearSQLWarnings()))
+            return null; // calls to close() are not passed when the statement is restored successfully back in the cache
+        return targetInvoke(method, args);
     }
 
     private Object processCancel(Method method, Object[] args) throws SQLException {
