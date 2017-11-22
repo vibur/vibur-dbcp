@@ -76,7 +76,7 @@ public class ViburDBCPGetConnectionTestPerf {
         doneSignal.await();
 
         System.out.println(String.format("Total execution time %f ms, unsuccessful takes %d.",
-            (System.nanoTime() - startNanoTime) / 1_000_000.0, errors.get()));
+            (System.nanoTime() - startNanoTime) * 0.000_001, errors.get()));
 
         ds.close();
     }

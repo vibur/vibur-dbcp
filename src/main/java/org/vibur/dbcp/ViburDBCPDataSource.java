@@ -44,6 +44,7 @@ import static java.lang.Long.parseLong;
 import static java.lang.String.format;
 import static java.sql.Connection.*;
 import static java.util.Objects.requireNonNull;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.vibur.dbcp.ViburDataSource.State.*;
 import static org.vibur.dbcp.ViburMonitoring.registerMBean;
 import static org.vibur.dbcp.ViburMonitoring.unregisterMBean;
@@ -300,10 +301,10 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
         if (getPassword() == null) logger.warn("JDBC password is not specified.");
         if (getUsername() == null) logger.warn("JDBC username is not specified.");
 
-        if (getLoginTimeoutInSeconds() > getConnectionTimeoutInMs() * 0.001) {
-            int loginTimeoutInSeconds = (int) getConnectionTimeoutInMs() / 1000;
-            logger.info("Setting loginTimeoutInSeconds to {}", loginTimeoutInSeconds);
-            setLoginTimeoutInSeconds(loginTimeoutInSeconds);
+        int connectionTimeoutInSeconds = (int) MILLISECONDS.toSeconds(getConnectionTimeoutInMs());
+        if (getLoginTimeoutInSeconds() > connectionTimeoutInSeconds) {
+            logger.info("Setting loginTimeoutInSeconds to {}", connectionTimeoutInSeconds);
+            setLoginTimeoutInSeconds(connectionTimeoutInSeconds);
         }
         if (getLogConnectionLongerThanMs() > getConnectionTimeoutInMs()) {
             logger.info("Setting logConnectionLongerThanMs to {}", getConnectionTimeoutInMs());
