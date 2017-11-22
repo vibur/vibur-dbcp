@@ -1,5 +1,20 @@
-Version 20.0 (26/09/2017) - RECOMMENDED
+Version 21.0 (22/11/2017) - RECOMMENDED
 =======================================
+* Moved the getConnection() retry mechanism (for lazily created connections) from the ConnectionFactory level
+  to the PoolOperations level - this improves the connections reuse in certain situations.
+* Implemented implicit closing of the current ResultSet when the parent Statement is closed.
+* Changed some configuration defaults:
+  a) poolInitialSize 10 -> 5;
+  b) poolMaxSize 100 -> 50;
+  c) reducerTimeIntervalInSeconds 60 -> 30;
+  d) reducerSamples 20 -> 15;
+  e) connectionTimeoutInMs 30_000 -> 15_000;
+  f) acquireRetryDelayInMs 1000 -> 500;
+* Adopted changes from Vibur Object Pool 21.0.
+* Various other small fixes, refactoring and improvements.
+
+Version 20.0 (26/09/2017)
+=========================
 * Changed the behavior of getConnection(...) to throw an SQLException("...interrupted while getting SQL connection...")
   when the current thread is interrupted; it was throwing an SQLTimeoutException before.
   The thread interrupted status remains set / uncleared as it was before.
