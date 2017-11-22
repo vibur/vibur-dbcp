@@ -45,7 +45,8 @@ public class ResultSetTest extends AbstractDataSourceTest {
 
             assertFalse(resultSet.isClosed());
             assertFalse(resultSet.unwrap(ResultSet.class).isClosed());
-        }
+
+        } // the statement is closed here
 
         assertTrue(resultSet.isClosed());
         assertTrue(resultSet.unwrap(ResultSet.class).isClosed());
