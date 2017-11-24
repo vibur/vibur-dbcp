@@ -10,7 +10,7 @@ Version 21.0 (22/11/2017) - RECOMMENDED
   d) reducerSamples 20 -> 15;
   e) connectionTimeoutInMs 30_000 -> 15_000;
   f) acquireRetryDelayInMs 1000 -> 500;
-* Adopted changes from Vibur Object Pool 21.0.
+* Adopted changes / improvements from Vibur Object Pool 21.0.
 * Various other small fixes, refactoring and improvements.
 
 Version 20.0 (26/09/2017)
