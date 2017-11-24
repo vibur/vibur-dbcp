@@ -3,7 +3,7 @@ Vibur DBCP is concurrent, fast, and fully-featured JDBC connection pool, which p
 monitoring capabilities, including slow SQL queries detection and logging, a non-starvation guarantee for 
 application threads, statement caching, and Hibernate integration, among other features.
 
-The project [home page](http://www.vibur.org/) contains a detailed explanation of all Vibur features and
+The project [home page](http://www.vibur.org/) contains a detailed description of all Vibur features and
 configuration options, various configuration examples with Hibernate and Spring, and more.
 
 Vibur DBCP is built on top of [Vibur Object Pool](https://github.com/vibur/vibur-object-pool) - a general-purpose 
