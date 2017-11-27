@@ -25,7 +25,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * @author Simeon Malchev
@@ -36,7 +35,10 @@ class ResultSetInvocationHandler extends ChildObjectInvocationHandler<Statement,
     private final List<Object[]> sqlQueryParams;
     private final Hook.ResultSetRetrieval[] executionHooks;
 
-    private final AtomicLong resultSetSize = new AtomicLong(0);
+    private long resultSetSize = 0;
+    private boolean firstResultSetRetrieved = false;
+    private long firstResultSetNanoTime;
+    private long lastResultSetNanoTime;
 
     ResultSetInvocationHandler(ResultSet rawResultSet, Statement statementProxy,
                                String sqlQuery, List<Object[]> sqlQueryParams,
@@ -70,7 +72,15 @@ class ResultSetInvocationHandler extends ChildObjectInvocationHandler<Statement,
     }
 
     private Object processNext(Method method, Object[] args) throws SQLException {
-        resultSetSize.incrementAndGet();
+        if (executionHooks.length > 0) {
+            if (!firstResultSetRetrieved) {
+                firstResultSetRetrieved = true;
+                firstResultSetNanoTime = lastResultSetNanoTime = System.nanoTime();
+            } else
+                lastResultSetNanoTime = System.nanoTime();
+            resultSetSize++;
+        }
+
         return targetInvoke(method, args);
     }
 
@@ -78,9 +88,15 @@ class ResultSetInvocationHandler extends ChildObjectInvocationHandler<Statement,
         if (!close())
             return null;
 
-        long size = resultSetSize.get() - 1;
-        for (Hook.ResultSetRetrieval hook : executionHooks)
-            hook.on(sqlQuery, sqlQueryParams, size);
+        if (executionHooks.length > 0) {
+            long size = 0, takenNanoTime = 0;
+            if (firstResultSetRetrieved) {
+                size = resultSetSize - 1;
+                takenNanoTime = lastResultSetNanoTime - firstResultSetNanoTime;
+            }
+            for (Hook.ResultSetRetrieval hook : executionHooks)
+                hook.on(sqlQuery, sqlQueryParams, size, takenNanoTime);
+        }
 
         return targetInvoke(method, args);
     }

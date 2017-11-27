@@ -187,14 +187,14 @@ public abstract class DefaultHook {
         }
 
         @Override
-        public void on(String sqlQuery, List<Object[]> sqlQueryParams, long resultSetSize) {
+        public void on(String sqlQuery, List<Object[]> sqlQueryParams, long resultSetSize, long resultSetNanoTime) {
             if (config.getLogLargeResultSet() > resultSetSize)
                 return;
 
             if (logger.isWarnEnabled()) {
                 StringBuilder message = new StringBuilder(4096).append(
-                        format("SQL query execution from pool %s retrieved a ResultSet with size %d:\n%s",
-                                getPoolName(config), resultSetSize, formatSql(sqlQuery, sqlQueryParams)));
+                        format("SQL query execution from pool %s retrieved a ResultSet with size %d, total retrieval and processing time %f ms:\n%s",
+                                getPoolName(config), resultSetSize, resultSetNanoTime * 0.000_001, formatSql(sqlQuery, sqlQueryParams)));
                 if (config.isLogStackTraceForLargeResultSet())
                     message.append('\n').append(getStackTraceAsString(new Throwable().getStackTrace()));
                 logger.warn(message.toString());

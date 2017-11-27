@@ -217,7 +217,12 @@ public interface Hook {
          *                          }
          *                       }</pre>
          * @param resultSetSize the retrieved ResultSet size
+         * @param resultSetNanoTime the total time taken to iterate over and process the retrieved ResultSet; this is
+         *                          the nanoseconds difference between the first and the last {@code ResultSet.next()}
+         *                          calls, it includes the ResultSet network retrieval time, the JDBC driver
+         *                          parsing time, plus any additional time taken by the application while
+         *                          iterating over and processing this ResultSet
          */
-        void on(String sqlQuery, List<Object[]> sqlQueryParams, long resultSetSize);
+        void on(String sqlQuery, List<Object[]> sqlQueryParams, long resultSetSize, long resultSetNanoTime);
     }
 }
