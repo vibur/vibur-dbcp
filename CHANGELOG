@@ -1,5 +1,10 @@
-Version 21.0 (22/11/2017) - RECOMMENDED
+Version 21.1 (27/11/2017) - RECOMMENDED
 =======================================
+* Added resultSetNanoTime parameter to the ResultSetRetrieval programming hook. This parameter complements the existing
+  resultSetSize parameter and represents the total time taken to iterate over and process the retrieved ResultSet.
+
+Version 21.0 (22/11/2017)
+=========================
 * Moved the getConnection() retry mechanism (for lazily created connections) from the ConnectionFactory level
   to the PoolOperations level - this improves the connections reuse in certain situations.
 * Implemented implicit closing of the current ResultSet when the parent Statement is closed.
