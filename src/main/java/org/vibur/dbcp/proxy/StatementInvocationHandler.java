@@ -88,6 +88,9 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
         if (methodName.startsWith("execute")) // this intercepts all "execute..." JDBC Statement methods
             return processExecute(proxy, method, args);
 
+        if (methodName == "getMoreResults") // *2
+            return processMoreResults(method, args);
+
         // Methods which results have to be proxied so that when getStatement() is called
         // on their results the return value to be the current JDBC Statement proxy.
         if (methodName == "getResultSet" || methodName == "getGeneratedKeys") // *2
@@ -123,6 +126,8 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
     }
 
     private Object processExecute(Statement proxy, Method method, Object[] args) throws SQLException {
+        quietClose(lastResultSet);
+
         if (statement.getSqlQuery() == null && args != null && args.length >= 1) // a simple Statement "execute..." call
             statement.setSqlQuery((String) args[0]);
 
@@ -133,6 +138,11 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
         }
     }
 
+    private Object processMoreResults(Method method, Object[] args) throws SQLException {
+        quietClose(lastResultSet);
+        return targetInvoke(method, args);
+    }
+
     private void prepareForNextExecution() {
         if (sqlQueryParams != null)
             sqlQueryParams.clear();
@@ -141,7 +151,6 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
 
     private ResultSet newProxiedResultSet(Statement proxy, Method method, Object[] args, String sqlQuery) throws SQLException {
         ResultSet rawResultSet = (ResultSet) targetInvoke(method, args);
-        quietClose(lastResultSet);
         return lastResultSet = newProxyResultSet(rawResultSet, proxy, sqlQuery, sqlQueryParams, config, this);
     }
 
