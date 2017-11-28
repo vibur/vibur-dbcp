@@ -36,33 +36,45 @@ public final class Proxy {
     private Proxy() { }
 
     public static Connection newProxyConnection(ConnHolder connHolder, PoolOperations poolOperations, ViburConfig config) {
-        InvocationHandler handler = new ConnectionInvocationHandler(connHolder, poolOperations, config);
+        InvocationHandler handler = new ConnectionInvocationHandler(connHolder, poolOperations, config); // connHolder is never null
         return newProxy(connectionCtor, handler);
     }
 
-    static Statement newProxyStatement(StatementHolder statement, Connection connProxy,
+    static Statement newProxyStatement(StatementHolder rawStatement, Connection connProxy,
                                        ViburConfig config, ExceptionCollector exceptionCollector) {
+        if (rawStatement == null)
+            return null;
+
         InvocationHandler handler = new StatementInvocationHandler(
-                statement, null /* turns off the cache */, connProxy, config, exceptionCollector);
+                rawStatement, null /* turns off the statement cache */, connProxy, config, exceptionCollector);
         return newProxy(statementCtor, handler);
     }
 
-    static PreparedStatement newProxyPreparedStatement(StatementHolder pStatement, Connection connProxy,
+    static PreparedStatement newProxyPreparedStatement(StatementHolder rawPStatement, Connection connProxy,
                                                        ViburConfig config, ExceptionCollector exceptionCollector) {
+        if (rawPStatement == null)
+            return null;
+
         InvocationHandler handler = new StatementInvocationHandler(
-                pStatement, config.getStatementCache(), connProxy, config, exceptionCollector);
+                rawPStatement, config.getStatementCache(), connProxy, config, exceptionCollector);
         return newProxy(pStatementCtor, handler);
     }
 
-    static CallableStatement newProxyCallableStatement(StatementHolder cStatement, Connection connProxy,
+    static CallableStatement newProxyCallableStatement(StatementHolder rawCStatement, Connection connProxy,
                                                        ViburConfig config, ExceptionCollector exceptionCollector) {
+        if (rawCStatement == null)
+            return null;
+
         InvocationHandler handler = new StatementInvocationHandler(
-                cStatement, config.getStatementCache(), connProxy, config, exceptionCollector);
+                rawCStatement, config.getStatementCache(), connProxy, config, exceptionCollector);
         return newProxy(cStatementCtor, handler);
     }
 
     static DatabaseMetaData newProxyDatabaseMetaData(DatabaseMetaData rawMetaData, Connection connProxy,
                                                      ViburConfig config, ExceptionCollector exceptionCollector) {
+        if (rawMetaData == null)
+            return null;
+
         InvocationHandler handler = new ChildObjectInvocationHandler<>(
                 rawMetaData, connProxy, "getConnection", config, exceptionCollector);
         return newProxy(metadataCtor, handler);
@@ -71,6 +83,9 @@ public final class Proxy {
     static ResultSet newProxyResultSet(ResultSet rawResultSet, Statement statementProxy,
                                        String sqlQuery, List<Object[]> sqlQueryParams,
                                        ViburConfig config, ExceptionCollector exceptionCollector) {
+        if (rawResultSet == null)
+            return null;
+
         InvocationHandler handler = new ResultSetInvocationHandler(
                 rawResultSet, statementProxy, sqlQuery, sqlQueryParams, config, exceptionCollector);
         return newProxy(resultSetCtor, handler);
