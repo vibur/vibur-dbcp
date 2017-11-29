@@ -1,5 +1,10 @@
-Version 21.1 (27/11/2017) - RECOMMENDED
+Version 21.2 (29/11/2017) - RECOMMENDED
 =======================================
+* Fixed a bug in the implicit closing of the current ResultSet functionality, introduced in version 21.0.
+* Fixed a rarely occurring bug related to the possibility of Statement.getResultSet() to return null.
+
+Version 21.1 (27/11/2017)
+=========================
 * Added resultSetNanoTime parameter to the ResultSetRetrieval programming hook. This parameter complements the existing
   resultSetSize parameter and represents the total time taken to iterate over and process the retrieved ResultSet.
 
