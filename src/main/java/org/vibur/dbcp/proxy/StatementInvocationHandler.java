@@ -27,7 +27,9 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.List;
 
 import static org.vibur.dbcp.proxy.Proxy.newProxyResultSet;
@@ -42,7 +44,7 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
     private final StatementHolder statement;
     private final StatementCache statementCache; // always "null" (i.e. turned off) for simple JDBC Statements
     private final ViburConfig config;
-    private ResultSet lastResultSet = null;
+    private final Deque<ResultSet> currentResults = new ArrayDeque<>();
 
     private final Hook.StatementExecution[] executionHooks;
     private final Hook.StatementExecution firstHook;
@@ -106,7 +108,7 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
         if (!close())
             return null;
 
-        quietClose(lastResultSet);
+        closeAllResults();
 
         if (statementCache != null && statementCache.restore(statement, config.isClearSQLWarnings()))
             return null; // calls to close() are not passed when the statement is restored successfully in the cache
@@ -126,7 +128,7 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
     }
 
     private Object processExecute(Statement proxy, Method method, Object[] args) throws SQLException {
-        quietClose(lastResultSet);
+        closeAllResults();
 
         if (statement.getSqlQuery() == null && args != null && args.length >= 1) // a simple Statement "execute..." call
             statement.setSqlQuery((String) args[0]);
@@ -139,7 +141,15 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
     }
 
     private Object processMoreResults(Method method, Object[] args) throws SQLException {
-        quietClose(lastResultSet);
+        int current = Statement.CLOSE_ALL_RESULTS;
+        if (args != null && args.length == 1)
+            current = (Integer) args[0];
+
+        if (current == Statement.CLOSE_CURRENT_RESULT)
+            quietClose(currentResults.pollLast());
+        else if (current == Statement.CLOSE_ALL_RESULTS)
+            closeAllResults();
+
         return targetInvoke(method, args);
     }
 
@@ -151,7 +161,7 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
 
     private ResultSet newProxiedResultSet(Statement proxy, Method method, Object[] args, String sqlQuery) throws SQLException {
         ResultSet rawResultSet = (ResultSet) targetInvoke(method, args);
-        return lastResultSet = newProxyResultSet(rawResultSet, proxy, sqlQuery, sqlQueryParams, config, this);
+        return addResultSet(newProxyResultSet(rawResultSet, proxy, sqlQuery, sqlQueryParams, config, this));
     }
 
     private void addSqlQueryParams(Method method, Object[] args) {
@@ -159,6 +169,18 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
         params[0] = method.getName();
         System.arraycopy(args, 0, params, 1, args.length);
         sqlQueryParams.add(params);
+    }
+
+    private ResultSet addResultSet(ResultSet resultSet) {
+        if (resultSet != null)
+            currentResults.addLast(resultSet);
+        return resultSet;
+    }
+
+    private void closeAllResults() {
+        ResultSet next;
+        while ((next = currentResults.pollFirst()) != null)
+            quietClose(next);
     }
 
     //////// The StatementProceedingPoint implementation: ////////
