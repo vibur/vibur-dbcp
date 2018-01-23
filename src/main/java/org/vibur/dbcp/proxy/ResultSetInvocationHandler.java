@@ -26,6 +26,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
 
+import static java.lang.Boolean.FALSE;
+
 /**
  * @author Simeon Malchev
  */
@@ -81,7 +83,13 @@ class ResultSetInvocationHandler extends ChildObjectInvocationHandler<Statement,
             resultSetSize++;
         }
 
-        return targetInvoke(method, args);
+        Boolean next = FALSE;
+        try {
+            return next = (Boolean) targetInvoke(method, args);
+        } finally {
+            if (!next)
+                resultSetSize--;
+        }
     }
 
     private Object processClose(Method method, Object[] args) throws SQLException {
@@ -89,13 +97,12 @@ class ResultSetInvocationHandler extends ChildObjectInvocationHandler<Statement,
             return null;
 
         if (executionHooks.length > 0) {
-            long size = 0, takenNanoTime = 0;
-            if (firstResultSetRetrieved) {
-                size = resultSetSize - 1;
+            long takenNanoTime = 0;
+            if (firstResultSetRetrieved)
                 takenNanoTime = lastResultSetNanoTime - firstResultSetNanoTime;
-            }
+
             for (Hook.ResultSetRetrieval hook : executionHooks)
-                hook.on(sqlQuery, sqlQueryParams, size, takenNanoTime);
+                hook.on(sqlQuery, sqlQueryParams, resultSetSize, takenNanoTime);
         }
 
         return targetInvoke(method, args);

@@ -65,7 +65,7 @@ Version 17.0 (05/04/2017)
   StatementProceedingPoint to pass the call to the intercepted Statement "execute..." method or to the next registered
   StatementExecution hook via something like:
 
-    (proxy, method, args, sqlQuery, sqlQueryParams, proceed) -> {
+    (proxy, method, args, sqlQuery, sqlQueryParams, proceed) -> { // Java 8
         try {
             // do something before the real method execution, for example, increment a queriesInProcess counter
             // or start a stopwatch

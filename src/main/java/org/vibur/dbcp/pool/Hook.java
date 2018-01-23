@@ -37,8 +37,8 @@ import java.util.List;
  * were registered; i.e., if there are N registered hooks from a particular type, the first registered hook will
  * be executed first, then the second, the third, and so on.
  *
- * <p>Throwing of an exception from a hook will affect the JDBC flow from which the hook was invoked and will
- * prevent the execution of the subsequent hooks (if any) from the same type.
+ * <p>If a hook throws an SQLException it will affect the current JDBC flow and will be rethrown as part of it.
+ * Such exception will also prevent the execution of any subsequent hooks of the same type.
  *
  * @see DefaultHook
  * @see ConnectionFactory

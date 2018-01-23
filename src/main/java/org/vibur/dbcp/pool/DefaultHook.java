@@ -58,7 +58,7 @@ public abstract class DefaultHook {
     ///////////////////////////////////////////////////////////////////////////////////////////////
     // Connection hooks:
 
-    public static class InitConnection extends DefaultHook implements Hook.InitConnection {
+    public static final class InitConnection extends DefaultHook implements Hook.InitConnection {
         public InitConnection(ViburConfig config) {
             super(config);
         }
@@ -82,7 +82,7 @@ public abstract class DefaultHook {
         }
     }
 
-    public static class GetConnectionTiming extends DefaultHook implements Hook.GetConnection {
+    public static final class GetConnectionTiming extends DefaultHook implements Hook.GetConnection {
         public GetConnectionTiming(ViburConfig config) {
             super(config);
         }
@@ -109,7 +109,7 @@ public abstract class DefaultHook {
         }
     }
 
-    public static class CloseConnection extends DefaultHook implements Hook.CloseConnection {
+    public static final class CloseConnection extends DefaultHook implements Hook.CloseConnection {
         public CloseConnection(ViburConfig config) {
             super(config);
         }
@@ -131,7 +131,7 @@ public abstract class DefaultHook {
     ///////////////////////////////////////////////////////////////////////////////////////////////
     // Invocation hooks:
 
-    public static class QueryTiming extends DefaultHook implements Hook.StatementExecution {
+    public static final class QueryTiming extends DefaultHook implements Hook.StatementExecution {
         public QueryTiming(ViburConfig config) {
             super(config);
         }
@@ -181,7 +181,7 @@ public abstract class DefaultHook {
         }
     }
 
-    public static class ResultSetSize extends DefaultHook implements Hook.ResultSetRetrieval {
+    public static final class ResultSetSize extends DefaultHook implements Hook.ResultSetRetrieval {
         public ResultSetSize(ViburConfig config) {
             super(config);
         }
