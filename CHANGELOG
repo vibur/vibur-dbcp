@@ -1,4 +1,4 @@
-Version 21.3 (28/01/2017) - RECOMMENDED
+Version 21.3 (28/01/2018) - RECOMMENDED
 =======================================
 * Fixed a minor bug in the ResultSet size calculation where the size was sometimes calculated off by one.
 
