@@ -97,10 +97,7 @@ class ResultSetInvocationHandler extends ChildObjectInvocationHandler<Statement,
             return null;
 
         if (executionHooks.length > 0) {
-            long takenNanoTime = 0;
-            if (firstResultSetRetrieved)
-                takenNanoTime = lastResultSetNanoTime - firstResultSetNanoTime;
-
+            long takenNanoTime = firstResultSetRetrieved ? lastResultSetNanoTime - firstResultSetNanoTime : 0;
             for (Hook.ResultSetRetrieval hook : executionHooks)
                 hook.on(sqlQuery, sqlQueryParams, resultSetSize, takenNanoTime);
         }
