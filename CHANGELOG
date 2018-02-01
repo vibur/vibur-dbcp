@@ -1,5 +1,9 @@
-Version 21.2 (29/11/2017) - RECOMMENDED
+Version 21.3 (28/01/2018) - RECOMMENDED
 =======================================
+* Fixed a minor bug in the ResultSet size calculation where the size was sometimes calculated off by one.
+
+Version 21.2 (29/11/2017)
+=========================
 * Fixed a bug in the implicit closing of the current ResultSet functionality, introduced in version 21.0.
 * Fixed a rarely occurring bug related to the possibility of Statement.getResultSet() to return null.
 
