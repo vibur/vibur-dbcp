@@ -132,15 +132,16 @@ public class ConnectionFactory implements ViburObjectFactory {
 
     @Override
     public boolean readyToRestore(ConnHolder connHolder) {
-        clearTracking(connHolder); // we don't want to keep the tracking objects references
-
         Hook.CloseConnection[] onClose = connHooksAccessor.onClose();
         long currentNanoTime = onClose.length > 0 || config.getConnectionIdleLimitInSeconds() >= 0 ? System.nanoTime() : 0;
+
+        long startNanoTime = connHolder.getTakenNanoTime();
+        clearTracking(connHolder); // we don't want to keep the tracking objects references
 
         if (onClose.length > 0) {
             Connection rawConnection = connHolder.rawConnection();
             try {
-                long takenNanos = currentNanoTime - connHolder.getTakenNanoTime();
+                long takenNanos = currentNanoTime - startNanoTime;
                 for (Hook.CloseConnection hook : onClose)
                     hook.on(rawConnection, takenNanos);
 
