@@ -21,6 +21,7 @@ import org.vibur.objectpool.BasePool;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import static java.lang.Integer.toHexString;
 
@@ -50,8 +51,8 @@ public final class ViburUtils {
         return getPoolName(config); // this is one level of recursion only, pool state changes only once
     }
 
-    public static String getStackTraceAsString(StackTraceElement[] stackTrace) {
-        if (stackTrace.length == 0)
+    public static String getStackTraceAsString(Pattern logLinePattern, StackTraceElement[] stackTrace) {
+        if (stackTrace == null || stackTrace.length == 0)
             return "";
 
         int i;
@@ -62,8 +63,11 @@ public final class ViburUtils {
         }
 
         StringBuilder builder = new StringBuilder(4096);
-        for (i++ ; i < stackTrace.length; i++)
-            builder.append("  at ").append(stackTrace[i]).append('\n');
+        for (i++; i < stackTrace.length; i++) {
+            String stackTraceStr = stackTrace[i].toString();
+            if (logLinePattern == null || logLinePattern.matcher(stackTraceStr).matches())
+                builder.append("  at ").append(stackTraceStr).append('\n');
+        }
         return builder.toString();
     }
 

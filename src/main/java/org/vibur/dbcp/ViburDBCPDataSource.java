@@ -36,6 +36,8 @@ import java.net.URLConnection;
 import java.sql.*;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 import static java.lang.Boolean.parseBoolean;
 import static java.lang.Float.parseFloat;
@@ -49,6 +51,7 @@ import static org.vibur.dbcp.ViburDataSource.State.*;
 import static org.vibur.dbcp.ViburMonitoring.registerMBean;
 import static org.vibur.dbcp.ViburMonitoring.unregisterMBean;
 import static org.vibur.dbcp.pool.Connector.Builder.buildConnector;
+import static org.vibur.dbcp.pool.ViburListener.NO_TAKEN_CONNECTIONS;
 import static org.vibur.dbcp.util.ViburUtils.getPoolName;
 import static org.vibur.objectpool.util.ArgumentValidation.forbidIllegalArgument;
 
@@ -66,8 +69,6 @@ import static org.vibur.objectpool.util.ArgumentValidation.forbidIllegalArgument
 public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource {
 
     private static final Logger logger = LoggerFactory.getLogger(ViburDBCPDataSource.class);
-
-    private static final TakenConnection[] NO_TAKEN_CONNECTIONS = {};
 
     private final AtomicReference<State> state = new AtomicReference<>(NEW);
 
@@ -229,6 +230,7 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
         if (getConnector() == null)
             setConnector(buildConnector(this, getUsername(), getPassword()));
 
+        initLogLinePattern();
         initDefaultHooks();
 
         ViburObjectFactory connectionFactory = getConnectionFactory();
@@ -354,6 +356,15 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
             } catch (ReflectiveOperationException | ClassCastException | SQLException e) {
                 throw new ViburDBCPException(e);
             }
+        }
+    }
+
+    private void initLogLinePattern() throws ViburDBCPException {
+        try {
+            if (getLogLineRegex() != null)
+                setLogLinePattern(Pattern.compile(getLogLineRegex()));
+        } catch (PatternSyntaxException e) {
+            throw new ViburDBCPException(e);
         }
     }
 

@@ -291,6 +291,22 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
     }
 
     @Test
+    public void testLogTakenConnectionsOnTimeout() throws SQLException {
+        ViburDBCPDataSource ds = createDataSourceNotStarted();
+        ds.setPoolInitialSize(1);
+        ds.setPoolMaxSize(1);
+        ds.setConnectionTimeoutInMs(100);
+        ds.setLogTakenConnectionsOnTimeout(true);
+        ds.setLogLineRegex("^((?!mockito|junit).)*$");
+        ds.start();
+
+        try (Connection connection = ds.getConnection()) {
+            exception.expect(SQLTimeoutException.class);
+            ds.getConnection();
+        }
+    }
+
+    @Test
     public void testInterruptedWhileGettingConnection() {
         ViburDBCPDataSource ds = createDataSourceWithTracking();
         Thread.currentThread().interrupt();

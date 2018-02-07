@@ -33,6 +33,7 @@ import java.sql.Driver;
 import java.util.Properties;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Pattern;
 
 import static org.vibur.dbcp.pool.HookHolder.newConnHooks;
 import static org.vibur.dbcp.pool.HookHolder.newInvocationHooks;
@@ -302,6 +303,21 @@ public abstract class ViburConfig {
      * generating a full JVM thread dump, and thus it has to be used for troubleshooting purposes only, as it may
      * generate a VERY large log output. */
     private boolean logAllStackTracesOnTimeout = false;
+
+    /** If different than {@code null}, this regex will be matched against the string representation of each
+     * stack trace line that needs to be logged according {@link #logStackTraceForLongConnection},
+     * {@link #logStackTraceForLargeResultSet}, {@link #logStackTraceForLongQueryExecution},
+     * {@link #logTakenConnectionsOnTimeout}, and {@link #logAllStackTracesOnTimeout}. Stack trace lines
+     * which string representation matches this {@code regex} will be logged while all others will be skipped.
+     * This may help to significantly reduce the length of the logged stack traces. A value of {@code null} disables
+     * the regex matching and (by default) all stack trace lines will be logged.
+     *
+     * <p>For example, if the logging is done in the context of a Tomcat application, and if the application wants
+     * to omit from logging all stack trace lines that contain {@code doFilter} in them, then it can specify the
+     * following regex: {@code ^((?!doFilter).)*$}
+     */
+    private String logLineRegex = null;
+    private Pattern logLinePattern = null;
 
 
     /** If set to {@code true}, will reset the connection default values below, always after the
@@ -716,6 +732,22 @@ public abstract class ViburConfig {
 
     public void setLogAllStackTracesOnTimeout(boolean logAllStackTracesOnTimeout) {
         this.logAllStackTracesOnTimeout = logAllStackTracesOnTimeout;
+    }
+
+    public String getLogLineRegex() {
+        return logLineRegex;
+    }
+
+    public void setLogLineRegex(String logLineRegex) {
+        this.logLineRegex = logLineRegex;
+    }
+
+    public Pattern getLogLinePattern() {
+        return logLinePattern;
+    }
+
+    void setLogLinePattern(Pattern logLinePattern) {
+        this.logLinePattern = logLinePattern;
     }
 
     public boolean isResetDefaultsAfterUse() {
