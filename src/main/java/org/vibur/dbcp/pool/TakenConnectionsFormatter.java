@@ -45,7 +45,7 @@ public class TakenConnectionsFormatter {
      */
     public String formatTakenConnections(TakenConnection[] takenConns) {
         if (takenConns == null || takenConns.length == 0)
-            return "";
+            return "NO TAKEN CONNECTIONS\n";
 
         // sort the thread holding connection for the longest time on top
         Arrays.sort(takenConns, new Comparator<TakenConnection>() {

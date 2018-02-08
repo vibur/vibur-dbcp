@@ -128,6 +128,25 @@ public abstract class DefaultHook {
         }
     }
 
+    public static final class GetConnectionTimeout extends DefaultHook implements Hook.GetConnectionTimeout {
+        public GetConnectionTimeout(ViburConfig config) {
+            super(config);
+        }
+
+        @Override
+        public void on(TakenConnection[] takenConnections, long takenNanos) {
+            if (logger.isWarnEnabled())
+                logger.warn(format("Pool %s, couldn't obtain SQL connection within %.3f ms, full list of taken connections begins:\n%s",
+                        getPoolName(config), takenNanos * 0.000_001,
+                        config.getTakenConnectionsFormatter().formatTakenConnections(takenConnections)));
+        }
+
+        @Override
+        boolean isEnabled() {
+            return config.isLogTakenConnectionsOnTimeout();
+        }
+    }
+
     ///////////////////////////////////////////////////////////////////////////////////////////////
     // Invocation hooks:
 

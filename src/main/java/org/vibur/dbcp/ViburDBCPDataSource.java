@@ -363,6 +363,7 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
         getConnHooks().addOnInit(new DefaultHook.InitConnection(this));
         getConnHooks().addOnGet(new DefaultHook.GetConnectionTiming(this));
         getConnHooks().addOnClose(new DefaultHook.CloseConnection(this));
+        getConnHooks().addOnTimeout(new DefaultHook.GetConnectionTimeout(this));
 
         getInvocationHooks().addOnStatementExecution(new DefaultHook.QueryTiming(this));
         getInvocationHooks().addOnResultSetRetrieval(new DefaultHook.ResultSetSize(this));

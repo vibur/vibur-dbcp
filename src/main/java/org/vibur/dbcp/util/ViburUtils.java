@@ -53,7 +53,7 @@ public final class ViburUtils {
 
     public static String getStackTraceAsString(Pattern logLinePattern, StackTraceElement[] stackTrace) {
         if (stackTrace == null || stackTrace.length == 0)
-            return "";
+            return "EMPTY STACK TRACE\n";
 
         int i;
         for (i = 0; i < stackTrace.length; i++) {

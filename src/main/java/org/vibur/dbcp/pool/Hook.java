@@ -114,6 +114,18 @@ public interface Hook {
         void on(Connection rawConnection, long takenNanos);
     }
 
+    interface GetConnectionTimeout extends Hook {
+        /**
+         * A programming hook that will be invoked only if the call to {@link org.vibur.dbcp.ViburDataSource#getConnection()}
+         * timeouts. Note that if the thread waiting on a {@code getConnection()} call is interrupted, this does not
+         * count as a timeout. Its execution should take as short time as possible.
+         *
+         * @param takenConnections an array of all currently taken connections
+         * @param takenNanos the time taken by the call to {@code getConnection()}
+         */
+        void on(TakenConnection[] takenConnections, long takenNanos);
+    }
+
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
     // Invocation hooks:

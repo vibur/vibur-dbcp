@@ -44,6 +44,7 @@ public final class HookHolder {
         void addOnGet(Hook.GetConnection hook);
         void addOnClose(Hook.CloseConnection hook);
         void addOnDestroy(Hook.DestroyConnection hook);
+        void addOnTimeout(Hook.GetConnectionTimeout hook);
     }
 
     interface ConnHooksAccessor { // for internal use only
@@ -51,6 +52,7 @@ public final class HookHolder {
         Hook.GetConnection[] onGet();
         Hook.CloseConnection[] onClose();
         Hook.DestroyConnection[] onDestroy();
+        Hook.GetConnectionTimeout[] onTimeout();
     }
 
     public interface InvocationHooks {
@@ -89,6 +91,11 @@ public final class HookHolder {
          * the raw JDBC Connection is closed/destroyed. Their execution should take as short time as possible. */
         private Hook.DestroyConnection[] onDestroy = {};
 
+        /** A list of programming {@linkplain Hook.DestroyConnection#on hooks} that will be invoked only if the call
+         * to {@link org.vibur.dbcp.ViburDataSource#getConnection()} timeouts. Their execution should take as short time
+         * as possible. */
+        private Hook.GetConnectionTimeout[] onTimeout = {};
+
         @Override
         public void addOnInit(Hook.InitConnection hook) {
             onInit = addHook(onInit, hook);
@@ -110,6 +117,11 @@ public final class HookHolder {
         }
 
         @Override
+        public void addOnTimeout(Hook.GetConnectionTimeout hook) {
+            onTimeout = addHook(onTimeout, hook);
+        }
+
+        @Override
         public Hook.InitConnection[] onInit() {
             return onInit;
         }
@@ -127,6 +139,11 @@ public final class HookHolder {
         @Override
         public Hook.DestroyConnection[] onDestroy() {
             return onDestroy;
+        }
+
+        @Override
+        public Hook.GetConnectionTimeout[] onTimeout() {
+            return onTimeout;
         }
     }
 
