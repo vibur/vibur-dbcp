@@ -236,7 +236,7 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
         PoolService<ConnHolder> pool = getPool();
         if (pool == null) {
             if (isPoolEnableConnectionTracking() && getTakenConnectionsFormatter() == null)
-                setTakenConnectionsFormatter(new TakenConnectionsFormatter(this));
+                setTakenConnectionsFormatter(new TakenConnectionsFormatter.Default(this));
 
             pool = new ConcurrentPool<>(getConcurrentCollection(), connectionFactory,
                     getPoolInitialSize(), getPoolMaxSize(), isPoolFair(),

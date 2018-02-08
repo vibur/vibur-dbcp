@@ -1,5 +1,18 @@
-Version 21.3 (28/01/2018) - RECOMMENDED
+Version 22.0 (08/02/2018) - RECOMMENDED
 =======================================
+* Added logLineRegex configuration option - the application can use this option in conjunction with the
+  logTakenConnectionsOnTimeout option in order to filter out stack trace lines which does not match the given
+  logLineRegex, while still using the built-in Vibur logging of taken-connections on timeout mechanism.
+* Added TakenConnectionsFormatter configuration option - allows the application to implement custom formatting
+  of the TakenConnection[] array.
+* Added GetConnectionTimeout programming hook that is invoked only if the call to DataSource.getConnection()
+  timeouts. The application can use this hook in conjunction with the TakenConnectionsFormatter in order to format and
+  redirect the generated taken-connections log to a different than the usual log location, for example, to Amazon S3.
+* Fixed a bug in the CloseConnection hook takenNanos parameter, before this parameter was sometimes calculated
+  incorrectly.
+
+Version 21.3 (28/01/2018)
+=========================
 * Fixed a minor bug in the ResultSet size calculation where the size was sometimes calculated off by one.
 
 Version 21.2 (29/11/2017)
