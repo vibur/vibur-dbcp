@@ -298,7 +298,9 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
         ds.setPoolMaxSize(1);
         ds.setConnectionTimeoutInMs(100);
         ds.setLogTakenConnectionsOnTimeout(true);
-        ds.setLogLineRegex(Pattern.compile("^((?!mockito|junit).)*$"));
+        // This regex filters out (does not match) any lines that contain "mockito", "junit" or "reflect" substrings,
+        // see https://stackoverflow.com/questions/406230/regular-expression-to-match-a-line-that-doesnt-contain-a-word .
+        ds.setLogLineRegex(Pattern.compile("^((?!mockito|junit|reflect).)*$"));
         ds.start();
 
         try (Connection connection = ds.getConnection()) {
