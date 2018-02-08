@@ -3,7 +3,7 @@ Version 22.0 (08/02/2018) - RECOMMENDED
 * Added logLineRegex configuration option - the application can use this option in conjunction with the
   logTakenConnectionsOnTimeout option in order to filter out stack trace lines which does not match the given
   logLineRegex, while still using the built-in Vibur logging of taken-connections on timeout mechanism.
-* Added TakenConnectionsFormatter configuration option - allows the application to implement custom formatting
+* Added takenConnectionsFormatter configuration option - allows the application to implement custom formatting
   of the TakenConnection[] array. Note that the default formatter uses the logLineRegex for filtering of the stack
   traces. The default formatter can be disabled via setting logTakenConnectionsOnTimeout to false.
 * Added GetConnectionTimeout programming hook that is invoked only if the call to DataSource.getConnection()
