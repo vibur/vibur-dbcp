@@ -303,12 +303,11 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
         ds.setLogLineRegex(Pattern.compile("^((?!mockito|junit|reflect).)*$"));
         ds.start();
 
-        try (Connection c1 = ds.getConnection()) {
-            try (Connection c2 = ds.getConnection()) {
+        try (Connection c1 = ds.getConnection();
+             Connection c2 = ds.getConnection()) {
 
-                exception.expect(SQLTimeoutException.class);
-                ds.getConnection();
-            }
+            exception.expect(SQLTimeoutException.class);
+            ds.getConnection();
         }
     }
 
