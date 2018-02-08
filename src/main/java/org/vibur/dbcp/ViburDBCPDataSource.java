@@ -36,8 +36,6 @@ import java.net.URLConnection;
 import java.sql.*;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
 
 import static java.lang.Boolean.parseBoolean;
 import static java.lang.Float.parseFloat;
@@ -237,6 +235,9 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
             setConnectionFactory(connectionFactory = new ConnectionFactory(this));
         PoolService<ConnHolder> pool = getPool();
         if (pool == null) {
+            if (isPoolEnableConnectionTracking() && getTakenConnectionsFormatter() == null)
+                setTakenConnectionsFormatter(new TakenConnectionsFormatter(this));
+
             pool = new ConcurrentPool<>(getConcurrentCollection(), connectionFactory,
                     getPoolInitialSize(), getPoolMaxSize(), isPoolFair(),
                     isPoolEnableConnectionTracking() ? new ViburListener(this) : null);
@@ -479,7 +480,7 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
         if (!isPoolEnableConnectionTracking() || getState() != WORKING)
             return "poolEnableConnectionTracking is disabled or the pool is not in working state";
 
-        return ((ViburListener) getPool().listener()).getTakenConnectionsStackTraces();
+        return getTakenConnectionsFormatter().formatTakenConnections(getTakenConnections());
     }
 
     @Override

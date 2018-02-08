@@ -132,6 +132,8 @@ public interface ViburDataSource extends DataSource, AutoCloseable {
      * that have taken them, plus the threads names and states. This method implies that that the
      * {@link ViburConfig#poolEnableConnectionTracking} option is enabled.
      *
+     * <p>The exact format of the logged message is controlled by {@link ViburConfig#takenConnectionsFormatter}.
+     *
      * <p>Also see {@link ViburConfig#logTakenConnectionsOnTimeout} and {@link #getTakenConnections}.
      */
     String getTakenConnectionsStackTraces();
