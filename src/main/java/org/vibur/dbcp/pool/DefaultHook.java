@@ -98,7 +98,7 @@ public abstract class DefaultHook {
                         .append(format("Call to getConnection() from pool %s took %f ms, rawConnection = %s",
                                 getPoolName(config), takenMillis, rawConnection));
                 if (config.isLogStackTraceForLongConnection())
-                    log.append('\n').append(getStackTraceAsString(config.getLogLinePattern(), new Throwable().getStackTrace()));
+                    log.append('\n').append(getStackTraceAsString(config.getLogLineRegex(), new Throwable().getStackTrace()));
                 logger.warn(log.toString());
             }
         }
@@ -170,7 +170,7 @@ public abstract class DefaultHook {
                 StringBuilder message = new StringBuilder(4096).append(
                         format("SQL query execution from pool %s took %f ms:\n%s", poolName, takenMillis, formattedSql));
                 if (config.isLogStackTraceForLongQueryExecution())
-                    message.append('\n').append(getStackTraceAsString(config.getLogLinePattern(), new Throwable().getStackTrace()));
+                    message.append('\n').append(getStackTraceAsString(config.getLogLineRegex(), new Throwable().getStackTrace()));
                 logger.warn(message.toString());
             }
         }
@@ -196,7 +196,7 @@ public abstract class DefaultHook {
                         format("SQL query execution from pool %s retrieved a ResultSet with size %d, total retrieval and processing time %f ms:\n%s",
                                 getPoolName(config), resultSetSize, resultSetNanoTime * 0.000_001, formatSql(sqlQuery, sqlQueryParams)));
                 if (config.isLogStackTraceForLargeResultSet())
-                    message.append('\n').append(getStackTraceAsString(config.getLogLinePattern(), new Throwable().getStackTrace()));
+                    message.append('\n').append(getStackTraceAsString(config.getLogLineRegex(), new Throwable().getStackTrace()));
                 logger.warn(message.toString());
             }
         }

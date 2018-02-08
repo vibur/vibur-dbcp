@@ -36,6 +36,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
+import java.util.regex.Pattern;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
@@ -297,7 +298,7 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
         ds.setPoolMaxSize(1);
         ds.setConnectionTimeoutInMs(100);
         ds.setLogTakenConnectionsOnTimeout(true);
-        ds.setLogLineRegex("^((?!mockito|junit).)*$");
+        ds.setLogLineRegex(Pattern.compile("^((?!mockito|junit).)*$"));
         ds.start();
 
         try (Connection connection = ds.getConnection()) {

@@ -230,7 +230,6 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
         if (getConnector() == null)
             setConnector(buildConnector(this, getUsername(), getPassword()));
 
-        initLogLinePattern();
         initDefaultHooks();
 
         ViburObjectFactory connectionFactory = getConnectionFactory();
@@ -356,15 +355,6 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
             } catch (ReflectiveOperationException | ClassCastException | SQLException e) {
                 throw new ViburDBCPException(e);
             }
-        }
-    }
-
-    private void initLogLinePattern() throws ViburDBCPException {
-        try {
-            if (getLogLineRegex() != null)
-                setLogLinePattern(Pattern.compile(getLogLineRegex()));
-        } catch (PatternSyntaxException e) {
-            throw new ViburDBCPException(e);
         }
     }
 

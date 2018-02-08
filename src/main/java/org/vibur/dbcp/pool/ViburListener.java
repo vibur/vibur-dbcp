@@ -33,8 +33,8 @@ import static org.vibur.dbcp.util.ViburUtils.getStackTraceAsString;
  */
 public class ViburListener extends TakenListener<ConnHolder> {
 
-    private static final ConnHolder[] NO_TAKEN_CONN_HOLDERS = {};
     public static final TakenConnection[] NO_TAKEN_CONNECTIONS = {};
+    private static final ConnHolder[] NO_TAKEN_CONN_HOLDERS = {};
 
     private final ViburConfig config;
 
@@ -89,12 +89,12 @@ public class ViburListener extends TakenListener<ConnHolder> {
             builder.append(", taken by thread ").append(holdingThread.getName())
                     .append(", current thread state ").append(holdingThread.getState())
                     .append("\n\nThread stack trace at the moment when getting the Connection:\n")
-                    .append(getStackTraceAsString(config.getLogLinePattern(), takenConns[i].getLocation().getStackTrace()));
+                    .append(getStackTraceAsString(config.getLogLineRegex(), takenConns[i].getLocation().getStackTrace()));
 
             StackTraceElement[] currentStackTrace = currentStackTraces.remove(holdingThread);
             if (currentStackTrace != null && currentStackTrace.length > 0) {
                 builder.append("\nThread stack trace at the current moment:\n")
-                        .append(getStackTraceAsString(config.getLogLinePattern(), currentStackTrace));
+                        .append(getStackTraceAsString(config.getLogLineRegex(), currentStackTrace));
             }
         }
 
@@ -128,7 +128,7 @@ public class ViburListener extends TakenListener<ConnHolder> {
             StackTraceElement[] currentStackTrace = entry.getValue();
             if (currentStackTrace.length > 0) {
                 builder.append("\n\nThread stack trace at the current moment:\n")
-                        .append(getStackTraceAsString(config.getLogLinePattern(), currentStackTrace));
+                        .append(getStackTraceAsString(config.getLogLineRegex(), currentStackTrace));
             }
         }
         return builder;

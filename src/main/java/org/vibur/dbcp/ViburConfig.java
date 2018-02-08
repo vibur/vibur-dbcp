@@ -313,11 +313,10 @@ public abstract class ViburConfig {
      * the regex matching and (by default) all stack trace lines will be logged.
      *
      * <p>For example, if the logging is done in the context of a Tomcat application, and if the application wants
-     * to omit from logging all stack trace lines that contain {@code doFilter} in them, then it can specify the
-     * following regex: {@code ^((?!doFilter).)*$}
+     * to omit from logging all stack trace lines that contain {@code doFilter} in them, then the application can
+     * set the following compiled regex pattern: {@code Pattern.compile("^((?!doFilter).)*$")}
      */
-    private String logLineRegex = null;
-    private Pattern logLinePattern = null;
+    private Pattern logLineRegex = null;
 
 
     /** If set to {@code true}, will reset the connection default values below, always after the
@@ -734,20 +733,12 @@ public abstract class ViburConfig {
         this.logAllStackTracesOnTimeout = logAllStackTracesOnTimeout;
     }
 
-    public String getLogLineRegex() {
+    public Pattern getLogLineRegex() {
         return logLineRegex;
     }
 
-    public void setLogLineRegex(String logLineRegex) {
+    public void setLogLineRegex(Pattern logLineRegex) {
         this.logLineRegex = logLineRegex;
-    }
-
-    public Pattern getLogLinePattern() {
-        return logLinePattern;
-    }
-
-    void setLogLinePattern(Pattern logLinePattern) {
-        this.logLinePattern = logLinePattern;
     }
 
     public boolean isResetDefaultsAfterUse() {
