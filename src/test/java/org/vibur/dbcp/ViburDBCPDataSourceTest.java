@@ -295,17 +295,20 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
     public void testLogTakenConnectionsOnTimeout() throws SQLException {
         ViburDBCPDataSource ds = createDataSourceNotStarted();
         ds.setPoolInitialSize(1);
-        ds.setPoolMaxSize(1);
-        ds.setConnectionTimeoutInMs(100);
+        ds.setPoolMaxSize(2);
+        ds.setConnectionTimeoutInMs(10);
         ds.setLogTakenConnectionsOnTimeout(true);
         // This regex filters out (does not match) any lines that contain "mockito", "junit" or "reflect" substrings,
         // see https://stackoverflow.com/questions/406230/regular-expression-to-match-a-line-that-doesnt-contain-a-word .
         ds.setLogLineRegex(Pattern.compile("^((?!mockito|junit|reflect).)*$"));
         ds.start();
 
-        try (Connection connection = ds.getConnection()) {
-            exception.expect(SQLTimeoutException.class);
-            ds.getConnection();
+        try (Connection c1 = ds.getConnection()) {
+            try (Connection c2 = ds.getConnection()) {
+
+                exception.expect(SQLTimeoutException.class);
+                ds.getConnection();
+            }
         }
     }
 
