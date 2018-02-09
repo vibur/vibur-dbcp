@@ -1,18 +1,15 @@
 Version 22.0 (08/02/2018) - RECOMMENDED
 =======================================
 * Added logLineRegex configuration option - the application can use this option in conjunction with the
-  logTakenConnectionsOnTimeout option in order to filter out stack trace lines which does not match the given
-  logLineRegex, while still using the built-in Vibur logging of taken-connections on timeout mechanism.
+  logTakenConnectionsOnTimeout option in order to filter the generated stack trace lines.
 * Added takenConnectionsFormatter configuration option - allows the application to implement custom formatting
-  of the TakenConnection[] array. Note that the default formatter uses the logLineRegex for filtering of the stack
-  traces. The default formatter can be disabled via setting logTakenConnectionsOnTimeout to false.
+  to String of the TakenConnection[] array. Note that the default formatter uses the logLineRegex for filtering.
 * Added GetConnectionTimeout programming hook that is invoked only if the call to DataSource.getConnection()
-  timeouts. The application can use this hook in conjunction with the TakenConnectionsFormatter in order to format and
-  redirect the generated taken-connections log to a different than the usual log location, for example, to Amazon S3.
-  Note that in order to enable the taken connections tracking the application must set poolEnableConnectionTracking
-  to true.
-* Fixed a bug in the CloseConnection hook takenNanos parameter, before this parameter was sometimes calculated
-  incorrectly.
+  timeouts. The application can use this hook to format and redirect the generated taken-connections log to a different
+  than the usual log location, for example, to Amazon S3. Note that in order to enable the taken-connections tracking
+  the application must set poolEnableConnectionTracking to true. The default hook uses the takenConnectionsFormatter;
+  it can be disabled via setting logTakenConnectionsOnTimeout to false.
+* Fixed a bug in the CloseConnection hook takenNanos parameter, before it was sometimes calculated incorrectly.
 
 Version 21.3 (28/01/2018)
 =========================
