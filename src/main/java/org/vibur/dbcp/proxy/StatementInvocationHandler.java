@@ -44,7 +44,7 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
     private final StatementHolder statement;
     private final StatementCache statementCache; // always "null" (i.e. turned off) for simple JDBC Statements
     private final ViburConfig config;
-    private final Deque<ResultSet> currentResults = new ArrayDeque<>();
+    private final Deque<ResultSet> currentResultSets = new ArrayDeque<>();
 
     private final Hook.StatementExecution[] executionHooks;
     private final Hook.StatementExecution firstHook;
@@ -108,7 +108,7 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
         if (!close())
             return null;
 
-        closeAllResults();
+        closeAllResultSets();
 
         if (statementCache != null && statementCache.restore(statement, config.isClearSQLWarnings()))
             return null; // calls to close() are not passed when the statement is restored successfully in the cache
@@ -128,7 +128,7 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
     }
 
     private Object processExecute(Statement proxy, Method method, Object[] args) throws SQLException {
-        closeAllResults();
+        closeAllResultSets();
 
         if (statement.getSqlQuery() == null && args != null && args.length >= 1) // a simple Statement "execute..." call
             statement.setSqlQuery((String) args[0]);
@@ -146,9 +146,9 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
             current = (Integer) args[0];
 
         if (current == Statement.CLOSE_CURRENT_RESULT)
-            quietClose(currentResults.pollLast());
+            quietClose(currentResultSets.pollLast());
         else if (current == Statement.CLOSE_ALL_RESULTS)
-            closeAllResults();
+            closeAllResultSets();
 
         return targetInvoke(method, args);
     }
@@ -173,13 +173,13 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
 
     private ResultSet addResultSet(ResultSet resultSet) {
         if (resultSet != null)
-            currentResults.addLast(resultSet);
+            currentResultSets.addLast(resultSet);
         return resultSet;
     }
 
-    private void closeAllResults() {
+    private void closeAllResultSets() {
         ResultSet next;
-        while ((next = currentResults.pollFirst()) != null)
+        while ((next = currentResultSets.pollFirst()) != null)
             quietClose(next);
     }
 
