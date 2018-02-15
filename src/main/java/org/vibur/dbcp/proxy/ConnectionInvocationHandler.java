@@ -17,8 +17,8 @@
 package org.vibur.dbcp.proxy;
 
 import org.vibur.dbcp.ViburConfig;
+import org.vibur.dbcp.ViburDBCPDataSource.ConnectionInvalidator;
 import org.vibur.dbcp.ViburDBCPException;
-import org.vibur.dbcp.ViburDataSource.ConnectionInvalidator;
 import org.vibur.dbcp.pool.ConnHolder;
 import org.vibur.dbcp.pool.PoolOperations;
 import org.vibur.dbcp.stcache.StatementCache;

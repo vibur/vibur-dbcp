@@ -73,6 +73,13 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
     private PoolOperations poolOperations;
 
     /**
+     * Used internally by the implementation of {@link #severConnection}.
+     */
+    public interface ConnectionInvalidator {
+        void invalidate();
+    }
+
+    /**
      * Default constructor for programmatic configuration via the {@code ViburConfig}
      * setter methods.
      */
@@ -408,12 +415,6 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
         return getNonPooledConnection();
     }
 
-    /**
-     * {@inheritDoc}
-     * <p>
-     * This method will return a <b>raw (non-pooled)</b> JDBC Connection when called with credentials different
-     * than the configured default credentials.
-     */
     @Override
     public Connection getConnection(String username, String password) throws SQLException {
         if (defaultCredentials(username, password))

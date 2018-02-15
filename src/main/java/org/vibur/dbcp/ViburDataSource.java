@@ -21,6 +21,7 @@ import org.vibur.dbcp.pool.TakenConnection;
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.SQLTimeoutException;
 
 /**
  * Defines the {@link ViburDBCPDataSource} lifecycle operations and states. Also, defines specific to Vibur
@@ -87,6 +88,29 @@ public interface ViburDataSource extends DataSource, AutoCloseable {
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
     /**
+     * {@inheritDoc}
+     *
+     * @throws SQLTimeoutException when the timeout value specified by the
+     * {@link ViburConfig#connectionTimeoutInMs connectionTimeoutInMs} has been exceeded
+     */
+    @Override
+    Connection getConnection() throws SQLException;
+
+    /**
+     * {@inheritDoc}
+     *
+     * <p>This method will return a <b>raw (non-pooled)</b> JDBC Connection when called with credentials different
+     * than the configured default credentials.
+     *
+     * @throws SQLTimeoutException when called with the default credentials and when the timeout value specified by
+     * the {@link ViburConfig#connectionTimeoutInMs connectionTimeoutInMs} has been exceeded
+     */
+    @Override
+    Connection getConnection(String username, String password) throws SQLException;
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
+    /**
      * Returns a <b>raw (non-pooled)</b> JDBC Connection using the default username and password.
      *
      * @throws SQLException if an error occurs while creating the connection
@@ -117,13 +141,6 @@ public interface ViburDataSource extends DataSource, AutoCloseable {
      * @throws SQLException if an error occurs while closing/severing the connection
      */
     void severConnection(Connection connection) throws SQLException;
-
-    /**
-     * Used internally by the implementation of {@link #severConnection}.
-     */
-    interface ConnectionInvalidator {
-        void invalidate();
-    }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
 

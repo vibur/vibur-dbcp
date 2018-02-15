@@ -123,7 +123,8 @@ public class PoolOperations {
      * {@code null}.
      *
      * @param timeoutMs timeout in millis to pass to the underlying object pool {@code take} methods
-     * @throws SQLException to indicate a non-recoverable error that cannot be retried
+     * @throws SQLException to indicate a generic non-recoverable error that cannot be retried
+     * @throws SQLTimeoutException to indicate a non-recoverable error due to timeout that cannot be retried
      * @throws ViburDBCPException to indicate a recoverable error that can be retried
      */
     private ConnHolder getConnHolder(long timeoutMs) throws SQLException, ViburDBCPException {
