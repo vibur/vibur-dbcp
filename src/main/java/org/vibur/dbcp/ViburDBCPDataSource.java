@@ -73,13 +73,6 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
     private PoolOperations poolOperations;
 
     /**
-     * Used internally by the implementation of {@link #severConnection}.
-     */
-    public interface ConnectionInvalidator {
-        void invalidate();
-    }
-
-    /**
      * Default constructor for programmatic configuration via the {@code ViburConfig}
      * setter methods.
      */
@@ -453,6 +446,13 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
             }
         }
         connection.close();
+    }
+
+    /**
+     * Used internally by the implementation of {@link #severConnection}.
+     */
+    public interface ConnectionInvalidator {
+        void invalidate();
     }
 
     private State validatePoolState(boolean allowConnectionAfterTermination) throws SQLException {
