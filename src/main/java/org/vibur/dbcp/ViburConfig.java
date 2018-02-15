@@ -200,9 +200,9 @@ public abstract class ViburConfig {
     private boolean enableJMX = true;
 
 
-    /** The time to wait before a call to {@code DataSource.getConnection()} times out and throws an {@code SQLException}.
-     * More precisely, that is the time to wait to obtain a connection from the pool when there is a ready and valid
-     * connection in the pool. {@code 0} means forever.
+    /** The time to wait before a call to {@code DataSource.getConnection()} times out and throws an
+     * {@code SQLTimeoutException}. More precisely, that is the time to wait to obtain a connection from the pool when
+     * there is a ready and valid connection in the pool. {@code 0} means forever.
      *
      * <p>If there is no ready and valid connection in the pool, and if the maximum pool capacity is not
      * reached yet, the total time that the call to {@code getConnection()} can take may include the time
@@ -287,7 +287,7 @@ public abstract class ViburConfig {
     private boolean includeQueryParameters = true;
 
     /** If set to {@code true}, and if the {@link #connectionTimeoutInMs} is reached and the call to
-     * {@code getConnection()} fails with throwing an {@code SQLException}, will log at WARN level information
+     * {@code getConnection()} fails with throwing an {@code SQLTimeoutException}, will log at WARN level information
      * about all currently taken connections, including the stack traces of the threads that have taken them, plus
      * the threads names and states.
      *
