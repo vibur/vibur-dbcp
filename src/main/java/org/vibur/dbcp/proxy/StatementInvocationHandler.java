@@ -134,7 +134,7 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
             statement.setSqlQuery((String) args[0]);
 
         try {
-            return firstHook.on(proxy, method, args, statement.getSqlQuery(), sqlQueryParams, this);
+            return firstHook.on(proxy, method, args, statement.getSqlQuery(), sqlQueryParams, this); // see the SPP implementation below
         } finally {
             prepareForNextExecution();
         }
