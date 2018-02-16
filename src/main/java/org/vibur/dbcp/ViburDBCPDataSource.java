@@ -66,6 +66,10 @@ import static org.vibur.objectpool.util.ArgumentValidation.forbidIllegalArgument
  */
 public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource {
 
+    public interface ConnectionInvalidator { // for internal use only
+        void invalidate();
+    }
+
     private static final Logger logger = LoggerFactory.getLogger(ViburDBCPDataSource.class);
 
     private final AtomicReference<State> state = new AtomicReference<>(NEW);
@@ -446,13 +450,6 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
             }
         }
         connection.close();
-    }
-
-    /**
-     * Used internally by the implementation of {@link #severConnection}.
-     */
-    public interface ConnectionInvalidator {
-        void invalidate();
     }
 
     private State validatePoolState(boolean allowConnectionAfterTermination) throws SQLException {

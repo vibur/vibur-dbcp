@@ -16,8 +16,6 @@
 
 package org.vibur.dbcp.stcache;
 
-import org.vibur.dbcp.stcache.StatementCache.StatementCreator;
-
 import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -38,6 +36,10 @@ import static java.lang.String.format;
  * @author Simeon Malchev
  */
 public class StatementMethod {
+
+    public interface StatementCreator { // for internal use only
+        PreparedStatement newStatement(Method method, Object[] args) throws SQLException;
+    }
 
     private final StatementCreator statementCreator;
     private final Connection rawConnection; // the underlying raw JDBC Connection

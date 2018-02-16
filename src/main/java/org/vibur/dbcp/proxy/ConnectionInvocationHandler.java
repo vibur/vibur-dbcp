@@ -22,9 +22,9 @@ import org.vibur.dbcp.ViburDBCPException;
 import org.vibur.dbcp.pool.ConnHolder;
 import org.vibur.dbcp.pool.PoolOperations;
 import org.vibur.dbcp.stcache.StatementCache;
-import org.vibur.dbcp.stcache.StatementCache.StatementCreator;
 import org.vibur.dbcp.stcache.StatementHolder;
 import org.vibur.dbcp.stcache.StatementMethod;
+import org.vibur.dbcp.stcache.StatementMethod.StatementCreator;
 
 import java.lang.reflect.Method;
 import java.sql.*;
