@@ -166,7 +166,7 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
 
     private void addSqlQueryParams(Method method, Object[] args) {
         Object[] params = new Object[args.length + 1];
-        params[0] = method.getName();
+        params[0] = method.getName().substring(3); // "set".length() == 3
         System.arraycopy(args, 0, params, 1, args.length);
         sqlQueryParams.add(params);
     }
