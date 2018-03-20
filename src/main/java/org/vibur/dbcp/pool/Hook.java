@@ -63,6 +63,9 @@ public interface Hook {
          * <p>Worth noting that since version 19.0 the {@code rawConnection} parameter can be {@code null}, which
          * means that the attempt to establish a connection, plus all reattempts, were unsuccessful.
          *
+         * <p>This hook is a companion to the {@link DestroyConnection#on DestroyConnection} hook, which is invoked
+         * after the raw JDBC Connection is destroyed.
+         *
          * @param rawConnection the just created <b>raw</b> JDBC Connection; <b>note that it can be
          *                      {@code null}</b> if we were unable to establish a connection to the database
          * @param takenNanos the time taken to establish (or attempt to establish) the connection in nanoseconds
@@ -73,12 +76,15 @@ public interface Hook {
 
     interface GetConnection extends Hook {
         /**
-         * A programming hook that will be invoked on the raw JDBC Connection <i>after</i> it was taken from the pool
+         * A programming hook that will be invoked on the raw JDBC Connection <i>after</i> it is taken from the pool
          * as part of the {@link javax.sql.DataSource#getConnection() DataSource.getConnection()} flow.
          * Its execution should take as short time as possible.
          *
          * <p>Worth noting that since version 19.0 the {@code takenNanos} parameter represents only the
          * time waited for an object to become available in the pool, excluding any object creation time.
+         *
+         * <p>This hook is a companion to the {@link CloseConnection#on CloseConnection} hook, which is invoked
+         * before the raw JDBC Connection is restored back to the pool.
          *
          * @param rawConnection the retrieved from the pool <b>raw</b> JDBC Connection; <b>note that it can be
          *                      {@code null}</b> if we were unable to obtain a connection from the pool within the
@@ -95,6 +101,9 @@ public interface Hook {
          * A programming hook that will be invoked on the raw JDBC Connection <i>before</i> it is restored back to the
          * pool as part of the {@link Connection#close()} flow. Its execution should take as short time as possible.
          *
+         * <p>This hook is a companion to the {@link GetConnection#on GetConnection} hook, which is invoked
+         * after the raw JDBC Connection is taken from the pool.
+         *
          * @param rawConnection the <b>raw</b> JDBC Connection that will be returned to the pool
          * @param takenNanos the time for which this connection was held by the application before it was restored
          *                   to the pool in nanoseconds
@@ -108,6 +117,9 @@ public interface Hook {
          * A programming hook that will be invoked only once <i>after</i> the raw JDBC Connection is closed/destroyed.
          * Its execution should take as short time as possible.
          *
+         * <p>This hook is a companion to the {@link InitConnection#on InitConnection} hook, which is invoked
+         * after the raw JDBC Connection is first created.
+         *
          * @param rawConnection the <b>raw</b> JDBC Connection that was just closed
          * @param takenNanos the time taken to close/destroy this connection in nanoseconds
          */
@@ -120,7 +132,7 @@ public interface Hook {
          * getConnection()} timeouts. Note that if the thread waiting on a {@code getConnection()} call is interrupted,
          * this does not count as a timeout. Its execution should take as short time as possible.
          *
-         * <p>The invocation of this hook means that the current call to {@link org.vibur.dbcp.ViburDataSource#getConnection()
+         * <p>The invocation of this hook indicates that the current call to {@link org.vibur.dbcp.ViburDataSource#getConnection()
          * getConnection()} will throw an {@code SQLTimeoutException}.
          *
          * @param takenConnections an array of all currently taken connections
