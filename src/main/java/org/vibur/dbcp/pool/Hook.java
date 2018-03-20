@@ -228,19 +228,19 @@ public interface Hook {
          *
          *                       <p>The size of the parameters list is equal to the number of the question mark placeholders
          *                       in the PreparedStatement query. Each Object[] inside the list contains at index 0
-         *                       the name of the invoked setXyz method and at the following indices the parameters of
-         *                       the invoked setXyz method; the last implies that the type of the parameter at index 0
-         *                       is always a String, and at index 1 is always an Integer (as the first parameter of each
-         *                       setXyz method is always an int). For example, for the PreparedStatement query
-         *                       {@code select * from T1 where X=? and Y=? and Z>?} where X is of type String,
+         *                       the name of the invoked setXyz method (without the prefix "set") and at the following
+         *                       indices the parameters of the invoked setXyz method; the last implies that the type of
+         *                       the parameter at index 0 is always a String, and at index 1 is always an Integer (as the
+         *                       first parameter of each setXyz method is always an int). For example, for the PreparedStatement
+         *                       query {@code select * from T1 where X=? and Y=? and Z>?} where X is of type String,
          *                       Y is of type Integer, Z is of type java.sql.Date, and the supplied parameters values
          *                       are "street", "22", and "2007/10/15", the resultant {@code sqlQueryParams} list will
          *                       look like:
          *                       <pre>{@code
          *                          List {
-         *                              Object[] {String("setString"), Integer("1"), String("street")},
-         *                              Object[] {String("setInt"), Integer("2"), Integer("22")},
-         *                              Object[] {String("setDate"), Integer("3"), java.sql.Date("2007", "10", "15")}
+         *                              Object[] {String("String"), Integer("1"), String("street")},
+         *                              Object[] {String("Int"), Integer("2"), Integer("22")},
+         *                              Object[] {String("Date"), Integer("3"), java.sql.Date("2007", "10", "15")}
          *                          }
          *                       }</pre>
          * @param resultSetSize the retrieved ResultSet size
