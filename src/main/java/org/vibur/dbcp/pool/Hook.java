@@ -120,6 +120,9 @@ public interface Hook {
          * getConnection()} timeouts. Note that if the thread waiting on a {@code getConnection()} call is interrupted,
          * this does not count as a timeout. Its execution should take as short time as possible.
          *
+         * <p>The invocation of this hook means that the current call to {@link org.vibur.dbcp.ViburDataSource#getConnection()
+         * getConnection()} will throw an {@code SQLTimeoutException}.
+         *
          * @param takenConnections an array of all currently taken connections
          * @param takenNanos the time taken by the call to {@code getConnection()}
          */
