@@ -63,7 +63,7 @@ public interface Hook {
          * <p>Worth noting that since version 19.0 the {@code rawConnection} parameter can be {@code null}, which
          * means that the attempt to establish a connection, plus all reattempts, were unsuccessful.
          *
-         * <p>This hook is a companion to the {@link DestroyConnection#on DestroyConnection} hook, which is invoked
+         * <p>This hook complements the {@link DestroyConnection#on DestroyConnection} hook, which is invoked
          * after the raw JDBC Connection is destroyed.
          *
          * @param rawConnection the just created <b>raw</b> JDBC Connection; <b>note that it can be
@@ -83,7 +83,7 @@ public interface Hook {
          * <p>Worth noting that since version 19.0 the {@code takenNanos} parameter represents only the
          * time waited for an object to become available in the pool, excluding any object creation time.
          *
-         * <p>This hook is a companion to the {@link CloseConnection#on CloseConnection} hook, which is invoked
+         * <p>This hook complements the {@link CloseConnection#on CloseConnection} hook, which is invoked
          * before the raw JDBC Connection is restored back to the pool.
          *
          * @param rawConnection the retrieved from the pool <b>raw</b> JDBC Connection; <b>note that it can be
@@ -101,7 +101,7 @@ public interface Hook {
          * A programming hook that will be invoked on the raw JDBC Connection <i>before</i> it is restored back to the
          * pool as part of the {@link Connection#close()} flow. Its execution should take as short time as possible.
          *
-         * <p>This hook is a companion to the {@link GetConnection#on GetConnection} hook, which is invoked
+         * <p>This hook complements the {@link GetConnection#on GetConnection} hook, which is invoked
          * after the raw JDBC Connection is taken from the pool.
          *
          * @param rawConnection the <b>raw</b> JDBC Connection that will be returned to the pool
@@ -117,7 +117,7 @@ public interface Hook {
          * A programming hook that will be invoked only once <i>after</i> the raw JDBC Connection is closed/destroyed.
          * Its execution should take as short time as possible.
          *
-         * <p>This hook is a companion to the {@link InitConnection#on InitConnection} hook, which is invoked
+         * <p>This hook complements the {@link InitConnection#on InitConnection} hook, which is invoked
          * after the raw JDBC Connection is first created.
          *
          * @param rawConnection the <b>raw</b> JDBC Connection that was just closed
