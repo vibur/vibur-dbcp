@@ -130,10 +130,9 @@ public interface Hook {
         /**
          * A programming hook that will be invoked only <i>when</i> the call to {@link org.vibur.dbcp.ViburDataSource#getConnection()
          * getConnection()} timeouts. Note that if the thread waiting on a {@code getConnection()} call is interrupted,
-         * this does not count as a timeout. Its execution should take as short time as possible.
+         * this does not count as a timeout. The hook execution should take as short time as possible.
          *
-         * <p>The invocation of this hook indicates that the current call to {@link org.vibur.dbcp.ViburDataSource#getConnection()
-         * getConnection()} will throw an {@code SQLTimeoutException}.
+         * <p>The invocation of this hook indicates that the current call to {@code getConnection()} will throw an {@code SQLTimeoutException}.
          *
          * @param takenConnections an array of all currently taken connections
          * @param takenNanos the time taken by the call to {@code getConnection()}
@@ -220,7 +219,7 @@ public interface Hook {
         /**
          * An application hook that will be invoked <i>at the end</i> of each ResultSet retrieval as part of the
          * {@link java.sql.ResultSet#close() ResultSet.close()} flow. For implementation details, see the comments for
-         * {@link ViburConfig#logLargeResultSet}. Its execution should take as short time as possible.
+         * {@link ViburConfig#logLargeResultSet}. The hook execution should take as short time as possible.
          *
          * @param sqlQuery the executed SQL query or prepared/callable SQL statement
          * @param sqlQueryParams the executed SQL query params if {@link ViburConfig#includeQueryParameters} is enabled
