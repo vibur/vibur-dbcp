@@ -20,6 +20,7 @@ import org.vibur.dbcp.ViburConfig;
 import org.vibur.objectpool.BasePool;
 
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -73,8 +74,18 @@ public final class ViburUtils {
 
     public static String formatSql(String sqlQuery, List<Object[]> sqlQueryParams) {
         StringBuilder result = new StringBuilder(1024).append("-- ").append(sqlQuery);
-        if (sqlQueryParams != null && !sqlQueryParams.isEmpty())
-            result.append("\n-- Parameters:\n-- ").append(Arrays.deepToString(sqlQueryParams.toArray()));
+
+        if (sqlQueryParams != null && !sqlQueryParams.isEmpty()) {
+            Object[] params = sqlQueryParams.toArray();
+            Arrays.sort(params, new Comparator<Object>() {
+                @Override
+                public int compare(Object o1, Object o2) {
+                    return Integer.compare((int) ((Object[]) o1)[1], (int) ((Object[]) o2)[1]);
+                }
+            });
+
+            result.append("\n-- Parameters:\n-- ").append(Arrays.deepToString(params));
+        }
         return result.toString();
     }
 }
