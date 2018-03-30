@@ -1,5 +1,10 @@
-Version 22.0 (08/02/2018) - RECOMMENDED
+Version 22.1 (30/03/2018) - RECOMMENDED
 =======================================
+* Adopted changes / improvements from Vibur Object Pool 22.1.
+* Various other small improvements, refactoring, and javadoc updates.
+
+Version 22.0 (08/02/2018)
+=========================
 * Added logLineRegex configuration option - the application can use this option in conjunction with the
   logTakenConnectionsOnTimeout option in order to filter the generated stack trace lines.
 * Added takenConnectionsFormatter configuration option - allows the application to implement custom formatting
