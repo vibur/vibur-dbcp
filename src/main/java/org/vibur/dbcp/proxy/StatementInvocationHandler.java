@@ -29,11 +29,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Deque;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import static org.vibur.dbcp.proxy.Proxy.newProxyResultSet;
 import static org.vibur.dbcp.util.JdbcUtils.quietClose;
