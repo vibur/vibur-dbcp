@@ -28,8 +28,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.sql.SQLException;
 import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.vibur.dbcp.ViburConfig.SQLSTATE_OBJECT_CLOSED_ERROR;
@@ -44,7 +42,7 @@ abstract class AbstractInvocationHandler<T> extends ExceptionCollector implement
 
     private static final Logger logger = LoggerFactory.getLogger(AbstractInvocationHandler.class);
 
-    private static final Object NO_RESULT = new Object();
+    protected static final Object NO_RESULT = new Object();
 
     /** The real (raw) object that we are dynamically proxying.
      *  For example, the underlying JDBC Connection, the underlying JDBC Statement, etc. */
@@ -56,9 +54,6 @@ abstract class AbstractInvocationHandler<T> extends ExceptionCollector implement
     private final ExceptionCollector exceptionCollector;
 
     private final AtomicBoolean closed = new AtomicBoolean(false);
-
-    private static final Set<String> unrestrictedMethods =
-        new HashSet<>(Arrays.asList("equals", "hashCode", "toString", "unwrap", "isWrapperFor"));
 
     AbstractInvocationHandler(T target, ViburConfig config, ExceptionCollector exceptionCollector) {
         assert target != null;
@@ -102,7 +97,8 @@ abstract class AbstractInvocationHandler<T> extends ExceptionCollector implement
     Object unrestrictedInvoke(T proxy, Method method, Object[] args) throws SQLException {
         String methodName = method.getName();
 
-        if (!unrestrictedMethods.contains(methodName)) {
+        // short circuit for getXXX method calls
+        if (methodName.startsWith("get")) {
             return NO_RESULT;
         }
 

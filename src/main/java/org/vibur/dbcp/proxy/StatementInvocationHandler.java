@@ -56,9 +56,6 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
     private final boolean logSqlQueryParams;
     private final List<Object[]> sqlQueryParams;
 
-    private static final Set<String> unrestrictedMethods =
-        new HashSet<>(Arrays.asList("close", "isClosed"));
-
     StatementInvocationHandler(StatementHolder statement, StatementCache statementCache, Connection connProxy,
                                ViburConfig config, ExceptionCollector exceptionCollector) {
         super(statement.rawStatement(), connProxy, "getConnection", config, exceptionCollector);
@@ -79,8 +76,9 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
     Object unrestrictedInvoke(Statement proxy, Method method, Object[] args) throws SQLException {
         String methodName = method.getName();
 
-        if (!unrestrictedMethods.contains(methodName)) {
-            return super.unrestrictedInvoke(proxy, method, args);
+        // short circuit for getXXX method calls
+        if (methodName.startsWith("get")) {
+            return NO_RESULT;
         }
 
         if (methodName == "close")

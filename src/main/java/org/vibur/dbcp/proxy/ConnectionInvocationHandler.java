@@ -28,10 +28,6 @@ import org.vibur.dbcp.stcache.StatementMethod.StatementCreator;
 
 import java.lang.reflect.Method;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
 
 import static org.vibur.dbcp.proxy.Proxy.*;
 
@@ -48,9 +44,6 @@ class ConnectionInvocationHandler extends AbstractInvocationHandler<Connection>
 
     private final StatementCache statementCache;
 
-    private static final Set<String> unrestrictedMethods =
-        new HashSet<>(Arrays.asList("close", "isClosed", "isValid", "abort"));
-
     ConnectionInvocationHandler(ConnHolder connHolder, PoolOperations poolOperations, ViburConfig config) {
         super(connHolder.rawConnection(), config, null /* becomes a new ExceptionCollector */);
         this.connHolder = connHolder;
@@ -63,8 +56,9 @@ class ConnectionInvocationHandler extends AbstractInvocationHandler<Connection>
     @Override
     Object unrestrictedInvoke(Connection proxy, Method method, Object[] args) throws SQLException {
         String methodName = method.getName();
-        if (!unrestrictedMethods.contains(methodName)) {
-            return super.unrestrictedInvoke(proxy, method, args);
+        // short circuit for getXXX method calls
+        if (methodName.startsWith("get")) {
+            return NO_RESULT;
         }
 
         if (methodName == "close")
