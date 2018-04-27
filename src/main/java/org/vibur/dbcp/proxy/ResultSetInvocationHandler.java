@@ -24,7 +24,10 @@ import java.lang.reflect.Method;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static java.lang.Boolean.FALSE;
 
@@ -42,6 +45,9 @@ class ResultSetInvocationHandler extends ChildObjectInvocationHandler<Statement,
     private long firstResultSetNanoTime;
     private long lastResultSetNanoTime;
 
+    private static final Set<String> unrestrictedMethods =
+        new HashSet<>(Arrays.asList("close", "isClosed", "isValid", "abort"));
+
     ResultSetInvocationHandler(ResultSet rawResultSet, Statement statementProxy,
                                String sqlQuery, List<Object[]> sqlQueryParams,
                                ViburConfig config, ExceptionCollector exceptionCollector) {
@@ -54,6 +60,10 @@ class ResultSetInvocationHandler extends ChildObjectInvocationHandler<Statement,
     @Override
     Object unrestrictedInvoke(ResultSet proxy, Method method, Object[] args) throws SQLException {
         String methodName = method.getName();
+
+        if (!unrestrictedMethods.contains(methodName)) {
+            return super.unrestrictedInvoke(proxy, method, args);
+        }
 
         if (methodName == "close")
             return processClose(method, args);

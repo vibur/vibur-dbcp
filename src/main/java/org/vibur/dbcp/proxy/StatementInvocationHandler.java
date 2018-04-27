@@ -29,8 +29,11 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Deque;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static org.vibur.dbcp.proxy.Proxy.newProxyResultSet;
 import static org.vibur.dbcp.util.JdbcUtils.quietClose;
@@ -53,6 +56,9 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
     private final boolean logSqlQueryParams;
     private final List<Object[]> sqlQueryParams;
 
+    private static final Set<String> unrestrictedMethods =
+        new HashSet<>(Arrays.asList("close", "isClosed"));
+
     StatementInvocationHandler(StatementHolder statement, StatementCache statementCache, Connection connProxy,
                                ViburConfig config, ExceptionCollector exceptionCollector) {
         super(statement.rawStatement(), connProxy, "getConnection", config, exceptionCollector);
@@ -72,6 +78,10 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
     @Override
     Object unrestrictedInvoke(Statement proxy, Method method, Object[] args) throws SQLException {
         String methodName = method.getName();
+
+        if (!unrestrictedMethods.contains(methodName)) {
+            return super.unrestrictedInvoke(proxy, method, args);
+        }
 
         if (methodName == "close")
             return processClose(method, args);
