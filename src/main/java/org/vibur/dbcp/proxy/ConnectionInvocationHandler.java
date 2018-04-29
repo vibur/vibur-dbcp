@@ -56,10 +56,6 @@ class ConnectionInvocationHandler extends AbstractInvocationHandler<Connection>
     @Override
     Object unrestrictedInvoke(Connection proxy, Method method, Object[] args) throws SQLException {
         String methodName = method.getName();
-        // short circuit for getXXX method calls
-        if (methodName.startsWith("get")) {
-            return NO_RESULT;
-        }
 
         if (methodName == "close")
             return processClose();

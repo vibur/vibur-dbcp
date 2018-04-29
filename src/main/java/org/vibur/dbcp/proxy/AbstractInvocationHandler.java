@@ -42,7 +42,7 @@ abstract class AbstractInvocationHandler<T> extends ExceptionCollector implement
 
     private static final Logger logger = LoggerFactory.getLogger(AbstractInvocationHandler.class);
 
-    protected static final Object NO_RESULT = new Object();
+    private static final Object NO_RESULT = new Object();
 
     /** The real (raw) object that we are dynamically proxying.
      *  For example, the underlying JDBC Connection, the underlying JDBC Statement, etc. */
@@ -72,8 +72,9 @@ abstract class AbstractInvocationHandler<T> extends ExceptionCollector implement
         @SuppressWarnings("unchecked")
         T proxy = (T) objProxy;
 
-        Object unrestrictedResult = unrestrictedInvoke(proxy, method, args); // (1)
-        if (unrestrictedResult != NO_RESULT)
+        Object unrestrictedResult;
+        if (!method.getName().startsWith("get") && // shortcuts getXYZ methods
+            (unrestrictedResult = unrestrictedInvoke(proxy, method, args)) != NO_RESULT) // (1)
             return unrestrictedResult;
 
         restrictedAccessEntry(proxy, method, args); // (2)
@@ -96,11 +97,6 @@ abstract class AbstractInvocationHandler<T> extends ExceptionCollector implement
      */
     Object unrestrictedInvoke(T proxy, Method method, Object[] args) throws SQLException {
         String methodName = method.getName();
-
-        // short circuit for getXXX method calls
-        if (methodName.startsWith("get")) {
-            return NO_RESULT;
-        }
 
         if (methodName == "equals") // comparing with == as the Method names are interned Strings
             return proxy == args[0];

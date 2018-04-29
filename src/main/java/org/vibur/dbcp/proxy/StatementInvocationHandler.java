@@ -73,11 +73,6 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
     Object unrestrictedInvoke(Statement proxy, Method method, Object[] args) throws SQLException {
         String methodName = method.getName();
 
-        // short circuit for getXXX method calls
-        if (methodName.startsWith("get")) {
-            return NO_RESULT;
-        }
-
         if (methodName == "close")
             return processClose(method, args);
         if (methodName == "isClosed")
