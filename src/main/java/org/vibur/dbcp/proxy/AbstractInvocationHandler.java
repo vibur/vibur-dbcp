@@ -72,8 +72,9 @@ abstract class AbstractInvocationHandler<T> extends ExceptionCollector implement
         @SuppressWarnings("unchecked")
         T proxy = (T) objProxy;
 
-        Object unrestrictedResult = unrestrictedInvoke(proxy, method, args); // (1)
-        if (unrestrictedResult != NO_RESULT)
+        Object unrestrictedResult;
+        if (!method.getName().startsWith("get") && // shortcuts getXYZ methods
+            (unrestrictedResult = unrestrictedInvoke(proxy, method, args)) != NO_RESULT) // (1)
             return unrestrictedResult;
 
         restrictedAccessEntry(proxy, method, args); // (2)
