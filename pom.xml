@@ -81,7 +81,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <java.version>1.7</java.version>
-        <vibur.osgi.version>23.0</vibur.osgi.version>
+        <vibur.osgi.version>22.2</vibur.osgi.version>
         <slf4j.version>1.7.13</slf4j.version>
         <concurrentlinkedhashmap-lru.version>1.4.2</concurrentlinkedhashmap-lru.version>
 
