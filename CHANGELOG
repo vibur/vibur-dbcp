@@ -1,5 +1,9 @@
-Version 22.1 (30/03/2018) - RECOMMENDED
+Version 22.2 (05/05/2018) - RECOMMENDED
 =======================================
+* Small performance update.
+
+Version 22.1 (30/03/2018)
+=========================
 * Adopted changes / improvements from Vibur Object Pool 22.1.
 * Various other small improvements, refactoring, and javadoc updates.
 
