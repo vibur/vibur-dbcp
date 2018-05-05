@@ -53,8 +53,9 @@ public interface TakenConnectionsFormatter {
 
         @Override
         public String formatTakenConnections(TakenConnection[] takenConns) {
-            if (takenConns == null || takenConns.length == 0)
+            if (takenConns == null || takenConns.length == 0) {
                 return "NO TAKEN CONNECTIONS\n";
+            }
 
             // sort the thread holding connection for the longest time on top
             Arrays.sort(takenConns, new Comparator<TakenConnection>() {
@@ -73,11 +74,13 @@ public interface TakenConnectionsFormatter {
                         .append(takenConns[i].getProxyConnection())
                         .append(", held for ").append(NANOSECONDS.toMillis(currentNanoTime - takenConns[i].getTakenNanoTime()));
 
-                if (takenConns[i].getLastAccessNanoTime() == 0)
+                if (takenConns[i].getLastAccessNanoTime() == 0) {
                     builder.append(" ms, has not been accessed");
-                else
+                }
+                else {
                     builder.append(" ms, last accessed before ").append(
                             NANOSECONDS.toMillis(currentNanoTime - takenConns[i].getLastAccessNanoTime())).append(" ms");
+                }
 
                 builder.append(", taken by thread ").append(holdingThread.getName())
                         .append(", current thread state ").append(holdingThread.getState())
@@ -95,8 +98,9 @@ public interface TakenConnectionsFormatter {
         }
 
         private StringBuilder addAllOtherStackTraces(StringBuilder builder, Map<Thread, StackTraceElement[]> stackTraces) {
-            if (stackTraces.isEmpty())
+            if (stackTraces.isEmpty()) {
                 return builder;
+            }
 
             builder.append("\n\n============ All other stack traces: ============\n\n");
             for (Map.Entry<Thread, StackTraceElement[]> entry : stackTraces.entrySet()) {
@@ -113,14 +117,16 @@ public interface TakenConnectionsFormatter {
         }
 
         private Map<Thread, StackTraceElement[]> getCurrentStackTraces(TakenConnection[] takenConns) {
-            if (config.isLogAllStackTracesOnTimeout())
+            if (config.isLogAllStackTracesOnTimeout()) {
                 return Thread.getAllStackTraces();
+            }
 
             Map<Thread, StackTraceElement[]> map = new HashMap<>(takenConns.length);
             for (TakenConnection takenConn : takenConns) {
                 Thread holdingThread = takenConn.getThread();
-                if (holdingThread.isAlive())
+                if (holdingThread.isAlive()) {
                     map.put(holdingThread, holdingThread.getStackTrace());
+                }
             }
             return map;
         }

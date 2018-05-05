@@ -65,11 +65,13 @@ public abstract class DefaultHook {
 
         @Override
         public void on(Connection rawConnection, long takenNanos) throws SQLException {
-            if (rawConnection == null)
+            if (rawConnection == null) {
                 return;
+            }
 
-            if (!validateOrInitialize(rawConnection, config.getInitSQL(), config))
+            if (!validateOrInitialize(rawConnection, config.getInitSQL(), config)) {
                 throw new SQLException("Couldn't initialize rawConnection " + rawConnection, SQLSTATE_CONN_INIT_ERROR);
+            }
 
             setDefaultValues(rawConnection, config);
         }
@@ -90,15 +92,17 @@ public abstract class DefaultHook {
         @Override
         public void on(Connection rawConnection, long takenNanos) {
             double takenMillis = takenNanos * 0.000_001;
-            if (takenMillis < config.getLogConnectionLongerThanMs())
+            if (takenMillis < config.getLogConnectionLongerThanMs()) {
                 return;
+            }
 
             if (logger.isWarnEnabled()) {
                 StringBuilder log = new StringBuilder(4096)
                         .append(format("Call to getConnection() from pool %s took %f ms, rawConnection = %s",
                                 getPoolName(config), takenMillis, rawConnection));
-                if (config.isLogStackTraceForLongConnection())
+                if (config.isLogStackTraceForLongConnection()) {
                     log.append('\n').append(getStackTraceAsString(config.getLogLineRegex(), new Throwable().getStackTrace()));
+                }
                 logger.warn(log.toString());
             }
         }
@@ -116,10 +120,12 @@ public abstract class DefaultHook {
 
         @Override
         public void on(Connection rawConnection, long takenNanos) throws SQLException {
-            if (config.isClearSQLWarnings())
+            if (config.isClearSQLWarnings()) {
                 clearWarnings(rawConnection);
-            if (config.isResetDefaultsAfterUse())
+            }
+            if (config.isResetDefaultsAfterUse()) {
                 setDefaultValues(rawConnection, config);
+            }
         }
 
         @Override
@@ -135,10 +141,11 @@ public abstract class DefaultHook {
 
         @Override
         public void on(TakenConnection[] takenConnections, long takenNanos) {
-            if (logger.isWarnEnabled())
+            if (logger.isWarnEnabled()) {
                 logger.warn(format("Pool %s, couldn't obtain SQL connection within %.3f ms, full list of taken connections begins:\n%s",
                         getPoolName(config), takenNanos * 0.000_001,
                         config.getTakenConnectionsFormatter().formatTakenConnections(takenConnections)));
+            }
         }
 
         @Override
@@ -176,20 +183,23 @@ public abstract class DefaultHook {
             double takenMillis = takenNanos * 0.000_001;
             boolean logTime = takenMillis >= config.getLogQueryExecutionLongerThanMs() && logger.isWarnEnabled();
             boolean logException = sqlException != null && logger.isDebugEnabled();
-            if (!logTime && !logException)
+            if (!logTime && !logException) {
                 return;
+            }
 
             String poolName = getPoolName(config);
             String formattedSql = formatSql(sqlQuery, sqlQueryParams);
 
-            if (logException)
+            if (logException) {
                 logger.debug("SQL query execution from pool {}:\n{}\n-- threw:", poolName, formattedSql, sqlException);
+            }
 
             if (logTime) {
                 StringBuilder message = new StringBuilder(4096).append(
                         format("SQL query execution from pool %s took %f ms:\n%s", poolName, takenMillis, formattedSql));
-                if (config.isLogStackTraceForLongQueryExecution())
+                if (config.isLogStackTraceForLongQueryExecution()) {
                     message.append('\n').append(getStackTraceAsString(config.getLogLineRegex(), new Throwable().getStackTrace()));
+                }
                 logger.warn(message.toString());
             }
         }
@@ -207,15 +217,17 @@ public abstract class DefaultHook {
 
         @Override
         public void on(String sqlQuery, List<Object[]> sqlQueryParams, long resultSetSize, long resultSetNanoTime) {
-            if (config.getLogLargeResultSet() > resultSetSize)
+            if (config.getLogLargeResultSet() > resultSetSize) {
                 return;
+            }
 
             if (logger.isWarnEnabled()) {
                 StringBuilder message = new StringBuilder(4096).append(
                         format("SQL query execution from pool %s retrieved a ResultSet with size %d, total retrieval and processing time %f ms:\n%s",
                                 getPoolName(config), resultSetSize, resultSetNanoTime * 0.000_001, formatSql(sqlQuery, sqlQueryParams)));
-                if (config.isLogStackTraceForLargeResultSet())
+                if (config.isLogStackTraceForLargeResultSet()) {
                     message.append('\n').append(getStackTraceAsString(config.getLogLineRegex(), new Throwable().getStackTrace()));
+                }
                 logger.warn(message.toString());
             }
         }
@@ -235,12 +247,15 @@ public abstract class DefaultHook {
 
         static <T extends Hook> T[] addHook(T[] hooks, T hook) {
             requireNonNull(hook);
-            if (hook instanceof DefaultHook && !((DefaultHook) hook).isEnabled())
+            if (hook instanceof DefaultHook && !((DefaultHook) hook).isEnabled()) {
                 return hooks;
+            }
 
-            for (Hook h : hooks)
-                if (h.equals(hook)) // don't add the same hook twice
+            for (Hook h : hooks) {
+                if (h.equals(hook)) { // don't add the same hook twice
                     return hooks;
+                }
+            }
 
             int length = hooks.length;
             hooks = Arrays.copyOf(hooks, length + 1); // i.e., copy-on-write

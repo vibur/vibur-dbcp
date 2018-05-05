@@ -42,8 +42,9 @@ class ChildObjectInvocationHandler<P, T> extends AbstractInvocationHandler<T> {
 
     @Override
     Object restrictedInvoke(T proxy, Method method, Object[] args) throws SQLException {
-        if (method.getName() == getParentMethod)
+        if (method.getName() == getParentMethod) {
             return parentProxy;
+        }
 
         return super.restrictedInvoke(proxy, method, args);
     }

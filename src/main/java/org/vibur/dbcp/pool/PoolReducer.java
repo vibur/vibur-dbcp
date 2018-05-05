@@ -48,11 +48,13 @@ public class PoolReducer extends SamplingPoolReducer {
     protected void afterReduce(int reduction, int reduced, Throwable thrown) {
         if (thrown != null) {
             logger.warn("While trying to reduce pool {} by {} elements", getPoolName(config), reduction, thrown);
-            if (!(thrown instanceof ViburDBCPException))
+            if (!(thrown instanceof ViburDBCPException)) {
                 terminate();
+            }
         }
-        else if (logger.isDebugEnabled())
+        else if (logger.isDebugEnabled()) {
             logger.debug("Pool {}, intended reduction {} actual {}.", getPoolName(config), reduction, reduced);
+        }
     }
 
     @Override

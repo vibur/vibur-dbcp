@@ -41,10 +41,12 @@ public final class ViburMonitoring implements ViburMonitoringMBean {
         try {
             MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
             ObjectName objectName = new ObjectName(dataSource.getJmxName());
-            if (!mbs.isRegistered(objectName))
+            if (!mbs.isRegistered(objectName)) {
                 mbs.registerMBean(new ViburMonitoring(dataSource), objectName);
-            else
+            }
+            else {
                 logger.warn(dataSource.getJmxName() + " is already registered.");
+            }
         } catch (JMException e) {
             logger.warn("Unable to register mBean {}", dataSource.getJmxName(), e);
         }
@@ -54,10 +56,12 @@ public final class ViburMonitoring implements ViburMonitoringMBean {
         try {
             MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
             ObjectName objectName = new ObjectName(dataSource.getJmxName());
-            if (mbs.isRegistered(objectName))
+            if (mbs.isRegistered(objectName)) {
                 mbs.unregisterMBean(objectName);
-            else
+            }
+            else {
                 logger.debug(dataSource.getJmxName() + " is not registered.");
+            }
         } catch (JMException e) {
             logger.warn("Unable to unregister mBean {}", dataSource.getJmxName(), e);
         }

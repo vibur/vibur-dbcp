@@ -67,15 +67,17 @@ abstract class AbstractInvocationHandler<T> extends ExceptionCollector implement
 
     @Override
     public final Object invoke(Object objProxy, Method method, Object[] args) throws SQLException {
-        if (logger.isTraceEnabled())
+        if (logger.isTraceEnabled()) {
             logger.trace("Calling {} with args {} on {}", method, Arrays.toString(args), target);
+        }
         @SuppressWarnings("unchecked")
         T proxy = (T) objProxy;
 
         Object unrestrictedResult;
         if (!method.getName().startsWith("get") && // shortcuts getXYZ methods
-            (unrestrictedResult = unrestrictedInvoke(proxy, method, args)) != NO_RESULT) // (1)
+            (unrestrictedResult = unrestrictedInvoke(proxy, method, args)) != NO_RESULT) { // (1)
             return unrestrictedResult;
+        }
 
         restrictedAccessEntry(proxy, method, args); // (2)
 
@@ -98,12 +100,15 @@ abstract class AbstractInvocationHandler<T> extends ExceptionCollector implement
     Object unrestrictedInvoke(T proxy, Method method, Object[] args) throws SQLException {
         String methodName = method.getName();
 
-        if (methodName == "equals") // comparing with == as the Method names are interned Strings
+        if (methodName == "equals") { // comparing with == as the Method names are interned Strings
             return proxy == args[0];
-        if (methodName == "hashCode")
+        }
+        if (methodName == "hashCode") {
             return System.identityHashCode(proxy);
-        if (methodName == "toString")
+        }
+        if (methodName == "toString") {
             return "Vibur proxy for: " + target;
+        }
         // getClass(), notify(), notifyAll(), and wait() method calls are not intercepted by the dynamic proxies
 
         if (methodName == "unwrap") {
@@ -111,17 +116,20 @@ abstract class AbstractInvocationHandler<T> extends ExceptionCollector implement
             Class<T> iface = (Class<T>) args[0];
             return unwrap(iface);
         }
-        if (methodName == "isWrapperFor")
+        if (methodName == "isWrapperFor") {
             return isWrapperFor((Class<?>) args[0]);
+        }
 
         return NO_RESULT;
     }
 
     private void restrictedAccessEntry(T proxy, Method method, Object[] args) throws SQLException {
-        if (isClosed())
+        if (isClosed()) {
             throw new SQLException(target.getClass().getName() + " is closed.", SQLSTATE_OBJECT_CLOSED_ERROR);
-        for (Hook.MethodInvocation hook : onMethodInvocation)
+        }
+        for (Hook.MethodInvocation hook : onMethodInvocation) {
             hook.on(proxy, method, args);
+        }
     }
 
     /**
@@ -147,8 +155,9 @@ abstract class AbstractInvocationHandler<T> extends ExceptionCollector implement
 
         } catch (InvocationTargetException e) {
             Throwable cause = e.getCause();
-            if (cause == null)
+            if (cause == null) {
                 cause = e;
+            }
 
             logTargetInvokeFailure(method, args, cause);
 
@@ -157,10 +166,12 @@ abstract class AbstractInvocationHandler<T> extends ExceptionCollector implement
                 exceptionCollector.addException(sqlException);
                 throw sqlException;
             }
-            else if (cause instanceof RuntimeException)
+            else if (cause instanceof RuntimeException) {
                 throw (RuntimeException) cause;
-            else if (cause instanceof Error)
+            }
+            else if (cause instanceof Error) {
                 throw (Error) cause;
+            }
 
             throw unexpectedException(e);
         } catch (IllegalAccessException e) {
@@ -169,9 +180,10 @@ abstract class AbstractInvocationHandler<T> extends ExceptionCollector implement
     }
 
     private void logTargetInvokeFailure(Method method, Object[] args, Throwable t) {
-        if (logger.isDebugEnabled())
+        if (logger.isDebugEnabled()) {
             logger.debug("Pool {}, the invocation of {} with args {} on {} threw:",
                     getPoolName(config), method, Arrays.toString(args), target, t);
+        }
     }
 
     private static ViburDBCPException unexpectedException(ReflectiveOperationException e) {
@@ -196,8 +208,9 @@ abstract class AbstractInvocationHandler<T> extends ExceptionCollector implement
     }
 
     private T unwrap(Class<T> iface) throws SQLException {
-        if (isWrapperFor(iface))
+        if (isWrapperFor(iface)) {
             return target;
+        }
         throw new SQLException("Not a wrapper or unwrapping is disabled for " + iface, SQLSTATE_WRAPPER_ERROR);
     }
 

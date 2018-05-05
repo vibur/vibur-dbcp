@@ -55,10 +55,12 @@ class ResultSetInvocationHandler extends ChildObjectInvocationHandler<Statement,
     Object unrestrictedInvoke(ResultSet proxy, Method method, Object[] args) throws SQLException {
         String methodName = method.getName();
 
-        if (methodName == "close")
+        if (methodName == "close") {
             return processClose(method, args);
-        if (methodName == "isClosed")
+        }
+        if (methodName == "isClosed") {
             return isClosed();
+        }
 
         return super.unrestrictedInvoke(proxy, method, args);
     }
@@ -67,8 +69,9 @@ class ResultSetInvocationHandler extends ChildObjectInvocationHandler<Statement,
     Object restrictedInvoke(ResultSet proxy, Method method, Object[] args) throws SQLException {
         String methodName = method.getName();
 
-        if (methodName == "next")
+        if (methodName == "next") {
             return processNext(method, args);
+        }
 
         return super.restrictedInvoke(proxy, method, args);
     }
@@ -78,8 +81,10 @@ class ResultSetInvocationHandler extends ChildObjectInvocationHandler<Statement,
             if (!firstResultSetRetrieved) {
                 firstResultSetRetrieved = true;
                 firstResultSetNanoTime = lastResultSetNanoTime = System.nanoTime();
-            } else
+            }
+            else {
                 lastResultSetNanoTime = System.nanoTime();
+            }
             resultSetSize++;
         }
 
@@ -87,19 +92,22 @@ class ResultSetInvocationHandler extends ChildObjectInvocationHandler<Statement,
         try {
             return next = (Boolean) targetInvoke(method, args);
         } finally {
-            if (!next)
+            if (!next) {
                 resultSetSize--;
+            }
         }
     }
 
     private Object processClose(Method method, Object[] args) throws SQLException {
-        if (!close())
+        if (!close()) {
             return null;
+        }
 
         if (executionHooks.length > 0) {
             long takenNanoTime = firstResultSetRetrieved ? lastResultSetNanoTime - firstResultSetNanoTime : 0;
-            for (Hook.ResultSetRetrieval hook : executionHooks)
+            for (Hook.ResultSetRetrieval hook : executionHooks) {
                 hook.on(sqlQuery, sqlQueryParams, resultSetSize, takenNanoTime);
+            }
         }
 
         return targetInvoke(method, args);

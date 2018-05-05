@@ -44,10 +44,12 @@ public interface Connector {
         private Builder() { }
 
         public static Connector buildConnector(ViburConfig config, String username, String password) {
-            if (config.getExternalDataSource() == null)
+            if (config.getExternalDataSource() == null) {
                 return new Driver(config, username, password);
-            if (username != null)
+            }
+            if (username != null) {
                 return new DataSourceWithCredentials(config, username, password);
+            }
             return new DataSource(config);
         }
 

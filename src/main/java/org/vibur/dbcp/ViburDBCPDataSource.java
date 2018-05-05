@@ -98,16 +98,18 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
         URL config;
         if (configFileName != null) {
             config = getURL(configFileName);
-            if (config == null)
+            if (config == null) {
                 throw new ViburDBCPException("Unable to load resource " + configFileName);
+            }
         }
         else {
             config = getURL(DEFAULT_XML_CONFIG_FILE_NAME);
             if (config == null) {
                 config = getURL(DEFAULT_PROPERTIES_CONFIG_FILE_NAME);
-                if (config == null)
+                if (config == null) {
                     throw new ViburDBCPException("Unable to load default resources from "
                         + DEFAULT_XML_CONFIG_FILE_NAME + " or " + DEFAULT_PROPERTIES_CONFIG_FILE_NAME);
+                }
             }
         }
         configureFromURL(config);
@@ -127,8 +129,9 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
         URL config = Thread.currentThread().getContextClassLoader().getResource(configFileName);
         if (config == null) {
             config = getClass().getClassLoader().getResource(configFileName);
-            if (config == null)
+            if (config == null) {
                 config = ClassLoader.getSystemResource(configFileName);
+            }
         }
         return config;
     }
@@ -140,17 +143,20 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
             uConn.setUseCaches(false);
             inputStream = uConn.getInputStream();
             Properties properties = new Properties();
-            if (config.getFile().endsWith(".xml"))
+            if (config.getFile().endsWith(".xml")) {
                 properties.loadFromXML(inputStream);
-            else
+            }
+            else {
                 properties.load(inputStream);
+            }
             configureFromProperties(properties);
         } catch (IOException e) {
             throw new ViburDBCPException(config.toString(), e);
         } finally {
             try {
-                if (inputStream != null)
+                if (inputStream != null) {
                     inputStream.close();
+                }
             } catch (IOException e) {
                 logger.debug("Couldn't close configuration URL {}", config, e);
             }
@@ -159,8 +165,9 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
 
     private void configureFromProperties(Properties properties) throws ViburDBCPException {
         Set<String> fields = new HashSet<>();
-        for (Field field : ViburConfig.class.getDeclaredFields())
+        for (Field field : ViburConfig.class.getDeclaredFields()) {
             fields.add(field.getName());
+        }
 
         for (Map.Entry<Object, Object> entry : properties.entrySet()) {
             String key = (String) entry.getKey();
@@ -172,18 +179,24 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
             try {
                 Field field = ViburConfig.class.getDeclaredField(key);
                 Class<?> type = field.getType();
-                if (type == int.class || type == Integer.class)
+                if (type == int.class || type == Integer.class) {
                     set(field, parseInt(val));
-                else if (type == long.class || type == Long.class)
+                }
+                else if (type == long.class || type == Long.class) {
                     set(field, parseLong(val));
-                else if (type == float.class || type == Float.class)
+                }
+                else if (type == float.class || type == Float.class) {
                     set(field, parseFloat(val));
-                else if (type == boolean.class || type == Boolean.class)
+                }
+                else if (type == boolean.class || type == Boolean.class) {
                     set(field, parseBoolean(val));
-                else if (type == String.class)
+                }
+                else if (type == String.class) {
                     set(field, val);
-                else
+                }
+                else {
                     throw new ViburDBCPException(format("Unexpected type for configuration property %s/%s", key, val));
+                }
             } catch (IllegalArgumentException | ReflectiveOperationException e) {
                 throw new ViburDBCPException(format("Error setting configuration property %s/%s", key, val), e);
             }
@@ -222,25 +235,30 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
     }
 
     private void doStart() throws ViburDBCPException {
-        if (!state.compareAndSet(NEW, WORKING))
+        if (!state.compareAndSet(NEW, WORKING)) {
             throw new IllegalStateException();
+        }
 
         validateConfig();
 
-        if (getExternalDataSource() == null)
+        if (getExternalDataSource() == null) {
             initJdbcDriver();
-        if (getConnector() == null)
+        }
+        if (getConnector() == null) {
             setConnector(buildConnector(this, getUsername(), getPassword()));
+        }
 
         initDefaultHooks();
 
         ViburObjectFactory connectionFactory = getConnectionFactory();
-        if (connectionFactory == null)
+        if (connectionFactory == null) {
             setConnectionFactory(connectionFactory = new ConnectionFactory(this));
+        }
         PoolService<ConnHolder> pool = getPool();
         if (pool == null) {
-            if (isPoolEnableConnectionTracking() && getTakenConnectionsFormatter() == null)
+            if (isPoolEnableConnectionTracking() && getTakenConnectionsFormatter() == null) {
                 setTakenConnectionsFormatter(new TakenConnectionsFormatter.Default(this));
+            }
 
             pool = new ConcurrentPool<>(getConcurrentCollection(), connectionFactory,
                     getPoolInitialSize(), getPoolMaxSize(), isPoolFair(),
@@ -252,32 +270,40 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
         initPoolReducer();
         initStatementCache();
 
-        if (isEnableJMX())
+        if (isEnableJMX()) {
             registerMBean(this);
+        }
     }
 
     @Override
     public void terminate() {
         State oldState = state.getAndSet(TERMINATED);
-        if (oldState == TERMINATED || oldState == NEW)
+        if (oldState == TERMINATED || oldState == NEW) {
             return;
+        }
 
-        if (getPool() != null)
+        if (getPool() != null) {
             getPool().terminate();
+        }
         TakenConnection[] takenConnections = getTakenConnections();
 
-        if (getPoolReducer() != null)
+        if (getPoolReducer() != null) {
             getPoolReducer().terminate();
-        if (getStatementCache() != null)
+        }
+        if (getStatementCache() != null) {
             getStatementCache().close();
+        }
 
-        if (isEnableJMX())
+        if (isEnableJMX()) {
             unregisterMBean(this);
+        }
 
-        if (!isPoolEnableConnectionTracking())
+        if (!isPoolEnableConnectionTracking()) {
             logger.info("Terminated {}", this);
-        else
+        }
+        else {
             logger.info("Terminated {}, remaining taken connections {}", this, Arrays.deepToString(takenConnections));
+        }
     }
 
     @Override
@@ -304,8 +330,12 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
         forbidIllegalArgument(isUseNetworkTimeout() && getNetworkTimeoutExecutor() == null);
         requireNonNull(getCriticalSQLStates());
 
-        if (getPassword() == null) logger.warn("JDBC password is not specified.");
-        if (getUsername() == null) logger.warn("JDBC username is not specified.");
+        if (getPassword() == null) {
+            logger.warn("JDBC password is not specified.");
+        }
+        if (getUsername() == null) {
+            logger.warn("JDBC username is not specified.");
+        }
 
         int connectionTimeoutInSeconds = (int) MILLISECONDS.toSeconds(getConnectionTimeoutInMs());
         if (getLoginTimeoutInSeconds() > connectionTimeoutInSeconds) {
@@ -353,10 +383,12 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
     private void initJdbcDriver() throws ViburDBCPException {
         if (getDriver() == null) {
             try {
-                if (getDriverClassName() != null)
+                if (getDriverClassName() != null) {
                     setDriver((Driver) Class.forName(getDriverClassName()).newInstance());
-                else
+                }
+                else {
                     setDriver(DriverManager.getDriver(getJdbcUrl()));
+                }
             } catch (ReflectiveOperationException | ClassCastException | SQLException e) {
                 throw new ViburDBCPException(e);
             }
@@ -389,8 +421,9 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
 
     private void initStatementCache() {
         int statementCacheMaxSize = getStatementCacheMaxSize();
-        if (statementCacheMaxSize > 0 && getStatementCache() == null)
+        if (statementCacheMaxSize > 0 && getStatementCache() == null) {
             setStatementCache(new ClhmStatementCache(statementCacheMaxSize));
+        }
     }
 
     @Override
@@ -400,8 +433,9 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
             try {
                 return poolOperations.getProxyConnection(getConnectionTimeoutInMs());
             } catch (SQLException e) {
-                if (!SQLSTATE_POOL_CLOSED_ERROR.equals(e.getSQLState()) || !isAllowConnectionAfterTermination())
+                if (!SQLSTATE_POOL_CLOSED_ERROR.equals(e.getSQLState()) || !isAllowConnectionAfterTermination()) {
                     throw e;
+                }
                 // else falls back to creating a non-pooled Connection
                 logger.info("The pool was closed while retrieving a Connection.");
             }
@@ -414,8 +448,9 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
 
     @Override
     public Connection getConnection(String username, String password) throws SQLException {
-        if (defaultCredentials(username, password))
+        if (defaultCredentials(username, password)) {
             return getConnection();
+        }
 
         validatePoolState(isAllowConnectionAfterTermination());
         logger.warn("Calling getConnection() with different than the default credentials; will create and return a non-pooled Connection.");
@@ -460,8 +495,9 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
             case WORKING:
                 return state;
             case TERMINATED:
-                if (!allowConnectionAfterTermination)
+                if (!allowConnectionAfterTermination) {
                     throw new SQLException(format("Pool %s, %s", getPoolName(this), state), SQLSTATE_POOL_CLOSED_ERROR);
+                }
                 return state;
             default:
                 throw new AssertionError(state);
@@ -469,23 +505,26 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
     }
 
     private boolean defaultCredentials(String username, String password) {
-        if (getUsername() != null ? !getUsername().equals(username) : username != null)
+        if (getUsername() != null ? !getUsername().equals(username) : username != null) {
             return false;
+        }
         return getPassword() != null ? getPassword().equals(password) : password == null;
     }
 
     @Override
     public String getTakenConnectionsStackTraces() {
-        if (!isPoolEnableConnectionTracking() || getState() != WORKING)
+        if (!isPoolEnableConnectionTracking() || getState() != WORKING) {
             return "poolEnableConnectionTracking is disabled or the pool is not in working state";
+        }
 
         return getTakenConnectionsFormatter().formatTakenConnections(getTakenConnections());
     }
 
     @Override
     public TakenConnection[] getTakenConnections() {
-        if (!isPoolEnableConnectionTracking() || getState() != WORKING)
+        if (!isPoolEnableConnectionTracking() || getState() != WORKING) {
             return NO_TAKEN_CONNECTIONS;
+        }
 
         return ((ViburListener) getPool().listener()).getTakenConnections();
     }
@@ -518,8 +557,9 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
     @Override
     @SuppressWarnings("unchecked")
     public <T> T unwrap(Class<T> iface) throws SQLException {
-        if (isWrapperFor(iface))
+        if (isWrapperFor(iface)) {
             return (T) getExternalDataSource();
+        }
         throw new SQLException("Not a wrapper for " + iface, SQLSTATE_WRAPPER_ERROR);
     }
 

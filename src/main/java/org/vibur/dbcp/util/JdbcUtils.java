@@ -42,8 +42,9 @@ public final class JdbcUtils {
 
     public static void initLoginTimeout(ViburConfig config) throws ViburDBCPException {
         int loginTimeout = config.getLoginTimeoutInSeconds();
-        if (config.getExternalDataSource() == null)
+        if (config.getExternalDataSource() == null) {
             DriverManager.setLoginTimeout(loginTimeout);
+        }
         else {
             try {
                 config.getExternalDataSource().setLoginTimeout(loginTimeout);
@@ -56,15 +57,19 @@ public final class JdbcUtils {
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
     public static void setDefaultValues(Connection rawConnection, ViburConfig config) throws SQLException {
-        if (config.getDefaultAutoCommit() != null)
+        if (config.getDefaultAutoCommit() != null) {
             rawConnection.setAutoCommit(config.getDefaultAutoCommit());
-        if (config.getDefaultReadOnly() != null)
+        }
+        if (config.getDefaultReadOnly() != null) {
             rawConnection.setReadOnly(config.getDefaultReadOnly());
-        if (config.getDefaultTransactionIsolationIntValue() != null)
+        }
+        if (config.getDefaultTransactionIsolationIntValue() != null) {
             // noinspection MagicConstant - the int value is checked/ set during Vibur config validation
             rawConnection.setTransactionIsolation(config.getDefaultTransactionIsolationIntValue());
-        if (config.getDefaultCatalog() != null)
+        }
+        if (config.getDefaultCatalog() != null) {
             rawConnection.setCatalog(config.getDefaultCatalog());
+        }
     }
 
     /**
@@ -78,12 +83,14 @@ public final class JdbcUtils {
      * @return {@code true} if the given connection is successfully validated/ initialized; {@code false} otherwise
      */
     public static boolean validateOrInitialize(Connection rawConnection, String sqlQuery, ViburConfig config) {
-        if (sqlQuery == null)
+        if (sqlQuery == null) {
             return true;
+        }
 
         try {
-            if (sqlQuery.equals(IS_VALID_QUERY))
+            if (sqlQuery.equals(IS_VALID_QUERY)) {
                 return rawConnection.isValid(config.getValidateTimeoutInSeconds());
+            }
 
             executeSqlQuery(rawConnection, sqlQuery, config);
             return true;
@@ -121,26 +128,30 @@ public final class JdbcUtils {
     }
 
     private static void resetNetworkTimeout(Connection rawConnection, Executor executor, int oldTimeout) throws SQLException {
-        if (oldTimeout >= 0)
+        if (oldTimeout >= 0) {
             rawConnection.setNetworkTimeout(executor, oldTimeout);
+        }
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
     public static void clearWarnings(Connection connection) throws SQLException {
-        if (connection != null)
+        if (connection != null) {
             connection.clearWarnings();
+        }
     }
 
     public static void clearWarnings(PreparedStatement preparedStatement) throws SQLException {
-        if (preparedStatement != null)
+        if (preparedStatement != null) {
             preparedStatement.clearWarnings();
+        }
     }
 
     public static void quietClose(Connection connection) {
         try {
-            if (connection != null)
+            if (connection != null) {
                 connection.close();
+            }
         } catch (SQLException e) {
             logger.warn("Couldn't close {}", connection, e);
         }
@@ -148,8 +159,9 @@ public final class JdbcUtils {
 
     public static void quietClose(Statement statement) {
         try {
-            if (statement != null)
+            if (statement != null) {
                 statement.close();
+            }
         } catch (SQLException e) {
             logger.warn("Couldn't close {}", statement, e);
         }
@@ -157,8 +169,9 @@ public final class JdbcUtils {
 
     public static void quietClose(ResultSet resultSet) {
         try {
-            if (resultSet != null)
+            if (resultSet != null) {
                 resultSet.close();
+            }
         } catch (SQLException e) {
             logger.warn("Couldn't close {}", resultSet, e);
         }
@@ -167,8 +180,9 @@ public final class JdbcUtils {
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
     public static SQLException chainSQLException(SQLException main, SQLException next) {
-        if (main == null)
+        if (main == null) {
             return next;
+        }
         main.setNextException(next);
         return main;
     }

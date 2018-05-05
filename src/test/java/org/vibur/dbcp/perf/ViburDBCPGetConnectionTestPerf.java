@@ -138,8 +138,9 @@ public class ViburDBCPGetConnectionTestPerf {
     }
 
     private static void doWork(long millis) {
-        if (millis <= 0)
+        if (millis <= 0) {
             return;
+        }
 
         try {
             Thread.sleep(millis);

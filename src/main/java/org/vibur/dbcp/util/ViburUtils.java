@@ -47,27 +47,31 @@ public final class ViburUtils {
                 + '(' + pool.taken() + '/' + pool.remainingCreated() + '/' + pool.maxSize()
                 + '/' + (!initialState ? 'w' : 't')  // poolState: w == working, t == terminated
                 + '/' + (Thread.currentThread().isInterrupted() ? 'i' : 'n') + ')';
-        if (initialState == pool.isTerminated()) // make sure the pool state has not changed in the meantime
+        if (initialState == pool.isTerminated()) { // make sure the pool state has not changed in the meantime
             return result;
+        }
         return getPoolName(config); // this is one level of recursion only, pool state changes only once
     }
 
     public static String getStackTraceAsString(Pattern logLinePattern, StackTraceElement[] stackTrace) {
-        if (stackTrace == null || stackTrace.length == 0)
+        if (stackTrace == null || stackTrace.length == 0) {
             return "EMPTY STACK TRACE\n";
+        }
 
         int i;
         for (i = 0; i < stackTrace.length; i++) {
             if (!stackTrace[i].getClassName().startsWith("org.vibur")
-                || stackTrace[i].getMethodName().equals("getConnection"))
+                || stackTrace[i].getMethodName().equals("getConnection")) {
                 break;
+            }
         }
 
         StringBuilder builder = new StringBuilder(4096);
         for (i++; i < stackTrace.length; i++) {
             String stackTraceStr = stackTrace[i].toString();
-            if (logLinePattern == null || logLinePattern.matcher(stackTraceStr).matches())
+            if (logLinePattern == null || logLinePattern.matcher(stackTraceStr).matches()) {
                 builder.append("  at ").append(stackTraceStr).append('\n');
+            }
         }
         return builder.toString();
     }

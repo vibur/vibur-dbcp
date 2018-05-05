@@ -73,10 +73,12 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
     Object unrestrictedInvoke(Statement proxy, Method method, Object[] args) throws SQLException {
         String methodName = method.getName();
 
-        if (methodName == "close")
+        if (methodName == "close") {
             return processClose(method, args);
-        if (methodName == "isClosed")
+        }
+        if (methodName == "isClosed") {
             return isClosed();
+        }
 
         return super.unrestrictedInvoke(proxy, method, args);
     }
@@ -85,53 +87,63 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
     Object restrictedInvoke(Statement proxy, Method method, Object[] args) throws SQLException {
         String methodName = method.getName();
 
-        if (methodName.startsWith("set")) // this intercepts all "set..." JDBC Prepared/Callable Statement methods
+        if (methodName.startsWith("set")) { // this intercepts all "set..." JDBC Prepared/Callable Statement methods
             return processSet(method, args);
-        if (methodName.startsWith("execute")) // this intercepts all "execute..." JDBC Statement methods
+        }
+        if (methodName.startsWith("execute")) { // this intercepts all "execute..." JDBC Statement methods
             return processExecute(proxy, method, args);
+        }
 
-        if (methodName == "getMoreResults") // *2
+        if (methodName == "getMoreResults") { // *2
             return processMoreResults(method, args);
+        }
 
         // Methods which results have to be proxied so that when getStatement() is called
         // on their results the return value to be the current JDBC Statement proxy.
-        if (methodName == "getResultSet" || methodName == "getGeneratedKeys") // *2
+        if (methodName == "getResultSet" || methodName == "getGeneratedKeys") { // *2
             return newProxiedResultSet(proxy, method, args, statement.getSqlQuery());
+        }
 
-        if (methodName == "cancel")
+        if (methodName == "cancel") {
             return processCancel(method, args);
+        }
 
         return super.restrictedInvoke(proxy, method, args);
     }
 
     private Object processClose(Method method, Object[] args) throws SQLException {
-        if (!close())
+        if (!close()) {
             return null;
+        }
 
         closeAllResultSets();
 
-        if (statementCache != null && statementCache.restore(statement, config.isClearSQLWarnings()))
+        if (statementCache != null && statementCache.restore(statement, config.isClearSQLWarnings())) {
             return null; // calls to close() are not passed when the statement is restored successfully in the cache
+        }
         return targetInvoke(method, args);
     }
 
     private Object processCancel(Method method, Object[] args) throws SQLException {
-        if (statementCache != null)
+        if (statementCache != null) {
             statementCache.remove(statement); // because cancelled Statements are not longer valid
+        }
         return targetInvoke(method, args);
     }
 
     private Object processSet(Method method, Object[] args) throws SQLException {
-        if (logSqlQueryParams && args != null && args.length >= 2)
+        if (logSqlQueryParams && args != null && args.length >= 2) {
             addSqlQueryParams(method, args);
+        }
         return targetInvoke(method, args); // the real "set..." call
     }
 
     private Object processExecute(Statement proxy, Method method, Object[] args) throws SQLException {
         closeAllResultSets();
 
-        if (statement.getSqlQuery() == null && args != null && args.length >= 1) // a simple Statement "execute..." call
+        if (statement.getSqlQuery() == null && args != null && args.length >= 1) { // a simple Statement "execute..." call
             statement.setSqlQuery((String) args[0]);
+        }
 
         try {
             return firstHook.on(proxy, method, args, statement.getSqlQuery(), sqlQueryParams, this); // see the SPP implementation below
@@ -142,20 +154,24 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
 
     private Object processMoreResults(Method method, Object[] args) throws SQLException {
         int current = Statement.CLOSE_ALL_RESULTS;
-        if (args != null && args.length == 1)
+        if (args != null && args.length == 1) {
             current = (Integer) args[0];
+        }
 
-        if (current == Statement.CLOSE_CURRENT_RESULT)
+        if (current == Statement.CLOSE_CURRENT_RESULT) {
             quietClose(currentResultSets.pollLast());
-        else if (current == Statement.CLOSE_ALL_RESULTS)
+        }
+        else if (current == Statement.CLOSE_ALL_RESULTS) {
             closeAllResultSets();
+        }
 
         return targetInvoke(method, args);
     }
 
     private void prepareForNextExecution() {
-        if (sqlQueryParams != null)
+        if (sqlQueryParams != null) {
             sqlQueryParams.clear();
+        }
         hookIdx = 0;
     }
 
@@ -172,15 +188,17 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
     }
 
     private ResultSet addResultSet(ResultSet resultSet) {
-        if (resultSet != null)
+        if (resultSet != null) {
             currentResultSets.addLast(resultSet);
+        }
         return resultSet;
     }
 
     private void closeAllResultSets() {
         ResultSet next;
-        while ((next = currentResultSets.pollFirst()) != null)
+        while ((next = currentResultSets.pollFirst()) != null) {
             quietClose(next);
+        }
     }
 
     //////// The StatementProceedingPoint implementation: ////////
@@ -189,8 +207,9 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
     public Object on(Statement proxy, Method method, Object[] args, String sqlQuery, List<Object[]> sqlQueryParams,
                      StatementProceedingPoint proceed) throws SQLException {
 
-        if (++hookIdx < executionHooks.length) // invoke the next statement execution hook, if any
+        if (++hookIdx < executionHooks.length) { // invoke the next statement execution hook, if any
             return executionHooks[hookIdx].on(proxy, method, args, sqlQuery, sqlQueryParams, this);
+        }
 
         return doProcessExecute(proxy, method, args);
     }
@@ -198,8 +217,9 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
     private Object doProcessExecute(Statement proxy, Method method, Object[] args) throws SQLException {
         // executeQuery result has to be proxied so that when getStatement() is called
         // on its result the return value to be the current JDBC Statement proxy.
-        if (method.getName() == "executeQuery") // *1
+        if (method.getName() == "executeQuery") { // *1
             return newProxiedResultSet(proxy, method, args, statement.getSqlQuery());
+        }
 
         return targetInvoke(method, args); // the real "execute..." call
     }

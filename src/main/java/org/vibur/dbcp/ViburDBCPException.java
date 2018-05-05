@@ -50,8 +50,9 @@ public class ViburDBCPException extends RuntimeException {
 
     public SQLException unwrapSQLException() {
         Throwable cause = getCause();
-        if (cause instanceof SQLException)
+        if (cause instanceof SQLException) {
             return (SQLException) cause;
+        }
 
         logger.error("Unexpected exception cause", this);
         throw this; // not expected to happen

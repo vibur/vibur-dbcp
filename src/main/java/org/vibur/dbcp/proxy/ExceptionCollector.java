@@ -42,8 +42,9 @@ abstract class ExceptionCollector {
      * @param exception the exception thrown
      */
     final void addException(SQLException exception) {
-        if (!(exception instanceof SQLTimeoutException) && !(exception instanceof SQLTransactionRollbackException))
+        if (!(exception instanceof SQLTimeoutException) && !(exception instanceof SQLTransactionRollbackException)) {
             getOrInit().offer(exception); // SQLExceptions from the above two sub-types are not stored
+        }
     }
 
     private Queue<SQLException> getOrInit() {
@@ -51,8 +52,9 @@ abstract class ExceptionCollector {
         if (ex == null) {
             synchronized (this) {
                 ex = exceptions;
-                if (ex == null)
+                if (ex == null) {
                     exceptions = ex = new ConcurrentLinkedQueue<>();
+                }
             }
         }
         return ex;
@@ -65,8 +67,9 @@ abstract class ExceptionCollector {
      */
     final SQLException[] getExceptions() {
         Queue<SQLException> ex = exceptions;
-        if (ex == null)
+        if (ex == null) {
             return NO_EXCEPTIONS;
+        }
 
         return ex.toArray(NO_EXCEPTIONS);
     }

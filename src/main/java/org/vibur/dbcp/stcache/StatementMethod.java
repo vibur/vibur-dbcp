@@ -70,8 +70,12 @@ public class StatementMethod {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         StatementMethod that = (StatementMethod) o;
         return rawConnection == that.rawConnection // comparing with == as the JDBC Connections are pooled objects

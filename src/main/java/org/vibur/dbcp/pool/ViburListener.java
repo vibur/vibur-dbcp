@@ -41,8 +41,9 @@ public class ViburListener extends TakenListener<ConnHolder> {
      */
     public TakenConnection[] getTakenConnections() {
         ConnHolder[] takenConns = getTaken(new ConnHolder[config.getPoolMaxSize()]);
-        if (takenConns.length == 0)
+        if (takenConns.length == 0) {
             return NO_TAKEN_CONNECTIONS;
+        }
 
         return Arrays.copyOf(takenConns, takenConns.length, TakenConnection[].class);
     }
@@ -51,14 +52,17 @@ public class ViburListener extends TakenListener<ConnHolder> {
     protected ConnHolder[] getTaken(ConnHolder[] a) {
         ConnHolder[] takenConns = super.getTaken(a);
         int size = 0;
-        while (size < takenConns.length && takenConns[size] != null)
+        while (size < takenConns.length && takenConns[size] != null) {
             size++;
-        if (size == 0)
+        }
+        if (size == 0) {
             return NO_TAKEN_CONN_HOLDERS;
+        }
 
         ConnHolder[] result = new ConnHolder[size];
-        for (int i = 0; i < size; i++)
+        for (int i = 0; i < size; i++) {
             result[i] = new ConnHolder(takenConns[i]);
+        }
         return result;
     }
 }

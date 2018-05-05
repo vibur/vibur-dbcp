@@ -94,8 +94,9 @@ public class ConnectionFactory implements ViburObjectFactory {
         if (onInit.length > 0) {
             try {
                 long takenNanos = currentNanoTime - startNanoTime;
-                for (Hook.InitConnection hook : onInit)
+                for (Hook.InitConnection hook : onInit) {
                     hook.on(rawConnection, takenNanos);
+                }
 
             } catch (SQLException e) {
                 quietClose(rawConnection);
@@ -103,8 +104,9 @@ public class ConnectionFactory implements ViburObjectFactory {
             }
         }
 
-        if (sqlException != null)
+        if (sqlException != null) {
             throw new ViburDBCPException(sqlException);
+        }
 
         logger.debug("Created rawConnection {}", rawConnection);
         return prepareTracking(new ConnHolder(rawConnection, version(),
@@ -113,8 +115,9 @@ public class ConnectionFactory implements ViburObjectFactory {
 
     @Override
     public boolean readyToTake(ConnHolder connHolder) {
-        if (connHolder.version() != version())
+        if (connHolder.version() != version()) {
             return false;
+        }
 
         int idleLimit = config.getConnectionIdleLimitInSeconds();
         if (idleLimit >= 0) {
@@ -142,8 +145,9 @@ public class ConnectionFactory implements ViburObjectFactory {
             Connection rawConnection = connHolder.rawConnection();
             try {
                 long takenNanos = currentNanoTime - startNanoTime;
-                for (Hook.CloseConnection hook : onClose)
+                for (Hook.CloseConnection hook : onClose) {
                     hook.on(rawConnection, takenNanos);
+                }
 
             } catch (SQLException e) {
                 logger.debug("Couldn't reset rawConnection {}", rawConnection, e);
@@ -151,8 +155,9 @@ public class ConnectionFactory implements ViburObjectFactory {
             }
         }
 
-        if (config.getConnectionIdleLimitInSeconds() >= 0)
+        if (config.getConnectionIdleLimitInSeconds() >= 0) {
             connHolder.setRestoredNanoTime(currentNanoTime);
+        }
         return true;
     }
 
@@ -162,8 +167,9 @@ public class ConnectionFactory implements ViburObjectFactory {
             connHolder.setThread(Thread.currentThread());
             connHolder.setLocation(new Throwable());
         }
-        else if (connHooksAccessor.onGet().length > 0 || connHooksAccessor.onClose().length > 0)
+        else if (connHooksAccessor.onGet().length > 0 || connHooksAccessor.onClose().length > 0) {
             connHolder.setTakenNanoTime(System.nanoTime());
+        }
 
         return connHolder;
     }
@@ -189,13 +195,15 @@ public class ConnectionFactory implements ViburObjectFactory {
 
         quietClose(rawConnection);
         long takenNanos = onDestroy.length == 0 ? 0 : System.nanoTime() - startTime;
-        for (Hook.DestroyConnection hook : onDestroy)
+        for (Hook.DestroyConnection hook : onDestroy) {
             hook.on(rawConnection, takenNanos);
+        }
     }
 
     private void closeStatements(Connection rawConnection) {
-        if (config.getStatementCache() != null)
+        if (config.getStatementCache() != null) {
             config.getStatementCache().removeAll(rawConnection);
+        }
     }
 
     @Override

@@ -57,22 +57,27 @@ class ConnectionInvocationHandler extends AbstractInvocationHandler<Connection>
     Object unrestrictedInvoke(Connection proxy, Method method, Object[] args) throws SQLException {
         String methodName = method.getName();
 
-        if (methodName == "close")
+        if (methodName == "close") {
             return processClose();
-        if (methodName == "isClosed")
+        }
+        if (methodName == "isClosed") {
             return isClosed();
-        if (methodName == "isValid")
+        }
+        if (methodName == "isValid") {
             return isClosed() ? false : targetInvoke(method, args);
-        if (methodName == "abort")
+        }
+        if (methodName == "abort") {
             return processAbort(method, args);
+        }
 
         return super.unrestrictedInvoke(proxy, method, args);
     }
 
     @Override
     Object restrictedInvoke(Connection proxy, Method method, Object[] args) throws SQLException {
-        if (poolEnableConnectionTracking)
+        if (poolEnableConnectionTracking) {
             connHolder.setLastAccessNanoTime(System.nanoTime());
+        }
 
         String methodName = method.getName();
 
@@ -108,8 +113,9 @@ class ConnectionInvocationHandler extends AbstractInvocationHandler<Connection>
      * @throws SQLException if the invoked underlying "prepare..." method throws an exception
      */
     private StatementHolder getCachedStatement(Method method, Object[] args) throws SQLException {
-        if (statementCache != null)
+        if (statementCache != null) {
             return statementCache.take(new StatementMethod(getTarget(), this, method, args));
+        }
 
         return getUncachedStatement(method, args, (String) args[0]);
     }
@@ -120,14 +126,16 @@ class ConnectionInvocationHandler extends AbstractInvocationHandler<Connection>
     }
 
     private Object processClose() {
-        if (close())
+        if (close()) {
             poolOperations.restore(connHolder, true, getExceptions());
+        }
         return null;
     }
 
     private Object processAbort(Method method, Object[] args) throws SQLException {
-        if (!close())
+        if (!close()) {
             return null;
+        }
         try {
             return targetInvoke(method, args);
         } finally {
@@ -140,8 +148,9 @@ class ConnectionInvocationHandler extends AbstractInvocationHandler<Connection>
     @Override
     public PreparedStatement newStatement(Method method, Object[] args) throws SQLException {
         String methodName = method.getName();
-        if (methodName != "prepareStatement" && methodName != "prepareCall")
+        if (methodName != "prepareStatement" && methodName != "prepareCall") {
             throw new ViburDBCPException("Unexpected method passed to newStatement() " + method);
+        }
         return (PreparedStatement) targetInvoke(method, args);
     }
 
@@ -149,7 +158,8 @@ class ConnectionInvocationHandler extends AbstractInvocationHandler<Connection>
 
     @Override
     public void invalidate() {
-        if (close())
+        if (close()) {
             poolOperations.restore(connHolder, false, getExceptions());
+        }
     }
 }

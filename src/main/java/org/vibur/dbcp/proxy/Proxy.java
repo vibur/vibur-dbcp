@@ -42,8 +42,9 @@ public final class Proxy {
 
     static Statement newProxyStatement(StatementHolder rawStatement, Connection connProxy,
                                        ViburConfig config, ExceptionCollector exceptionCollector) {
-        if (rawStatement == null)
+        if (rawStatement == null) {
             return null;
+        }
 
         InvocationHandler handler = new StatementInvocationHandler(
                 rawStatement, null /* turns off the statement cache */, connProxy, config, exceptionCollector);
@@ -52,8 +53,9 @@ public final class Proxy {
 
     static PreparedStatement newProxyPreparedStatement(StatementHolder rawPStatement, Connection connProxy,
                                                        ViburConfig config, ExceptionCollector exceptionCollector) {
-        if (rawPStatement == null)
+        if (rawPStatement == null) {
             return null;
+        }
 
         InvocationHandler handler = new StatementInvocationHandler(
                 rawPStatement, config.getStatementCache(), connProxy, config, exceptionCollector);
@@ -62,8 +64,9 @@ public final class Proxy {
 
     static CallableStatement newProxyCallableStatement(StatementHolder rawCStatement, Connection connProxy,
                                                        ViburConfig config, ExceptionCollector exceptionCollector) {
-        if (rawCStatement == null)
+        if (rawCStatement == null) {
             return null;
+        }
 
         InvocationHandler handler = new StatementInvocationHandler(
                 rawCStatement, config.getStatementCache(), connProxy, config, exceptionCollector);
@@ -72,8 +75,9 @@ public final class Proxy {
 
     static DatabaseMetaData newProxyDatabaseMetaData(DatabaseMetaData rawMetaData, Connection connProxy,
                                                      ViburConfig config, ExceptionCollector exceptionCollector) {
-        if (rawMetaData == null)
+        if (rawMetaData == null) {
             return null;
+        }
 
         InvocationHandler handler = new ChildObjectInvocationHandler<>(
                 rawMetaData, connProxy, "getConnection", config, exceptionCollector);
@@ -83,8 +87,9 @@ public final class Proxy {
     static ResultSet newProxyResultSet(ResultSet rawResultSet, Statement statementProxy,
                                        String sqlQuery, List<Object[]> sqlQueryParams,
                                        ViburConfig config, ExceptionCollector exceptionCollector) {
-        if (rawResultSet == null)
+        if (rawResultSet == null) {
             return null;
+        }
 
         InvocationHandler handler = new ResultSetInvocationHandler(
                 rawResultSet, statementProxy, sqlQuery, sqlQueryParams, config, exceptionCollector);

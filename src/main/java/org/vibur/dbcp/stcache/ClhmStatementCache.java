@@ -73,24 +73,28 @@ public class ClhmStatementCache implements StatementCache {
         return new EvictionListener<StatementMethod, StatementHolder>() {
             @Override
             public void onEviction(StatementMethod statementMethod, StatementHolder statementHolder) {
-                if (statementHolder.state().getAndSet(EVICTED) == AVAILABLE)
+                if (statementHolder.state().getAndSet(EVICTED) == AVAILABLE) {
                     quietClose(statementHolder.rawStatement());
-                if (logger.isTraceEnabled())
+                }
+                if (logger.isTraceEnabled()) {
                     logger.trace("Evicted {}", statementHolder.rawStatement());
+                }
             }
         };
     }
 
     @Override
     public StatementHolder take(StatementMethod statementMethod) throws SQLException {
-        if (isClosed())
+        if (isClosed()) {
             return new StatementHolder(statementMethod.newStatement(), null, statementMethod.sqlQuery());
+        }
 
         StatementHolder statement = statementCache.get(statementMethod);
         if (statement != null) {
             if (statement.state().compareAndSet(AVAILABLE, IN_USE)) {
-                if (logger.isTraceEnabled())
+                if (logger.isTraceEnabled()) {
                     logger.trace("Using cached statement for {}", statementMethod);
+                }
                 return statement;
             }
             // if the statement in the cache was not available we return an uncached StatementHolder
@@ -100,8 +104,9 @@ public class ClhmStatementCache implements StatementCache {
         // there was no cache entry for the statementMethod, so we'll try to put a new one
         PreparedStatement rawStatement = statementMethod.newStatement();
         statement = new StatementHolder(rawStatement, new AtomicReference<>(IN_USE), statementMethod.sqlQuery());
-        if (statementCache.putIfAbsent(statementMethod, statement) == null)
+        if (statementCache.putIfAbsent(statementMethod, statement) == null) {
             return statement; // the new entry was successfully put in the cache, so we return it
+        }
         // if we couldn't put the statement in the cache we return an uncached StatementHolder
         return new StatementHolder(rawStatement, null, statementMethod.sqlQuery());
     }
@@ -112,13 +117,15 @@ public class ClhmStatementCache implements StatementCache {
             remove(statement);
             return false;
         }
-        if (statement.state() == null) // this statement is not in the cache
+        if (statement.state() == null) { // this statement is not in the cache
             return false;
+        }
 
         PreparedStatement rawStatement = (PreparedStatement) statement.rawStatement();
         try {
-            if (clearWarnings)
+            if (clearWarnings) {
                 clearWarnings(rawStatement);
+            }
             return statement.state().compareAndSet(IN_USE, AVAILABLE); // we just mark it as AVAILABLE if it was IN_USE
         } catch (SQLException e) {
             logger.debug("Couldn't clear warnings on {}", rawStatement, e);
@@ -129,13 +136,15 @@ public class ClhmStatementCache implements StatementCache {
 
     @Override
     public boolean remove(StatementHolder statement) {
-        if (statement.state() == null) // this statement is not in the cache
+        if (statement.state() == null) { // this statement is not in the cache
             return false;
+        }
 
         for (Map.Entry<StatementMethod, StatementHolder> entry : statementCache.entrySet()) {
             StatementHolder value = entry.getValue();
-            if (value == statement) // comparing with == as these JDBC Statements are cached objects
+            if (value == statement) { // comparing with == as these JDBC Statements are cached objects
                 return statementCache.remove(entry.getKey(), value);
+            }
         }
         return false;
     }
@@ -159,8 +168,9 @@ public class ClhmStatementCache implements StatementCache {
      */
     @Override
     public void close() {
-        if (closed.getAndSet(true))
+        if (closed.getAndSet(true)) {
             return;
+        }
 
         for (Map.Entry<StatementMethod, StatementHolder> entry : statementCache.entrySet()) {
             StatementHolder value = entry.getValue();
