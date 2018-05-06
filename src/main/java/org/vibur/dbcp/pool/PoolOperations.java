@@ -161,7 +161,6 @@ public class PoolOperations {
                 for (Hook.GetConnection hook : onGet) {
                     hook.on(rawConnection, waitedNanos[0]);
                 }
-
             } catch (SQLException e) {
                 sqlException = chainSQLException(sqlException, e);
             }

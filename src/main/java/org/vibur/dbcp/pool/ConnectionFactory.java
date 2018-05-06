@@ -97,7 +97,6 @@ public class ConnectionFactory implements ViburObjectFactory {
                 for (Hook.InitConnection hook : onInit) {
                     hook.on(rawConnection, takenNanos);
                 }
-
             } catch (SQLException e) {
                 quietClose(rawConnection);
                 sqlException = chainSQLException(sqlException, e);
@@ -148,7 +147,6 @@ public class ConnectionFactory implements ViburObjectFactory {
                 for (Hook.CloseConnection hook : onClose) {
                     hook.on(rawConnection, takenNanos);
                 }
-
             } catch (SQLException e) {
                 logger.debug("Couldn't reset rawConnection {}", rawConnection, e);
                 return false;
