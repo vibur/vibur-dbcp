@@ -150,7 +150,6 @@ public class PoolOperations {
             if (connHolder == null) { // we were *not* able to obtain a connection from the pool
                 sqlException = createSQLException(onGet.length > 0 ? waitedNanos[0] : MILLISECONDS.toNanos(timeoutMs));
             }
-
         } catch (ViburDBCPException e) { // thrown (indirectly) by the ConnectionFactory.create() methods
             viburException = e;
             sqlException = e.unwrapSQLException(); // currently all such errors are treated as recoverable, i.e., can be retried
