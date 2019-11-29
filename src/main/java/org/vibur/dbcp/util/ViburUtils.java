@@ -84,7 +84,7 @@ public final class ViburUtils {
             Arrays.sort(params, new Comparator<Object>() {
                 @Override
                 public int compare(Object o1, Object o2) {
-                    return Integer.compare((int) ((Object[]) o1)[1], (int) ((Object[]) o2)[1]);
+                    return ((Object[]) o1)[1].toString().compareTo(((Object[]) o2)[1].toString());
                 }
             });
 

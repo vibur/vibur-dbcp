@@ -1,5 +1,12 @@
-Version 22.2 (05/05/2018) - RECOMMENDED
+Version 24.0 (30/11/2019) - RECOMMENDED
 =======================================
+* Fixed https://github.com/vibur/vibur-dbcp/issues/13 - problem with SQL queries parameters logging when inputs
+  are not integers.
+* Minor other refactoring.
+* Catching-up with vibur-object-pool version; skipped version 23.0 for vibur-dbcp.
+
+Version 22.2 (05/05/2018)
+=========================
 * Small performance update.
 
 Version 22.1 (30/03/2018)

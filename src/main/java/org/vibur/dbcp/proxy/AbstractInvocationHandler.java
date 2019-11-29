@@ -24,7 +24,6 @@ import org.vibur.dbcp.pool.Hook;
 import org.vibur.dbcp.pool.HookHolder.InvocationHooksAccessor;
 
 import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.sql.SQLException;
 import java.util.Arrays;
@@ -153,37 +152,36 @@ abstract class AbstractInvocationHandler<T> extends ExceptionCollector implement
         try {
             return method.invoke(target, args);  // the real method call on the real underlying (proxied) object
 
-        } catch (InvocationTargetException e) {
-            Throwable cause = e.getCause();
-            if (cause == null) {
-                cause = e;
-            }
-
-            logTargetInvokeFailure(method, args, cause);
-
-            if (cause instanceof SQLException) {
-                SQLException sqlException = (SQLException) cause;
-                exceptionCollector.addException(sqlException);
-                throw sqlException;
-            }
-            else if (cause instanceof RuntimeException) {
-                throw (RuntimeException) cause;
-            }
-            else if (cause instanceof Error) {
-                throw (Error) cause;
-            }
-
-            throw unexpectedException(e);
-        } catch (IllegalAccessException e) {
-            throw unexpectedException(e);
+        } catch (ReflectiveOperationException e) {
+            throw underlyingException(method, args, e);
         }
     }
 
-    private void logTargetInvokeFailure(Method method, Object[] args, Throwable t) {
+    private SQLException underlyingException(Method method, Object[] args, ReflectiveOperationException e) {
+        if (e instanceof IllegalAccessException) {
+            throw unexpectedException(e);
+        }
+
+        Throwable cause = e.getCause() != null ? e.getCause() : e;
         if (logger.isDebugEnabled()) {
             logger.debug("Pool {}, the invocation of {} with args {} on {} threw:",
-                    getPoolName(config), method, Arrays.toString(args), target, t);
+                    getPoolName(config), method, Arrays.toString(args), target, cause);
         }
+
+        if (cause instanceof SQLException) {
+            SQLException sqlException = (SQLException) cause;
+            exceptionCollector.addException(sqlException);
+            return sqlException;
+        }
+
+        if (cause instanceof RuntimeException) {
+            throw (RuntimeException) cause;
+        }
+        if (cause instanceof Error) {
+            throw (Error) cause;
+        }
+
+        throw unexpectedException(e);
     }
 
     private static ViburDBCPException unexpectedException(ReflectiveOperationException e) {
