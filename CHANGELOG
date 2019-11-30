@@ -1,5 +1,9 @@
-Version 24.0 (30/11/2019) - RECOMMENDED
+Version 25.0 (30/11/2019) - RECOMMENDED
 =======================================
+* Catching-up with vibur-object-pool version 25.0.
+
+Version 24.0 (29/11/2019)
+=========================
 * Fixed https://github.com/vibur/vibur-dbcp/issues/13 - problem with SQL queries parameters logging when inputs
   are not integers.
 * Minor other refactoring.
