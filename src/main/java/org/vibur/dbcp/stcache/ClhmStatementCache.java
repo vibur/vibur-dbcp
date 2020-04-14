@@ -53,7 +53,7 @@ public class ClhmStatementCache implements StatementCache {
         statementCache = requireNonNull(buildStatementCache(maxSize));
     }
 
-    protected ConcurrentMap<StatementMethod, StatementHolder> buildStatementCache(int maxSize) {
+    ConcurrentMap<StatementMethod, StatementHolder> buildStatementCache(int maxSize) {
         return new ConcurrentLinkedHashMap.Builder<StatementMethod, StatementHolder>()
                 .initialCapacity(maxSize)
                 .maximumWeightedCapacity(maxSize)
