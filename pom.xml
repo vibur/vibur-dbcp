@@ -85,7 +85,7 @@
         <slf4j.version>1.7.13</slf4j.version>
         <concurrentlinkedhashmap-lru.version>1.4.2</concurrentlinkedhashmap-lru.version>
 
-        <junit.version>4.12</junit.version>
+        <junit.version>4.13.1</junit.version>
         <mockito-core.version>1.10.19</mockito-core.version>
         <hsqldb.version>2.3.3</hsqldb.version>
 
