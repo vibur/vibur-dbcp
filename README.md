@@ -19,5 +19,6 @@ The project maven coordinates are:
 </dependency>   
 ```
 
-[Originally released](https://raw.githubusercontent.com/vibur/vibur-dbcp/master/CHANGELOG) in July 2013 on 
-code.google.com, the project was migrated to GitHub in March 2015.
+If you like these Vibur utilities, please ⭐ them here on GitHub. If you're using them in your projects and if you'd like to support their future development and upkeep, you can buy-me-a-coffee at:
+
+[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/simeonmalchev)
