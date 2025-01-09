@@ -27,9 +27,16 @@ import org.vibur.dbcp.stcache.StatementMethod;
 import org.vibur.dbcp.stcache.StatementMethod.StatementCreator;
 
 import java.lang.reflect.Method;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.Statement;
 
-import static org.vibur.dbcp.proxy.Proxy.*;
+import static org.vibur.dbcp.proxy.Proxy.newProxyCallableStatement;
+import static org.vibur.dbcp.proxy.Proxy.newProxyDatabaseMetaData;
+import static org.vibur.dbcp.proxy.Proxy.newProxyPreparedStatement;
+import static org.vibur.dbcp.proxy.Proxy.newProxyStatement;
 
 /**
  * @author Simeon Malchev
@@ -55,7 +62,7 @@ class ConnectionInvocationHandler extends AbstractInvocationHandler<Connection>
 
     @Override
     Object unrestrictedInvoke(Connection proxy, Method method, Object[] args) throws SQLException {
-        String methodName = method.getName();
+        var methodName = method.getName();
 
         if (methodName == "close") {
             return processClose();
@@ -79,24 +86,24 @@ class ConnectionInvocationHandler extends AbstractInvocationHandler<Connection>
             connHolder.setLastAccessNanoTime(System.nanoTime());
         }
 
-        String methodName = method.getName();
+        var methodName = method.getName();
 
         // Methods which results have to be proxied so that when getConnection() is called
         // on their results the return value to be the current JDBC Connection proxy.
         if (methodName == "createStatement") { // *3
-            StatementHolder statement = getUncachedStatement(method, args, null);
+            var statement = getUncachedStatement(method, args, null);
             return newProxyStatement(statement, proxy, config, this);
         }
         if (methodName == "prepareStatement") { // *6
-            StatementHolder pStatement = getCachedStatement(method, args);
+            var pStatement = getCachedStatement(method, args);
             return newProxyPreparedStatement(pStatement, proxy, config, this);
         }
         if (methodName == "prepareCall") { // *3
-            StatementHolder cStatement = getCachedStatement(method, args);
+            var cStatement = getCachedStatement(method, args);
             return newProxyCallableStatement(cStatement, proxy, config, this);
         }
         if (methodName == "getMetaData") { // *1
-            DatabaseMetaData rawDatabaseMetaData = (DatabaseMetaData) targetInvoke(method, args);
+            var rawDatabaseMetaData = (DatabaseMetaData) targetInvoke(method, args);
             return newProxyDatabaseMetaData(rawDatabaseMetaData, proxy, config, this);
         }
 
@@ -121,7 +128,7 @@ class ConnectionInvocationHandler extends AbstractInvocationHandler<Connection>
     }
 
     private StatementHolder getUncachedStatement(Method method, Object[] args, String sqlQuery) throws SQLException {
-        Statement rawStatement = (Statement) targetInvoke(method, args);
+        var rawStatement = (Statement) targetInvoke(method, args);
         return new StatementHolder(rawStatement, null, sqlQuery);
     }
 
@@ -147,7 +154,7 @@ class ConnectionInvocationHandler extends AbstractInvocationHandler<Connection>
 
     @Override
     public PreparedStatement newStatement(Method method, Object[] args) throws SQLException {
-        String methodName = method.getName();
+        var methodName = method.getName();
         if (methodName != "prepareStatement" && methodName != "prepareCall") {
             throw new ViburDBCPException("Unexpected method passed to newStatement() " + method);
         }

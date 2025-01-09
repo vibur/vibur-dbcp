@@ -20,7 +20,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.management.JMException;
-import javax.management.MBeanServer;
 import javax.management.ObjectName;
 import java.lang.management.ManagementFactory;
 
@@ -39,13 +38,13 @@ public final class ViburMonitoring implements ViburMonitoringMBean {
 
     static void registerMBean(ViburDBCPDataSource dataSource) {
         try {
-            MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
-            ObjectName objectName = new ObjectName(dataSource.getJmxName());
+            var mbs = ManagementFactory.getPlatformMBeanServer();
+            var objectName = new ObjectName(dataSource.getJmxName());
             if (!mbs.isRegistered(objectName)) {
                 mbs.registerMBean(new ViburMonitoring(dataSource), objectName);
             }
             else {
-                logger.warn(dataSource.getJmxName() + " is already registered.");
+                logger.warn("{} is already registered.", dataSource.getJmxName());
             }
         } catch (JMException e) {
             logger.warn("Unable to register mBean {}", dataSource.getJmxName(), e);
@@ -54,13 +53,13 @@ public final class ViburMonitoring implements ViburMonitoringMBean {
 
     static void unregisterMBean(ViburDBCPDataSource dataSource) {
         try {
-            MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
-            ObjectName objectName = new ObjectName(dataSource.getJmxName());
+            var mbs = ManagementFactory.getPlatformMBeanServer();
+            var objectName = new ObjectName(dataSource.getJmxName());
             if (mbs.isRegistered(objectName)) {
                 mbs.unregisterMBean(objectName);
             }
             else {
-                logger.debug(dataSource.getJmxName() + " is not registered.");
+                logger.debug("{} is not registered.", dataSource.getJmxName());
             }
         } catch (JMException e) {
             logger.warn("Unable to unregister mBean {}", dataSource.getJmxName(), e);

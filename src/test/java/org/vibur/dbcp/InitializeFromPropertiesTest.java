@@ -16,9 +16,9 @@
 
 package org.vibur.dbcp;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * @author Simeon Malchev
@@ -27,13 +27,15 @@ public class InitializeFromPropertiesTest {
 
     @Test
     public void testInitializeFromPropertiesFile() {
-        ViburDBCPDataSource ds = new ViburDBCPDataSource("vibur-dbcp-test.properties");
-        assertEquals(2, ds.getPoolInitialSize());
+        try (var ds = new ViburDBCPDataSource("vibur-dbcp-test.properties")) {
+            assertEquals(2, ds.getPoolInitialSize());
+        }
     }
 
     @Test
     public void testInitializeFromXMLPropertiesFile() {
-        ViburDBCPDataSource ds = new ViburDBCPDataSource("vibur-dbcp-test.xml");
-        assertEquals(2, ds.getPoolInitialSize());
+        try (var ds = new ViburDBCPDataSource("vibur-dbcp-test.xml")) {
+            assertEquals(2, ds.getPoolInitialSize());
+        }
     }
 }

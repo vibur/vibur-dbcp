@@ -16,12 +16,20 @@
 
 package org.vibur.dbcp;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import javax.sql.DataSource;
-import java.sql.*;
+import java.sql.CallableStatement;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * @author Simeon Malchev
@@ -30,42 +38,44 @@ public class WrapperTest extends AbstractDataSourceTest {
 
     @Test
     public void testWrapperMethods() throws SQLException {
+        @SuppressWarnings("resource")
         DataSource ds = createDataSourceNoStatementsCache();
-        try (Connection connection = ds.getConnection();
-             Statement statement = connection.createStatement();
-             PreparedStatement pStatement = connection.prepareStatement("select count(*) from actor");
-             CallableStatement cStatement = connection.prepareCall("select count(*) from actor")) {
 
-            DatabaseMetaData metaData = connection.getMetaData();
+        try (var connection = ds.getConnection();
+             var statement = connection.createStatement();
+             var pStatement = connection.prepareStatement("select count(*) from actor");
+             var cStatement = connection.prepareCall("select count(*) from actor")) {
+
+            var metaData = connection.getMetaData();
 
             assertTrue(metaData.isWrapperFor(DatabaseMetaData.class));
-            DatabaseMetaData md = metaData.unwrap(DatabaseMetaData.class);
+            var md = metaData.unwrap(DatabaseMetaData.class);
             assertNotNull(md);
             assertNotEquals(md, metaData);
 
             assertTrue(cStatement.isWrapperFor(CallableStatement.class));
-            CallableStatement cs = cStatement.unwrap(CallableStatement.class);
+            var cs = cStatement.unwrap(CallableStatement.class);
             assertNotNull(cs);
             assertNotEquals(cs, cStatement);
 
             assertTrue(pStatement.isWrapperFor(PreparedStatement.class));
-            PreparedStatement ps = pStatement.unwrap(PreparedStatement.class);
+            var ps = pStatement.unwrap(PreparedStatement.class);
             assertNotNull(ps);
             assertNotEquals(ps, pStatement);
 
             assertTrue(statement.isWrapperFor(Statement.class));
-            Statement s = statement.unwrap(Statement.class);
+            var s = statement.unwrap(Statement.class);
             assertNotNull(s);
             assertNotEquals(s, statement);
 
-            ResultSet resultSet = statement.executeQuery("select * from actor where first_name = 'CHRISTIAN'");
+            var resultSet = statement.executeQuery("select * from actor where first_name = 'CHRISTIAN'");
             assertTrue(resultSet.isWrapperFor(ResultSet.class));
-            ResultSet r = resultSet.unwrap(ResultSet.class);
+            var r = resultSet.unwrap(ResultSet.class);
             assertNotNull(r);
             assertNotEquals(r, resultSet);
 
             assertTrue(connection.isWrapperFor(Connection.class));
-            Connection c = connection.unwrap(Connection.class);
+            var c = connection.unwrap(Connection.class);
             assertNotNull(c);
             assertNotEquals(c, connection);
         }

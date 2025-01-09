@@ -21,7 +21,6 @@ import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.ViburDBCPDataSource;
 import org.vibur.dbcp.ViburDBCPException;
 
-import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -56,32 +55,32 @@ public class ViburDBCPGetConnectionTestPerf {
         // Each getConnection() call has a TIMEOUT_MS and the number of unsuccessful calls is recorded.
         // Measures and reports the total time taken by the test in ms.
 
-        ViburDBCPDataSource ds = createDataSource();
+        var ds = createDataSource();
         ds.start();
 
-        AtomicInteger errors = new AtomicInteger(0);
+        var errors = new AtomicInteger(0);
 
-        CountDownLatch startSignal = new CountDownLatch(1);
-        CountDownLatch readySignal = new CountDownLatch(THREADS_COUNT);
-        CountDownLatch doneSignal = new CountDownLatch(THREADS_COUNT);
+        var startSignal = new CountDownLatch(1);
+        var readySignal = new CountDownLatch(THREADS_COUNT);
+        var doneSignal = new CountDownLatch(THREADS_COUNT);
 
-        for (int i = 0; i < THREADS_COUNT; i++) {
-            Thread thread = new Thread(new Worker(ds, errors, DO_WORK_FOR_MS, readySignal, startSignal, doneSignal));
+        for (var i = 0; i < THREADS_COUNT; i++) {
+            var thread = new Thread(new Worker(ds, errors, DO_WORK_FOR_MS, readySignal, startSignal, doneSignal));
             thread.start();
         }
 
         readySignal.await();
-        long startNanoTime = System.nanoTime();
+        var startNanoTime = System.nanoTime();
         startSignal.countDown();
         doneSignal.await();
 
-        System.out.println(String.format("Total execution time %f ms, unsuccessful takes %d.",
-            (System.nanoTime() - startNanoTime) * 0.000_001, errors.get()));
+        System.out.printf("Total execution time %f ms, unsuccessful takes %d.%n",
+            (System.nanoTime() - startNanoTime) * 1e-6, errors.get());
 
         ds.close();
     }
 
-    private static class Worker implements Runnable {
+    private static final class Worker implements Runnable {
         private final ViburDBCPDataSource ds;
         private final AtomicInteger errors;
         private final long millis;
@@ -106,9 +105,9 @@ public class ViburDBCPGetConnectionTestPerf {
                 readySignal.countDown();
                 startSignal.await();
 
-                for (int i = 0; i < ITERATIONS; i++) {
+                for (var i = 0; i < ITERATIONS; i++) {
                     try {
-                        Connection connection = ds.getConnection();
+                        var connection = ds.getConnection();
                         doWork(millis);
                         connection.close();
                     } catch (SQLException e) {
@@ -125,7 +124,7 @@ public class ViburDBCPGetConnectionTestPerf {
     }
 
     private static ViburDBCPDataSource createDataSource() {
-        ViburDBCPDataSource ds = new ViburDBCPDataSource();
+        var ds = new ViburDBCPDataSource();
         ds.setJdbcUrl("jdbc:hsqldb:mem:sakila;shutdown=false");
         ds.setUsername("sa");
         ds.setPassword("");

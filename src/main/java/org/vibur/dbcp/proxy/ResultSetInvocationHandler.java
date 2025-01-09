@@ -53,7 +53,7 @@ class ResultSetInvocationHandler extends ChildObjectInvocationHandler<Statement,
 
     @Override
     Object unrestrictedInvoke(ResultSet proxy, Method method, Object[] args) throws SQLException {
-        String methodName = method.getName();
+        var methodName = method.getName();
 
         if (methodName == "close") {
             return processClose(method, args);
@@ -67,7 +67,7 @@ class ResultSetInvocationHandler extends ChildObjectInvocationHandler<Statement,
 
     @Override
     Object restrictedInvoke(ResultSet proxy, Method method, Object[] args) throws SQLException {
-        String methodName = method.getName();
+        var methodName = method.getName();
 
         if (methodName == "next") {
             return processNext(method, args);
@@ -88,7 +88,7 @@ class ResultSetInvocationHandler extends ChildObjectInvocationHandler<Statement,
             resultSetSize++;
         }
 
-        Boolean next = FALSE;
+        var next = FALSE;
         try {
             return next = (Boolean) targetInvoke(method, args);
         } finally {
@@ -104,8 +104,8 @@ class ResultSetInvocationHandler extends ChildObjectInvocationHandler<Statement,
         }
 
         if (executionHooks.length > 0) {
-            long takenNanoTime = firstResultSetRetrieved ? lastResultSetNanoTime - firstResultSetNanoTime : 0;
-            for (Hook.ResultSetRetrieval hook : executionHooks) {
+            var takenNanoTime = firstResultSetRetrieved ? lastResultSetNanoTime - firstResultSetNanoTime : 0;
+            for (var hook : executionHooks) {
                 hook.on(sqlQuery, sqlQueryParams, resultSetSize, takenNanoTime);
             }
         }

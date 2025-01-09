@@ -33,7 +33,7 @@ import java.util.List;
  * the proxied such. In order to avoid interference with the way the connection pool manages its underlying connections,
  * the application <b>must not</b> keep or store in one or another form a reference to the {@code rawConnection} object.
  *
- * <p>Multiple hooks of one and the same type can be registered and they will be executed in the order in which they
+ * <p>Multiple hooks of one and the same type can be registered, and they will be executed in the order in which they
  * were registered; i.e., if there are N registered hooks from a particular type, the first registered hook will
  * be executed first, then the second, the third, and so on.
  *

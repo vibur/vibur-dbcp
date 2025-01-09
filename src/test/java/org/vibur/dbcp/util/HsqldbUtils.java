@@ -21,10 +21,13 @@ import org.hsqldb.cmdline.SqlToolError;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.URL;
+import java.nio.charset.Charset;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
+import static java.util.Objects.requireNonNull;
 import static org.vibur.dbcp.util.JdbcUtils.quietClose;
 
 /**
@@ -38,11 +41,10 @@ public class HsqldbUtils {
         throws IOException, SqlToolError, SQLException {
 
         Connection connection = null;
-        try {
+        try (var inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(HSQLDB_SCHEMA_AND_DATA_SQL)) {
             connection = DriverManager.getConnection(jdbcUrl, username, password);
-            InputStreamReader isr = new InputStreamReader(Thread.currentThread().getContextClassLoader()
-                .getResourceAsStream(HSQLDB_SCHEMA_AND_DATA_SQL), System.getProperty("file.encoding"));
-            SqlFile sqlFile = new SqlFile(isr, "--sql", System.out, null, false, null);
+            var isr = new InputStreamReader(requireNonNull(inputStream), Charset.defaultCharset().displayName());
+            var sqlFile = new SqlFile(isr, "--sql", System.out, null, false, (URL) null);
             sqlFile.setConnection(connection);
             sqlFile.execute();
         } finally {

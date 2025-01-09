@@ -18,10 +18,8 @@ package org.vibur.dbcp;
 
 import javax.naming.Context;
 import javax.naming.Name;
-import javax.naming.RefAddr;
 import javax.naming.Reference;
 import javax.naming.spi.ObjectFactory;
-import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Properties;
 
@@ -37,17 +35,17 @@ public class ViburDBCPObjectFactory implements ObjectFactory {
     public Object getObjectInstance(Object obj, Name name, Context nameCtx, Hashtable<?, ?> environment)
         throws ViburDBCPException {
 
-        Reference reference = (Reference) obj;
-        Enumeration<RefAddr> enumeration = reference.getAll();
-        Properties props = new Properties();
+        var reference = (Reference) obj;
+        var enumeration = reference.getAll();
+        var props = new Properties();
         while (enumeration.hasMoreElements()) {
-            RefAddr refAddr = enumeration.nextElement();
-            String pName = refAddr.getType();
-            String pValue = (String) refAddr.getContent();
+            var refAddr = enumeration.nextElement();
+            var pName = refAddr.getType();
+            var pValue = (String) refAddr.getContent();
             props.setProperty(pName, pValue);
         }
 
-        ViburDBCPDataSource dataSource = new ViburDBCPDataSource(props);
+        var dataSource = new ViburDBCPDataSource(props);
         dataSource.start();
         return dataSource;
     }

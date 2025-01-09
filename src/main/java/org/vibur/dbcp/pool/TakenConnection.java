@@ -113,7 +113,7 @@ public abstract class TakenConnection {
 
     @Override
     public String toString() {
-        long currentNanoTime = System.nanoTime();
+        var currentNanoTime = System.nanoTime();
         return TakenConnection.class.getSimpleName() + '@' + toHexString(hashCode()) +
                 '[' + proxyConnection + ", takenNanoTime=" + nanosToMillis(takenNanoTime, currentNanoTime) +
                 " ms, " + (lastAccessNanoTime == 0 ? "has not been accessed" :
@@ -122,6 +122,6 @@ public abstract class TakenConnection {
     }
 
     private static double nanosToMillis(long pastNanoTime, long currentNanoTime) {
-        return (currentNanoTime - pastNanoTime) * 0.000_001;
+        return (currentNanoTime - pastNanoTime) * 1e-6;
     }
 }

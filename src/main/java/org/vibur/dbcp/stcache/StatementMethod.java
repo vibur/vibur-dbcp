@@ -28,7 +28,7 @@ import static java.lang.String.format;
  * Describes a {@code prepareStatement} or {@code prepareCall} method with {@code args} that has been invoked on a
  * given JDBC Connection.
  *
- * <p>Used as a caching {@code key} for the above mentioned Connection method invocations in a {@code ConcurrentMap}
+ * <p>Used as a caching {@code key} for the above-mentioned Connection method invocations in a {@code ConcurrentMap}
  * cache implementation.
  *
  * @see StatementHolder
@@ -77,7 +77,7 @@ public class StatementMethod {
             return false;
         }
 
-        StatementMethod that = (StatementMethod) o;
+        var that = (StatementMethod) o;
         return rawConnection == that.rawConnection // comparing with == as the JDBC Connections are pooled objects
             && method.equals(that.method)
             && Arrays.equals(args, that.args);
@@ -85,7 +85,7 @@ public class StatementMethod {
 
     @Override
     public int hashCode() {
-        int result = rawConnection.hashCode();
+        var result = rawConnection.hashCode();
         result = 31 * result + method.hashCode();
         result = 31 * result + Arrays.hashCode(args);
         return result;

@@ -70,7 +70,7 @@ abstract class AbstractInvocationHandler<T> extends ExceptionCollector implement
             logger.trace("Calling {} with args {} on {}", method, Arrays.toString(args), target);
         }
         @SuppressWarnings("unchecked")
-        T proxy = (T) objProxy;
+        var proxy = (T) objProxy;
 
         Object unrestrictedResult;
         if (!method.getName().startsWith("get") && // shortcuts getXYZ methods
@@ -97,7 +97,7 @@ abstract class AbstractInvocationHandler<T> extends ExceptionCollector implement
      * @throws SQLException if the invoked underlying method throws such
      */
     Object unrestrictedInvoke(T proxy, Method method, Object[] args) throws SQLException {
-        String methodName = method.getName();
+        var methodName = method.getName();
 
         if (methodName == "equals") { // comparing with == as the Method names are interned Strings
             return proxy == args[0];
@@ -112,7 +112,7 @@ abstract class AbstractInvocationHandler<T> extends ExceptionCollector implement
 
         if (methodName == "unwrap") {
             @SuppressWarnings("unchecked")
-            Class<T> iface = (Class<T>) args[0];
+            var iface = (Class<T>) args[0];
             return unwrap(iface);
         }
         if (methodName == "isWrapperFor") {
@@ -126,7 +126,7 @@ abstract class AbstractInvocationHandler<T> extends ExceptionCollector implement
         if (isClosed()) {
             throw new SQLException(target.getClass().getName() + " is closed.", SQLSTATE_OBJECT_CLOSED_ERROR);
         }
-        for (Hook.MethodInvocation hook : onMethodInvocation) {
+        for (var hook : onMethodInvocation) {
             hook.on(proxy, method, args);
         }
     }
@@ -162,14 +162,14 @@ abstract class AbstractInvocationHandler<T> extends ExceptionCollector implement
             throw unexpectedException(e);
         }
 
-        Throwable cause = e.getCause() != null ? e.getCause() : e;
+        var cause = e.getCause() != null ? e.getCause() : e;
         if (logger.isDebugEnabled()) {
             logger.debug("Pool {}, the invocation of {} with args {} on {} threw:",
                     getPoolName(config), method, Arrays.toString(args), target, cause);
         }
 
         if (cause instanceof SQLException) {
-            SQLException sqlException = (SQLException) cause;
+            var sqlException = (SQLException) cause;
             exceptionCollector.addException(sqlException);
             return sqlException;
         }

@@ -16,15 +16,11 @@
 
 package org.vibur.dbcp;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 
-import static org.junit.Assert.assertSame;
+import static org.junit.jupiter.api.Assertions.assertSame;
 
 /**
  * @author Simeon Malchev
@@ -33,11 +29,13 @@ public class StatementProxyTest extends AbstractDataSourceTest {
 
     @Test
     public void testSameStatement() throws SQLException {
-        DataSource ds = createDataSourceNoStatementsCache();
-        try (Connection connection = ds.getConnection();
-             Statement statement = connection.createStatement()) {
+        @SuppressWarnings("resource")
+        var ds = createDataSourceNoStatementsCache();
 
-            ResultSet resultSet = statement.executeQuery("select * from actor where first_name = 'CHRISTIAN'");
+        try (var connection = ds.getConnection();
+             var statement = connection.createStatement()) {
+
+            var resultSet = statement.executeQuery("select * from actor where first_name = 'CHRISTIAN'");
             assertSame(statement, resultSet.getStatement());
         }
     }

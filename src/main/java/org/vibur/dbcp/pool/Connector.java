@@ -53,7 +53,7 @@ public interface Connector {
             return new DataSource(config);
         }
 
-        private static class Driver implements Connector {
+        private static final class Driver implements Connector {
             private final java.sql.Driver driver;
             private final String jdbcUrl;
             private final Properties driverProperties;
@@ -73,7 +73,7 @@ public interface Connector {
             }
         }
 
-        private static class DataSource implements Connector {
+        private static final class DataSource implements Connector {
             private final javax.sql.DataSource externalDataSource;
 
             private DataSource(ViburConfig config) {
@@ -86,7 +86,7 @@ public interface Connector {
             }
         }
 
-        private static class DataSourceWithCredentials implements Connector {
+        private static final class DataSourceWithCredentials implements Connector {
             private final javax.sql.DataSource externalDataSource;
             private final String username;
             private final String password;

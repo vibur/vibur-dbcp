@@ -43,12 +43,12 @@ abstract class ExceptionCollector {
      */
     final void addException(SQLException exception) {
         if (!(exception instanceof SQLTimeoutException) && !(exception instanceof SQLTransactionRollbackException)) {
-            getOrInit().offer(exception); // SQLExceptions from the above two sub-types are not stored
+            getOrInit().offer(exception); // SQLExceptions from the above two subtypes are not stored
         }
     }
 
     private Queue<SQLException> getOrInit() {
-        Queue<SQLException> ex = exceptions;
+        var ex = exceptions;
         if (ex == null) {
             synchronized (this) {
                 ex = exceptions;
@@ -66,7 +66,7 @@ abstract class ExceptionCollector {
      * JDBC Connection also needs to be closed.
      */
     final SQLException[] getExceptions() {
-        Queue<SQLException> ex = exceptions;
+        var ex = exceptions;
         if (ex == null) {
             return NO_EXCEPTIONS;
         }

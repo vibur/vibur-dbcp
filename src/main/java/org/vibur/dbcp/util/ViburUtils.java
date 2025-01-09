@@ -20,11 +20,11 @@ import org.vibur.dbcp.ViburConfig;
 import org.vibur.objectpool.BasePool;
 
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
 import java.util.regex.Pattern;
 
 import static java.lang.Integer.toHexString;
+import static java.util.Comparator.comparing;
 
 /**
  * @author Simeon Malchev
@@ -42,8 +42,8 @@ public final class ViburUtils {
      */
     public static String getPoolName(ViburConfig config) {
         BasePool pool = config.getPool();
-        boolean initialState = pool.isTerminated();
-        String result = config.getName() + '@' + toHexString(config.hashCode())
+        var initialState = pool.isTerminated();
+        var result = config.getName() + '@' + toHexString(config.hashCode())
                 + '(' + pool.taken() + '/' + pool.remainingCreated() + '/' + pool.maxSize()
                 + '/' + (!initialState ? 'w' : 't')  // poolState: w == working, t == terminated
                 + '/' + (Thread.currentThread().isInterrupted() ? 'i' : 'n') + ')';
@@ -66,9 +66,9 @@ public final class ViburUtils {
             }
         }
 
-        StringBuilder builder = new StringBuilder(4096);
+        var builder = new StringBuilder(4096);
         for (i++; i < stackTrace.length; i++) {
-            String stackTraceStr = stackTrace[i].toString();
+            var stackTraceStr = stackTrace[i].toString();
             if (logLinePattern == null || logLinePattern.matcher(stackTraceStr).matches()) {
                 builder.append("  at ").append(stackTraceStr).append('\n');
             }
@@ -77,16 +77,11 @@ public final class ViburUtils {
     }
 
     public static String formatSql(String sqlQuery, List<Object[]> sqlQueryParams) {
-        StringBuilder result = new StringBuilder(1024).append("-- ").append(sqlQuery);
+        var result = new StringBuilder(1024).append("-- ").append(sqlQuery);
 
         if (sqlQueryParams != null && !sqlQueryParams.isEmpty()) {
-            Object[] params = sqlQueryParams.toArray();
-            Arrays.sort(params, new Comparator<Object>() {
-                @Override
-                public int compare(Object o1, Object o2) {
-                    return ((Object[]) o1)[1].toString().compareTo(((Object[]) o2)[1].toString());
-                }
-            });
+            var params = sqlQueryParams.toArray();
+            Arrays.sort(params, comparing(obj -> ((Object[]) obj)[1].toString()));
 
             result.append("\n-- Parameters:\n-- ").append(Arrays.deepToString(params));
         }

@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Simeon Malchev
+ * Copyright 2016-2025 Simeon Malchev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,11 +30,15 @@ import java.util.List;
 import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 import static org.vibur.dbcp.ViburConfig.SQLSTATE_CONN_INIT_ERROR;
-import static org.vibur.dbcp.util.JdbcUtils.*;
-import static org.vibur.dbcp.util.ViburUtils.*;
+import static org.vibur.dbcp.util.JdbcUtils.clearWarnings;
+import static org.vibur.dbcp.util.JdbcUtils.setDefaultValues;
+import static org.vibur.dbcp.util.JdbcUtils.validateOrInitialize;
+import static org.vibur.dbcp.util.ViburUtils.formatSql;
+import static org.vibur.dbcp.util.ViburUtils.getPoolName;
+import static org.vibur.dbcp.util.ViburUtils.getStackTraceAsString;
 
 /**
- * Contains all built-in hooks implementations including hooks for logging of long lasting getConnection() calls,
+ * Contains all built-in hooks implementations including hooks for logging of long-lasting getConnection() calls,
  * slow SQL queries, and large ResultSets, as well as hooks for initializing and preparing/clearing of the held in
  * the pool raw connections before and after they're used by the application.
  *
@@ -91,13 +95,13 @@ public abstract class DefaultHook {
 
         @Override
         public void on(Connection rawConnection, long takenNanos) {
-            double takenMillis = takenNanos * 0.000_001;
+            var takenMillis = takenNanos * 1e-6;
             if (takenMillis < config.getLogConnectionLongerThanMs()) {
                 return;
             }
 
             if (logger.isWarnEnabled()) {
-                StringBuilder log = new StringBuilder(4096)
+                var log = new StringBuilder(4096)
                         .append(format("Call to getConnection() from pool %s took %f ms, rawConnection = %s",
                                 getPoolName(config), takenMillis, rawConnection));
                 if (config.isLogStackTraceForLongConnection()) {
@@ -109,7 +113,7 @@ public abstract class DefaultHook {
 
         @Override
         boolean isEnabled() {
-            return config.getLogConnectionLongerThanMs() >= 0;
+            return config.getLogConnectionLongerThanMs() >= 0 && logger.isWarnEnabled();
         }
     }
 
@@ -142,15 +146,15 @@ public abstract class DefaultHook {
         @Override
         public void on(TakenConnection[] takenConnections, long takenNanos) {
             if (logger.isWarnEnabled()) {
-                logger.warn(format("Pool %s, couldn't obtain SQL connection within %.3f ms, full list of taken connections begins:\n%s",
-                        getPoolName(config), takenNanos * 0.000_001,
-                        config.getTakenConnectionsFormatter().formatTakenConnections(takenConnections)));
+                logger.warn("Pool {}, couldn't obtain SQL connection within {} ms, full list of taken connections begins:\n{}",
+                        getPoolName(config), format("%.3f", takenNanos * 1e-6),
+                        config.getTakenConnectionsFormatter().formatTakenConnections(takenConnections));
             }
         }
 
         @Override
         boolean isEnabled() {
-            return config.isLogTakenConnectionsOnTimeout();
+            return config.isLogTakenConnectionsOnTimeout() && logger.isWarnEnabled();
         }
     }
 
@@ -166,7 +170,7 @@ public abstract class DefaultHook {
         public Object on(Statement proxy, Method method, Object[] args, String sqlQuery, List<Object[]> sqlQueryParams,
                          StatementProceedingPoint proceed) throws SQLException {
 
-            long startNanoTime = System.nanoTime();
+            var startNanoTime = System.nanoTime();
             SQLException sqlException = null;
             try {
                 return proceed.on(proxy, method, args, sqlQuery, sqlQueryParams, proceed);
@@ -174,39 +178,61 @@ public abstract class DefaultHook {
             } catch (SQLException e) {
                 throw sqlException = e;
             } finally {
-                long takenNanos = System.nanoTime() - startNanoTime;
+                var takenNanos = System.nanoTime() - startNanoTime;
                 logQueryExecution(sqlQuery, sqlQueryParams, takenNanos, sqlException);
             }
         }
 
         private void logQueryExecution(String sqlQuery, List<Object[]> sqlQueryParams, long takenNanos, SQLException sqlException) {
-            double takenMillis = takenNanos * 0.000_001;
-            boolean logTime = takenMillis >= config.getLogQueryExecutionLongerThanMs() && logger.isWarnEnabled();
-            boolean logException = sqlException != null && logger.isDebugEnabled();
-            if (!logTime && !logException) {
+            var takenMillis = takenNanos * 1e-6;
+            var collectQueryStatistics = config.getCollectQueryStatistics();
+            var queryStatistics = config.getQueryStatistics();
+            var queriesCount = queryStatistics.getQueriesCount();
+            var logTime = takenMillis >= config.getLogQueryExecutionLongerThanMs() && logger.isWarnEnabled();
+            var logException = sqlException != null && logger.isDebugEnabled();
+            var collectStatistics = collectQueryStatistics >= 0 && logger.isInfoEnabled();
+            var logStatistics = collectStatistics && collectQueryStatistics > 0 && queriesCount > 0
+                    && queriesCount % collectQueryStatistics == 0;
+            if (!logTime && !logException && !collectStatistics) {
                 return;
             }
 
-            String poolName = getPoolName(config);
-            String formattedSql = formatSql(sqlQuery, sqlQueryParams);
+            if (logException || logTime || logStatistics) {
+                var poolName = getPoolName(config);
+                if (logStatistics) {
+                    logger.info("SQL query statistics from pool {}, {}", poolName, queryStatistics);
+                }
 
-            if (logException) {
-                logger.debug("SQL query execution from pool {}:\n{}\n-- threw:", poolName, formattedSql, sqlException);
+                if (logException || logTime) {
+                    var formattedSql = formatSql(sqlQuery, sqlQueryParams);
+
+                    if (logException) {
+                        logger.debug("SQL query execution from pool {}:\n{}\n-- threw:", poolName, formattedSql, sqlException);
+                    }
+
+                    if (logTime) {
+                        var message = new StringBuilder(4096).append(
+                                format("SQL query execution from pool %s took %f ms:\n%s", poolName, takenMillis, formattedSql));
+                        if (config.isLogStackTraceForLongQueryExecution()) {
+                            message.append('\n').append(getStackTraceAsString(config.getLogLineRegex(), new Throwable().getStackTrace()));
+                        }
+                        logger.warn(message.toString());
+                    }
+                }
             }
 
-            if (logTime) {
-                StringBuilder message = new StringBuilder(4096).append(
-                        format("SQL query execution from pool %s took %f ms:\n%s", poolName, takenMillis, formattedSql));
-                if (config.isLogStackTraceForLongQueryExecution()) {
-                    message.append('\n').append(getStackTraceAsString(config.getLogLineRegex(), new Throwable().getStackTrace()));
+            if (collectStatistics) {
+                queryStatistics.accept(takenNanos);
+                if (sqlException != null) {
+                    queryStatistics.incrementExceptions();
                 }
-                logger.warn(message.toString());
             }
         }
 
         @Override
         boolean isEnabled() {
-            return config.getLogQueryExecutionLongerThanMs() >= 0;
+            return (config.getLogQueryExecutionLongerThanMs() >= 0 && logger.isWarnEnabled())
+                    || (config.getCollectQueryStatistics() >= 0 && logger.isInfoEnabled());
         }
     }
 
@@ -222,9 +248,9 @@ public abstract class DefaultHook {
             }
 
             if (logger.isWarnEnabled()) {
-                StringBuilder message = new StringBuilder(4096).append(
+                var message = new StringBuilder(4096).append(
                         format("SQL query execution from pool %s retrieved a ResultSet with size %d, total retrieval and processing time %f ms:\n%s",
-                                getPoolName(config), resultSetSize, resultSetNanoTime * 0.000_001, formatSql(sqlQuery, sqlQueryParams)));
+                                getPoolName(config), resultSetSize, resultSetNanoTime * 1e-6, formatSql(sqlQuery, sqlQueryParams)));
                 if (config.isLogStackTraceForLargeResultSet()) {
                     message.append('\n').append(getStackTraceAsString(config.getLogLineRegex(), new Throwable().getStackTrace()));
                 }
@@ -234,7 +260,7 @@ public abstract class DefaultHook {
 
         @Override
         boolean isEnabled() {
-            return config.getLogLargeResultSet() >= 0;
+            return config.getLogLargeResultSet() >= 0 && logger.isWarnEnabled();
         }
     }
 
@@ -257,7 +283,7 @@ public abstract class DefaultHook {
                 }
             }
 
-            int length = hooks.length;
+            var length = hooks.length;
             hooks = Arrays.copyOf(hooks, length + 1); // i.e., copy-on-write
             hooks[length] = hook;
             return hooks;

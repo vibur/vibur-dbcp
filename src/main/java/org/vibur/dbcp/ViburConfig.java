@@ -1,6 +1,6 @@
 /**
  * Copyright 2014 Daniel Caldeweyher
- * Copyright 2013 Simeon Malchev
+ * Copyright 2013-2025 Simeon Malchev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,9 +19,16 @@ package org.vibur.dbcp;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.vibur.dbcp.pool.*;
+import org.vibur.dbcp.pool.ConnHolder;
+import org.vibur.dbcp.pool.Connector;
+import org.vibur.dbcp.pool.Hook;
 import org.vibur.dbcp.pool.HookHolder.ConnHooks;
 import org.vibur.dbcp.pool.HookHolder.InvocationHooks;
+import org.vibur.dbcp.pool.PoolReducer;
+import org.vibur.dbcp.pool.QueryStatistics;
+import org.vibur.dbcp.pool.TakenConnection;
+import org.vibur.dbcp.pool.TakenConnectionsFormatter;
+import org.vibur.dbcp.pool.ViburObjectFactory;
 import org.vibur.dbcp.stcache.StatementCache;
 import org.vibur.objectpool.PoolService;
 import org.vibur.objectpool.util.ConcurrentCollection;
@@ -63,7 +70,7 @@ public abstract class ViburConfig {
 
     ViburConfig() { }
 
-    /** The user name to use when connecting to the database. */
+    /** The username to use when connecting to the database. */
     private String username;
     /** The password to use when connecting to the database. */
     private String password;
@@ -118,13 +125,13 @@ public abstract class ViburConfig {
 
     /** An SQL query which will be run only once when a JDBC Connection is first created. This property should be
      * set to a valid SQL query, to {@code null} which means no query, or to {@code isValid} which means that the
-     * {@link java.sql.Connection#isValid} method will be used. An use case in which this property can be useful
+     * {@link java.sql.Connection#isValid} method will be used. A use case in which this property can be useful
      * is when the application is connecting to the database via some middleware, for example, connecting to PostgreSQL
      * server(s) via PgBouncer. */
     private String initSQL = null;
 
     /** This option applies only if {@link #testConnectionQuery} or {@link #initSQL} are enabled and if at least one
-     * of them has a value different than {@code IS_VALID_QUERY} ({@code isValid}). If enabled,
+     * of them has a value different from {@code IS_VALID_QUERY} ({@code isValid}). If enabled,
      * the calls to the validation or initialization SQL query will be preceded by a call to
      * {@link java.sql.Connection#setNetworkTimeout}, and after that the original network
      * timeout value will be restored.
@@ -163,7 +170,7 @@ public abstract class ViburConfig {
 
     /** The fully qualified pool reducer class name. This pool reducer class will be instantiated via reflection;
      * it will be created only if {@link #reducerTimeIntervalInSeconds} is greater than {@code 0}.
-     * It must implements the {@link org.vibur.objectpool.util.ThreadedPoolReducer} interface and must also have
+     * It must implement the {@link org.vibur.objectpool.util.ThreadedPoolReducer} interface and must also have
      * a public constructor accepting a single argument of type {@code ViburConfig}. */
     private String poolReducerClass = PoolReducer.class.getName();
 
@@ -183,7 +190,7 @@ public abstract class ViburConfig {
     private boolean allowConnectionAfterTermination = false;
 
     /** Controls whether the pool's {@code DataSource} and the created from it JDBC objects ({@code Connection},
-     * {@code Statement}, etc) support unwrapping/exposing of the underlying (proxied) JDBC objects. If disabled,
+     * {@code Statement}, etc.) support unwrapping/exposing of the underlying (proxied) JDBC objects. If disabled,
      * the call to {@link java.sql.Wrapper#isWrapperFor} on any of these objects will always return {@code false}. */
     private boolean allowUnwrapping = true;
 
@@ -192,7 +199,7 @@ public abstract class ViburConfig {
     private final String defaultName = "p" + idGenerator.getAndIncrement();
 
     /** The DataSource/pool name, used for JMX identification, logging and similar. If is responsibility of the
-     * application to set an unique name to each pool if it uses more than one pool. The default name is "p" + an auto
+     * application to set a unique name to each pool if it uses more than one pool. The default name is "p" + an auto
      * generated integer id. The {@code name} can be set only once; pool renaming is not supported. */
     private String name = defaultName;
 
@@ -231,7 +238,7 @@ public abstract class ViburConfig {
     private StatementCache statementCache = null;
 
 
-    /** The list of critical SQL states as a comma separated values, see http://stackoverflow.com/a/14412929/1682918 .
+    /** The list of critical SQL states as a comma separated values, see <a href="http://stackoverflow.com/a/14412929/1682918">here</a>.
      * If an SQL exception that has any of these SQL states occurs then all connections in the pool will be
      * considered invalid and will be closed. */
     private String criticalSQLStates = "08001,08006,08007,08S01,57P01,57P02,57P03,JZ0C0,JZ0C1";
@@ -258,10 +265,20 @@ public abstract class ViburConfig {
     /** Will apply only if {@link #logQueryExecutionLongerThanMs} is enabled, and if set to {@code true},
      * will log at WARN level the current JDBC Statement {@code execute...} call stack trace. */
     private boolean logStackTraceForLongQueryExecution = false;
+    /** Allow collecting and logging of statistics for the queries duration executed by this pool.
+     * Will collect statistics about the count, total execution time, minimum, average, and maximum query execution time.
+     * <p>If {@code collectQueryStatistics} is a positive number, the statistics will be logged at INFO level once on every
+     * {@code n = collectQueryStatistics} queries.
+     * <p>If {@code collectQueryStatistics} is equal to {@code zero}, the statistics
+     * will be collected but will not be logged.
+     * <p>A {@code negative number} disables the statistics collection.
+     */
+    private int collectQueryStatistics = 100;
+    private final QueryStatistics queryStatistics = new QueryStatistics();
     /** The underlying SQL queries (including their concrete parameters if {@link #includeQueryParameters} is set to
      * {@code true}) from a JDBC Statement {@code execute...} calls that generate ResultSets with length greater than
      * or equal to this limit are logged at WARN level. A {@code negative number} disables it. Retrieving of a large
-     * ResultSet may have negative effect on the application performance and may sometimes be an indication of a very
+     * ResultSet may have negative effect on the application performance and may sometimes be indication of a very
      * subtle application bug, where the whole ResultSet is retrieved and processed, but only the first few records of
      * it are subsequently needed by the application.
      *
@@ -299,12 +316,12 @@ public abstract class ViburConfig {
     private boolean logTakenConnectionsOnTimeout = false;
     /** Will apply only if {@link #logTakenConnectionsOnTimeout} is enabled, and if set to {@code true},
      * will add to the log generated by {@link ViburDataSource#getTakenConnectionsStackTraces} the current stack traces
-     * of all other live threads in the JVM. In other words, the combination of these two options is equivalent to
+     * of all others live threads in the JVM. In other words, the combination of these two options is equivalent to
      * generating a full JVM thread dump, and thus it has to be used for troubleshooting purposes only, as it may
      * generate a VERY large log output. */
     private boolean logAllStackTracesOnTimeout = false;
 
-    /** If different than {@code null}, this regex will be matched against the string representation of each
+    /** If different from {@code null}, this regex will be matched against the string representation of each
      * stack trace line that needs to be logged according {@link #logStackTraceForLongConnection},
      * {@link #logStackTraceForLargeResultSet}, {@link #logStackTraceForLongQueryExecution},
      * {@link #logTakenConnectionsOnTimeout}, and {@link #logAllStackTracesOnTimeout}. Stack trace lines
@@ -590,7 +607,7 @@ public abstract class ViburConfig {
      * @param name the pool name to use
      */
     public void setName(String name) {
-        if (name == null || (name = name.trim()).length() == 0) {
+        if (name == null || (name = name.trim()).isEmpty()) {
             logger.error("Invalid pool name {}", name);
             return;
         }
@@ -699,6 +716,18 @@ public abstract class ViburConfig {
 
     public void setLogStackTraceForLongQueryExecution(boolean logStackTraceForLongQueryExecution) {
         this.logStackTraceForLongQueryExecution = logStackTraceForLongQueryExecution;
+    }
+
+    public int getCollectQueryStatistics() {
+        return collectQueryStatistics;
+    }
+
+    public void setCollectQueryStatistics(int collectQueryStatistics) {
+        this.collectQueryStatistics = collectQueryStatistics;
+    }
+
+    public QueryStatistics getQueryStatistics() {
+        return queryStatistics;
     }
 
     public long getLogLargeResultSet() {

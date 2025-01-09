@@ -5,19 +5,18 @@ import java.util.concurrent.ConcurrentMap;
 import static org.mockito.AdditionalAnswers.delegatesTo;
 import static org.mockito.Mockito.mock;
 
-public class TestClhmStatementCache extends ClhmStatementCache {
+public class TestConcurrentStatementCache extends ConcurrentStatementCache {
 
     private ConcurrentMap<StatementMethod, StatementHolder>[] cacheHolder;
 
-    public TestClhmStatementCache(int maxSize) {
+    public TestConcurrentStatementCache(int maxSize) {
         super(maxSize);
     }
 
     @Override
     @SuppressWarnings("unchecked")
     ConcurrentMap<StatementMethod, StatementHolder> buildStatementCache(int maxSize) {
-        ConcurrentMap<StatementMethod, StatementHolder> mockedStatementCache =
-                mock(ConcurrentMap.class, delegatesTo(super.buildStatementCache(maxSize)));
+        var mockedStatementCache = mock(ConcurrentMap.class, delegatesTo(super.buildStatementCache(maxSize)));
         cacheHolder = new ConcurrentMap[] {mockedStatementCache};
         return mockedStatementCache;
     }

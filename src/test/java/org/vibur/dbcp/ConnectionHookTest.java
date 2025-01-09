@@ -16,15 +16,13 @@
 
 package org.vibur.dbcp;
 
-import org.junit.Test;
-import org.vibur.dbcp.pool.Hook;
+import org.junit.jupiter.api.Test;
 
-import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * @author Simeon Malchev
@@ -35,24 +33,14 @@ public class ConnectionHookTest extends AbstractDataSourceTest {
     public void testInitGetConnectionHooks() throws SQLException {
         final List<String> executionOrder = new ArrayList<>();
 
-        ViburDBCPDataSource ds = createDataSourceNotStarted();
+        var ds = createDataSourceNotStarted();
         ds.setPoolInitialSize(0);
         ds.setPoolMaxSize(1);
-        ds.getConnHooks().addOnInit(new Hook.InitConnection() {
-            @Override
-            public void on(Connection rawConnection, long takenNanos) throws SQLException {
-                executionOrder.add("init");
-            }
-        });
-        ds.getConnHooks().addOnGet(new Hook.GetConnection() {
-            @Override
-            public void on(Connection rawConnection, long takenNanos) throws SQLException {
-                executionOrder.add("get");
-            }
-        });
+        ds.getConnHooks().addOnInit((rawConnection, takenNanos) -> executionOrder.add("init"));
+        ds.getConnHooks().addOnGet((rawConnection, takenNanos) -> executionOrder.add("get"));
         ds.start();
 
-        Connection connection = ds.getConnection();
+        var connection = ds.getConnection();
         connection.close();
 
         assertEquals(2, executionOrder.size());

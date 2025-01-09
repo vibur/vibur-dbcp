@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Simeon Malchev
+ * Copyright 2013-2025 Simeon Malchev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,23 +21,36 @@ import org.vibur.dbcp.pool.ConnHolder;
 import org.vibur.dbcp.pool.PoolOperations;
 import org.vibur.dbcp.stcache.StatementHolder;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
-import java.sql.*;
+import java.sql.CallableStatement;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.Statement;
 import java.util.List;
 
-import static java.lang.reflect.Proxy.getProxyClass;
+import static java.lang.reflect.Proxy.newProxyInstance;
 
 /**
  * @author Simeon Malchev
  */
 public final class Proxy {
 
+    private static final ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+
+    private static final Class<?>[] connectionClass = {Connection.class};
+    private static final Class<?>[] statementClass = {Statement.class};
+    private static final Class<?>[] pStatementClass = {PreparedStatement.class};
+    private static final Class<?>[] cStatementClass = {CallableStatement.class};
+    private static final Class<?>[] metadataClass = {DatabaseMetaData.class};
+    private static final Class<?>[] resultSetClass = {ResultSet.class};
+
     private Proxy() { }
 
     public static Connection newProxyConnection(ConnHolder connHolder, PoolOperations poolOperations, ViburConfig config) {
         InvocationHandler handler = new ConnectionInvocationHandler(connHolder, poolOperations, config); // connHolder is never null
-        return newProxy(connectionCtor, handler);
+        return (Connection) newProxyInstance(classLoader, connectionClass, handler);
     }
 
     static Statement newProxyStatement(StatementHolder rawStatement, Connection connProxy,
@@ -48,7 +61,7 @@ public final class Proxy {
 
         InvocationHandler handler = new StatementInvocationHandler(
                 rawStatement, null /* turns off the statement cache */, connProxy, config, exceptionCollector);
-        return newProxy(statementCtor, handler);
+        return (Statement) newProxyInstance(classLoader, statementClass, handler);
     }
 
     static PreparedStatement newProxyPreparedStatement(StatementHolder rawPStatement, Connection connProxy,
@@ -59,7 +72,7 @@ public final class Proxy {
 
         InvocationHandler handler = new StatementInvocationHandler(
                 rawPStatement, config.getStatementCache(), connProxy, config, exceptionCollector);
-        return newProxy(pStatementCtor, handler);
+        return (PreparedStatement) newProxyInstance(classLoader, pStatementClass, handler);
     }
 
     static CallableStatement newProxyCallableStatement(StatementHolder rawCStatement, Connection connProxy,
@@ -70,7 +83,7 @@ public final class Proxy {
 
         InvocationHandler handler = new StatementInvocationHandler(
                 rawCStatement, config.getStatementCache(), connProxy, config, exceptionCollector);
-        return newProxy(cStatementCtor, handler);
+        return (CallableStatement) newProxyInstance(classLoader, cStatementClass, handler);
     }
 
     static DatabaseMetaData newProxyDatabaseMetaData(DatabaseMetaData rawMetaData, Connection connProxy,
@@ -81,7 +94,7 @@ public final class Proxy {
 
         InvocationHandler handler = new ChildObjectInvocationHandler<>(
                 rawMetaData, connProxy, "getConnection", config, exceptionCollector);
-        return newProxy(metadataCtor, handler);
+        return (DatabaseMetaData) newProxyInstance(classLoader, metadataClass, handler);
     }
 
     static ResultSet newProxyResultSet(ResultSet rawResultSet, Statement statementProxy,
@@ -93,42 +106,6 @@ public final class Proxy {
 
         InvocationHandler handler = new ResultSetInvocationHandler(
                 rawResultSet, statementProxy, sqlQuery, sqlQueryParams, config, exceptionCollector);
-        return newProxy(resultSetCtor, handler);
-    }
-
-    private static <T> T newProxy(Constructor<T> proxyCtor, InvocationHandler handler) {
-        try {
-            return proxyCtor.newInstance(handler);
-        } catch (ReflectiveOperationException e) {
-            throw new Error(e);
-        }
-    }
-
-    private static final Constructor<Connection> connectionCtor;
-    private static final Constructor<Statement> statementCtor;
-    private static final Constructor<PreparedStatement> pStatementCtor;
-    private static final Constructor<CallableStatement> cStatementCtor;
-    private static final Constructor<DatabaseMetaData> metadataCtor;
-    private static final Constructor<ResultSet> resultSetCtor;
-
-    private static final ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-
-    // static initializer for all constructors:
-    static {
-        connectionCtor = getIHConstructor(Connection.class);
-        statementCtor = getIHConstructor(Statement.class);
-        pStatementCtor = getIHConstructor(PreparedStatement.class);
-        cStatementCtor = getIHConstructor(CallableStatement.class);
-        metadataCtor = getIHConstructor(DatabaseMetaData.class);
-        resultSetCtor = getIHConstructor(ResultSet.class);
-    }
-
-    @SuppressWarnings("unchecked")
-    private static <T> Constructor<T> getIHConstructor(Class<T> cl) {
-        try {
-            return (Constructor<T>) getProxyClass(classLoader, cl).getConstructor(InvocationHandler.class);
-        } catch (NoSuchMethodException e) {
-            throw new Error(e);
-        }
+        return (ResultSet) newProxyInstance(classLoader, resultSetClass, handler);
     }
 }

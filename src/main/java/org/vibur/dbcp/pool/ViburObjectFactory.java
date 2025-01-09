@@ -21,7 +21,7 @@ import org.vibur.objectpool.PoolObjectFactory;
 
 /**
  * Defines the operations that are specific to Vibur {@link ConnectionFactory}. These are the factory's
- * version manipulation methods and the create connection with credentials method.
+ * version manipulation methods and the connection creation with credentials method.
  *
  * @author Simeon Malchev
  */

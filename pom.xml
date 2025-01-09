@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2013 Simeon Malchev
+  ~ Copyright 2013-2025 Simeon Malchev
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.i
@@ -21,7 +21,7 @@
     <groupId>org.vibur</groupId>
     <artifactId>vibur-dbcp</artifactId>
     <version>26.0-SNAPSHOT</version>
-    <packaging>bundle</packaging>
+    <packaging>jar</packaging>
 
     <name>Vibur Database Connections Pool</name>
     <description>
@@ -80,21 +80,20 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-        <java.version>1.7</java.version>
-        <vibur.osgi.version>26.0</vibur.osgi.version>
-        <slf4j.version>1.7.13</slf4j.version>
-        <concurrentlinkedhashmap-lru.version>1.4.2</concurrentlinkedhashmap-lru.version>
+        <java.version>10</java.version>
+        <slf4j.version>2.0.16</slf4j.version>
+        <caffeine.version>3.1.8</caffeine.version>
 
-        <junit.version>4.12</junit.version>
-        <mockito-core.version>1.10.19</mockito-core.version>
-        <hsqldb.version>2.3.3</hsqldb.version>
+        <junit.jupiter.version>5.11.4</junit.jupiter.version>
+        <mockito-core.version>5.14.2</mockito-core.version>
+        <hsqldb.version>2.7.4</hsqldb.version>
 
-        <maven.compiler.plugin.version>2.3.2</maven.compiler.plugin.version>
-        <maven.bundle.plugin.version>3.3.0</maven.bundle.plugin.version>
-        <maven.release.plugin.version>2.4.2</maven.release.plugin.version>
-        <maven.javadoc.plugin.version>2.8</maven.javadoc.plugin.version>
-        <maven.jar.plugin.version>2.4</maven.jar.plugin.version>
-        <maven.source.plugin.version>2.1.2</maven.source.plugin.version>
+        <maven.compiler.plugin.version>3.13.0</maven.compiler.plugin.version>
+        <maven.release.plugin.version>3.1.1</maven.release.plugin.version>
+        <maven.javadoc.plugin.version>3.11.2</maven.javadoc.plugin.version>
+        <maven.jar.plugin.version>3.4.2</maven.jar.plugin.version>
+        <maven.source.plugin.version>3.3.1</maven.source.plugin.version>
+        <maven-surefire-plugin.version>3.5.2</maven-surefire-plugin.version>
     </properties>
 
     <dependencies>
@@ -109,13 +108,13 @@
             <version>${slf4j.version}</version>
         </dependency>
 
-        <!-- ConcurrentLinkedHashMap dependency is used for JDBC statement caching only,
+        <!-- The Caffeine dependency is used for JDBC statement caching only,
              that is disabled by default. If the client's application enables
              the statement caching, it needs to provide the below dependency. -->
         <dependency>
-            <groupId>com.googlecode.concurrentlinkedhashmap</groupId>
-            <artifactId>concurrentlinkedhashmap-lru</artifactId>
-            <version>${concurrentlinkedhashmap-lru.version}</version>
+            <groupId>com.github.ben-manes.caffeine</groupId>
+            <artifactId>caffeine</artifactId>
+            <version>${caffeine.version}</version>
             <optional>true</optional>
         </dependency>
 
@@ -145,15 +144,27 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>${junit.version}</version>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-junit-jupiter</artifactId>
+            <version>${mockito-core.version}</version>
+            <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.junit.jupiter</groupId>
+                    <artifactId>junit-jupiter-api</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>${junit.jupiter.version}</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
+            <artifactId>slf4j-reload4j</artifactId>
             <version>${slf4j.version}</version>
             <scope>test</scope>
         </dependency>
@@ -166,47 +177,8 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>${maven.compiler.plugin.version}</version>
                 <configuration>
-                    <source>${java.version}</source>
-                    <target>${java.version}</target>
+                    <release>${java.version}</release>
                 </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.felix</groupId>
-                <artifactId>maven-bundle-plugin</artifactId>
-                <version>${maven.bundle.plugin.version}</version>
-                <extensions>true</extensions>
-                <configuration>
-                    <instructions>
-                        <Bundle-Name>${project.artifactId}</Bundle-Name>
-                        <Export-Package>
-                            org.vibur.dbcp,
-                            org.vibur.dbcp.pool,
-                            org.vibur.dbcp.stcache
-                        </Export-Package>
-                        <Import-Package>
-                            javax.sql,
-                            javax.naming,
-                            javax.naming.spi,
-                            javax.management,
-                            org.slf4j;version="[${version;===;${slf4j.version}},${version;+;${slf4j.version}})",
-                            com.googlecode.concurrentlinkedhashmap;version="[${version;===;${concurrentlinkedhashmap-lru.version}},${version;+;${concurrentlinkedhashmap-lru.version}})";resolution:=optional,
-                            org.vibur.objectpool;version="[${version;==;${vibur.osgi.version}},${version;+;${vibur.osgi.version}})",
-                            org.vibur.objectpool.util;version="[${version;==;${vibur.osgi.version}},${version;+;${vibur.osgi.version}})"
-                        </Import-Package>
-                        <Bundle-SymbolicName>${project.groupId}.${project.artifactId}</Bundle-SymbolicName>
-                        <DynamicImport-Package>*</DynamicImport-Package>
-                    </instructions>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>bundle-manifest</id>
-                        <phase>process-classes</phase>
-                        <goals>
-                            <goal>manifest</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
 
             <plugin>
@@ -217,7 +189,7 @@
 					<dependency>
 						<groupId>org.apache.maven.scm</groupId>
 						<artifactId>maven-scm-provider-gitexe</artifactId>
-						<version>1.8.1</version>
+						<version>2.1.0</version>
 					</dependency>
 				</dependencies>
                 <configuration>
@@ -230,9 +202,8 @@
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <version>${maven.javadoc.plugin.version}</version>
                 <configuration>
-                    <additionalparam>-Xdoclint:none</additionalparam>
-                    <reportOutputDirectory>${project.basedir}</reportOutputDirectory>
-                    <destDir>doc</destDir>
+                    <doclint>none</doclint>
+                    <outputDirectory>${project.basedir}/target</outputDirectory>
                 </configuration>
                 <executions>
                     <execution>
@@ -249,6 +220,13 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
                 <version>${maven.jar.plugin.version}</version>
+                <configuration>
+                    <archive>
+                        <manifestEntries>
+                            <Automatic-Module-Name>org.vibur.dbcp</Automatic-Module-Name>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
                 <executions>
                     <execution>
                         <goals>
@@ -270,13 +248,19 @@
                             <goal>jar-no-fork</goal>
                         </goals>
                     </execution>
-                    <execution>
-                        <id>deploy-sources</id>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                    </execution>
                 </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${maven-surefire-plugin.version}</version>
+                <configuration>
+                    <argLine>
+                        -javaagent:${settings.localRepository}/org/mockito/mockito-core/${mockito-core.version}/mockito-core-${mockito-core.version}.jar
+                        -Xshare:off
+                    </argLine>
+                </configuration>
             </plugin>
         </plugins>
     </build>

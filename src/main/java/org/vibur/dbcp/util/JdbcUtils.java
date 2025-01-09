@@ -21,7 +21,12 @@ import org.slf4j.LoggerFactory;
 import org.vibur.dbcp.ViburConfig;
 import org.vibur.dbcp.ViburDBCPException;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.concurrent.Executor;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -41,7 +46,7 @@ public final class JdbcUtils {
     private JdbcUtils() { }
 
     public static void initLoginTimeout(ViburConfig config) throws ViburDBCPException {
-        int loginTimeout = config.getLoginTimeoutInSeconds();
+        var loginTimeout = config.getLoginTimeoutInSeconds();
         if (config.getExternalDataSource() == null) {
             DriverManager.setLoginTimeout(loginTimeout);
         }
@@ -101,7 +106,7 @@ public final class JdbcUtils {
     }
 
     private static void executeSqlQuery(Connection rawConnection, String sqlQuery, ViburConfig config) throws SQLException {
-        int oldTimeout = setNetworkTimeoutIfDifferent(rawConnection, config);
+        var oldTimeout = setNetworkTimeoutIfDifferent(rawConnection, config);
 
         Statement rawStatement = null;
         try {
@@ -117,8 +122,8 @@ public final class JdbcUtils {
 
     private static int setNetworkTimeoutIfDifferent(Connection rawConnection, ViburConfig config) throws SQLException {
         if (config.isUseNetworkTimeout()) {
-            int newTimeout = (int) SECONDS.toMillis(config.getValidateTimeoutInSeconds());
-            int oldTimeout = rawConnection.getNetworkTimeout();
+            var newTimeout = (int) SECONDS.toMillis(config.getValidateTimeoutInSeconds());
+            var oldTimeout = rawConnection.getNetworkTimeout();
             if (newTimeout != oldTimeout) {
                 rawConnection.setNetworkTimeout(config.getNetworkTimeoutExecutor(), newTimeout);
                 return oldTimeout;

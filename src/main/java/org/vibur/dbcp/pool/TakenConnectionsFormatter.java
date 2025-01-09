@@ -19,10 +19,10 @@ package org.vibur.dbcp.pool;
 import org.vibur.dbcp.ViburConfig;
 
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 
+import static java.util.Comparator.comparingLong;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
 import static org.vibur.dbcp.util.ViburUtils.getStackTraceAsString;
 
@@ -58,18 +58,13 @@ public interface TakenConnectionsFormatter {
             }
 
             // sort the thread holding connection for the longest time on top
-            Arrays.sort(takenConns, new Comparator<TakenConnection>() {
-                @Override
-                public int compare(TakenConnection t1, TakenConnection t2) {
-                    return Long.compare(t1.getTakenNanoTime(), t2.getTakenNanoTime());
-                }
-            });
+            Arrays.sort(takenConns, comparingLong(TakenConnection::getTakenNanoTime));
 
-            long currentNanoTime = System.nanoTime();
-            StringBuilder builder = new StringBuilder(takenConns.length * 8192);
-            Map<Thread, StackTraceElement[]> currentStackTraces = getCurrentStackTraces(takenConns);
-            for (int i = 0; i < takenConns.length; i++) {
-                Thread holdingThread = takenConns[i].getThread();
+            var currentNanoTime = System.nanoTime();
+            var builder = new StringBuilder(takenConns.length * 8192);
+            var currentStackTraces = getCurrentStackTraces(takenConns);
+            for (var i = 0; i < takenConns.length; i++) {
+                var holdingThread = takenConns[i].getThread();
                 builder.append("\n============\n(").append(i + 1).append('/').append(takenConns.length).append("), ")
                         .append(takenConns[i].getProxyConnection())
                         .append(", held for ").append(NANOSECONDS.toMillis(currentNanoTime - takenConns[i].getTakenNanoTime()));
@@ -87,7 +82,7 @@ public interface TakenConnectionsFormatter {
                         .append("\n\nThread stack trace at the moment when getting the Connection:\n")
                         .append(getStackTraceAsString(config.getLogLineRegex(), takenConns[i].getLocation().getStackTrace()));
 
-                StackTraceElement[] currentStackTrace = currentStackTraces.remove(holdingThread);
+                var currentStackTrace = currentStackTraces.remove(holdingThread);
                 if (currentStackTrace != null && currentStackTrace.length > 0) {
                     builder.append("\nThread stack trace at the current moment:\n")
                             .append(getStackTraceAsString(config.getLogLineRegex(), currentStackTrace));
@@ -103,11 +98,11 @@ public interface TakenConnectionsFormatter {
             }
 
             builder.append("\n\n============ All other stack traces: ============\n\n");
-            for (Map.Entry<Thread, StackTraceElement[]> entry : stackTraces.entrySet()) {
-                Thread thread = entry.getKey();
+            for (var entry : stackTraces.entrySet()) {
+                var thread = entry.getKey();
                 builder.append("\n============\n").append("Thread ").append(thread.getName())
                         .append(", state ").append(thread.getState());
-                StackTraceElement[] currentStackTrace = entry.getValue();
+                var currentStackTrace = entry.getValue();
                 if (currentStackTrace.length > 0) {
                     builder.append("\n\nThread stack trace at the current moment:\n")
                             .append(getStackTraceAsString(config.getLogLineRegex(), currentStackTrace));
@@ -122,8 +117,8 @@ public interface TakenConnectionsFormatter {
             }
 
             Map<Thread, StackTraceElement[]> map = new HashMap<>(takenConns.length);
-            for (TakenConnection takenConn : takenConns) {
-                Thread holdingThread = takenConn.getThread();
+            for (var takenConn : takenConns) {
+                var holdingThread = takenConn.getThread();
                 if (holdingThread.isAlive()) {
                     map.put(holdingThread, holdingThread.getStackTrace());
                 }

@@ -1,5 +1,17 @@
-Version 25.0 (30/11/2019) - RECOMMENDED
+Version 26.0 (09/01/2025) - RECOMMENDED
 =======================================
+* Migrated the source code base to Java 10.
+* Migrated from ConcurrentLinkedHashMap to Caffeine for statement caching.
+* Implemented statistics for the executed in the pool queries, similar to Java Streams statistics.
+  See ViburConfig.collectQueryStatistics, QueryStatistics, and DefaultHook.QueryTiming.
+  Vibur-DBCP can now report the total count, total execution time, the min, average and max duration
+  of the executed via it SQL queries.
+* Updated all project dependencies to latest versions.
+* Removed support for OSGi, added Automatic-Module-Name for Java 9 modules.
+* Minor other refactoring and small fixes.
+
+Version 25.0 (30/11/2019)
+=========================
 * Catching-up with vibur-object-pool version 25.0.
 
 Version 24.0 (29/11/2019)

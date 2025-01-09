@@ -40,7 +40,7 @@ public class ViburListener extends TakenListener<ConnHolder> {
      * See {@link org.vibur.dbcp.ViburDataSource#getTakenConnections}.
      */
     public TakenConnection[] getTakenConnections() {
-        ConnHolder[] takenConns = getTaken(new ConnHolder[config.getPoolMaxSize()]);
+        var takenConns = getTaken(new ConnHolder[config.getPoolMaxSize()]);
         if (takenConns.length == 0) {
             return NO_TAKEN_CONNECTIONS;
         }
@@ -50,8 +50,8 @@ public class ViburListener extends TakenListener<ConnHolder> {
 
     @Override
     protected ConnHolder[] getTaken(ConnHolder[] a) {
-        ConnHolder[] takenConns = super.getTaken(a);
-        int size = 0;
+        var takenConns = super.getTaken(a);
+        var size = 0;
         while (size < takenConns.length && takenConns[size] != null) {
             size++;
         }
@@ -59,8 +59,8 @@ public class ViburListener extends TakenListener<ConnHolder> {
             return NO_TAKEN_CONN_HOLDERS;
         }
 
-        ConnHolder[] result = new ConnHolder[size];
-        for (int i = 0; i < size; i++) {
+        var result = new ConnHolder[size];
+        for (var i = 0; i < size; i++) {
             result[i] = new ConnHolder(takenConns[i]);
         }
         return result;

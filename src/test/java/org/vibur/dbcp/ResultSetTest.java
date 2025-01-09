@@ -16,16 +16,14 @@
 
 package org.vibur.dbcp;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import javax.sql.DataSource;
-import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * @author Simeon Malchev
@@ -37,8 +35,8 @@ public class ResultSetTest extends AbstractDataSourceTest {
         DataSource ds = createDataSourceNoStatementsCache();
         ResultSet resultSet;
 
-        try (Connection connection = ds.getConnection();
-             Statement statement = connection.createStatement()) {
+        try (var connection = ds.getConnection();
+             var statement = connection.createStatement()) {
 
             resultSet = statement.executeQuery("select * from actor where first_name = 'CHRISTIAN'");
             assertTrue(resultSet.next());

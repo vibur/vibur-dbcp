@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Simeon Malchev
+ * Copyright 2013-2025 Simeon Malchev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,30 +16,37 @@
 
 package org.vibur.dbcp;
 
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
-import org.mockito.InOrder;
-import org.mockito.runners.MockitoJUnitRunner;
-import org.vibur.dbcp.pool.TakenConnection;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.vibur.dbcp.stcache.StatementHolder;
 import org.vibur.dbcp.stcache.StatementMethod;
 
 import javax.sql.DataSource;
 import java.lang.reflect.Proxy;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.SQLTimeoutException;
+import java.sql.Statement;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.ConcurrentMap;
 import java.util.regex.Pattern;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.same;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.vibur.dbcp.ViburConfig.SQLSTATE_INTERRUPTED_ERROR;
 import static org.vibur.dbcp.stcache.StatementHolder.State.AVAILABLE;
 import static org.vibur.dbcp.stcache.StatementHolder.State.EVICTED;
@@ -49,16 +56,8 @@ import static org.vibur.dbcp.stcache.StatementHolder.State.EVICTED;
  *
  * @author Simeon Malchev
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
-
-    @Captor
-    private ArgumentCaptor<StatementMethod> key1, key2;
-    @Captor
-    private ArgumentCaptor<StatementHolder> val1, val2;
-
-    @Rule
-    public final ExpectedException exception = ExpectedException.none();
 
     @Test
     public void testSelectStatementNoStatementsCache() throws SQLException {
@@ -74,14 +73,14 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
 
     @Test
     public void testSelectStatementWithStatementsCache() throws SQLException {
-        ViburDBCPDataSource ds = createDataSourceWithStatementsCache();
-        ConcurrentMap<StatementMethod, StatementHolder> mockedStatementCache = mockStatementCache(ds);
+        var ds = createDataSourceWithStatementsCache();
+        var mockedStatementCache = mockStatementCache(ds);
 
-        try (Connection connection = ds.getConnection()) {
+        try (var connection = ds.getConnection()) {
             executeAndVerifySelectStatement(connection);
             executeAndVerifySelectStatement(connection);
 
-            verifyZeroInteractions(mockedStatementCache);
+            verifyNoInteractions(mockedStatementCache);
         }
     }
 
@@ -99,14 +98,18 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
 
     @Test
     public void testPreparedSelectStatementWithStatementsCache() throws SQLException {
-        ViburDBCPDataSource ds = createDataSourceWithStatementsCache();
-        ConcurrentMap<StatementMethod, StatementHolder> mockedStatementCache = mockStatementCache(ds);
+        var key1 = ArgumentCaptor.forClass(StatementMethod.class);
+        var key2 = ArgumentCaptor.forClass(StatementMethod.class);
+        var val1 = ArgumentCaptor.forClass(StatementHolder.class);
 
-        try (Connection connection = ds.getConnection()) {
+        var ds = createDataSourceWithStatementsCache();
+        var mockedStatementCache = mockStatementCache(ds);
+
+        try (var connection = ds.getConnection()) {
             executeAndVerifyPreparedSelectStatement(connection);
             executeAndVerifyPreparedSelectStatement(connection);
 
-            InOrder inOrder = inOrder(mockedStatementCache);
+            var inOrder = inOrder(mockedStatementCache);
             inOrder.verify(mockedStatementCache).get(key1.capture());
             inOrder.verify(mockedStatementCache).putIfAbsent(same(key1.getValue()), val1.capture());
             inOrder.verify(mockedStatementCache).get(key2.capture());
@@ -120,14 +123,19 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
 
     @Test
     public void testTwoPreparedSelectStatementsWithStatementsCache() throws SQLException {
-        ViburDBCPDataSource ds = createDataSourceWithStatementsCache();
-        ConcurrentMap<StatementMethod, StatementHolder> mockedStatementCache = mockStatementCache(ds);
+        var key1 = ArgumentCaptor.forClass(StatementMethod.class);
+        var key2 = ArgumentCaptor.forClass(StatementMethod.class);
+        var val1 = ArgumentCaptor.forClass(StatementHolder.class);
+        var val2 = ArgumentCaptor.forClass(StatementHolder.class);
 
-        try (Connection connection = ds.getConnection()) {
+        var ds = createDataSourceWithStatementsCache();
+        var mockedStatementCache = mockStatementCache(ds);
+
+        try (var connection = ds.getConnection()) {
             executeAndVerifyPreparedSelectStatement(connection);
             executeAndVerifyPreparedSelectStatementByLastName(connection);
 
-            InOrder inOrder = inOrder(mockedStatementCache);
+            var inOrder = inOrder(mockedStatementCache);
             inOrder.verify(mockedStatementCache).get(key1.capture());
             inOrder.verify(mockedStatementCache).putIfAbsent(same(key1.getValue()), val1.capture());
             inOrder.verify(mockedStatementCache).get(key2.capture());
@@ -144,12 +152,12 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
 
     @Test
     public void testExceptionOnOneConnectionDoesNotImpactOtherConnections() throws SQLException {
-        ViburDBCPDataSource ds = createDataSourceNoStatementsCache();
+        var ds = createDataSourceNoStatementsCache();
         assertEquals(POOL_INITIAL_SIZE, ds.getPool().remainingCreated());
 
         // Executing a Statement that will produce an SQLException:
-        Connection connection = ds.getConnection();
-        try (Statement statement = connection.createStatement()) {
+        var connection = ds.getConnection();
+        try (var statement = connection.createStatement()) {
             statement.executeUpdate("drop table nonexistent");
             fail("SQLException expected");
         } catch (SQLException ignored) {
@@ -157,8 +165,8 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
         } finally {
             connection.close();
         }
-        Connection internal1 = connection.unwrap(Connection.class);
-        assertTrue(internal1.isClosed());
+        var internalConn1 = connection.unwrap(Connection.class);
+        assertTrue(internalConn1.isClosed());
         assertEquals(POOL_INITIAL_SIZE - 1, ds.getPool().remainingCreated()); // the remainingCreated connections count should decrease by 1
 
         // Executing a Statement that will not cause an exception:
@@ -168,9 +176,9 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
         } finally {
             connection.close();
         }
-        Connection internal2 = connection.unwrap(Connection.class);
-        assertNotSame(internal1, internal2);
-        assertFalse(internal2.isClosed());
+        var internalConn2 = connection.unwrap(Connection.class);
+        assertNotSame(internalConn1, internalConn2);
+        assertFalse(internalConn2.isClosed());
         assertEquals(POOL_INITIAL_SIZE - 1, ds.getPool().remainingCreated()); // the remainingCreated connections count should not decrease more
     }
 
@@ -178,65 +186,64 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
     public void testStatementCloseShouldCloseTheInternalStatementToo() throws SQLException {
         DataSource ds = createDataSourceNoStatementsCache();
 
-        Connection connection = ds.getConnection();
-        Statement statement = connection.createStatement();
-        PreparedStatement pStatement = connection.prepareStatement("select * from actor where first_name = ?");
+        var connection = ds.getConnection();
+        var statement = connection.createStatement();
+        var pStatement = connection.prepareStatement("select * from actor where first_name = ?");
 
         pStatement.close();
         statement.close();
         connection.close();
 
-        Statement internalStatement = statement.unwrap(Statement.class);
+        var internalStatement = statement.unwrap(Statement.class);
         assertTrue(statement.isClosed());
         assertTrue(internalStatement.isClosed());
 
-        PreparedStatement internalPStatement = pStatement.unwrap(PreparedStatement.class);
+        var internalPStatement = pStatement.unwrap(PreparedStatement.class);
         assertTrue(pStatement.isClosed());
         assertTrue(internalPStatement.isClosed());
     }
 
     @Test
     public void testConnectionCloseAfterPoolTerminationShouldCloseTheInternalConnectionToo() throws SQLException {
-        ViburDBCPDataSource ds = createDataSourceWithTracking();
+        var ds = createDataSourceWithTracking();
 
-        Connection connection = ds.getConnection();
+        var connection = ds.getConnection();
         ds.close();
 
-        Connection internalConnection = connection.unwrap(Connection.class);
+        var internalConn = connection.unwrap(Connection.class);
         assertFalse(connection.isClosed());
-        assertFalse(internalConnection.isClosed());
+        assertFalse(internalConn.isClosed());
 
         connection.close();
         assertTrue(connection.isClosed());
-        assertTrue(internalConnection.isClosed());
+        assertTrue(internalConn.isClosed());
     }
 
     @Test
     public void testGetConnectionAfterPoolTermination() throws SQLException {
-        ViburDBCPDataSource ds = createDataSourceNoStatementsCache();
+        var ds = createDataSourceNoStatementsCache();
         ds.setAllowConnectionAfterTermination(true); // enable the feature
         ds.close();
 
-        Connection connection = ds.getConnection();
+        var connection = ds.getConnection();
         assertFalse(connection.isClosed());
         assertFalse(Proxy.isProxyClass(connection.getClass())); // i.e., that is a native Connection
         connection.close();
     }
 
     @Test
-    public void testGetConnectionAfterPoolTerminationFail() throws SQLException {
-        ViburDBCPDataSource ds = createDataSourceNoStatementsCache();
+    public void testGetConnectionAfterPoolTerminationFail() {
+        var ds = createDataSourceNoStatementsCache();
         ds.setAllowConnectionAfterTermination(false); // that's the default value
         ds.close();
 
-        exception.expect(SQLException.class);
-        ds.getConnection();
+        assertThrows(SQLException.class, ds::getConnection);
     }
 
     @Test
     public void testGetNonPooledConnection() throws SQLException {
-        ViburDBCPDataSource ds = createDataSourceNoStatementsCache();
-        Connection connection = ds.getNonPooledConnection();
+        var ds = createDataSourceNoStatementsCache();
+        var connection = ds.getNonPooledConnection();
         assertFalse(connection.isClosed());
         assertFalse(Proxy.isProxyClass(connection.getClass())); // i.e., that is a native Connection
         connection.close();
@@ -244,23 +251,23 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
 
     @Test
     public void testSeverPooledConnection() throws SQLException {
-        ViburDBCPDataSource ds = createDataSourceNoStatementsCache();
-        Connection connection = ds.getConnection();
-        Connection internalConnection = connection.unwrap(Connection.class);
-        int createdTotal = ds.getPool().createdTotal();
+        var ds = createDataSourceNoStatementsCache();
+        var connection = ds.getConnection();
+        var internalConn = connection.unwrap(Connection.class);
+        var createdTotal = ds.getPool().createdTotal();
 
         assertFalse(connection.isClosed());
-        assertFalse(internalConnection.isClosed());
-        ds.severConnection(connection);
+        assertFalse(internalConn.isClosed());
+        ds.severConnection(connection); // severing the proxy connection closes the underlying raw connection, too
         assertTrue(connection.isClosed());
-        assertTrue(internalConnection.isClosed());
-        assertEquals(createdTotal - 1, ds.getPool().createdTotal());
+        assertTrue(internalConn.isClosed());
+        assertEquals(createdTotal - 1, ds.getPool().createdTotal()); // the remainingCreated connections count should decrease by 1
     }
 
     @Test
     public void testSeverNonPooledConnection() throws SQLException {
-        ViburDBCPDataSource ds = createDataSourceNoStatementsCache();
-        Connection connection = ds.getNonPooledConnection();
+        var ds = createDataSourceNoStatementsCache();
+        var connection = ds.getNonPooledConnection();
 
         assertFalse(connection.isClosed());
         ds.severConnection(connection);
@@ -269,51 +276,64 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
 
     @Test
     public void testTakenConnections() throws SQLException {
-        ViburDBCPDataSource ds = createDataSourceWithTracking();
-        Connection connection = ds.getConnection();
+        var ds = createDataSourceWithTracking();
+        var connection = ds.getConnection();
 
-        TakenConnection[] takenConnections = ds.getTakenConnections();
+        var takenConnections1 = ds.getTakenConnections();
+        assertEquals(1, takenConnections1.length);
+        assertSame(connection, takenConnections1[0].getProxyConnection());
 
-        assertEquals(1, takenConnections.length);
-        assertSame(connection, takenConnections[0].getProxyConnection());
-
-        long currentNanoTime = System.nanoTime();
-        long takenNanoTime = takenConnections[0].getTakenNanoTime();
+        var currentNanoTime = System.nanoTime();
+        var takenNanoTime = takenConnections1[0].getTakenNanoTime();
         assertTrue(takenNanoTime > 0);
         assertTrue(currentNanoTime > takenNanoTime);
-        assertEquals(0, takenConnections[0].getLastAccessNanoTime());
+        assertEquals(0, takenConnections1[0].getLastAccessNanoTime());
 
-        TakenConnection[] takenConnections2 = ds.getTakenConnections();
-        assertNotSame(takenConnections, takenConnections2);
-        assertNotSame(takenConnections[0], takenConnections2[0]);
-        assertSame(takenConnections[0].getProxyConnection(), takenConnections2[0].getProxyConnection());
+        var takenConnections2 = ds.getTakenConnections();
+        assertEquals(1, takenConnections2.length);
+        assertNotSame(takenConnections1, takenConnections2);
+        assertNotSame(takenConnections1[0], takenConnections2[0]);
+        assertSame(takenConnections1[0].getProxyConnection(), takenConnections2[0].getProxyConnection());
+
+        ds.close();
+
+        var takenConnections3 = ds.getTakenConnections(); // verify that TakenConnections can be obtained after the pool was closed
+        assertEquals(1, takenConnections3.length);
+        assertNotSame(takenConnections2, takenConnections3);
+        assertNotSame(takenConnections2[0], takenConnections3[0]);
+        assertSame(takenConnections2[0].getProxyConnection(), takenConnections3[0].getProxyConnection());
 
         connection.close();
+
+        var takenConnections4 = ds.getTakenConnections();
+        assertEquals(0, takenConnections4.length);
     }
 
     @Test
     public void testLogTakenConnectionsOnTimeout() throws SQLException {
-        ViburDBCPDataSource ds = createDataSourceNotStarted();
+        @SuppressWarnings("resource")
+        var ds = createDataSourceNotStarted();
+
         ds.setPoolInitialSize(1);
         ds.setPoolMaxSize(2);
         ds.setConnectionTimeoutInMs(10);
         ds.setLogTakenConnectionsOnTimeout(true);
-        // This regex filters out (does not match) any lines that contain "mockito", "junit" or "reflect" substrings,
-        // see https://stackoverflow.com/questions/406230/regular-expression-to-match-a-line-that-doesnt-contain-a-word .
+        // This regex filters out any lines that contain "mockito", "junit" or "reflect" substrings
         ds.setLogLineRegex(Pattern.compile("^((?!mockito|junit|reflect).)*$"));
         ds.start();
 
-        try (Connection c1 = ds.getConnection();
-             Connection c2 = ds.getConnection()) {
+        try (var ignored1 = ds.getConnection();
+             var ignored2 = ds.getConnection()) {
 
-            exception.expect(SQLTimeoutException.class);
-            ds.getConnection();
+            assertThrows(SQLTimeoutException.class, ds::getConnection);
         }
     }
 
     @Test
     public void testInterruptedWhileGettingConnection() {
-        ViburDBCPDataSource ds = createDataSourceWithTracking();
+        @SuppressWarnings("resource")
+        var ds = createDataSourceWithTracking();
+
         Thread.currentThread().interrupt();
         try {
             ds.getConnection();
@@ -326,23 +346,23 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
     }
 
     private static void doTestSelectStatement(DataSource ds) throws SQLException {
-        try (Connection connection = ds.getConnection()) {
+        try (var connection = ds.getConnection()) {
             executeAndVerifySelectStatement(connection);
         }
     }
 
     private static void doTestPreparedSelectStatement(DataSource ds) throws SQLException {
-        try (Connection connection = ds.getConnection()) {
+        try (var connection = ds.getConnection()) {
             executeAndVerifyPreparedSelectStatement(connection);
         }
     }
 
     private static void executeAndVerifySelectStatement(Connection connection) throws SQLException {
-        try (Statement statement = connection.createStatement()) {
-            ResultSet resultSet = statement.executeQuery("select * from actor where first_name = 'CHRISTIAN'");
+        try (var statement = connection.createStatement()) {
+            var resultSet = statement.executeQuery("select * from actor where first_name = 'CHRISTIAN'");
             Set<String> expectedLastNames = new HashSet<>(Arrays.asList("GABLE", "AKROYD", "NEESON"));
             while (resultSet.next()) {
-                String lastName = resultSet.getString("last_name");
+                var lastName = resultSet.getString("last_name");
                 assertTrue(expectedLastNames.remove(lastName));
             }
             assertTrue(expectedLastNames.isEmpty());
@@ -350,12 +370,12 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
     }
 
     private static void executeAndVerifyPreparedSelectStatement(Connection connection) throws SQLException {
-        try (PreparedStatement pStatement = connection.prepareStatement("select * from actor where first_name = ?")) {
+        try (var pStatement = connection.prepareStatement("select * from actor where first_name = ?")) {
             pStatement.setString(1, "CHRISTIAN");
-            ResultSet resultSet = pStatement.executeQuery();
+            var resultSet = pStatement.executeQuery();
             Set<String> expectedLastNames = new HashSet<>(Arrays.asList("GABLE", "AKROYD", "NEESON"));
             while (resultSet.next()) {
-                String lastName = resultSet.getString("last_name");
+                var lastName = resultSet.getString("last_name");
                 assertTrue(expectedLastNames.remove(lastName));
             }
             assertTrue(expectedLastNames.isEmpty());
@@ -363,12 +383,12 @@ public class ViburDBCPDataSourceTest extends AbstractDataSourceTest {
     }
 
     private static void executeAndVerifyPreparedSelectStatementByLastName(Connection connection) throws SQLException {
-        try (PreparedStatement pStatement = connection.prepareStatement("select * from actor where last_name = ?")) {
+        try (var pStatement = connection.prepareStatement("select * from actor where last_name = ?")) {
             pStatement.setString(1, "CROWE");
-            ResultSet resultSet = pStatement.executeQuery();
+            var resultSet = pStatement.executeQuery();
             Set<String> expectedFirstNames = new HashSet<>(Collections.singletonList("SIDNEY"));
             while (resultSet.next()) {
-                String firstName = resultSet.getString("first_name");
+                var firstName = resultSet.getString("first_name");
                 assertTrue(expectedFirstNames.remove(firstName));
             }
             assertTrue(expectedFirstNames.isEmpty());

@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Simeon Malchev
+ * Copyright 2013-2025 Simeon Malchev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,11 @@
 package org.vibur.dbcp;
 
 import org.hsqldb.cmdline.SqlToolError;
-import org.junit.After;
-import org.junit.BeforeClass;
-import org.vibur.dbcp.stcache.TestClhmStatementCache;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.vibur.dbcp.stcache.StatementHolder;
 import org.vibur.dbcp.stcache.StatementMethod;
+import org.vibur.dbcp.stcache.TestConcurrentStatementCache;
 import org.vibur.dbcp.util.HsqldbUtils;
 import org.vibur.dbcp.util.SimpleDataSource;
 
@@ -30,8 +30,6 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentMap;
-
-import static org.mockito.Mockito.mock;
 
 /**
  * Abstract JDBC integration super test.
@@ -49,11 +47,9 @@ public abstract class AbstractDataSourceTest {
     private static String username;
     private static String password;
 
-    protected AbstractDataSourceTest() { }
-
-    @BeforeClass
+    @BeforeAll
     public static void deployDatabaseSchemaAndData() throws IOException, SqlToolError, SQLException {
-        Properties properties = loadProperties();
+        var properties = loadProperties();
         jdbcUrl = properties.getProperty("jdbcUrl");
         username = properties.getProperty("username");
         password = properties.getProperty("password");
@@ -61,14 +57,14 @@ public abstract class AbstractDataSourceTest {
     }
 
     protected static Properties loadProperties() throws IOException {
-        Properties properties = new Properties();
+        var properties = new Properties();
         properties.load(new FileInputStream(PROPERTIES_FILE));
         return properties;
     }
 
     private ViburDBCPDataSource dataSource = null;
 
-    @After
+    @AfterEach
     public void terminateDataSource() {
         if (dataSource != null) {
             dataSource.close();
@@ -185,7 +181,7 @@ public abstract class AbstractDataSourceTest {
     }
 
     public static ConcurrentMap<StatementMethod, StatementHolder> mockStatementCache(ViburDBCPDataSource ds) {
-        TestClhmStatementCache testCache = new TestClhmStatementCache(ds.getStatementCacheMaxSize());
+        var testCache = new TestConcurrentStatementCache(ds.getStatementCacheMaxSize());
         ds.setStatementCache(testCache);
         return testCache.getMockedStatementCache();
     }

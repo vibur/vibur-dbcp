@@ -71,7 +71,7 @@ public final class HookHolder {
     ///////////////////////////////////////////////////////////////////////////////////////////////
     // The hooks collections implementing classes:
 
-    private static class ConnHooksHolder implements ConnHooks, ConnHooksAccessor {
+    private static final class ConnHooksHolder implements ConnHooks, ConnHooksAccessor {
 
         /** A list of programming {@linkplain Hook.InitConnection#on hooks} that will be invoked only once <i>after</i>
          * the raw JDBC Connection is first created. Their execution should take as short time as possible. */
@@ -147,7 +147,7 @@ public final class HookHolder {
         }
     }
 
-    private static class InvocationHooksHolder implements InvocationHooks, InvocationHooksAccessor {
+    static final class InvocationHooksHolder implements InvocationHooks, InvocationHooksAccessor {
 
         /** A list of programming {@linkplain Hook.MethodInvocation#on hooks} that will be invoked <i>before</i> (almost) all
          * methods on the proxied JDBC interfaces. Methods inherited from the {@link Object} class, methods related to the

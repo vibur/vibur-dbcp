@@ -16,19 +16,14 @@
 
 package org.vibur.dbcp;
 
-import org.junit.Test;
-import org.vibur.dbcp.pool.Hook;
+import org.junit.jupiter.api.Test;
 
-import java.lang.reflect.Method;
-import java.sql.Connection;
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * @author Simeon Malchev
@@ -37,44 +32,37 @@ public class StatementHookTest extends AbstractDataSourceTest {
 
     @Test
     public void testStatementExecutionHook() throws SQLException {
-        final List<String> executionOrder = new ArrayList<>();
+        @SuppressWarnings("resource")
+        var ds = createDataSourceNotStarted();
 
-        ViburDBCPDataSource ds = createDataSourceNotStarted();
+        List<String> executionOrder = new ArrayList<>();
 
         // first hook
-        ds.getInvocationHooks().addOnStatementExecution(new Hook.StatementExecution() {
-            @Override
-            public Object on(Statement proxy, Method method, Object[] args, String sqlQuery, List<Object[]> sqlQueryParams,
-                             StatementProceedingPoint proceed) throws SQLException {
-                try {
-                    executionOrder.add("aa");
-                    return proceed.on(proxy, method, args, sqlQuery, sqlQueryParams, proceed);
-                } finally {
-                    executionOrder.add("bb");
-                }
+        ds.getInvocationHooks().addOnStatementExecution((proxy, method, args, sqlQuery, sqlQueryParams, proceed) -> {
+            try {
+                executionOrder.add("aa");
+                return proceed.on(proxy, method, args, sqlQuery, sqlQueryParams, proceed);
+            } finally {
+                executionOrder.add("bb");
             }
         });
 
         // second hook
-        ds.getInvocationHooks().addOnStatementExecution(new Hook.StatementExecution() {
-            @Override
-            public Object on(Statement proxy, Method method, Object[] args, String sqlQuery, List<Object[]> sqlQueryParams,
-                             StatementProceedingPoint proceed) throws SQLException {
-                try {
-                    executionOrder.add("cc");
-                    return proceed.on(proxy, method, args, sqlQuery, sqlQueryParams, proceed);
-                } finally {
-                    executionOrder.add("dd");
-                }
+        ds.getInvocationHooks().addOnStatementExecution((proxy, method, args, sqlQuery, sqlQueryParams, proceed) -> {
+            try {
+                executionOrder.add("cc");
+                return proceed.on(proxy, method, args, sqlQuery, sqlQueryParams, proceed);
+            } finally {
+                executionOrder.add("dd");
             }
         });
 
         ds.start();
 
-        try (Connection connection = ds.getConnection();
-             Statement statement = connection.createStatement()) {
+        try (var connection = ds.getConnection();
+             var statement = connection.createStatement()) {
 
-            ResultSet resultSet = statement.executeQuery("select * from actor where first_name = 'CHRISTIAN'");
+            var resultSet = statement.executeQuery("select * from actor where first_name = 'CHRISTIAN'");
             assertTrue(resultSet.next()); // make sure the PreparedStatement execution has returned at least one record
         }
 

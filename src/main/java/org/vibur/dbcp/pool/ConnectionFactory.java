@@ -29,7 +29,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
-import static org.vibur.dbcp.util.JdbcUtils.*;
+import static org.vibur.dbcp.util.JdbcUtils.chainSQLException;
+import static org.vibur.dbcp.util.JdbcUtils.initLoginTimeout;
+import static org.vibur.dbcp.util.JdbcUtils.quietClose;
+import static org.vibur.dbcp.util.JdbcUtils.validateOrInitialize;
 
 /**
  * The object factory which controls the lifecycle of the underlying JDBC Connections: creates them,
@@ -74,7 +77,7 @@ public class ConnectionFactory implements ViburObjectFactory {
     public ConnHolder create(Connector connector) throws ViburDBCPException {
         Connection rawConnection = null;
         SQLException sqlException = null;
-        long startNanoTime = System.nanoTime();
+        var startNanoTime = System.nanoTime();
 
         try {
             rawConnection = requireNonNull(connector.connect());
@@ -88,13 +91,13 @@ public class ConnectionFactory implements ViburObjectFactory {
     }
 
     private ConnHolder postCreate(Connection rawConnection, SQLException sqlException, long startNanoTime) throws ViburDBCPException {
-        Hook.InitConnection[] onInit = connHooksAccessor.onInit();
-        long currentNanoTime = onInit.length > 0 || config.getConnectionIdleLimitInSeconds() >= 0 ? System.nanoTime() : 0;
+        var onInit = connHooksAccessor.onInit();
+        var currentNanoTime = onInit.length > 0 || config.getConnectionIdleLimitInSeconds() >= 0 ? System.nanoTime() : 0;
 
         if (onInit.length > 0) {
             try {
-                long takenNanos = currentNanoTime - startNanoTime;
-                for (Hook.InitConnection hook : onInit) {
+                var takenNanos = currentNanoTime - startNanoTime;
+                for (var hook : onInit) {
                     hook.on(rawConnection, takenNanos);
                 }
             } catch (SQLException e) {
@@ -118,9 +121,9 @@ public class ConnectionFactory implements ViburObjectFactory {
             return false;
         }
 
-        int idleLimit = config.getConnectionIdleLimitInSeconds();
+        var idleLimit = config.getConnectionIdleLimitInSeconds();
         if (idleLimit >= 0) {
-            long idleNanos = System.nanoTime() - connHolder.getRestoredNanoTime();
+            var idleNanos = System.nanoTime() - connHolder.getRestoredNanoTime();
             if (NANOSECONDS.toSeconds(idleNanos) >= idleLimit
                     && !validateOrInitialize(connHolder.rawConnection(), config.getTestConnectionQuery(), config)) {
                 logger.debug("Couldn't validate rawConnection {}", connHolder.rawConnection());
@@ -134,17 +137,17 @@ public class ConnectionFactory implements ViburObjectFactory {
 
     @Override
     public boolean readyToRestore(ConnHolder connHolder) {
-        Hook.CloseConnection[] onClose = connHooksAccessor.onClose();
-        long currentNanoTime = onClose.length > 0 || config.getConnectionIdleLimitInSeconds() >= 0 ? System.nanoTime() : 0;
+        var onClose = connHooksAccessor.onClose();
+        var currentNanoTime = onClose.length > 0 || config.getConnectionIdleLimitInSeconds() >= 0 ? System.nanoTime() : 0;
 
-        long startNanoTime = connHolder.getTakenNanoTime();
+        var startNanoTime = connHolder.getTakenNanoTime();
         clearTracking(connHolder); // we don't want to keep the tracking objects references
 
         if (onClose.length > 0) {
-            Connection rawConnection = connHolder.rawConnection();
+            var rawConnection = connHolder.rawConnection();
             try {
-                long takenNanos = currentNanoTime - startNanoTime;
-                for (Hook.CloseConnection hook : onClose) {
+                var takenNanos = currentNanoTime - startNanoTime;
+                for (var hook : onClose) {
                     hook.on(rawConnection, takenNanos);
                 }
             } catch (SQLException e) {
@@ -184,16 +187,16 @@ public class ConnectionFactory implements ViburObjectFactory {
 
     @Override
     public void destroy(ConnHolder connHolder) {
-        Connection rawConnection = connHolder.rawConnection();
+        var rawConnection = connHolder.rawConnection();
         logger.debug("Destroying rawConnection {}", rawConnection);
         closeStatements(rawConnection);
 
-        Hook.DestroyConnection[] onDestroy = connHooksAccessor.onDestroy();
-        long startTime = onDestroy.length == 0 ? 0 : System.nanoTime();
+        var onDestroy = connHooksAccessor.onDestroy();
+        var startTime = onDestroy.length == 0 ? 0 : System.nanoTime();
 
         quietClose(rawConnection);
-        long takenNanos = onDestroy.length == 0 ? 0 : System.nanoTime() - startTime;
-        for (Hook.DestroyConnection hook : onDestroy) {
+        var takenNanos = onDestroy.length == 0 ? 0 : System.nanoTime() - startTime;
+        for (var hook : onDestroy) {
             hook.on(rawConnection, takenNanos);
         }
     }

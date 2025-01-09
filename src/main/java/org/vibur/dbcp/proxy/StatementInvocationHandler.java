@@ -60,18 +60,18 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
         this.statementCache = statementCache;
         this.config = config;
 
-        InvocationHooksAccessor invocationHooksAccessor = (InvocationHooksAccessor) config.getInvocationHooks();
+        var invocationHooksAccessor = (InvocationHooksAccessor) config.getInvocationHooks();
         this.executionHooks = invocationHooksAccessor.onStatementExecution();
         this.firstHook = executionHooks.length > 0 ? executionHooks[0] : this;
 
         this.logSqlQueryParams = config.isIncludeQueryParameters() &&
                 (executionHooks.length > 0 || invocationHooksAccessor.onResultSetRetrieval().length > 0);
-        this.sqlQueryParams = logSqlQueryParams ? new ArrayList<Object[]>() : null;
+        this.sqlQueryParams = logSqlQueryParams ? new ArrayList<>() : null;
     }
 
     @Override
     Object unrestrictedInvoke(Statement proxy, Method method, Object[] args) throws SQLException {
-        String methodName = method.getName();
+        var methodName = method.getName();
 
         if (methodName == "close") {
             return processClose(method, args);
@@ -85,7 +85,7 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
 
     @Override
     Object restrictedInvoke(Statement proxy, Method method, Object[] args) throws SQLException {
-        String methodName = method.getName();
+        var methodName = method.getName();
 
         if (methodName.startsWith("set")) { // this intercepts all "set..." JDBC Prepared/Callable Statement methods
             return processSet(method, args);
@@ -126,7 +126,7 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
 
     private Object processCancel(Method method, Object[] args) throws SQLException {
         if (statementCache != null) {
-            statementCache.remove(statement); // because cancelled Statements are not longer valid
+            statementCache.remove(statement); // because cancelled Statements are no longer valid
         }
         return targetInvoke(method, args);
     }
@@ -153,7 +153,7 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
     }
 
     private Object processMoreResults(Method method, Object[] args) throws SQLException {
-        int current = Statement.CLOSE_ALL_RESULTS;
+        var current = Statement.CLOSE_ALL_RESULTS;
         if (args != null && args.length == 1) {
             current = (Integer) args[0];
         }
@@ -176,12 +176,12 @@ class StatementInvocationHandler extends ChildObjectInvocationHandler<Connection
     }
 
     private ResultSet newProxiedResultSet(Statement proxy, Method method, Object[] args, String sqlQuery) throws SQLException {
-        ResultSet rawResultSet = (ResultSet) targetInvoke(method, args);
+        var rawResultSet = (ResultSet) targetInvoke(method, args);
         return addResultSet(newProxyResultSet(rawResultSet, proxy, sqlQuery, sqlQueryParams, config, this));
     }
 
     private void addSqlQueryParams(Method method, Object[] args) {
-        Object[] params = new Object[args.length + 1];
+        var params = new Object[args.length + 1];
         params[0] = method.getName().substring(3); // "set".length() == 3
         System.arraycopy(args, 0, params, 1, args.length);
         sqlQueryParams.add(params);

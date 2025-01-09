@@ -34,7 +34,9 @@ import java.util.regex.Pattern;
 import static java.lang.String.format;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
-import static org.vibur.dbcp.ViburConfig.*;
+import static org.vibur.dbcp.ViburConfig.SQLSTATE_INTERRUPTED_ERROR;
+import static org.vibur.dbcp.ViburConfig.SQLSTATE_POOL_CLOSED_ERROR;
+import static org.vibur.dbcp.ViburConfig.SQLSTATE_TIMEOUT_ERROR;
 import static org.vibur.dbcp.proxy.Proxy.newProxyConnection;
 import static org.vibur.dbcp.util.JdbcUtils.chainSQLException;
 import static org.vibur.dbcp.util.ViburUtils.getPoolName;
@@ -79,10 +81,10 @@ public class PoolOperations {
     ////////////// getProxyConnection(...) //////////////
 
     public Connection getProxyConnection(long timeoutMs) throws SQLException {
-        int attempt = 1;
+        var attempt = 1;
         ConnHolder connHolder = null;
         SQLException sqlException = null;
-        long startNanoTime = System.nanoTime();
+        var startNanoTime = System.nanoTime();
 
         while (connHolder == null) {
             try {
@@ -115,7 +117,7 @@ public class PoolOperations {
             logger.trace("Taking rawConnection {}", connHolder.rawConnection());
         }
 
-        Connection proxy = newProxyConnection(connHolder, this, dataSource);
+        var proxy = newProxyConnection(connHolder, this, dataSource);
         if (dataSource.isPoolEnableConnectionTracking()) {
             connHolder.setProxyConnection(proxy);
         }
@@ -132,9 +134,9 @@ public class PoolOperations {
      * @throws ViburDBCPException to indicate a recoverable error that can be retried
      */
     private ConnHolder getConnHolder(long timeoutMs) throws SQLException, ViburDBCPException {
-        Hook.GetConnection[] onGet = ((ConnHooksAccessor) dataSource.getConnHooks()).onGet();
+        var onGet = ((ConnHooksAccessor) dataSource.getConnHooks()).onGet();
         ConnHolder connHolder = null;
-        long[] waitedNanos = NO_WAIT;
+        var waitedNanos = NO_WAIT;
         SQLException sqlException = null;
         ViburDBCPException viburException = null;
 
@@ -155,9 +157,9 @@ public class PoolOperations {
             sqlException = e.unwrapSQLException(); // currently all such errors are treated as recoverable, i.e., can be retried
 
         } finally {
-            Connection rawConnection = connHolder != null ? connHolder.rawConnection() : null;
+            var rawConnection = connHolder != null ? connHolder.rawConnection() : null;
             try {
-                for (Hook.GetConnection hook : onGet) {
+                for (var hook : onGet) {
                     hook.on(rawConnection, waitedNanos[0]);
                 }
             } catch (SQLException e) {
@@ -176,23 +178,23 @@ public class PoolOperations {
     }
 
     private SQLException createSQLException(long takenNanos) {
-        String poolName = getPoolName(dataSource);
+        var poolName = getPoolName(dataSource);
         if (poolService.isTerminated()) {
             return new SQLException(format("Pool %s, the poolService is terminated.", poolName),
                     SQLSTATE_POOL_CLOSED_ERROR);
         }
 
-        Hook.GetConnectionTimeout[] onTimeout = ((ConnHooksAccessor) dataSource.getConnHooks()).onTimeout();
-        boolean isInterrupted = Thread.currentThread().isInterrupted(); // someone else has interrupted us, so we do not clear the flag
+        var onTimeout = ((ConnHooksAccessor) dataSource.getConnHooks()).onTimeout();
+        var isInterrupted = Thread.currentThread().isInterrupted(); // someone else has interrupted us, so we do not clear the flag
         if (!isInterrupted && onTimeout.length > 0) {
-            TakenConnection[] takenConnections = dataSource.getTakenConnections();
-            for (Hook.GetConnectionTimeout hook : onTimeout) {
+            var takenConnections = dataSource.getTakenConnections();
+            for (var hook : onTimeout) {
                 hook.on(takenConnections, takenNanos);
             }
         }
 
-        double takenMs = takenNanos * 0.000_001;
-        int intTakenMs = (int) Math.round(takenMs);
+        var takenMs = takenNanos * 1e-6;
+        var intTakenMs = (int) Math.round(takenMs);
         return !isInterrupted ?
                 new SQLTimeoutException(format("Pool %s, couldn't obtain SQL connection within %.3f ms.",
                         poolName, takenMs), SQLSTATE_TIMEOUT_ERROR, intTakenMs) :
@@ -206,7 +208,10 @@ public class PoolOperations {
         if (logger.isTraceEnabled()) {
             logger.trace("Restoring rawConnection {}", connHolder.rawConnection());
         }
-        boolean reusable = valid && exceptions.length == 0 && connHolder.version() == connectionFactory.version();
+
+        // Currently, any SQL exceptions on the rawConnection or its derived objects will mark the connHolder as non-reusable
+        // and its underlying rawConnection will be closed upon return.
+        var reusable = valid && exceptions.length == 0 && connHolder.version() == connectionFactory.version();
         poolService.restore(connHolder, reusable);
         processSQLExceptions(connHolder, exceptions);
     }
@@ -218,17 +223,17 @@ public class PoolOperations {
      * @param exceptions the list of SQL exceptions that have occurred on the connection; might be an empty list but not a {@code null}
      */
     private void processSQLExceptions(ConnHolder connHolder, SQLException[] exceptions) {
-        int connVersion = connHolder.version();
-        SQLException criticalException = getCriticalSQLException(exceptions);
+        var connVersion = connHolder.version();
+        var criticalException = getCriticalSQLException(exceptions);
         if (criticalException != null && connectionFactory.compareAndSetVersion(connVersion, connVersion + 1)) {
-            int destroyed = poolService.drainCreated(); // destroys all connections in the pool
+            var destroyed = poolService.drainCreated(); // destroys all connections in the pool
             logger.error("Critical SQLState {} occurred, destroyed {} connections from pool {}, current connection version is {}.",
                     criticalException.getSQLState(), destroyed, getPoolName(dataSource), connectionFactory.version(), criticalException);
         }
     }
 
     private SQLException getCriticalSQLException(SQLException[] exceptions) {
-        for (SQLException exception : exceptions) {
+        for (var exception : exceptions) {
             if (isCriticalSQLException(exception)) {
                 return exception;
             }

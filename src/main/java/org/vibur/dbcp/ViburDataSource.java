@@ -100,7 +100,7 @@ public interface ViburDataSource extends DataSource, AutoCloseable {
      * {@inheritDoc}
      *
      * <p>This method will return a <b>raw (non-pooled)</b> JDBC Connection when called with credentials different
-     * than the configured default credentials.
+     * from the configured default credentials.
      *
      * @throws SQLTimeoutException when called with the default credentials and when the timeout value specified by
      * the {@link ViburConfig#connectionTimeoutInMs connectionTimeoutInMs} has been exceeded
@@ -146,7 +146,7 @@ public interface ViburDataSource extends DataSource, AutoCloseable {
 
     /**
      * Generates information about all currently taken connections, including the stack traces of the threads
-     * that have taken them, plus the threads names and states. This method implies that that the
+     * that have taken them, plus the threads names and states. This method implies that the
      * {@link ViburConfig#poolEnableConnectionTracking} option is enabled.
      *
      * <p>The exact format of the logged message is controlled by {@link ViburConfig#takenConnectionsFormatter}.
@@ -158,7 +158,7 @@ public interface ViburDataSource extends DataSource, AutoCloseable {
     /**
      * Returns an array of all taken proxy Connections. Note that this is just a snapshot of the taken Connections
      * at the moment of the method call; the closed/restored state of some (or all) of the returned Connections may
-     * change immediately after this method returns. This method implies that that the
+     * change immediately after this method returns. This method implies that the
      * {@link ViburConfig#poolEnableConnectionTracking} option is enabled.
      *
      * <p>Also see {@link #getTakenConnectionsStackTraces}.

@@ -18,23 +18,31 @@ package org.vibur.dbcp;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.vibur.dbcp.pool.*;
-import org.vibur.dbcp.stcache.ClhmStatementCache;
+import org.vibur.dbcp.pool.ConnectionFactory;
+import org.vibur.dbcp.pool.DefaultHook;
+import org.vibur.dbcp.pool.PoolOperations;
+import org.vibur.dbcp.pool.TakenConnection;
+import org.vibur.dbcp.pool.TakenConnectionsFormatter;
+import org.vibur.dbcp.pool.ViburListener;
+import org.vibur.dbcp.stcache.ConcurrentStatementCache;
 import org.vibur.objectpool.ConcurrentPool;
-import org.vibur.objectpool.PoolService;
 import org.vibur.objectpool.util.ThreadedPoolReducer;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.net.URL;
-import java.net.URLConnection;
-import java.sql.*;
-import java.util.*;
+import java.sql.Connection;
+import java.sql.Driver;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.sql.SQLFeatureNotSupportedException;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static java.lang.Boolean.parseBoolean;
@@ -42,10 +50,16 @@ import static java.lang.Float.parseFloat;
 import static java.lang.Integer.parseInt;
 import static java.lang.Long.parseLong;
 import static java.lang.String.format;
-import static java.sql.Connection.*;
+import static java.sql.Connection.TRANSACTION_NONE;
+import static java.sql.Connection.TRANSACTION_READ_COMMITTED;
+import static java.sql.Connection.TRANSACTION_READ_UNCOMMITTED;
+import static java.sql.Connection.TRANSACTION_REPEATABLE_READ;
+import static java.sql.Connection.TRANSACTION_SERIALIZABLE;
 import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static org.vibur.dbcp.ViburDataSource.State.*;
+import static org.vibur.dbcp.ViburDataSource.State.NEW;
+import static org.vibur.dbcp.ViburDataSource.State.TERMINATED;
+import static org.vibur.dbcp.ViburDataSource.State.WORKING;
 import static org.vibur.dbcp.ViburMonitoring.registerMBean;
 import static org.vibur.dbcp.ViburMonitoring.unregisterMBean;
 import static org.vibur.dbcp.pool.Connector.Builder.buildConnector;
@@ -85,7 +99,7 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
 
     /**
      * Initialization via properties file name. Must be either standard properties file
-     * or XML file which is complaint with "http://java.sun.com/dtd/properties.dtd".
+     * or XML file which is compliant with <a href="http://java.sun.com/dtd/properties.dtd">the standard</a>.
      *
      * <p>{@code configFileName} can be {@code null} in which case the default resource
      * file names {@link #DEFAULT_XML_CONFIG_FILE_NAME} or {@link #DEFAULT_PROPERTIES_CONFIG_FILE_NAME}
@@ -126,7 +140,7 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
     }
 
     private URL getURL(String configFileName) {
-        URL config = Thread.currentThread().getContextClassLoader().getResource(configFileName);
+        var config = Thread.currentThread().getContextClassLoader().getResource(configFileName);
         if (config == null) {
             config = getClass().getClassLoader().getResource(configFileName);
             if (config == null) {
@@ -139,10 +153,10 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
     private void configureFromURL(URL config) throws ViburDBCPException {
         InputStream inputStream = null;
         try {
-            URLConnection uConn = config.openConnection();
+            var uConn = config.openConnection();
             uConn.setUseCaches(false);
             inputStream = uConn.getInputStream();
-            Properties properties = new Properties();
+            var properties = new Properties();
             if (config.getFile().endsWith(".xml")) {
                 properties.loadFromXML(inputStream);
             }
@@ -165,20 +179,20 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
 
     private void configureFromProperties(Properties properties) throws ViburDBCPException {
         Set<String> fields = new HashSet<>();
-        for (Field field : ViburConfig.class.getDeclaredFields()) {
+        for (var field : ViburConfig.class.getDeclaredFields()) {
             fields.add(field.getName());
         }
 
-        for (Map.Entry<Object, Object> entry : properties.entrySet()) {
-            String key = (String) entry.getKey();
-            String val = (String) entry.getValue();
+        for (var entry : properties.entrySet()) {
+            var key = (String) entry.getKey();
+            var val = (String) entry.getValue();
             if (!fields.contains(key)) {
                 logger.warn("Ignoring unknown configuration property {}", key);
                 continue;
             }
             try {
-                Field field = ViburConfig.class.getDeclaredField(key);
-                Class<?> type = field.getType();
+                var field = ViburConfig.class.getDeclaredField(key);
+                var type = field.getType();
                 if (type == int.class || type == Integer.class) {
                     set(field, parseInt(val));
                 }
@@ -204,9 +218,9 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
     }
 
     private void set(Field field, Object value) throws IllegalArgumentException, ReflectiveOperationException {
-        String filedName = field.getName();
-        String methodSetter = "set" + filedName.substring(0, 1).toUpperCase() + filedName.substring(1);
-        Method setter = ViburConfig.class.getDeclaredMethod(methodSetter, field.getType());
+        var filedName = field.getName();
+        var methodSetter = "set" + filedName.substring(0, 1).toUpperCase() + filedName.substring(1);
+        var setter = ViburConfig.class.getDeclaredMethod(methodSetter, field.getType());
         setter.invoke(this, value);
     }
 
@@ -250,11 +264,11 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
 
         initDefaultHooks();
 
-        ViburObjectFactory connectionFactory = getConnectionFactory();
+        var connectionFactory = getConnectionFactory();
         if (connectionFactory == null) {
             setConnectionFactory(connectionFactory = new ConnectionFactory(this));
         }
-        PoolService<ConnHolder> pool = getPool();
+        var pool = getPool();
         if (pool == null) {
             if (isPoolEnableConnectionTracking() && getTakenConnectionsFormatter() == null) {
                 setTakenConnectionsFormatter(new TakenConnectionsFormatter.Default(this));
@@ -277,7 +291,7 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
 
     @Override
     public void terminate() {
-        State oldState = state.getAndSet(TERMINATED);
+        var oldState = state.getAndSet(TERMINATED);
         if (oldState == TERMINATED || oldState == NEW) {
             return;
         }
@@ -285,7 +299,7 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
         if (getPool() != null) {
             getPool().terminate();
         }
-        TakenConnection[] takenConnections = getTakenConnections();
+        var takenConnections = getTakenConnections();
 
         if (getPoolReducer() != null) {
             getPoolReducer().terminate();
@@ -337,7 +351,7 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
             logger.warn("JDBC username is not specified.");
         }
 
-        int connectionTimeoutInSeconds = (int) MILLISECONDS.toSeconds(getConnectionTimeoutInMs());
+        var connectionTimeoutInSeconds = (int) MILLISECONDS.toSeconds(getConnectionTimeoutInMs());
         if (getLoginTimeoutInSeconds() > connectionTimeoutInSeconds) {
             logger.info("Setting loginTimeoutInSeconds to {}", connectionTimeoutInSeconds);
             setLoginTimeoutInSeconds(connectionTimeoutInSeconds);
@@ -356,7 +370,7 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
         }
 
         if (getDefaultTransactionIsolation() != null) {
-            String defaultTransactionIsolation = getDefaultTransactionIsolation().toUpperCase();
+            var defaultTransactionIsolation = getDefaultTransactionIsolation().toUpperCase();
             switch (defaultTransactionIsolation) {
                 case "NONE" :
                     setDefaultTransactionIsolationIntValue(TRANSACTION_NONE);
@@ -384,7 +398,7 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
         if (getDriver() == null) {
             try {
                 if (getDriverClassName() != null) {
-                    setDriver((Driver) Class.forName(getDriverClassName()).newInstance());
+                    setDriver((Driver) Class.forName(getDriverClassName()).getDeclaredConstructor().newInstance());
                 }
                 else {
                     setDriver(DriverManager.getDriver(getJdbcUrl()));
@@ -406,7 +420,7 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
     }
 
     private void initPoolReducer() throws ViburDBCPException {
-        ThreadedPoolReducer poolReducer = getPoolReducer();
+        var poolReducer = getPoolReducer();
         if (getReducerTimeIntervalInSeconds() > 0 && poolReducer == null) {
             try {
                 poolReducer = (ThreadedPoolReducer) Class.forName(getPoolReducerClass())
@@ -420,15 +434,15 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
     }
 
     private void initStatementCache() {
-        int statementCacheMaxSize = getStatementCacheMaxSize();
+        var statementCacheMaxSize = getStatementCacheMaxSize();
         if (statementCacheMaxSize > 0 && getStatementCache() == null) {
-            setStatementCache(new ClhmStatementCache(statementCacheMaxSize));
+            setStatementCache(new ConcurrentStatementCache(statementCacheMaxSize));
         }
     }
 
     @Override
     public Connection getConnection() throws SQLException {
-        State state = validatePoolState(isAllowConnectionAfterTermination());
+        var state = validatePoolState(isAllowConnectionAfterTermination());
         if (state == WORKING) {
             try {
                 return poolOperations.getProxyConnection(getConnectionTimeoutInMs());
@@ -466,8 +480,8 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
     public Connection getNonPooledConnection(String username, String password) throws SQLException {
         validatePoolState(true);
         try {
-            Connector connector = buildConnector(this, username, password);
-            Connection rawConnection = getConnectionFactory().create(connector).rawConnection();
+            var connector = buildConnector(this, username, password);
+            var rawConnection = getConnectionFactory().create(connector).rawConnection();
             logger.debug("Taking non-pooled rawConnection {}", rawConnection);
             return rawConnection;
         } catch (ViburDBCPException e) {
@@ -478,7 +492,7 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
     @Override
     public void severConnection(Connection connection) throws SQLException {
         if (Proxy.isProxyClass(connection.getClass())) {
-            InvocationHandler ih = Proxy.getInvocationHandler(connection);
+            var ih = Proxy.getInvocationHandler(connection);
             if (ih instanceof ConnectionInvalidator) {
                 ((ConnectionInvalidator) ih).invalidate();
                 return;
@@ -488,7 +502,7 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
     }
 
     private State validatePoolState(boolean allowConnectionAfterTermination) throws SQLException {
-        State state = getState();
+        var state = getState();
         switch (state) {
             case NEW:
                 throw new SQLException(format("Pool %s, %s", getName(), state), SQLSTATE_POOL_NOTSTARTED_ERROR);
@@ -513,7 +527,7 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
 
     @Override
     public String getTakenConnectionsStackTraces() {
-        if (!isPoolEnableConnectionTracking() || getState() != WORKING) {
+        if (!isPoolEnableConnectionTracking()) {
             return "poolEnableConnectionTracking is disabled or the pool is not in working state";
         }
 
@@ -522,7 +536,7 @@ public class ViburDBCPDataSource extends ViburConfig implements ViburDataSource 
 
     @Override
     public TakenConnection[] getTakenConnections() {
-        if (!isPoolEnableConnectionTracking() || getState() != WORKING) {
+        if (!isPoolEnableConnectionTracking()) {
             return NO_TAKEN_CONNECTIONS;
         }
 

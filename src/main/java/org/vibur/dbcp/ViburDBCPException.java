@@ -49,7 +49,7 @@ public class ViburDBCPException extends RuntimeException {
     }
 
     public SQLException unwrapSQLException() {
-        Throwable cause = getCause();
+        var cause = getCause();
         if (cause instanceof SQLException) {
             return (SQLException) cause;
         }
